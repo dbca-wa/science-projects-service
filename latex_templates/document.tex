@@ -1,0 +1,52 @@
+{% load pythia_base texify %}
+{% include "latex/header_scrbook.tex" %}
+{% url original.opts|pythia_urlname:"change" original.pk as original_change %}
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{% templatetag openbrace %}{{ baseurl|safe }}{{ original_change }}}{% templatetag openbrace %}{{ subtitle }}}}
+%\chead{\href{% templatetag openbrace %}{{ baseurl|safe }}}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{% templatetag openbrace %}{{ STATIC_ROOT }}/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Generated}~{{ timestamp|date:'r' }}} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{% templatetag openbrace %}{% block subject %}Subject{% endblock %}}
+\title{% templatetag openbrace %}{% block title %}Title{% endblock %}}
+\subtitle{% templatetag openbrace %}{% block subtitle %}Subtitle{% endblock %}}
+\author{% templatetag openbrace %}{% block author %}Author{% endblock %}}
+\publishers{% templatetag openbrace %}\small{% block publishers %}Publishers{% endblock %}}
+\uppertitleback{% templatetag openbrace %}{% block uppertitleback %}{% endblock %}}
+\lowertitleback{% templatetag openbrace %}{% block lowertitleback %}{% endblock %}}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+{% block content %}{% endblock content %}
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

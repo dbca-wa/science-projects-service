@@ -1,0 +1,28 @@
+%------------------------------------------------------------------------------%
+% Science Project Reports
+%------------------------------------------------------------------------------%
+{% load texify %}
+{# requires reports to be sorted by program, done in ARARReport.progressreports #}
+{% regroup reports|dictsort:"project.program.position" by project.program as report_list %}
+{% for program_reports in report_list %}
+  {% with program_reports.grouper as program %}
+    {% if program.image %}
+    \chapterimage{.{{ program.image.url }}}
+    {% else %}
+    \chapterimage{% templatetag openbrace %}{{ STATIC_ROOT }}/img/80mile.jpg}
+    {% endif %}
+    \chapter*{% templatetag openbrace %}{{ program.name|striptags }}}
+    \phantomsection                         % fix pageref from TOC
+    \addcontentsline{toc}{chapter}{% templatetag openbrace %}{{ program.name|striptags }}}
+    \chaptermark{% templatetag openbrace %}{{ program.name|striptags }}}
+    \paragraph*{Program Leader: {{ program.program_leader.get_full_name|striptags }}}
+    {\small {{ program.introduction|html2latex }}}
+    {% for report in program_reports.list %}
+      {% include "latex/includes/project.tex" with project=report.project %}
+    {% endfor %}
+    \newpage                                    % Page break after SCD programs
+  {% endwith %}
+{% endfor %}
+%------------------------------------------------------------------------------%
+% End Science Project Reports
+%------------------------------------------------------------------------------%

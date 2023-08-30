@@ -1,0 +1,50 @@
+%------------------------------------------------------------------------------%
+% Begin ARAR Table Science Projects
+%------------------------------------------------------------------------------%
+{% load texify %}
+
+{% if original.research_chapterimage %}
+\chapterimage{.{{ original.research_chapterimage.url }}}
+{% else %}
+\chapterimage{% templatetag openbrace %}{{ STATIC_ROOT }}/img/80mile.jpg}
+{% endif %}
+
+\chapter*{Summary of Research Projects}
+\phantomsection
+\addcontentsline{toc}{chapter}{Summary of Research Projects}
+\chaptermark{Summary of Research Projects}
+%
+{# requires reports to be sorted by program, done in ARARReport.progressreports #}
+{% regroup reports|dictsort:"project.program.position" by project.program as report_list %}
+%
+{% for program_reports in report_list %}
+\section*{ {{ program_reports.grouper.name|html2latex }} }
+\sectionmark{ {{ program_reports.grouper.name|html2latex }} }
+%
+{% comment %} \begin{longtabu} to \linewidth { X X X p{5cm} r{0.7cm} } {% endcomment %}
+\begin{longtblr}[caption={}]{colspec={X[l, 2] X[l, 2] X[l, 2] X[l, 4] X[r, 1]}, rowhead=1}
+\hline
+\rowcolor{infobg}
+\textbf{DBCA Region} &
+\textbf{IBRA/IMCRA} &
+\textbf{NRM Region} &
+\textbf{Project Title} &
+\textbf{Page}\\
+\hline
+\endhead
+{% for report in program_reports.list|dictsort:"project.title" %}
+{{ report.project.area_list_dpaw_region|html2latex }} &
+{{ report.project.area_list_ibra_imcra_region|html2latex }} &
+{{ report.project.area_list_nrm_region|html2latex }} &
+{{ report.project.title|html2latex }} &
+\pageref{sec:{{ report.project.project_year_number }}} \\
+\hline
+{% empty %}
+No projects.\\
+{% endfor %}
+\end{longtblr}
+%
+{% endfor %}
+%------------------------------------------------------------------------------%
+% End ARAR Table Science Projects
+%------------------------------------------------------------------------------%

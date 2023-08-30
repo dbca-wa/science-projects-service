@@ -1,0 +1,45 @@
+%------------------------------------------------------------------------------%
+% Begin ARAR Table Student Projects
+%------------------------------------------------------------------------------%
+{% load texify %}
+
+{% if original.collaboration_chapterimage %}
+\chapterimage{.{{ original.collaboration_chapterimage.url }}}
+{% else %}
+\chapterimage{% templatetag openbrace %}{{ STATIC_ROOT }}/img/80mile.jpg}
+{% endif %}
+
+\chapter*{Student Projects}
+\addcontentsline{toc}{chapter}{Student Projects}
+\chaptermark{Student Projects}
+\sectionmark{}
+%
+%\begin{longtabu} to \textwidth { p{2.3cm} X X X p{1.5cm} r{0.7cm} }
+\begin{longtblr}[caption={}]{colspec={X[l, 1.5] X[l, 1.5] X[l, 3] X[l, 5] X[r, 1.8] X[r, 0.7]}, rowhead=1}
+\hline
+\rowcolor{infobg}
+\textbf{DBCA Officer} &
+\textbf{Student} &
+\textbf{Academic} &
+\textbf{Project Title} &
+\textbf{Duration} &
+\textbf{Page} \\
+\hline
+\endhead
+%
+{% for report in reports %}
+{{ report.project.supervising_scientist_list_plain|html2latex }} &
+{{ report.project.student_list_plain|html2latex }} ({{ report.project.get_level_display|striptags }}) &
+{{ report.project.academic_list_plain|safe|html2latex }} &
+{{ report.project.title|html2latex }} &
+{{ report.project.start_date|date:"Y" }} -- {{ report.project.end_date|date:"Y" }} &
+\pageref{sec:{{ report.project.project_year_number }}} \\
+\hline
+{% empty %}
+No projects. \\
+{% endfor %}
+%
+\end{longtblr}
+%------------------------------------------------------------------------------%
+% End ARAR Table Student Projects
+%------------------------------------------------------------------------------%

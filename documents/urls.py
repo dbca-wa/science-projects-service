@@ -1,0 +1,31 @@
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path("spawn", views.DocumentSpawner.as_view()),
+    path("projectdocuments", views.ProjectDocuments.as_view()),
+    path("projectdocuments/<int:pk>", views.ProjectDocumentDetail.as_view()),
+    path("conceptplans", views.ConceptPlans.as_view()),
+    path("conceptplans/<int:pk>", views.ConceptPlanDetail.as_view()),
+    path("projectplans", views.ProjectPlans.as_view()),
+    path("projectplans/<int:pk>", views.ProjectPlanDetail.as_view()),
+    path("projectplans/endorsements", views.Endorsements.as_view()),
+    path(
+        "projectplans/endorsements/<int:pk>",
+        views.EndorsementDetail.as_view(),
+    ),
+    path("progressreports", views.ProgressReports.as_view()),
+    path("progressreports/<int:pk>", views.ProgressReportDetail.as_view()),
+    path("studentreports", views.StudentReports.as_view()),
+    path("studentreports/<int:pk>", views.StudentReportDetail.as_view()),
+    path("projectclosures", views.ProjectClosures.as_view()),
+    path("projectclosures/<int:pk>", views.ProjectClosureDetail.as_view()),
+    path("reports", views.Reports.as_view()),
+    path("reports/<int:pk>", views.ReportDetail.as_view()),
+    path("reports/download", views.DownloadAnnualReport.as_view()),
+    path("reports/latestyear", views.GetLatestReportYear.as_view()),
+    path("reports/completed", views.GetCompletedReports.as_view()),
+    path("endorsements", views.ProjectDocuments.as_view()),
+    path("publications", views.Publications.as_view()),
+    path("publications/<int:pk>", views.PublicationDetail.as_view()),
+]
