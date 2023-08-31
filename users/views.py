@@ -1,6 +1,7 @@
 import ast
 import json
 import os
+import uuid
 import requests
 from rest_framework.views import APIView
 from math import ceil
@@ -8,6 +9,9 @@ from math import ceil
 import urllib3
 
 from contacts.models import UserContact
+from medias.models import UserAvatar
+from medias.serializers import TinyUserAvatarSerializer
+from medias.views import UserAvatarDetail, UserAvatars
 from .models import User, UserProfile, UserWork
 from rest_framework.exceptions import NotFound
 from .serializers import (
@@ -35,6 +39,7 @@ from rest_framework.status import (
     HTTP_202_ACCEPTED,
     HTTP_400_BAD_REQUEST,
     HTTP_201_CREATED,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from rest_framework.permissions import (
     IsAuthenticated,
@@ -634,6 +639,10 @@ class UpdateProfile(APIView):
         except User.DoesNotExist:
             raise NotFound
 
+    def is_valid_image_extension(self, filename):
+        valid_extensions = (".jpg", ".jpeg", ".png")
+        return filename.lower().endswith(valid_extensions)
+
     def get(self, req, pk):
         user = self.go(pk)
         print(f"\nUSER: {user}\n")
@@ -657,39 +666,81 @@ class UpdateProfile(APIView):
         print(f"{result}")
         return (result.get("id"), result.get("uploadURL"))
 
-    def upload_to_cf_url(self, url, file_path):
-        # Read the image file
-        with open(file_path, "rb") as file:
-            filename = os.path.basename(file_path)  # Use os module directly
-            file_content = file.read()
-            http = urllib3.PoolManager()
-            fields = {"file": (filename, file_content)}
-            response = http.request("POST", url, fields=fields)
+    def upload_to_cf_url(self, url, file_path=None, file_content=None):
+        if file_path:
+            with open(file_path, "rb") as file:
+                filename = os.path.basename(file_path)
+                file_content = file.read()
+        else:
+            # Ensure that file_content is not None
+            if file_content is None:
+                raise ValueError("Either file_path or file_content must be provided.")
 
-            if response.status == 200:
-                # self.misc.nls(
-                #     f"{self.misc.bcolors.OKGREEN}File uploaded{self.misc.bcolors.ENDC}"
-                # )
-                data = json.loads(response.data.decode("utf-8"))
-                variants = data["result"]["variants"]
-                variants_string = variants[0] if variants else None
-                print(f"Variants string: {variants_string}")
-                return variants_string
-            else:
-                print(response)
-                error_message = response.text
-                print(
-                    response.status,
-                    error_message,
-                )
-                raise Exception(
-                    "Failed to upload file to cloudflare",
-                )
+            # Generate a unique filename for in-memory content
+            filename = (
+                f"uploaded_{uuid.uuid4().hex}.png"  # Use the appropriate extension
+            )
+
+        if file_path and not self.is_valid_image_extension(filename):
+            raise ValueError("The file is not a valid photo file")
+
+        http = urllib3.PoolManager()
+        fields = {"file": (filename, file_content)}
+        response = http.request("POST", url, fields=fields)
+
+        if response.status == 200:
+            data = json.loads(response.data.decode("utf-8"))
+            variants = data["result"]["variants"]
+            variants_string = variants[0] if variants else None
+            print(f"Variants string: {variants_string}")
+            return variants_string
+        else:
+            print(response)
+            error_message = response.text
+            print(
+                response.status,
+                error_message,
+            )
+            raise Exception("Failed to upload file to cloudflare")
+
+        # # Read the image file
+        # with open(file_path, "rb") as file:
+        #     filename = os.path.basename(file_path)  # Use os module directly
+        #     file_content = file.read()
+        #     http = urllib3.PoolManager()
+        #     fields = {"file": (filename, file_content)}
+        #     response = http.request("POST", url, fields=fields)
+
+        #     if response.status == 200:
+        #         # self.misc.nls(
+        #         #     f"{self.misc.bcolors.OKGREEN}File uploaded{self.misc.bcolors.ENDC}"
+        #         # )
+        #         data = json.loads(response.data.decode("utf-8"))
+        #         variants = data["result"]["variants"]
+        #         variants_string = variants[0] if variants else None
+        #         print(f"Variants string: {variants_string}")
+        #         return variants_string
+        #     else:
+        #         print(response)
+        #         error_message = response.text
+        #         print(
+        #             response.status,
+        #             error_message,
+        #         )
+        #         raise Exception(
+        #             "Failed to upload file to cloudflare",
+        #         )
 
     def put(self, req, pk):
         print(req.data)
-
         image = req.data.get("image")
+        if image:
+            if image.startswith("http://") or image.startswith("https://"):
+                # URL provided, validate the URL
+                if not image.lower().endswith((".jpg", ".jpeg", ".png")):
+                    error_message = "The URL is not a valid photo file"
+                    return Response(error_message, status=HTTP_400_BAD_REQUEST)
+
         about = req.data.get("about")
         expertise = req.data.get("expertise")
 
@@ -711,10 +762,16 @@ class UpdateProfile(APIView):
 
                 if file_path:
                     print("Using temporary file path")
-                    variants_string = self.upload_to_cf_url(upload_url, file_path)
+                    variants_string = self.upload_to_cf_url(
+                        upload_url, file_path=file_path
+                    )
                 else:
                     print("Using inMemory file")
-                    variants_string = self.upload_to_cf_url(upload_url, image.file.name)
+                    variants_string = self.upload_to_cf_url(
+                        upload_url,
+                        file_content=image.read()
+                        # image.file.name
+                    )
 
                 print(variants_string)
                 return variants_string
@@ -733,15 +790,66 @@ class UpdateProfile(APIView):
             else:
                 return None
 
+        user = self.go(pk)
+        user_avatar_post_view = UserAvatars()
+        user_avatar_put_view = UserAvatarDetail()
+        avatar_exists = UserAvatar.objects.filter(user=user).first()
+        if avatar_exists:
+            # Prep the data for if an avatar exists already (put)
+
+            try:
+                avatar_data = {
+                    "file": handle_image(image),
+                }
+            except ValueError as e:
+                error_message = str(e)
+                response_data = {"error": error_message}
+                return Response(response_data, status=HTTP_400_BAD_REQUEST)
+
+            # Create the image with prepped data
+            try:
+                for key, value in avatar_data.items():
+                    setattr(avatar_exists, key, value)
+                avatar_exists.save()
+                avatar_response = TinyUserAvatarSerializer(avatar_exists).data
+            except Exception as e:
+                print(e)
+                response_data = {"error": str(e)}  # Create a response data dictionary
+                return Response(response_data, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+        else:
+            try:
+                # Prep the data for if an avatar doesnt exist (post)
+                avatar_data = {
+                    "old_file": None,
+                    "file": handle_image(image),
+                    "user": user,
+                }
+            except ValueError as e:
+                error_message = str(e)
+                response_data = {"error": error_message}
+                return Response(response_data, status=HTTP_400_BAD_REQUEST)
+
+            # Create the image with prepped data
+            try:
+                new_avatar_instance = UserAvatar.objects.create(**avatar_data)
+                avatar_response = TinyUserAvatarSerializer(new_avatar_instance).data
+
+            except Exception as e:
+                print(e)
+                response_data = {"error": str(e)}  # Create a response data dictionary
+                return Response(response_data, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Set the image, now in db
+        print(avatar_response)
         updated_data = {
-            "image": handle_image(image),
+            "image": avatar_response["pk"],
             "about": about,
             "expertise": expertise,
         }
 
         print(f"Updated Data: {updated_data}")
 
-        user = self.go(pk)
         try:
             print(UpdateProfileSerializer(user).data)
         except Exception as e:

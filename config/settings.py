@@ -15,7 +15,7 @@ EXTERNAL_PASS = env("EXTERNAL_PASS")
 CF_IMAGES_TOKEN = env("CF_IMAGES_TOKEN")
 CF_ACCOUNT_ID = env("CF_ACCOUNT_ID")
 CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload"
-
+INSTANCE_URL = "http://127.0.0.1:8000/"
 
 DEBUG = True
 # APPEND_SLASH = False

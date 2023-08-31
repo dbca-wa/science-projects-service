@@ -87,7 +87,7 @@ class CustomUserAdmin(UserAdmin):
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
     user = TinyUserSerializer(read_only=True)
-    print(user)
+    # print(user)
     list_display = [
         "user",
         "title",

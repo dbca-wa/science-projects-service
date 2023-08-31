@@ -6,6 +6,7 @@ from agencies.serializers import (
     TinyBranchSerializer,
     TinyBusinessAreaSerializer,
 )
+from medias.models import UserAvatar
 from medias.serializers import UserAvatarSerializer
 from .models import User, UserWork, UserProfile
 
@@ -166,11 +167,9 @@ class UpdatePISerializer(serializers.ModelSerializer):
 
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
-    print(f"\nUPDATING\n")
-    image = serializers.CharField(
-        source="profile.image",
-        allow_blank=True,
-        allow_null=True,
+    # print(f"\nUPDATING\n")
+    image = serializers.PrimaryKeyRelatedField(
+        source="profile.image", queryset=UserAvatar.objects.all(), required=False
     )
     about = serializers.CharField(
         source="profile.about",

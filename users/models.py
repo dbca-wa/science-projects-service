@@ -138,7 +138,7 @@ class UserProfile(CommonModel):
         on_delete=models.CASCADE,
         related_name="profile",
     )
-    image = models.ForeignKey(
+    image = models.OneToOneField(
         "medias.UserAvatar",
         blank=True,
         null=True,
