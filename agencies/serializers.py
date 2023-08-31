@@ -68,10 +68,22 @@ class TinyBranchSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniBranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ["pk", "name"]
+
+
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = "__all__"
+
+
+class MiniBASerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessArea
+        fields = ["pk", "name"]
 
 
 class TinyBusinessAreaSerializer(serializers.ModelSerializer):

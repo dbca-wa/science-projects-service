@@ -911,8 +911,45 @@ class UpdateMembership(APIView):
 
     def put(self, req, pk):
         user = self.go(pk)
-        ser = UpdateMembershipSerializer(user)
-        return Response(
-            ser.data,
-            status=HTTP_202_ACCEPTED,
-        )
+        user_work = user.work
+        print(req.data)
+
+        # Convert primary key values to integers
+        try:
+            user_pk = int(req.data.get("user_pk"))
+            branch_pk = int(req.data.get("branch_pk"))
+            business_area_pk = int(req.data.get("business_area"))
+        except ValueError as e:
+            return Response(
+                "You must select a branch and business area.",
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        data_obj = {
+            "user_pk": user_pk,
+            "branch": branch_pk,
+            "business_area": business_area_pk,
+        }
+
+        ser = UpdateMembershipSerializer(user_work, data=data_obj)
+        if ser.is_valid():
+            updated = ser.save()
+            return Response(
+                UpdateMembershipSerializer(updated).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            print(ser.errors)
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+    # branch_id = req.data.get("branch_pk")
+    # business_area_id = req.data.get("business_area_pk")
+
+    # # data_obj = {
+    # #     "branch": branch_id,
+    # #     "business_area": business_area_id,
+    # # }
+    # # print(data_obj)

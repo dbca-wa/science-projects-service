@@ -1,7 +1,10 @@
 from rest_framework import serializers
+from agencies.models import Branch, BusinessArea
 
 from agencies.serializers import (
     AffiliationSerializer,
+    MiniBASerializer,
+    MiniBranchSerializer,
     TinyAgencySerializer,
     TinyBranchSerializer,
     TinyBusinessAreaSerializer,
@@ -203,7 +206,17 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
 
 class UpdateMembershipSerializer(serializers.ModelSerializer):
-    pass
+    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all())
+    business_area = serializers.PrimaryKeyRelatedField(
+        queryset=BusinessArea.objects.all()
+    )
+
+    class Meta:
+        model = UserWork
+        fields = (
+            "branch",
+            "business_area",
+        )
 
 
 class ProfilePageSerializer(serializers.ModelSerializer):
@@ -214,8 +227,8 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     title = serializers.CharField(source="profile.title")
     about = serializers.CharField(source="profile.about")
     agency = TinyAgencySerializer(source="work.agency")
-    branch = serializers.CharField(source="work.branch")
-    business_area = serializers.CharField(source="work.business_area")
+    branch = MiniBranchSerializer(source="work.branch")
+    business_area = MiniBASerializer(source="work.business_area")
 
     phone = serializers.CharField(source="contact.phone")
     fax = serializers.CharField(source="contact.fax")
