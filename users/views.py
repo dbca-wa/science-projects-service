@@ -635,6 +635,29 @@ class UpdatePersonalInformation(APIView):
     # }
 
 
+class SwitchAdmin(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+
+    def post(self, req, pk):
+        user = self.go(pk)
+        print(user)
+
+        # Toggle the is_admin attribute
+        user.is_superuser = not user.is_superuser
+        user.save()
+
+        return Response(
+            {"is_admin": user.is_superuser},
+            status=HTTP_200_OK,
+        )
+
+
 class UpdateProfile(APIView):
     def go(self, pk):
         try:

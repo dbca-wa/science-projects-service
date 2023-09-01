@@ -11,6 +11,7 @@ urlpatterns = [
     path("work", views.UserWorks.as_view()),
     path("work/<int:pk>", views.UserWorkDetail.as_view()),
     # path("<int:pk>", views.UserProfileView.as_view()),
+    path("<int:pk>/admin", views.SwitchAdmin.as_view()),
     path("<int:pk>/pi", views.UpdatePersonalInformation.as_view()),
     path("<int:pk>/profile", views.UpdateProfile.as_view()),
     path("<int:pk>/membership", views.UpdateMembership.as_view()),
