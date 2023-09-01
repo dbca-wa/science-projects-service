@@ -32,8 +32,8 @@ class PrivateTinyUserSerializer(serializers.ModelSerializer):
 
 class TinyUserSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source="work.role")
-    branch = serializers.CharField(source="work.branch")
-    business_area = serializers.CharField(source="work.business_area")
+    branch = TinyBranchSerializer(source="work.branch")
+    business_area = TinyBusinessAreaSerializer(source="work.business_area")
     image = UserAvatarSerializer(source="profile.image")
 
     class Meta:
@@ -178,11 +178,13 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         source="profile.about",
         allow_blank=True,
         allow_null=True,
+        required=False,
     )
     expertise = serializers.CharField(
         source="profile.expertise",
         allow_blank=True,
         allow_null=True,
+        required=False,
     )
 
     class Meta:
@@ -206,9 +208,11 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 
 
 class UpdateMembershipSerializer(serializers.ModelSerializer):
-    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all())
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all(), required=False
+    )
     business_area = serializers.PrimaryKeyRelatedField(
-        queryset=BusinessArea.objects.all()
+        queryset=BusinessArea.objects.all(), required=False
     )
 
     class Meta:

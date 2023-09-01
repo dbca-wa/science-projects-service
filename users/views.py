@@ -589,15 +589,18 @@ class UpdatePersonalInformation(APIView):
 
     def put(self, req, pk):
         title = req.data.get("title")
-
         phone = req.data.get("phone")
-
         fax = req.data.get("fax")
-        updated_data = {
-            "title": title,
-            "phone": phone,
-            "fax": fax,
-        }
+        updated_data = {}
+
+        if title is not None and title != "":
+            updated_data["title"] = title
+
+        if phone is not None and phone != "":
+            updated_data["phone"] = phone
+
+        if fax is not None and fax != "":
+            updated_data["fax"] = fax
 
         print(f"Updated Data: {updated_data}")
 
@@ -735,7 +738,9 @@ class UpdateProfile(APIView):
         print(req.data)
         image = req.data.get("image")
         if image:
-            if image.startswith("http://") or image.startswith("https://"):
+            if isinstance(image, str) and (
+                image.startswith("http://") or image.startswith("https://")
+            ):
                 # URL provided, validate the URL
                 if not image.lower().endswith((".jpg", ".jpeg", ".png")):
                     error_message = "The URL is not a valid photo file"
@@ -842,13 +847,26 @@ class UpdateProfile(APIView):
 
         # Set the image, now in db
         print(avatar_response)
-        updated_data = {
-            "image": avatar_response["pk"],
-            "about": about,
-            "expertise": expertise,
-        }
 
-        print(f"Updated Data: {updated_data}")
+        updated_data = {}
+
+        if avatar_response["pk"] is not None and avatar_response["pk"] != "":
+            updated_data["image"] = avatar_response["pk"]
+        elif image is not None and image != "":
+            updated_data["image"] = image
+
+        if about:
+            updated_data["about"] = about
+        if expertise:
+            updated_data["expertise"] = expertise
+
+        # updated_data = {
+        #     "image": avatar_response["pk"],
+        #     "about": about,
+        #     "expertise": expertise,
+        # }
+
+        print(f"Updated (PROFILE) Data: {updated_data}")
 
         try:
             print(UpdateProfileSerializer(user).data)
@@ -915,34 +933,43 @@ class UpdateMembership(APIView):
         print(req.data)
 
         # Convert primary key values to integers
-        try:
+
+        if user.is_staff:
             user_pk = int(req.data.get("user_pk"))
             branch_pk = int(req.data.get("branch_pk"))
             business_area_pk = int(req.data.get("business_area"))
-        except ValueError as e:
-            return Response(
-                "You must select a branch and business area.",
-                status=HTTP_400_BAD_REQUEST,
-            )
 
-        data_obj = {
-            "user_pk": user_pk,
-            "branch": branch_pk,
-            "business_area": business_area_pk,
-        }
+            data_obj = {}
+            data_obj["user_pk"] = user_pk
+            if branch_pk != 0:
+                data_obj["branch"] = branch_pk
+            if business_area_pk != 0:
+                data_obj["business_area"] = business_area_pk
 
-        ser = UpdateMembershipSerializer(user_work, data=data_obj)
-        if ser.is_valid():
-            updated = ser.save()
-            return Response(
-                UpdateMembershipSerializer(updated).data,
-                status=HTTP_202_ACCEPTED,
-            )
+            print("Data Object:", data_obj)
+            # data_obj = {
+            #     "user_pk": user_pk,
+            #     "branch": branch_pk,
+            #     "business_area": business_area_pk,
+            # }
+
+            ser = UpdateMembershipSerializer(user_work, data=data_obj)
+            if ser.is_valid():
+                updated = ser.save()
+                return Response(
+                    UpdateMembershipSerializer(updated).data,
+                    status=HTTP_202_ACCEPTED,
+                )
+            else:
+                print(ser.errors)
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
         else:
-            print(ser.errors)
             return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
+                "This user is not staff",
+                status=HTTP_200_OK,
             )
 
     # branch_id = req.data.get("branch_pk")
