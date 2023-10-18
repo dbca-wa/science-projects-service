@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from django.shortcuts import render
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.conf import settings
 from django.utils import timezone
 from math import ceil
@@ -158,6 +158,46 @@ class ResearchFunctionDetail(APIView):
 # PROJECTS =================================================================================================
 
 
+class SmallProjectSearch(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        page = 1
+        page_size = 5
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        search_term = req.GET.get("searchTerm")
+
+        if req.user.is_superuser:
+            projects = Project.objects.all()
+        else:
+            # projects = Project.objects.filter()
+
+            # Fetch project memberships of the authenticated user (req.user)
+            user_memberships = ProjectMember.objects.filter(user=req.user)
+
+            # Get the project IDs from the memberships
+            project_ids = user_memberships.values_list("project__id", flat=True)
+
+            # Fetch projects where the user is a member (based on the project IDs)
+            projects = Project.objects.filter(id__in=project_ids).order_by("title")
+
+        if search_term:
+            # Apply filtering based on the search term
+            q_filter = Q(title__icontains=search_term)
+
+            projects = projects.filter(q_filter)
+
+        serialized_projects = TinyProjectSerializer(
+            projects[start:end], many=True, context={"request": req}
+        ).data
+
+        response_data = {"projects": serialized_projects}
+
+        return Response(response_data, status=HTTP_200_OK)
+
+
 class MyProjects(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -290,7 +330,11 @@ class Projects(APIView):
         research_function = data.get("researchFunction")
         departmental_service = data.get("departmentalService")
         data_custodian = data.get("dataCustodian")
-        supervising_scientist = data.get("supervisingScientist")
+        supervising_scientist = data.get(
+            "supervisingScientist"
+        )  # or research scientist (leader of project)
+        print(supervising_scientist)
+        print(data_custodian)
         dates = data.getlist("dates")
 
         # Convert dates to 'YYYY-MM-DD' format
@@ -320,6 +364,7 @@ class Projects(APIView):
 
         ser = ProjectSerializer(data=project_data_object)
         if ser.is_valid():
+            # Ensures db interactions only committed if everything is okay
             with transaction.atomic():
                 print("LEGIT PROJECT SERIALIZER")
                 proj = ser.save()
@@ -335,11 +380,12 @@ class Projects(APIView):
 
                 project_area_ser = ProjectAreaSerializer(data=project_area_data_object)
                 if project_area_ser.is_valid():
-                    print("LEGIT Area SERIALIZER")
-                    try:
-                        project_area_ser.save()
-                    except Exception as e:
-                        print(e)
+                    with transaction.atomic():
+                        print("LEGIT Area SERIALIZER")
+                        try:
+                            project_area_ser.save()
+                        except Exception as e:
+                            print(e)
                 else:
                     print("Project Area")
                     print(project_area_ser.errors)
@@ -352,9 +398,9 @@ class Projects(APIView):
                 # Create an entry for project members
                 project_member_data_object = {
                     "project": project_id,
-                    "user": supervising_scientist,
+                    "user": int(supervising_scientist),
                     "is_leader": True,
-                    "role": "supervising",
+                    "role": "supervising" if kind == "student" else "research",
                     "old_id": 1,
                 }
                 print(project_member_data_object)
@@ -362,11 +408,21 @@ class Projects(APIView):
                     data=project_member_data_object
                 )
                 if project_member_ser.is_valid():
-                    print("Legit members")
-                    try:
-                        project_member_ser.save()
-                    except Exception as e:
-                        print(e)
+                    with transaction.atomic():
+                        print("Legit members")
+                        try:
+                            project_member_ser.save()
+                        except IntegrityError as e:
+                            print(e)
+                            print(project_member_ser.data)
+                            return Response(
+                                "An identical user already exists on this project",
+                                HTTP_400_BAD_REQUEST,
+                            )
+
+                        except Exception as e:
+                            print(e)
+                            print(project_member_ser.data)
                 else:
                     print("Project Members")
                     print(project_member_ser.errors)
@@ -375,6 +431,8 @@ class Projects(APIView):
                         project_member_ser.errors,
                         HTTP_400_BAD_REQUEST,
                     )
+
+                # TODO: Seek guidance on whether a data custodian role should be created as a team member
 
                 # Create an entry for project details
                 project_detail_data_object = {
@@ -392,11 +450,12 @@ class Projects(APIView):
                     data=project_detail_data_object
                 )
                 if project_detail_ser.is_valid():
-                    print("project details legit")
-                    try:
-                        project_detail_ser.save()
-                    except Exception as e:
-                        print(e)
+                    with transaction.atomic():
+                        print("project details legit")
+                        try:
+                            project_detail_ser.save()
+                        except Exception as e:
+                            print(e)
                 else:
                     print("Project Detail")
 
@@ -408,8 +467,8 @@ class Projects(APIView):
 
                 # Create unique entries in student table if student project
                 if kind == "student":
-                    level = data.get("level")[0]
-                    organisation = data.get("organisation")[0]
+                    level = data.get("level")
+                    organisation = data.get("organisation")
                     old_id = 1
 
                     # Create the object
@@ -417,17 +476,19 @@ class Projects(APIView):
                         "project": project_id,
                         "organisation": organisation,
                         "level": level,
+                        "old_id": old_id,
                     }
 
                     student_proj_details_ser = StudentProjectDetailSerializer(
                         data=student_project_details_data_object
                     )
                     if student_proj_details_ser.is_valid():
-                        print("LEGIT STUDENT DETAILS SERIALIZER")
-                        try:
-                            student_proj_details_ser.save()
-                        except Exception as e:
-                            print(e)
+                        with transaction.atomic():
+                            print("LEGIT STUDENT DETAILS SERIALIZER")
+                            try:
+                                student_proj_details_ser.save()
+                            except Exception as e:
+                                print(e)
                     else:
                         print("Student Detail")
 
@@ -459,11 +520,12 @@ class Projects(APIView):
                         data=external_details_data_object
                     )
                     if external_details_ser.is_valid():
-                        print("LEGIT EXTERNAL DETAILS SERIALIZER")
-                        try:
-                            external_details_ser.save()
-                        except Exception as e:
-                            print(e)
+                        with transaction.atomic():
+                            print("LEGIT EXTERNAL DETAILS SERIALIZER")
+                            try:
+                                external_details_ser.save()
+                            except Exception as e:
+                                print(e)
                     else:
                         print("External Detail")
 
@@ -923,24 +985,47 @@ class ProjectMembers(APIView):
         return Response(ser.data, status=HTTP_200_OK)
 
     def post(self, req):
+        user = req.data.get("user")
+        project = req.data.get("project")
+        role = req.data.get("role")
+        time_allocation = req.data.get("time_allocation")
+        short_code = req.data.get("short_code")
+        comments = req.data.get("comments")
+        is_leader = req.data.get("is_leader")
+        position = req.data.get("position")
+        old_id = req.data.get("old_id")
+
+        data_to_serialize = {
+            "user": user,
+            "project": project,
+            "role": role,
+            "time_allocation": time_allocation,
+            "short_code": short_code,
+            "comments": comments,
+            "is_leader": is_leader,
+            "position": position,
+            "old_id": old_id,
+        }
+
         ser = ProjectMemberSerializer(
-            data=req.data,
+            data=data_to_serialize,
         )
         if ser.is_valid():
+            print("SERIALIIIIIIIIIIIIZED")
             # Set the is_leader field based on whether the user is the owner of the project
-            project_id = req.data.get("project")
-            user_id = req.data.get("user")
-            try:
-                project = Project.objects.get(pk=project_id)
-            except Project.DoesNotExist:
-                return Response(status=HTTP_400_BAD_REQUEST)
+            # project_id = req.data.get("project")
+            # user_id = req.data.get("user")
+            # try:
+            #     project = Project.objects.get(pk=project_id)
+            # except Project.DoesNotExist:
+            #     return Response(status=HTTP_400_BAD_REQUEST)
 
-            try:
-                user = User.objects.get(pk=user_id)
-            except User.DoesNotExist:
-                return Response(status=HTTP_400_BAD_REQUEST)
+            # try:
+            #     user = User.objects.get(pk=user_id)
+            # except User.DoesNotExist:
+            #     return Response(status=HTTP_400_BAD_REQUEST)
 
-            is_leader = user == project.owner
+            # is_leader = user == project.owner
             member = ser.save(is_leader=is_leader)
 
             return Response(
@@ -948,36 +1033,148 @@ class ProjectMembers(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            return Response(status=HTTP_400_BAD_REQUEST)
+            return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class PromoteToLeader(APIView):
+    def go(self, user_id, project_id):
+        try:
+            obj = ProjectMember.objects.get(user__pk=user_id, project__pk=project_id)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def gteam(self, project_id):
+        try:
+            objects = ProjectMember.objects.filter(project__pk=project_id).all()
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        return objects
+
+    def post(self, req):
+        print(req.data)
+        project_id = req.data["project"]
+        user_id = req.data["user"]
+        user_to_become_leader_obj = self.go(user_id=user_id, project_id=project_id)
+
+        team = self.gteam(project_id=project_id)
+
+        # Set is_leader to False for all members in the team
+        try:
+            team.update(is_leader=False)
+        except Exception as e:
+            print(e)
+
+        # Set is_leader to True for the user to become a leader
+        # user_to_become_leader_obj.is_leader = True
+
+        print(user_to_become_leader_obj)
+
+        # Create a serializer instance with the data and set is_leader=True
+        ser = ProjectMemberSerializer(
+            user_to_become_leader_obj,
+            data={"is_leader": True},  # Include is_leader=True in the data
+            partial=True,
+        )
+        if ser.is_valid():
+            user_to_become_leader_obj = ser.save()  # Save the updated object
+
+            print("DATA", user_to_become_leader_obj)
+            return Response(
+                ProjectMemberSerializer(user_to_become_leader_obj).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+# class PromoteToLeader(APIView):
+#     # permission_classes = [IsAuthenticatedOrReadOnly]
+
+#     def go(self, user_id, project_id):
+#         try:
+#             obj = ProjectMember.objects.get(user__pk=user_id, project__pk=project_id)
+#         except ProjectMember.DoesNotExist:
+#             raise NotFound
+#         return obj
+
+#     def gteam(self, project_id):
+#         try:
+#             objects = ProjectMember.objects.get(project__pk=project_id)
+#         except ProjectMember.DoesNotExist:
+#             raise NotFound
+#         return objects
+
+#     def post(self, req):
+#         user_to_become_leader = req.GET.get("user")
+#         project_id = req.GET.get("project")
+#         print(user_to_become_leader)
+#         user_to_become_leader_obj = self.go(
+#             user_id=user_to_become_leader, project_id=project_id
+#         )
+
+#         team = self.gteam(project_id=project_id)
+
+#         # Set is_leader to False for all members in the team
+#         team.update(is_leader=False)
+
+#         # Set is_leader to True for the user to become a leader
+#         user_to_become_leader_obj.is_leader = True
+#         user_to_become_leader_obj.save()
+
+#         ser = ProjectMemberSerializer(
+#             team,
+#             data=req.data,
+#             many=True,  # Update multiple objects
+#             partial=True,
+#         )
+#         if ser.is_valid():
+#             updated_team = ser.save()
+
+#             # Create a serializer for the user to become a leader
+#             user_to_become_leader_serializer = ProjectMemberSerializer(
+#                 user_to_become_leader_obj
+#             )
+
+#             # Append the user to become a leader to the updated_team data
+#             updated_team_data = ser.data + [user_to_become_leader_serializer.data]
+
+#             return Response(
+#                 updated_team_data,
+#                 status=HTTP_202_ACCEPTED,
+#             )
+#         else:
+#             return Response(
+#                 ser.errors,
+#                 status=HTTP_400_BAD_REQUEST,
+#             )
 
 
 class ProjectMemberDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def go(self, pk):
+    def go(self, user_id, project_id):
         try:
-            obj = ProjectMember.objects.get(pk=pk)
+            obj = ProjectMember.objects.get(user__pk=user_id, project__pk=project_id)
         except ProjectMember.DoesNotExist:
             raise NotFound
         return obj
 
-    def get(self, req, pk):
-        team = self.go(pk)
+    def get(self, req, user_id, project_id):
+        team = self.go(user_id, project_id)
         ser = ProjectMemberSerializer(team)
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
+        return Response(ser.data, status=HTTP_200_OK)
 
-    def delete(self, req, pk):
-        team = self.go(pk)
-        team.delete()
-        return Response(
-            status=HTTP_204_NO_CONTENT,
-        )
+    def delete(self, req, user_id, project_id):
+        team_member = self.go(user_id, project_id)
+        team_member.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
 
-    def put(self, req, pk):
-        team = self.go(pk)
+    def put(self, req, user_id, project_id):
+        team = self.go(user_id, project_id)
         ser = ProjectMemberSerializer(
             team,
             data=req.data,
@@ -995,6 +1192,47 @@ class ProjectMemberDetail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+    # def go(self, user_pk, project_pk):
+    #     try:
+    #         obj = ProjectMember.objects.get(user_pk=user_pk, project_pk=project_pk)
+    #     except ProjectMember.DoesNotExist:
+    #         raise NotFound
+    #     return obj
+
+    # def get(self, req, pk):
+    #     team = self.go(pk)
+    #     ser = ProjectMemberSerializer(team)
+    #     return Response(
+    #         ser.data,
+    #         status=HTTP_200_OK,
+    #     )
+
+    # def delete(self, req, pk):
+    #     team = self.go(pk)
+    #     team.delete()
+    #     return Response(
+    #         status=HTTP_204_NO_CONTENT,
+    #     )
+
+    # def put(self, req, pk):
+    #     team = self.go(pk)
+    #     ser = ProjectMemberSerializer(
+    #         team,
+    #         data=req.data,
+    #         partial=True,
+    #     )
+    #     if ser.is_valid():
+    #         uteam = ser.save()
+    #         return Response(
+    #             TinyProjectMemberSerializer(uteam).data,
+    #             status=HTTP_202_ACCEPTED,
+    #         )
+    #     else:
+    #         return Response(
+    #             ser.errors,
+    #             status=HTTP_400_BAD_REQUEST,
+    #         )
+
 
 class MembersForProject(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1008,7 +1246,7 @@ class MembersForProject(APIView):
 
     def get(self, req, pk):
         project_members = self.go(pk)
-        ser = ProjectMemberSerializer(
+        ser = TinyProjectMemberSerializer(
             project_members,
             many=True,
         )
@@ -1016,6 +1254,108 @@ class MembersForProject(APIView):
             ser.data,
             status=HTTP_200_OK,
         )
+
+    def put(self, req, pk):
+        # Assuming you receive reordered_team in the request data
+        reordered_team = req.data.get("reordered_team")
+
+        # Create a dictionary to keep track of positions
+        positions = {}
+        # print(reordered_team)
+        # Assuming reordered_team is a list of dictionaries, each containing user_id and new_position
+        for item in reordered_team:
+            user_id = item["user"]["pk"]  # Access user_id as item["user"]["pk"]
+
+            try:
+                project_member = ProjectMember.objects.filter(
+                    user_id=user_id, project_id=pk
+                ).first()
+                # print(project_member[0]["user"])
+                # print("\n\n\n\n")
+                # print(project_member[1]["user"])
+            except ProjectMember.DoesNotExist:
+                raise NotFound
+
+            # Adjust the position of the member based on the new_position
+            if item["is_leader"] == False and item["position"] == 1:
+                item["position"] += 1
+
+            # Check if the new position is already occupied
+            new_position = item["position"]
+            while new_position in positions:
+                new_position += 1
+            positions[new_position] = True
+
+            # Update the project_member's position to the new_position
+            project_member.position = new_position
+            if item["is_leader"] == True:
+                project_member.position = 1  # Set the leader's position to 1
+
+            project_member.save()
+
+        # Re-sort project members based on their positions
+        project_members = ProjectMember.objects.filter(project_id=pk).order_by(
+            "position"
+        )
+        ser = ProjectMemberSerializer(
+            project_members,
+            many=True,
+        )
+
+        return Response(
+            {
+                "sorted_team": ser.data,
+            },
+            status=HTTP_202_ACCEPTED,  # Use status from rest_framework
+        )
+
+    # def put(self, req, pk):
+    #     # Assuming you receive reordered_team in the request data
+    #     reordered_team = req.data.get("reordered_team")
+
+    #     # Create a dictionary to keep track of positions
+    #     positions = {}
+    #     print(reordered_team)
+    #     # Assuming reordered_team is a list of dictionaries, each containing user_id and new_position
+    #     for item in reordered_team:
+    #         user_id = item["user"]["pk"]  # Access user_id as item["user"]["pk"]
+
+    #         try:
+    #             project_member = ProjectMember.objects.get(
+    #                 user_id=user_id, project_id=pk
+    #             )
+    #         except ProjectMember.DoesNotExist:
+    #             raise NotFound
+
+    #         # Adjust the position of the member based on the new_position
+    #         if item["is_leader"] == False and item["position"] == 1:
+    #             item["position"] += 1
+    #         elif item["is_leader"] == True:
+    #             project_member.position = 1  # Set the leader's position to 1
+
+    #         # Check if the new position is already occupied
+    #         new_position = item["position"]
+    #         while new_position in positions:
+    #             new_position += 1
+    #         positions[new_position] = True
+
+    #         # Update the project_member's position to the new_position
+    #         project_member.position = new_position
+    #         project_member.save()
+
+    #     # Re-sort project members based on their positions
+    #     project_members = ProjectMember.objects.filter(project_id=pk).order_by(
+    #         "position"
+    #     )
+    #     ser = ProjectMemberSerializer(
+    #         project_members,
+    #         many=True,
+    #     )
+
+    #     return Response(
+    #         ser.data,
+    #         status=HTTP_202_ACCEPTED,  # Use status from rest_framework
+    #     )
 
 
 # AREAS =================================================================================================

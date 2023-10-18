@@ -1,0 +1,10 @@
+*.env
+docker-compose.yaml
+Dockerfile
+requirements.txt
+render.yaml
+spms_migrator/download_references
+spms_migrator/downloads
+spms_migrator/extracted_from_dump
+venv
+.gitignore

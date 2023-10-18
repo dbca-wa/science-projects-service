@@ -103,13 +103,14 @@ class ProjectAreaSerializer(serializers.ModelSerializer):
 
 class TinyProjectMemberSerializer(ModelSerializer):
     user = TinyUserSerializer(read_only=True)
-    # project = TinyProjectSerializer(read_only=True)
+    project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ProjectMember
         fields = [
             "pk",
             "user",
+            "project",
             "is_leader",
             "role",
             "time_allocation",

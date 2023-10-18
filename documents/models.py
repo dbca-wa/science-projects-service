@@ -154,6 +154,11 @@ class ProjectDocument(CommonModel):
         help_text="Type of document from above category kind choices",
     )
 
+    project_lead_approval_granted = models.BooleanField(default=False)
+    business_area_lead_approval_granted = models.BooleanField(default=False)
+    directorate_approval_granted = models.BooleanField(default=False)
+    pdf_generation_in_progress = models.BooleanField(default=False)
+
     def __str__(self) -> str:
         return f"{self.created_at.year} | {self.kind.capitalize()} - {self.project}"
 

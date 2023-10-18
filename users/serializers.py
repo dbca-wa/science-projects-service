@@ -20,6 +20,7 @@ class PrivateTinyUserSerializer(serializers.ModelSerializer):
         exclude = [
             "password",
             "is_superuser",
+            "is_biometrician",
             "id",
             "is_staff",
             "is_active",
@@ -45,6 +46,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "username",
             "email",
             "is_superuser",
+            "is_biometrician",
             "is_staff",
             "image",
             "role",

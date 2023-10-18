@@ -1,4 +1,11 @@
+import os
+import time
 from django.shortcuts import render
+from config.tasks import generate_pdf
+from projects.models import Project
+
+from medias.models import ProjectDocumentPDF
+from medias.serializers import ProjectDocumentPDFSerializer
 from .models import (
     ConceptPlan,
     ProgressReport,
@@ -58,6 +65,286 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from django.db import transaction
 from django.conf import settings
+
+import subprocess
+from django.http import HttpResponse
+from docx2pdf import convert  # You can use docx2pdf to convert HTML to PDF
+import pypandoc
+from django.template import Context
+from django.template.loader import get_template
+from celery import shared_task
+
+
+# PDF GENERATION ===================================================
+
+# class GenerateConceptPlan(APIView):
+#     def generate_pdf(req):
+
+
+class DownloadProjectDocument(APIView):
+    def go(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        document_id = req.data["document_id"]
+        document = self.go(document_id)
+        pdf = document.pdf
+        print(pdf)
+        return Response(
+            data=pdf,
+            status=HTTP_200_OK,
+        )
+
+
+class GenerateProjectDocument(APIView):
+    # pypandoc.convert_text(
+    #                 filled_template, "pdf", format="latex", outputfile=pdf_file
+    #             )
+
+    def get_concept_plan(self, pk):
+        try:
+            obj = ConceptPlan.objects.filter(document=pk).first()
+        except ConceptPlan.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_project_plan(self, pk):
+        try:
+            obj = ProjectPlan.objects.filter(document=pk).first()
+        except ProjectPlan.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_progress_report(self, pk):
+        try:
+            obj = ProgressReport.objects.filter(document=pk).first()
+        except ProgressReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_student_report(self, pk):
+        try:
+            obj = StudentReport.objects.filter(document=pk).first()
+        except StudentReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_project_closure(self, pk):
+        try:
+            obj = ProjectClosure.objects.filter(document=pk).first()
+        except ProjectClosure.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        print(req)
+        kind = req.data["kind"]
+        print(kind)
+
+        if kind == "conceptplan":
+            try:
+                cp = self.get_concept_plan(pk=pk)
+            except Exception as e:
+                print(e)
+                raise ValueError("Error in Finding Concept Plan")
+            print(cp)
+            # Perform latex pdf generation for Concept Plan
+            return Response(status=HTTP_200_OK, data=ConceptPlanSerializer(cp).data)
+        elif kind == "projectplan":
+            try:
+                pp = self.get_project_plan(pk=pk)
+            except Exception as e:
+                print(e)
+                raise ValueError("Error in Finding Project Plan")
+            print(pp)
+            # Perform latex pdf generation for progress report
+            return Response(status=HTTP_200_OK, data=ProjectPlanSerializer(pp).data)
+        elif kind == "progressreport":
+            try:
+                pr = self.get_progress_report(pk=pk)
+                print(pr)
+            except Exception as e:
+                print(e)
+                raise ValueError("Error in Finding Progress Report")
+
+            # Define the LaTeX template content with placeholders
+            template_path = os.path.join(
+                settings.BASE_DIR, "documents", "latex_templates", "progressreport.tex"
+            )
+
+            with open(template_path, "r") as template_file:
+                latex_template = template_file.read()
+                # latex_template = latex_template.replace("{", "{{").replace("}", "}}")
+
+            filled_template = latex_template
+
+            # Create a dictionary with placeholders and their corresponding data
+            data = {
+                "title": pypandoc.convert_text(
+                    pr.document.project.title, "tex", format="html"
+                ),
+                "aims_html_data": pypandoc.convert_text(pr.aims, "tex", format="html"),
+                "context_html_data": pypandoc.convert_text(
+                    pr.context, "tex", format="html"
+                ),
+                "future_html_data": pypandoc.convert_text(
+                    pr.future, "tex", format="html"
+                ),
+                "implications_html_data": pypandoc.convert_text(
+                    pr.implications, "tex", format="html"
+                ),
+                "progress_html_data": pypandoc.convert_text(
+                    pr.progress, "tex", format="html"
+                ),
+            }
+
+            # Populate the LaTeX template with data
+            # filled_template = latex_template.format(**data)
+            # print(filled_template)
+
+            for key, value in data.items():
+                # Use the key (placeholder) and value (data) to replace the placeholders in the template
+                filled_template = filled_template.replace("{{" + key + "}}", value)
+
+            # Define the PDF file path
+            pdf_file = os.path.join(
+                settings.BASE_DIR,
+                "documents",
+                "latex_output",
+                f"progress_report_{pk}.pdf",
+            )
+
+            # Call the Celery task to generate the PDF asynchronously
+            # Create a dictionary with the task arguments and keyword arguments
+            task_args = {
+                # "data": filled_template,
+                "data": filled_template,
+                "pdf_file": pdf_file,
+            }
+
+            print(filled_template)
+
+            def generate_pdf(data, pdf_file):
+                # Perform the PDF generation as before
+                pypandoc.convert_text(
+                    data,
+                    "pdf",
+                    format="latex",
+                    outputfile=pdf_file,
+                    extra_args=["--pdf-engine=pdflatex"],
+                )
+
+            generate_pdf(**task_args)
+
+            # Call the Celery task to generate the PDF asynchronously
+            # generate_pdf.apply_async(kwargs=task_args)
+            return Response({"message": "PDF generation started."})
+
+            # Convert LaTeX content to PDF using pypandoc with an output file
+            # pypandoc.convert_text(
+            #     filled_template, "pdf", format="latex", outputfile=pdf_file
+            # )
+
+            # # Prepare the response with the generated PDF content
+            # response = HttpResponse(content_type="application/pdf")
+            # response[
+            #     "Content-Disposition"
+            # ] = 'attachment; filename="progress_report.pdf"'
+
+            # with open(pdf_file, "rb") as pdf_content:
+            #     response.write(pdf_content)
+
+            # return response
+
+            # return Response(status=HTTP_200_OK, data=ProgressReportSerializer(pr).data)
+        elif kind == "studentreport":
+            try:
+                sr = self.get_student_report(pk=pk)
+            except Exception as e:
+                print(e)
+                raise ValueError("Error in Finding Student Report")
+            print(sr)
+            # Perform latex pdf generation for student report  then return
+            return Response(status=HTTP_200_OK, data=StudentReportSerializer(sr).data)
+
+        elif kind == "projectclosure":
+            try:
+                pc = self.get_project_closure(pk=pk)
+            except Exception as e:
+                print(e)
+                raise ValueError("Error in Finding Project Closure")
+            print(pc)
+            # Perform latex pdf generation for progress closure then return
+            return Response(status=HTTP_200_OK, data=StudentReportSerializer(pc).data)
+
+        # project_document = self.get_proj_document(pk)
+        # if project_document.kind == "progressreport":
+        #     progress_report = self.get_progress_report(pk=pk)
+        #     print(progress_report)
+        #     # project = self.get_project(project_document.project.pk)
+        #     for field in progress_report._meta.fields:
+        #         field_name = field.name
+        #         field_value = getattr(progress_report, field_name)
+        #         print(f"{field_name}: {field_value}")
+
+        # print(project_document)
+        # for field in project_document._meta.fields:
+        #     field_name = field.name
+        #     field_value = getattr(project_document, field_name)
+        #     print(f"{field_name}: {field_value}")
+
+        # if project_document.kind == "progressreport":
+        #     # get the specific project document
+        #     specific_document = project_document.progress_report_details
+        #     print(specific_document)
+        #     print
+
+        # try:
+        #     document = ProjectDocumentPDF.objects.get(document__pk=pk)
+        # except ProjectDocumentPDF.DoesNotExist:
+        #     # If the document doesn't exist, create a new instance
+        #     document_data = {
+        #         "project": req.data["project_pk"],
+        #         "document": req.data["document_pk"],
+        #         # "file": req.data["file"],
+        #     }
+        #     document = ProjectDocumentPDF(**document_data)
+
+        # ser = ProjectDocumentPDFSerializer(document)
+        # if ser.is_valid():
+        #     print("serializer valid")
+        #     ser = ser.save()
+        #     return Response(
+        #         ser.data,
+        #         status=HTTP_200_OK,
+        #     )
+        # else:
+        #     print("serializer invalid")
+        #     return Response(
+        #         ser.errors,
+        #         status=HTTP_400_BAD_REQUEST,
+        #     )
+        # document.save()  # Save the newly created instance to the database
+
+        #             {
+        #         "project": 7,
+        #         "old_file": "",
+        #         "document": 2135,
+        #         "file": "https://scienceprojects.dbca.wa.gov.au/media/ararreports/12/AnnualReport20222023_25.pdf"
+        # }
+        # if document.pdf_generation_in_progress:
+        #     return Response(
+        #         data="A PDF file is already being generate, please wait",
+        #         status=HTTP_403_FORBIDDEN,
+        #     )
+
+        # document.pdf_generation_in_progress = True
+
+        # document.pdf_generation_in_progress = True
 
 
 # REPORTS ==========================================================
@@ -542,6 +829,9 @@ class ProjectClosures(APIView):
             )
 
 
+# For saving rich text
+
+
 class ConceptPlanDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -782,7 +1072,190 @@ class ProjectClosureDetail(APIView):
             )
 
 
-# ENDORSEMENTS ==========================================================
+# ENDORSEMENTS & APPROVALS ==========================================================
+
+
+class ProgressReportApproval(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        progress_report_pk = req.data["progressReportPk"]
+        print(user, stage, document_pk, progress_report_pk)
+        if not stage and not document_pk and not progress_report_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        if int(stage) == 1:
+            data = {
+                "project_lead_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+        elif int(stage) == 2:
+            data = {
+                "business_area_lead_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+        elif int(stage) == 3:
+            data = {
+                "directorate_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "approved",
+            }
+        else:
+            return Response(
+                status=HTTP_400_BAD_REQUEST,
+            )
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_document = ser.save()
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class ProgressReportRecall(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        progress_report_pk = req.data["progressReportPk"]
+        print(user, stage, document_pk, progress_report_pk)
+        if not stage and not document_pk and not progress_report_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        data = "test"
+        if int(stage) == 1:
+            if document.business_area_lead_approval_granted == False:
+                data = {
+                    "project_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "revising",
+                }
+
+        elif int(stage) == 2:
+            if document.directorate_approval_granted == False:
+                data = {
+                    "business_area_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "revising",
+                }
+        elif int(stage) == 3:
+            data = {
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "revising",
+            }
+
+        if data == "test":
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_document = ser.save()
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            print(ser.errors)
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class ProgressReportSendBack(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        progress_report_pk = req.data["progressReportPk"]
+        print(user, stage, document_pk, progress_report_pk)
+        if not stage and not document_pk and not progress_report_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        data = "test"
+        if int(stage) == 2:
+            if document.directorate_approval_granted == False:
+                data = {
+                    "business_area_lead_approval_granted": False,
+                    "project_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "inreview",
+                }
+        elif int(stage) == 3:
+            data = {
+                "business_area_lead_approval_granted": False,
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "inreview",
+            }
+
+        if data == "test":
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_document = ser.save()
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class Endorsements(APIView):

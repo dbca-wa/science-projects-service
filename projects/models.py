@@ -287,6 +287,8 @@ class ProjectMember(CommonModel):
     class Meta:
         verbose_name = "Project Member"
         verbose_name_plural = "Project Members"
+        # Added unique constraint to the db to prevent duplicate users on same project
+        unique_together = (("project", "user"),)
 
 
 # DONE

@@ -5,7 +5,28 @@ from .models import (
     UserAvatar,
     ProjectPhoto,
     AgencyImage,
+    ProjectDocumentPDF,
 )
+
+
+@admin.register(ProjectDocumentPDF)
+class ProjectDocumentPDFAdmin(admin.ModelAdmin):
+    list_display = [
+        "pk",
+        "old_file",
+        "file",
+        "document",
+        "project",
+    ]
+
+    search_fields = [
+        "project",
+    ]
+
+    # list_filter = [
+    #     "project",
+    #     "document",
+    # ]
 
 
 @admin.register(AnnualReportMedia)

@@ -1,0 +1,39 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\usepackage[margin=1in]{geometry}
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+\begin{document}
+\title{Progress Report: {{aims_html_data}}}
+\maketitle
+
+% Define custom environments for data insertion
+\newenvironment{aims}{\section{{Aims}}}{}
+\newenvironment{context}{\section{{Context}}}{}
+\newenvironment{future}{\section{{Future}}}{}
+\newenvironment{implications}{\section{{Implications}}}{}
+\newenvironment{progress}{\section{{Progress}}}{}
+
+\begin{aims}
+{{aims_html_data}}
+\end{aims}
+
+\begin{context}
+{{context_html_data}}
+\end{context}
+
+\begin{future}
+{{future_html_data}}
+\end{future}
+
+\begin{implications}
+{{implications_html_data}}
+\end{implications}
+
+\begin{progress}
+{{progress_html_data}}
+\end{progress}
+
+\end{document}

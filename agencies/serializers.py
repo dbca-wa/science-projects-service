@@ -101,6 +101,7 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             "leader",
             "finance_admin",
             "data_custodian",
+            "is_active",
         )
 
     def get_image(self, obj):

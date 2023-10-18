@@ -6,6 +6,28 @@ from django.db.models import UniqueConstraint
 # This is to avoid empty foreign keys depending on the type of photo, and for organisational purposes.
 
 
+class ProjectDocumentPDF(CommonModel):
+    old_file = models.URLField(null=True, blank=True)
+    file = models.URLField(null=True, blank=True)
+    document = models.OneToOneField(
+        "documents.ProjectDocument",
+        on_delete=models.CASCADE,
+        related_name="pdf",
+    )
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="pdfs",
+    )
+
+    def __str__(self) -> str:
+        return f"PDF for {self.document.kind} - {self.project.title}"
+
+    class Meta:
+        verbose_name = "Project Document PDF"
+        verbose_name_plural = "Project Document PDFs"
+
+
 # DONE
 class AnnualReportMedia(
     CommonModel

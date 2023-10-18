@@ -33,6 +33,7 @@ class ProjectDocumentAdmin(admin.ModelAdmin):
         "display_year",
         "kind",
         "status",
+        "pdf",
     )
 
     def display_year(self, obj):

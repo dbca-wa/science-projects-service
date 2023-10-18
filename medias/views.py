@@ -26,6 +26,7 @@ from .models import (
     AgencyImage,
     AnnualReportMedia,
     BusinessAreaPhoto,
+    ProjectDocumentPDF,
     ProjectPhoto,
     UserAvatar,
 )
@@ -33,6 +34,7 @@ from .serializers import (
     AgencyPhotoSerializer,
     AnnualReportMediaSerializer,
     BusinessAreaPhotoSerializer,
+    ProjectDocumentPDFSerializer,
     ProjectPhotoSerializer,
     TinyAgencyPhotoSerializer,
     TinyAnnualReportMediaSerializer,
@@ -42,6 +44,41 @@ from .serializers import (
     UserAvatarSerializer,
 )
 
+# PROJECT DOCS ==================================================================================================
+
+
+class ProjectDocPDFS(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        all = ProjectDocumentPDF.objects.all()
+        ser = ProjectDocumentPDFSerializer(
+            all,
+            many=True,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        ser = ProjectDocumentPDFSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            ser = ser.save()
+            return Response(
+                TinyAnnualReportMediaSerializer(ser).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+# https://scienceprojects.dbca.wa.gov.au/media/ararreports/12/AnnualReport20222023_25.pdf
 
 # ANNUAL REPORT ==================================================================================================
 

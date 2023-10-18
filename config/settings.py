@@ -2,9 +2,12 @@ from pathlib import Path
 import os
 import environ
 from datetime import timedelta
-
 import requests
 
+import dj_database_url
+import sentry_sdk
+
+from sentry_sdk.integrations.django import DjangoIntegration
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -17,8 +20,6 @@ CF_ACCOUNT_ID = env("CF_ACCOUNT_ID")
 CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload"
 INSTANCE_URL = "http://127.0.0.1:8000/"
 
-DEBUG = True
-# APPEND_SLASH = False
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
@@ -86,28 +87,6 @@ USE_TZ = True
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 WSGI_APPLICATION = "config.wsgi.application"
 
-ROOT_URLCONF = "config.urls"
-STATIC_URL = "static/"
-MEDIA_ROOT = "uploads"
-MEDIA_URL = "user-uploads/"
-
-PAGE_SIZE = 10
-USER_LIST_PAGE_SIZE = 250
-
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": f"{env('DBNAME')}",
-        "USER": f"{env('PGUSER')}",
-        "PASSWORD": f"{env('PGPASS')}",
-        "HOST": f"{env('HOST')}",
-        "PORT": f"{env('PORT')}",
-        "OPTIONS": {
-            "options": "-c client_encoding=utf8",
-        },
-        "CONN_MAX_AGE": 600,
-    }
-}
 
 AUTH_USER_MODEL = "users.User"
 
@@ -145,21 +124,83 @@ CUSTOM_APPS = [
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
+# DEBUG = "RENDER" not in os.environ  # Debug if not hosted on RENDER
+# APPEND_SLASH = False
+
+DEBUG = env("DEBUG")
+
+ROOT_URLCONF = "config.urls"
+STATIC_URL = "/static/"
+if not DEBUG:  # Whitenoise brotli config for static files on render
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+MEDIA_ROOT = "uploads"
+MEDIA_URL = "user-uploads/"
+
+PAGE_SIZE = 10
+USER_LIST_PAGE_SIZE = 250
+
+
+if DEBUG == "False":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": env("PRODUCTION_DB_NAME"),
+            "USER": env("PRODUCTION_USERNAME"),
+            "PASSWORD": env("PRODUCTION_PASSWORD"),
+            "HOST": env(
+                "PRODUCTION_HOST"
+            ),  # Use "db" as the hostname to refer to the PostgreSQL service
+            "PORT": "5432",  # Use the PostgreSQL default port
+            "OPTIONS": {
+                "options": "-c client_encoding=utf8",
+            },
+            "CONN_MAX_AGE": 600,
+        }
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": f"{env('DBNAME')}",
+            "USER": f"{env('PGUSER')}",
+            "PASSWORD": f"{env('PGPASS')}",
+            "HOST": f"{env('HOST')}",
+            "PORT": f"{env('PORT')}",
+            "OPTIONS": {
+                "options": "-c client_encoding=utf8",
+            },
+            "CONN_MAX_AGE": 600,
+        }
+    }
+
 
 ALLOWED_HOSTS = [
+    "*",
     # "127.0.0.1",
     # "localhost",
     # Place azure hosting link for backend here
 ]
 
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1",
     "http://127.0.0.1:3000",
+    "http://cycle.dbca.wa.gov.au",
     "http://scienceprojects.dbca.wa.gov.au",
     "http://dbcab2c.b2clogin.com",
 ]
+CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
+
+
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
+    "http://cycle.dbca.wa.gov.au",
     "http://scienceprojects.dbca.wa.gov.au",
     "http://dbcab2c.b2clogin.com",
 ]
@@ -171,6 +212,7 @@ CSRF_TRUSTED_ORIGINS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "config.dbca_middleware.SSOLoginMiddleware",
@@ -204,3 +246,33 @@ AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
 # "rest_framework_simplejwt.authentication.JWTAuthentication",
 # "config.authentication.JWTAuthentication",
+
+
+if not DEBUG:
+    sentry_sdk.init(
+        dsn="https://075776a6081024466e5659090d0b389b@o4504491005902848.ingest.sentry.io/4505825923891200",
+        integrations=[DjangoIntegration()],
+        # If you wish to associate users to errors (assuming you are using
+        # django.contrib.auth) you may enable sending PII data.
+        send_default_pii=True,
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production.
+        traces_sample_rate=1.0,
+        # Set profiles_sample_rate to 1.0 to profile 100%
+        # of sampled transactions.
+        # We recommend adjusting this value in production.
+        profiles_sample_rate=1.0,
+    )
+
+# Celery configuration
+CELERY_BROKER_URL = "redis://localhost:6379/0"  # For Redis
+# CELERY_BROKER_URL = 'pyamqp://guest@localhost//'  # For RabbitMQ
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"  # For Redis
+# CELERY_RESULT_BACKEND = 'rpc://'
+
+# (Optional) Set the timezone for Celery tasks
+CELERY_TIMEZONE = TIME_ZONE
+
+# (Optional) Specify where to store task results
+CELERY_RESULT_PERSISTENT = False

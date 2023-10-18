@@ -6,10 +6,23 @@ from agencies.serializers import TinyBusinessAreaSerializer
 from .models import (
     AnnualReportMedia,
     BusinessAreaPhoto,
+    ProjectDocumentPDF,
     UserAvatar,
     AgencyImage,
     ProjectPhoto,
 )
+
+
+class ProjectDocumentPDFSerializer(ModelSerializer):
+    class Meta:
+        model = ProjectDocumentPDF
+        fields = [
+            "pk",
+            "old_file",
+            "file",
+            "document",
+            "project",
+        ]
 
 
 class TinyAnnualReportMediaSerializer(ModelSerializer):

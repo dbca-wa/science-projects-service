@@ -1,0 +1,12 @@
+name: Docker Image CI for GHCR
+'on': push
+jobs:
+    build_and_publish:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v3
+        - name: Build and Push Image
+          run: | 
+              docker login --username idabblewith --password ${{ secrets.GH_PAT }} ghcr.io
+              docker build . --tag ghcr.io/dbca-wa/science-projects-service:latest
+              docker push ghcr.io/dbca-wa/science-projects-service:latest

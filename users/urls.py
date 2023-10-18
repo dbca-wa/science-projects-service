@@ -24,6 +24,7 @@ urlpatterns = [
     # path("userprofiles/<int:pk>", views.UserProfileDetail.as_view()),
     # path("sso-login", views.SSOLogin.as_view()),
     # path("jwt-login", views.JWTLogin.as_view()),
+    path("directorate", views.DirectorateUsers.as_view()),
     path("log-in", views.Login.as_view()),
     path("log-out", views.Logout.as_view()),
     path("change-password", views.ChangePassword.as_view()),

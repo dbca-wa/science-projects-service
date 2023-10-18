@@ -12,6 +12,7 @@ from .models import (
     AnnualReport,
 )
 from medias.serializers import (
+    ProjectDocumentPDFSerializer,
     TinyAnnualReportMediaSerializer,
     AnnualReportMediaSerializer,
 )
@@ -89,6 +90,7 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
 class TinyProjectDocumentSerializer(serializers.ModelSerializer):
     project = TinyProjectSerializer(read_only=True)
     created_year = serializers.SerializerMethodField()
+    pdf = ProjectDocumentPDFSerializer(read_only=True)  # Include the PDF serializer
 
     def get_created_year(self, obj):
         return obj.created_at.year
@@ -98,10 +100,19 @@ class TinyProjectDocumentSerializer(serializers.ModelSerializer):
         fields = [
             "pk",
             # "document",
+            "created_at",
+            "updated_at",
+            "creator",
+            "modifier",
             "created_year",
             "kind",
             "status",
             "project",
+            "project_lead_approval_granted",
+            "business_area_lead_approval_granted",
+            "directorate_approval_granted",
+            "pdf",
+            "pdf_generation_in_progress",
         ]
 
 

@@ -46,6 +46,11 @@ class User(AbstractUser):
         help_text="The primary key used in the outdated SPMS",
     )
 
+    is_biometrician = models.BooleanField(
+        default=False,
+        help_text="Whether this user can act as a biometrician if not an admin",
+    )
+
     def get_formatted_name(self):
         initials = self.profile.middle_initials
         if initials:

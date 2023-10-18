@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("spawn", views.DocumentSpawner.as_view()),
+    # REST framework
     path("projectdocuments", views.ProjectDocuments.as_view()),
     path("projectdocuments/<int:pk>", views.ProjectDocumentDetail.as_view()),
     path("conceptplans", views.ConceptPlans.as_view()),
@@ -22,10 +22,18 @@ urlpatterns = [
     path("projectclosures/<int:pk>", views.ProjectClosureDetail.as_view()),
     path("reports", views.Reports.as_view()),
     path("reports/<int:pk>", views.ReportDetail.as_view()),
+    path("publications", views.Publications.as_view()),
+    path("publications/<int:pk>", views.PublicationDetail.as_view()),
+    # Helper
+    path("generateProjectDocument/<int:pk>", views.GenerateProjectDocument.as_view()),
+    path("downloadProjectDocument/<int:pk>", views.DownloadProjectDocument.as_view()),
+    path("spawn", views.DocumentSpawner.as_view()),
     path("reports/download", views.DownloadAnnualReport.as_view()),
     path("reports/latestyear", views.GetLatestReportYear.as_view()),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
-    path("publications", views.Publications.as_view()),
-    path("publications/<int:pk>", views.PublicationDetail.as_view()),
+    # Actions
+    path("progressreports/approve", views.ProgressReportApproval.as_view()),
+    path("progressreports/recall", views.ProgressReportRecall.as_view()),
+    path("progressreports/send_back", views.ProgressReportSendBack.as_view()),
 ]

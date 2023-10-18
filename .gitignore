@@ -1,10 +1,12 @@
 docker-compose.yml
-Dockerfile
+docker-compose.yaml
+deployment.yaml
+render.yaml
 extracted_table_data
 *.csv
 *.txt
 *.dump
-
+*.env
 extract_data.py
 
 
