@@ -59,9 +59,6 @@ RUN echo '# Custom .bashrc modifications\n' \
 
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]
 
-# RUN service postgresql start
-# CMD ["./wait-for-postgres.sh", "gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]
-
 # echo 'PS1="\n\n\[$(tput sgr0)\]\[\033[38;5;105m\]\d\[$(tput sgr0)\], \t\n\[$(tput sgr0)\]\[\033[38;5;76m\]\w\[$(tput sgr0)\]\n\[$(tput sgr0)\]\[\033[38;5;10m\]--------------------------------\[$(tput sgr0)\]\n\[$(tput sgr0)\]\[\033[38;5;14m\]>\[$(tput sgr0)\]"' >> ~/.bashrc && \
 
 
