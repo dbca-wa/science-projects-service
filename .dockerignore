@@ -8,3 +8,14 @@ spms_migrator/downloads
 spms_migrator/extracted_from_dump
 venv
 .gitignore
+docker-compose.yml
+docker-compose.yaml
+deployment.yaml
+render.yaml
+extracted_table_data
+*.csv
+*.txt
+*.dump
+*.sql
+*.env
+extract_data.py
