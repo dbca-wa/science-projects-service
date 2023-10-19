@@ -199,7 +199,10 @@ CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
 
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1",
     "http://127.0.0.1:3000",
+    "http://scienceprojects-test.dbca.wa.gov.au",
+    "https://scienceprojects-test.dbca.wa.gov.au",
     "http://cycle.dbca.wa.gov.au",
     "http://scienceprojects.dbca.wa.gov.au",
     "http://dbcab2c.b2clogin.com",
