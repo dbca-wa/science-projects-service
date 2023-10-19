@@ -27,6 +27,8 @@ EXPOSE 8000
 RUN poetry config virtualenvs.create false && poetry install --no-root
 RUN poetry add docx2pdf
 COPY . ./backend
+WORKDIR /usr/src/app/backend/migrator
+RUN poetry install 
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /usr/src/app/backend
