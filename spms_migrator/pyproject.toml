@@ -1,0 +1,45 @@
+[tool.poetry]
+name = "spms-migrator"
+version = "0.1.0"
+description = ""
+authors = ["idabblewith <109533655+idabblewith@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "spms_migrator"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+beautifulsoup4 = "^4.12.2"
+black = "^23.3.0"
+click = "^8.1.3"
+colorama = "^0.4.6"
+mypy-extensions = "^1.0.0"
+numpy = "^1.25.0"
+packaging = "^23.1"
+pathspec = "^0.11.1"
+platformdirs = "^3.7.0"
+psycopg2-binary = "^2.9.6"
+python-dateutil = "^2.8.2"
+python-dotenv = "^1.0.0"
+pytz = "^2023.3"
+six = "^1.16.0"
+soupsieve = "^2.4.1"
+tqdm = "^4.65.0"
+tzdata = "^2023.3"
+pandas = "^2.0.2"
+django = "^4.2.2"
+django-environ = "^0.10.0"
+dj-database-url = "^2.0.0"
+djangorestframework = "^3.14.0"
+djangorestframework-simplejwt = "^5.2.2"
+django-cors-headers = "^4.1.0"
+requests = "^2.31.0"
+chardet = "^5.1.0"
+postgis = "^1.0.4"
+djangorestframework-gis = "^1.0"
+django-leaflet = "^0.29.0"
+selenium = "^4.10.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

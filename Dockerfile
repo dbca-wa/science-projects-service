@@ -54,13 +54,16 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias home="cd ~"\n' \
     'alias settz="export TZ=$TZ"\n' \
     'alias edit="home && vim .bashrc"\n' \
-    'alias dump_prod="PGPASSWORD=$PRODUCTION_PASSWORD pg_dump -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -f prod_dump.sql"\n ' \
-    'alias res_prod="PGPASSWORD=$PRODUCTION_PASSWORD psql -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -a -f prod_dump.sql"\n ' \
-    'alias dump_uat="PGPASSWORD=$UAT_PASSWORD pg_dump -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -f uat_dump.sql"\n ' \
-    'alias res_uat="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n ' \
-    'alias migrate="python manage.py makemigrations && python manage.py migrate"\n ' \
+    'alias migrate="python manage.py makemigrations && python manage.py migrate"\n' \
+    'alias dump_prod="PGPASSWORD=$PRODUCTION_PASSWORD pg_dump -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -f prod_dump.sql"\n' \
+    'alias res_prod="PGPASSWORD=$PRODUCTION_PASSWORD psql -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -a -f prod_dump.sql"\n' \
+    'alias dump_uat="PGPASSWORD=$UAT_PASSWORD pg_dump -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -f uat_dump.sql"\n' \
+    'alias res_uat="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n' \
+    'alias dump_old="PGPASSWORD=$OLD_PASSWORD pg_dump -h $OLD_HOST -d $OLD_DB_NAME -U $OLD_USERNAME -f old_dump.sql"\n' \
+    'alias res_old="PGPASSWORD=$OLD_PASSWORD psql -h $OLD_HOST -d $OLD_DB_NAME -U $OLD_USERNAME -a -f old_dump.sql"\n' \
     'alias connectprod="PGPASSWORD=$PRODUCTION_PASSWORD psql -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME"\n' \
     'alias connectuat="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME"\n' \
+    'alias connectold="PGPASSWORD=$OLD_PASSWORD psql -h $OLD_HOST -d $OLD_DB_NAME -U $OLD_USERNAME"\n' \
     'settz\n'>> ~/.bashrc
 
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]
