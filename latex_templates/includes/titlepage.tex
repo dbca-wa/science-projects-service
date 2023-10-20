@@ -1,0 +1,50 @@
+{% load staticfiles %}
+%------------------------------------------------------------------------------%
+% Titlepage
+%------------------------------------------------------------------------------%
+\newpage
+\begin{titlepage}
+\null\vfil\vskip 60pt                       % 60 pt vspace
+\setlength{\parindent}{20pt}                % Indent left 3 cm
+{\Large\bfseries Department of\par}
+{\huge\bfseries Biodiversity, Conservation and Attractions\par}
+{\Large Biodiversity and Conservation Science\par Annual Report\par}
+\vskip 1em                                  % Prevent tailgating
+{\LARGE\bfseries {{ original.year|add:"-1" }}--{{ original.year }}}
+\setlength{\parindent}{15pt}                % Default is 15pt.
+\vfill                                      % push remainder to page bottom
+\centering
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{% templatetag openbrace %}{{ STATIC_ROOT }}/img/logo-dbca-bcs.jpg}
+    \label{fig:departmental-logo}
+\end{figure}
+\end{titlepage}
+
+%------------------------------------------------------------------------------%
+% End Titlepage
+%------------------------------------------------------------------------------%
+
+%------------------------------------------------------------------------------%
+% Acknowledgements
+%------------------------------------------------------------------------------%
+%\newpage
+%\thispagestyle{empty}                       % Suppress headers / footers
+%\null
+%\newpage
+%\thispagestyle{empty}                       % Suppress headers / footers
+%\mbox{}
+%\vfill
+%\setlength{\parindent}{0pt}                 % No paragraph indent
+%{\Large Acknowledgement to Country\par}
+%The Department of Biodiversity, Conservation and Attractions (DBCA) acknowledges 
+%the traditional owners of country throughout Western Australia and their continuing 
+%connection to the land, waters and community. 
+%We pay our respects to them, their culture and to their Elders past and present.
+%\newpage
+%\thispagestyle{empty}                       % Suppress headers / footers
+%\null
+%\newpage
+%------------------------------------------------------------------------------%
+% End Acknowledgements
+%------------------------------------------------------------------------------%

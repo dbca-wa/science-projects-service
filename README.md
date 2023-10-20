@@ -1,0 +1,1 @@
+The Django-based backend for the science projects app.

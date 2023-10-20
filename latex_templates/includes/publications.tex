@@ -1,0 +1,25 @@
+%------------------------------------------------------------------------------%
+% Begin ARAR Chapter Publications
+%------------------------------------------------------------------------------%
+{% load texify %}
+
+{% if original.publications_chapterimage %}
+\chapterimage{.{{ original.publications_chapterimage.url }}}
+{% else %}
+\chapterimage{% templatetag openbrace %}{{ STATIC_ROOT }}/img/80mile.jpg}
+{% endif %}
+
+\chapter*{Publications and Reports}
+\addcontentsline{toc}{chapter}{Publications and Reports}
+\chaptermark{Publications and Reports}
+\sectionmark{}
+\setlength{\parskip}{1ex plus 0.3ex minus 0.2ex} % insert vspace between pars
+\begin{multicols}{2}
+    \begin{hangparas}{1em}{1} % hanging paragraphs
+        \footnotesize{%templatetag openbrace %}{{ original.pub|html2latex }}}
+    \end{hangparas}
+\end{multicols}
+\setlength{\parskip}{\default}
+%------------------------------------------------------------------------------%
+% End ARAR Chapter Publications
+%------------------------------------------------------------------------------%

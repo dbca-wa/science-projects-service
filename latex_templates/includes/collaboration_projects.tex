@@ -1,0 +1,39 @@
+%------------------------------------------------------------------------------%
+% Begin ARAR Table External Partnerships
+%------------------------------------------------------------------------------%
+{% load texify %}
+{% if original.partnerships_chapterimage %}
+\chapterimage{.{{ original.partnerships_chapterimage.url }}}
+{% else %}
+\chapterimage{% templatetag openbrace %}{{ STATIC_ROOT }}/img/80mile.jpg}
+{% endif %}
+
+\chapter*{External Partnerships}
+\addcontentsline{toc}{chapter}{External Partnerships}
+\chaptermark{External Partnerships}
+\sectionmark{}
+%
+% [caption={External Partnerships}]
+\begin{longtblr}{colspec={*4{X[l]}}, rowhead=1}
+\hline
+\rowcolor{infobg}
+\textbf{Partners} &
+\textbf{Project Title} &
+\textbf{External Funding} &
+\textbf{Departmental Involvement} \\
+\hline
+\endhead
+{% for project in projects|dictsort:"name" %}
+{{ project.name|html2latex }} &
+{{ project.title|html2latex }} &
+{{ project.budget|html2latex }} &
+{{ project.staff_list_plain|html2latex }} \\
+\hline
+{% empty %}
+No projects. \\
+{% endfor %}
+%
+\end{longtblr}
+%------------------------------------------------------------------------------%
+% End ARAR Table External Partnerships
+%------------------------------------------------------------------------------%

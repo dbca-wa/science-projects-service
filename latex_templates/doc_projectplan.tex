@@ -1,0 +1,49 @@
+{% extends "latex/document.tex" %}
+{% load pythia_base texify %}
+
+{% block subject %}{{ original|html2latex }}{% endblock %}
+{% block title %}{{ original.project.title|html2latex }}{% endblock %}
+{% block subtitle %}{{ original.project.program|html2latex }}{% endblock %}
+{% block author %}{% endblock %}
+{% block publishers %}
+    {% include "latex/includes/project_owners.tex" %}
+    {% include "latex/includes/project_status.tex" %}
+    {% include "latex/includes/endorsements.tex" %}
+{% endblock %}
+
+{% block content %}
+{% with doc=original pro=original.project %}
+
+{% include "latex/includes/project_title_section.tex" %}
+{% as_latex pro "program" 'subsection' %}
+{% as_latex pro "output_program" 'subsection' %}
+{% include "latex/includes/staff.tex" %}
+{% as_latex doc "related_projects" 'subsection' %}
+{% include "latex/includes/project_duration.tex" with pro=pro %}
+
+\section*{Relevance and Outcomes}
+{% as_latex doc "background" 'subsection' %}
+{% as_latex doc "aims" 'subsection' %}
+{% as_latex doc "outcome" 'subsection' %}
+{% as_latex doc "knowledge_transfer" 'subsection' %}
+{% as_latex doc "project_tasks" 'subsection' %}
+{% as_latex doc "references" 'subsection' %}
+
+\section*{Study design}
+{% as_latex doc "methodology" 'subsection' %}
+{% as_latex doc "bm_endorsement" 'subsection' %}
+
+\section*{Data management}
+{% as_latex doc "no_specimens" 'subsection' %}
+{% as_latex doc "hc_endorsement" 'subsection' %}
+{% as_latex doc "ae_endorsement" 'subsection' %}
+{% as_latex doc "data_management" 'subsection' %}
+{# as_latex doc "data_manager_endorsement" 'subsection' #}
+
+\section*{Budget}
+{% as_latex_table doc "operating_budget" 'section' %}
+{% as_latex_table doc "operating_budget_external" 'section' %}
+
+{% endwith %}
+{% endblock %}
+

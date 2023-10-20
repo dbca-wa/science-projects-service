@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "service-spms"
+version = "0.1.0"
+description = ""
+authors = ["idabblewith <109533655+idabblewith@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "<3.13,>=3.9"
+beautifulsoup4 = "^4.12.2"
+brotli = "^1.1.0"
+dbca-utils = "^1.1.6"
+dj-database-url = "^2.1.0"
+django-cors-headers = "^4.3.0"
+django-environ = "^0.11.2"
+djangorestframework = "^3.14.0"
+django = "^4.2.6"
+docx2pdf = "^0.1.8"
+lxml = "^4.9.3"
+psycopg2-binary = "^2.9.9"
+python-dotenv = "^1.0.0"
+python-dateutil = "^2.8.2"
+requests = "^2.31.0"
+selenium = "^4.14.0"
+sentry-sdk = {extras = ["django"], version = "^1.32.0"}
+whitenoise = {extras = ["brotli"], version = "^6.6.0"}
+gunicorn = "^21.2.0"
+pandas = "^2.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
