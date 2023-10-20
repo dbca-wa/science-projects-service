@@ -143,38 +143,38 @@ PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
 
 
-if not DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": env("PRODUCTION_DB_NAME"),
-            "USER": env("PRODUCTION_USERNAME"),
-            "PASSWORD": env("PRODUCTION_PASSWORD"),
-            "HOST": env(
-                "PRODUCTION_HOST"
-            ),  # Use "db" as the hostname to refer to the PostgreSQL service
-            "PORT": "5432",  # Use the PostgreSQL default port
-            "OPTIONS": {
-                "options": "-c client_encoding=utf8",
-            },
-            "CONN_MAX_AGE": 600,
-        }
+# if not DEBUG:
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql_psycopg2",
+        "NAME": env("PRODUCTION_DB_NAME"),
+        "USER": env("PRODUCTION_USERNAME"),
+        "PASSWORD": env("PRODUCTION_PASSWORD"),
+        "HOST": env(
+            "PRODUCTION_HOST"
+        ),  # Use "db" as the hostname to refer to the PostgreSQL service
+        "PORT": "5432",  # Use the PostgreSQL default port
+        "OPTIONS": {
+            "options": "-c client_encoding=utf8",
+        },
+        "CONN_MAX_AGE": 600,
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": f"{env('DBNAME')}",
-            "USER": f"{env('PGUSER')}",
-            "PASSWORD": f"{env('PGPASS')}",
-            "HOST": f"{env('HOST')}",
-            "PORT": f"{env('PORT')}",
-            "OPTIONS": {
-                "options": "-c client_encoding=utf8",
-            },
-            "CONN_MAX_AGE": 600,
-        }
-    }
+}
+# else:
+    # DATABASES = {
+    #     "default": {
+    #         "ENGINE": "django.db.backends.postgresql",
+    #         "NAME": f"{env('DBNAME')}",
+    #         "USER": f"{env('PGUSER')}",
+    #         "PASSWORD": f"{env('PGPASS')}",
+    #         "HOST": f"{env('HOST')}",
+    #         "PORT": f"{env('PORT')}",
+    #         "OPTIONS": {
+    #             "options": "-c client_encoding=utf8",
+    #         },
+    #         "CONN_MAX_AGE": 600,
+    #     }
+    # }
 
 
 ALLOWED_HOSTS = [
