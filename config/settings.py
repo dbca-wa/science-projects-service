@@ -134,6 +134,8 @@ STATIC_URL = "/static/"
 if not DEBUG:  # Whitenoise brotli config for static files on render
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
+
 MEDIA_ROOT = "uploads"
 MEDIA_URL = "user-uploads/"
 
