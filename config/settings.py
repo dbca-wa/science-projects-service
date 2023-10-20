@@ -184,6 +184,14 @@ ALLOWED_HOSTS = [
     # "cycle-test-clusterip.cycle",
     # "127.0.0.1",
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'X-CSRFToken',
+    'Content-Type',
+    # Add any other headers you need here
+]
 CORS_ALLOWED_ORIGINS = [
     "http://*",
     "https://*",
