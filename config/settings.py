@@ -184,6 +184,8 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 CORS_ALLOWED_ORIGINS = [
+    "https://scienceprojects-test.dbca.wa.gov.au",
+    "https://scienceprojects-test-api.dbca.wa.gov.au",
     "http://scienceprojects-test-api.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
     "http://cycle-test-clusterip.cycle",
