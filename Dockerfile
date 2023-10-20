@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.11.6
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV TZ="Australia/Perth"
@@ -62,12 +62,13 @@ RUN poetry config virtualenvs.create false
 # RUN echo -e "3.12" | poetry init
 RUN poetry init
 # Necessary to fix pandas/numpy installation issues on 3.12 with poetry
-RUN sed -i 's/python = "^3.12"/python = "<3.13,>=3.9"/' pyproject.toml
+RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.9"/' pyproject.toml
 
 # Base
-RUN poetry add beautifulsoup4 brotli dbca-utils dj-database-url django-cors-headers django-environ \
-    djangorestframework django docx2pdf lxml psycopg2-binary python-dotenv python-dateutil \
-    requests selenium sentry-sdk[django] whitenoise[brotli] gunicorn pandas 
+RUN poetry add brotli dbca-utils dj-database-url django-cors-headers django-environ \
+    djangorestframework django psycopg2-binary python-dotenv python-dateutil \
+    requests sentry-sdk[django] whitenoise[brotli] gunicorn pandas \
+    beautifulsoup4 docx2pdf lxml selenium 
 
 # Other (jwt, pypandoc, selenium, beautifulsoup4, docx2pdf -> potentially move some to new pdf gen container)
 # RUN poetry add pypandoc
