@@ -70,7 +70,7 @@ RUN poetry add beautifulsoup4 brotli dbca-utils dj-database-url django-cors-head
     requests selenium sentry-sdk[django] whitenoise[brotli] gunicorn pandas 
 
 # Other (jwt, pypandoc, selenium, beautifulsoup4, docx2pdf -> potentially move some to new pdf gen container)
-RUN poetry add pypandoc
+# RUN poetry add pypandoc
 
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]

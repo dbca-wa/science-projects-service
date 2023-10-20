@@ -70,7 +70,7 @@ from django.conf import settings
 import subprocess
 from django.http import HttpResponse
 from docx2pdf import convert  # You can use docx2pdf to convert HTML to PDF
-import pypandoc
+# import pypandoc
 from django.template import Context
 from django.template.loader import get_template
 
@@ -182,24 +182,24 @@ class GenerateProjectDocument(APIView):
             filled_template = latex_template
 
             # Create a dictionary with placeholders and their corresponding data
-            data = {
-                "title": pypandoc.convert_text(
-                    pr.document.project.title, "tex", format="html"
-                ),
-                "aims_html_data": pypandoc.convert_text(pr.aims, "tex", format="html"),
-                "context_html_data": pypandoc.convert_text(
-                    pr.context, "tex", format="html"
-                ),
-                "future_html_data": pypandoc.convert_text(
-                    pr.future, "tex", format="html"
-                ),
-                "implications_html_data": pypandoc.convert_text(
-                    pr.implications, "tex", format="html"
-                ),
-                "progress_html_data": pypandoc.convert_text(
-                    pr.progress, "tex", format="html"
-                ),
-            }
+            # data = {
+            #     "title": pypandoc.convert_text(
+            #         pr.document.project.title, "tex", format="html"
+            #     ),
+            #     "aims_html_data": pypandoc.convert_text(pr.aims, "tex", format="html"),
+            #     "context_html_data": pypandoc.convert_text(
+            #         pr.context, "tex", format="html"
+            #     ),
+            #     "future_html_data": pypandoc.convert_text(
+            #         pr.future, "tex", format="html"
+            #     ),
+            #     "implications_html_data": pypandoc.convert_text(
+            #         pr.implications, "tex", format="html"
+            #     ),
+            #     "progress_html_data": pypandoc.convert_text(
+            #         pr.progress, "tex", format="html"
+            #     ),
+            # }
 
             # Populate the LaTeX template with data
             # filled_template = latex_template.format(**data)
@@ -228,13 +228,14 @@ class GenerateProjectDocument(APIView):
 
             def generate_pdf(data, pdf_file):
                 # Perform the PDF generation as before
-                pypandoc.convert_text(
-                    data,
-                    "pdf",
-                    format="latex",
-                    outputfile=pdf_file,
-                    extra_args=["--pdf-engine=pdflatex"],
-                )
+                print("gen")
+                # pypandoc.convert_text(
+                #     data,
+                #     "pdf",
+                #     format="latex",
+                #     outputfile=pdf_file,
+                #     extra_args=["--pdf-engine=pdflatex"],
+                # )
 
             generate_pdf(**task_args)
 
