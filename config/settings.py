@@ -143,7 +143,15 @@ ALLOWED_HOSTS = [
     "scienceprojects-test.dbca.wa.gov.au",
     "cycle-test-clusterip.cycle",
     "127.0.0.1",
-] + os.environ.get("ADDITIONAL_HOST")
+]
+
+
+# Get the additional host(s) from the environment variable and split it into a list
+additional_host = os.environ.get("ADDITIONAL_HOST")
+if additional_host:
+    additional_host_list = additional_host.split(",")
+    ALLOWED_HOSTS += additional_host_list
+
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
@@ -165,7 +173,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://*",
     "http://*",
-] + os.environ.get("ADDITIONAL_URL")
+]
+
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
@@ -181,8 +190,14 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://*",
     "http://*",
-] + os.environ.get("ADDITIONAL_URL")
+]
 
+# Get the additional url(s) from the environment variable and split it into a list
+additional_url = os.environ.get("ADDITIONAL_URL")
+if additional_url:
+    additional_url_list = additional_url.split(",")
+    CORS_ALLOWED_ORIGINS += additional_url_list
+    CSRF_TRUSTED_ORIGINS += additional_url_list
 
 
 MIDDLEWARE = [
