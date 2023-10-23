@@ -150,9 +150,9 @@ else:
 ALLOWED_HOSTS = [
     '*'
     # "scienceprojects-test-api.dbca.wa.gov.au",
-    # "scienceprojects-test.dbca.wa.gov.au",
-    # "cycle-test-clusterip.cycle",
-    # "127.0.0.1",
+    "scienceprojects-test.dbca.wa.gov.au",
+    "cycle-test-clusterip.cycle",
+    "127.0.0.1",
 ]
 
 # RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -168,8 +168,8 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    # "https://*",
-    # "http://*",
+    "https://*",
+    "http://*",
     "https://scienceprojects-test.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
     "http://cycle-test-clusterip.cycle",
@@ -179,8 +179,8 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    # "https://*",
-    # "http://*",
+    "https://*",
+    "http://*",
     "https://scienceprojects-test.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
     "http://cycle-test-clusterip.cycle",
