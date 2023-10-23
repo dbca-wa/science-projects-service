@@ -139,7 +139,6 @@ else:
 }
     
 ALLOWED_HOSTS = [
-    '*'
     "scienceprojects-test-api.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "cycle-test-clusterip.cycle",
@@ -154,8 +153,6 @@ CORS_ALLOW_HEADERS = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://*",
-    "http://*",
     "https://scienceprojects-test.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
     "https://cycle-test-clusterip.cycle",
@@ -164,12 +161,13 @@ CORS_ALLOWED_ORIGINS = [
     "http://cycle-test-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
+        "https://*",
+    "http://*",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://*",
-    "http://*",
+
     "https://scienceprojects-test.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
     "http://cycle-test-clusterip.cycle",
@@ -178,6 +176,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://cycle-test-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
+        "https://*",
+    "http://*",
 ]
 
 
