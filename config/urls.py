@@ -20,12 +20,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 # from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-class CustomAdminSite(admin.AdminSite):
-    def has_permission(self, request):
-        return request.user.is_superuser
+# class CustomAdminSite(admin.AdminSite):
+#     def has_permission(self, request):
+#         return request.user.is_superuser
 
 
-admin.site = CustomAdminSite()
+# admin.site = CustomAdminSite()
 
 
 urlpatterns = [
