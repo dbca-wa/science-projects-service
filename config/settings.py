@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # DEBUG = False if env("DEBUG") == "False" else True
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG")
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 CF_IMAGES_TOKEN = env("CF_IMAGES_TOKEN")
@@ -105,7 +105,7 @@ INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
 ROOT_URLCONF = "config.urls"
 
-if DEBUG:
+if not DEBUG:
     # Azure db
     DATABASES = {
         "default": {
