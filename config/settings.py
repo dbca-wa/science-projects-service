@@ -155,28 +155,31 @@ CORS_ALLOW_HEADERS = [
 CORS_ALLOWED_ORIGINS = [
     "https://scienceprojects-test.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
+    "https://scienceprojects-test-api.dbca.wa.gov.au",
+    "http://scienceprojects-test-api.dbca.wa.gov.au",
     "https://cycle-test-clusterip.cycle",
     "http://cycle-test-clusterip.cycle",
     "https://cycle-test-clusterip.cycle:3000",
     "http://cycle-test-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
-        "https://*",
+    "https://*",
     "http://*",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
-
     "https://scienceprojects-test.dbca.wa.gov.au",
     "http://scienceprojects-test.dbca.wa.gov.au",
+    "https://scienceprojects-test-api.dbca.wa.gov.au",
+    "http://scienceprojects-test-api.dbca.wa.gov.au",
     "http://cycle-test-clusterip.cycle",
     "https://cycle-test-clusterip.cycle",
     "https://cycle-test-clusterip.cycle:3000",
     "http://cycle-test-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
-        "https://*",
+    "https://*",
     "http://*",
 ]
 
