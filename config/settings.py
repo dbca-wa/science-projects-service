@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # DEBUG = False if env("DEBUG") == "False" else True
-DEBUG = False
+DEBUG = True
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 CF_IMAGES_TOKEN = env("CF_IMAGES_TOKEN")
@@ -105,7 +105,7 @@ INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
 ROOT_URLCONF = "config.urls"
 
-if not DEBUG:
+if DEBUG:
     # Azure db
     DATABASES = {
         "default": {
@@ -160,6 +160,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://scienceprojects-test.dbca.wa.gov.au",
     "https://cycle-test-clusterip.cycle",
     "http://cycle-test-clusterip.cycle",
+    "https://cycle-test-clusterip.cycle:3000",
     "http://cycle-test-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
