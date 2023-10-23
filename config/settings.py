@@ -13,20 +13,18 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
-DEBUG = False if env("DEBUG") == "False" else True
+# DEBUG = False if env("DEBUG") == "False" else True
+DEBUG = False
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 CF_IMAGES_TOKEN = env("CF_IMAGES_TOKEN")
 CF_ACCOUNT_ID = env("CF_ACCOUNT_ID")
 CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload"
 
-if env("DEBUG") == "True":
+if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
-    # if 'RENDER' not in os.environ:
     INSTANCE_URL = "https://scienceprojects-test-api.dbca.wa.gov.au"
-    # else:
-    #     INSTANCE_URL = "https://idabblewith.xyz"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -108,14 +106,7 @@ INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 ROOT_URLCONF = "config.urls"
 
 if not DEBUG:
-    # if 'RENDER' in os.environ:
-    #     DATABASES = {
-    #         "default": dj_database_url.config(
-    #             conn_max_age=600,
-    #         )
-    #     }
-
-    # else:
+    # Azure db
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
@@ -133,6 +124,7 @@ if not DEBUG:
         }
     }
 else:
+    # Local postgres db
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -145,14 +137,7 @@ else:
             "CONN_MAX_AGE": 600,
         }
 }
-
-
-# MOVED TEMP.
-# RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-# if RENDER_EXTERNAL_HOSTNAME:
-#     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-
+    
 ALLOWED_HOSTS = [
     '*'
     "scienceprojects-test-api.dbca.wa.gov.au",
