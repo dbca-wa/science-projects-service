@@ -218,17 +218,17 @@ REST_FRAMEWORK = {
 
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
-if not DEBUG:
-    sentry_sdk.init(
-    dsn="https://cdcf29f929f0933f07cd883c3690fe41@o4504491005902848.ingest.sentry.io/4506080017317888",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
-    profiles_sample_rate=1.0,
-)
+# if not DEBUG:
+#     sentry_sdk.init(
+#     dsn="https://cdcf29f929f0933f07cd883c3690fe41@o4504491005902848.ingest.sentry.io/4506080017317888",
+#     # Set traces_sample_rate to 1.0 to capture 100%
+#     # of transactions for performance monitoring.
+#     traces_sample_rate=1.0,
+#     # Set profiles_sample_rate to 1.0 to profile 100%
+#     # of sampled transactions.
+#     # We recommend adjusting this value in production.
+#     profiles_sample_rate=1.0,
+# )
 
 
 STATIC_URL = "/static/"
