@@ -147,6 +147,12 @@ else:
 }
 
 
+# MOVED TEMP.
+# RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+# if RENDER_EXTERNAL_HOSTNAME:
+#     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+
 ALLOWED_HOSTS = [
     '*'
     # "scienceprojects-test-api.dbca.wa.gov.au",
@@ -155,16 +161,11 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
 ]
 
-# RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-# if RENDER_EXTERNAL_HOSTNAME:
-#     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
 CORS_ALLOW_HEADERS = [
     'X-CSRFToken',
     'Content-Type',
-    # Add any other headers you need here
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -177,6 +178,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
 ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*",
@@ -189,8 +191,6 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 
-CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
-CORS_ALLOW_CREDENTIALS = True
 
 
 MIDDLEWARE = [
