@@ -23,10 +23,10 @@ CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/
 if env("DEBUG") == "True":
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
-    if 'RENDER' not in os.environ:
-        INSTANCE_URL = "https://scienceprojects-test-api.dbca.wa.gov.au"
-    else:
-        INSTANCE_URL = "https://idabblewith.xyz"
+    # if 'RENDER' not in os.environ:
+    INSTANCE_URL = "https://scienceprojects-test-api.dbca.wa.gov.au"
+    # else:
+    #     INSTANCE_URL = "https://idabblewith.xyz"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -70,7 +70,6 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 AUTH_USER_MODEL = "users.User"
 
-# Application definition
 
 SYSTEM_APPS = [
     "django.contrib.admin",
@@ -104,48 +103,35 @@ CUSTOM_APPS = [
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
-# DEBUG = "RENDER" not in os.environ  # Debug if not hosted on RENDER
 # APPEND_SLASH = False
 
 ROOT_URLCONF = "config.urls"
-STATIC_URL = "/static/"
-if not DEBUG:  # Whitenoise brotli config for static files on render
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
-
-MEDIA_ROOT = "uploads"
-MEDIA_URL = "user-uploads/"
-
-PAGE_SIZE = 10
-USER_LIST_PAGE_SIZE = 250
-
 
 if not DEBUG:
-    if 'RENDER' in os.environ:
-        DATABASES = {
-            "default": dj_database_url.config(
-                conn_max_age=600,
-            )
-        }
+    # if 'RENDER' in os.environ:
+    #     DATABASES = {
+    #         "default": dj_database_url.config(
+    #             conn_max_age=600,
+    #         )
+    #     }
 
-    else:
-        DATABASES = {
-            "default": {
-                "ENGINE": "django.db.backends.postgresql_psycopg2",
-                "NAME": env("PRODUCTION_DB_NAME"),
-                "USER": env("PRODUCTION_USERNAME"),
-                "PASSWORD": env("PRODUCTION_PASSWORD"),
-                "HOST": env(
-                    "PRODUCTION_HOST"
-                ),  # Use "db" as the hostname to refer to the PostgreSQL service
-                "PORT": "5432",  # Use the PostgreSQL default port
-                "OPTIONS": {
-                    "options": "-c client_encoding=utf8",
-                },
-                "CONN_MAX_AGE": 600,
-            }
+    # else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
+            "NAME": env("PRODUCTION_DB_NAME"),
+            "USER": env("PRODUCTION_USERNAME"),
+            "PASSWORD": env("PRODUCTION_PASSWORD"),
+            "HOST": env(
+                "PRODUCTION_HOST"
+            ), 
+            "PORT": "5432", 
+            "OPTIONS": {
+                "options": "-c client_encoding=utf8",
+            },
+            "CONN_MAX_AGE": 600,
         }
+    }
 else:
     DATABASES = {
         "default": {
@@ -160,19 +146,18 @@ else:
         }
 }
 
-        # "HOST": f"{env('HOST')}",
-        # "PORT": f"{env('PORT')}",
+
 ALLOWED_HOSTS = [
-    # '*'
+    '*'
     # "scienceprojects-test-api.dbca.wa.gov.au",
     # "scienceprojects-test.dbca.wa.gov.au",
     # "cycle-test-clusterip.cycle",
     # "127.0.0.1",
 ]
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+# RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+# if RENDER_EXTERNAL_HOSTNAME:
+#     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -181,31 +166,27 @@ CORS_ALLOW_HEADERS = [
     'Content-Type',
     # Add any other headers you need here
 ]
+
 CORS_ALLOWED_ORIGINS = [
-    "http://*",
-    "https://*",
-            # "https://scienceprojects-test.dbca.wa.gov.au",
-    # "https://scienceprojects-test.dbca.wa.gov.au",
-    # "https://scienceprojects-test-api.dbca.wa.gov.au",
-    # "http://scienceprojects-test-api.dbca.wa.gov.au",
-    # "http://scienceprojects-test.dbca.wa.gov.au",
-    # "http://cycle-test-clusterip.cycle",
-    # "http://cycle-test-clusterip.cycle:3000",
-    # "http://127.0.0.1",
-    # "http://127.0.0.1:3000",
+    # "https://*",
+    # "http://*",
+    "https://scienceprojects-test.dbca.wa.gov.au",
+    "http://scienceprojects-test.dbca.wa.gov.au",
+    "http://cycle-test-clusterip.cycle",
+    "http://cycle-test-clusterip.cycle:3000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:3000",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://*",
-    "https://*",
-            # "https://scienceprojects-test.dbca.wa.gov.au",
-    # "https://scienceprojects-test-api.dbca.wa.gov.au",
-    # "http://scienceprojects-test.dbca.wa.gov.au",
-    # "http://scienceprojects-test-api.dbca.wa.gov.au",
-    # "http://cycle-test-clusterip.cycle",
-    # "http://cycle-test-clusterip.cycle:3000",
-    # "http://127.0.0.1",
-    # "http://127.0.0.1:3000",
+    # "https://*",
+    # "http://*",
+    "https://scienceprojects-test.dbca.wa.gov.au",
+    "http://scienceprojects-test.dbca.wa.gov.au",
+    "http://cycle-test-clusterip.cycle",
+    "http://cycle-test-clusterip.cycle:3000",
+    "http://127.0.0.1",
+    "http://127.0.0.1:3000",
 ]
 
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
@@ -249,8 +230,16 @@ if not DEBUG:
     profiles_sample_rate=1.0,
 )
 
-STATIC_URL = "/static/"
 
-if not DEBUG:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManigestStaticFilesStorage"
+STATIC_URL = "/static/"
+if not DEBUG:  # Whitenoise brotli config for static files on render
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
+
+MEDIA_ROOT = "uploads"
+MEDIA_URL = "user-uploads/"
+
+PAGE_SIZE = 10
+USER_LIST_PAGE_SIZE = 250
+
