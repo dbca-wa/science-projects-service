@@ -155,7 +155,7 @@ else:
 
 ALLOWED_HOSTS = [
     '*'
-    # "scienceprojects-test-api.dbca.wa.gov.au",
+    "scienceprojects-test-api.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "cycle-test-clusterip.cycle",
     "127.0.0.1",
