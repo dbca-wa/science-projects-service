@@ -13,40 +13,20 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
+DEBUG = False if env("DEBUG") == "False" else True
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 CF_IMAGES_TOKEN = env("CF_IMAGES_TOKEN")
 CF_ACCOUNT_ID = env("CF_ACCOUNT_ID")
 CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/images/v2/direct_upload"
-INSTANCE_URL = "http://127.0.0.1:8000/"
 
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=2),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=8),
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": False,
-    "ALGORITHM": "HS256",
-    "SIGNING_KEY": SECRET_KEY,
-    "VERIFYING_KEY": None,
-    "AUDIENCE": None,
-    "ISSUER": None,
-    "JWK_URL": None,
-    "LEEWAY": 0,
-    "AUTH_HEADER_TYPES": ("Bearer", "JWT"),
-    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
-    "USER_ID_FIELD": "id",
-    "USER_ID_CLAIM": "user_id",
-    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
-    "TOKEN_TYPE_CLAIM": "token_type",
-    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
-    "JTI_CLAIM": "jti",
-    "SLIDING_TOKEN_REFRESH_EXP_CLAIM": "refresh_exp",
-    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
-    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
-}
+if env("DEBUG") == "True":
+    INSTANCE_URL = "http://127.0.0.1:8000/"
+else:
+    if 'RENDER' not in os.environ:
+        INSTANCE_URL = "https://scienceprojects-test-api.dbca.wa.gov.au"
+    else:
+        INSTANCE_URL = "https://idabblewith.xyz"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -127,8 +107,6 @@ INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 # DEBUG = "RENDER" not in os.environ  # Debug if not hosted on RENDER
 # APPEND_SLASH = False
 
-DEBUG = False if env("DEBUG") == "False" else True
-
 ROOT_URLCONF = "config.urls"
 STATIC_URL = "/static/"
 if not DEBUG:  # Whitenoise brotli config for static files on render
@@ -143,47 +121,58 @@ PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
 
 
-# if not DEBUG:
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": env("PRODUCTION_DB_NAME"),
-        "USER": env("PRODUCTION_USERNAME"),
-        "PASSWORD": env("PRODUCTION_PASSWORD"),
-        "HOST": env(
-            "PRODUCTION_HOST"
-        ),  # Use "db" as the hostname to refer to the PostgreSQL service
-        "PORT": "5432",  # Use the PostgreSQL default port
-        "OPTIONS": {
-            "options": "-c client_encoding=utf8",
-        },
-        "CONN_MAX_AGE": 600,
-    }
+if not DEBUG:
+    if 'RENDER' in os.environ:
+        DATABASES = {
+            "default": dj_database_url.config(
+                conn_max_age=600,
+            )
+        }
+
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql_psycopg2",
+                "NAME": env("PRODUCTION_DB_NAME"),
+                "USER": env("PRODUCTION_USERNAME"),
+                "PASSWORD": env("PRODUCTION_PASSWORD"),
+                "HOST": env(
+                    "PRODUCTION_HOST"
+                ),  # Use "db" as the hostname to refer to the PostgreSQL service
+                "PORT": "5432",  # Use the PostgreSQL default port
+                "OPTIONS": {
+                    "options": "-c client_encoding=utf8",
+                },
+                "CONN_MAX_AGE": 600,
+            }
+        }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": f"{env('DBNAME')}",
+            "USER": f"{env('PGUSER')}",
+            "PASSWORD": f"{env('PGPASS')}",
+            "OPTIONS": {
+                "options": "-c client_encoding=utf8",
+            },
+            "CONN_MAX_AGE": 600,
+        }
 }
-# else:
-    # DATABASES = {
-    #     "default": {
-    #         "ENGINE": "django.db.backends.postgresql",
-    #         "NAME": f"{env('DBNAME')}",
-    #         "USER": f"{env('PGUSER')}",
-    #         "PASSWORD": f"{env('PGPASS')}",
-    #         "HOST": f"{env('HOST')}",
-    #         "PORT": f"{env('PORT')}",
-    #         "OPTIONS": {
-    #             "options": "-c client_encoding=utf8",
-    #         },
-    #         "CONN_MAX_AGE": 600,
-    #     }
-    # }
 
-
+        # "HOST": f"{env('HOST')}",
+        # "PORT": f"{env('PORT')}",
 ALLOWED_HOSTS = [
-    '*'
+    # '*'
     # "scienceprojects-test-api.dbca.wa.gov.au",
     # "scienceprojects-test.dbca.wa.gov.au",
     # "cycle-test-clusterip.cycle",
     # "127.0.0.1",
 ]
+
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
@@ -260,3 +249,8 @@ if not DEBUG:
     profiles_sample_rate=1.0,
 )
 
+STATIC_URL = "/static/"
+
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManigestStaticFilesStorage"
