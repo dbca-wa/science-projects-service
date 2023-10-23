@@ -143,7 +143,7 @@ ALLOWED_HOSTS = [
     "scienceprojects-test.dbca.wa.gov.au",
     "cycle-test-clusterip.cycle",
     "127.0.0.1",
-]
+] + os.environ.get("ADDITIONAL_HOST")
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
@@ -165,7 +165,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://*",
     "http://*",
-]
+] + os.environ.get("ADDITIONAL_URL")
 CORS_ALLOW_ALL_ORIGINS = True
 
 CSRF_TRUSTED_ORIGINS = [
@@ -181,7 +181,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://*",
     "http://*",
-]
+] + os.environ.get("ADDITIONAL_URL")
 
 
 
