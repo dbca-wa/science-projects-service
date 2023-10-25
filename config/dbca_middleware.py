@@ -137,7 +137,7 @@ class DBCAMiddleware(MiddlewareMixin):
             user = User.objects.filter(username=email).first()
             if user:
                 request.user = user
-                ModelBackend().update_last_login(None, user)
+                user.update_last_login(None)  # Update last login for the user
                 return self.get_response(request)
 
         return self.get_response(request)
