@@ -249,7 +249,26 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen
 #     # We recommend adjusting this value in production.
 #     profiles_sample_rate=1.0,
 # )
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',  # Change to 'DEBUG' to see more detailed logs
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',  # Change to 'DEBUG' to see more detailed logs
+            'propagate': True,
+        },
+    },
+}
 
 STATIC_URL = "/static/"
 if not DEBUG:  # Whitenoise brotli config for static files on render
