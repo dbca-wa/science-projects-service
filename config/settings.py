@@ -24,7 +24,7 @@ CF_UPLOAD_URL = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/
 if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
-    INSTANCE_URL = "https://scienceprojects-test-api.dbca.wa.gov.au"
+    INSTANCE_URL = "https://scienceprojects-test.dbca.wa.gov.au"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -215,7 +215,8 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "dbca_utils.middleware.SSOLoginMiddleware",
+    "config.dbca_middleware.SSOLoginMiddleware",
+        # "dbca_utils.middleware.SSOLoginMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",

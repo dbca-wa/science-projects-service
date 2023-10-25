@@ -23,34 +23,40 @@ class SSOLoginMiddleware(object):
             logout(request)
             return http.HttpResponseRedirect(request.META["HTTP_X_LOGOUT_URL"])
         if not request.user.is_authenticated() and "HTTP_REMOTE_USER" in request.META:
-            # logger.info("User not authenticated and remote. Debug: {0}".format(settings.DEBUG))
-            attributemap = {
-                "username": "HTTP_REMOTE_USER",
-                "last_name": "HTTP_X_LAST_NAME",
-                "first_name": "HTTP_X_FIRST_NAME",
-                "email": "HTTP_X_EMAIL",
-            }
+            username = request.META.get("HTTP_REMOTE_USER")
+            first_name = request.META.get("HTTP_X_FIRST_NAME")
+            last_name = request.META.get("HTTP_X_LAST_NAME")
+            email = request.META.get("HTTP_X_EMAIL")
 
-            for key, value in attributemap.iteritems():
-                attributemap[key] = request.META[value]
+            if username and email:
+                user, created = User.objects.get_or_create(
+                    username=username,
+                    email=email,
+                    defaults={
+                        "first_name": first_name,
+                        "last_name": last_name,
+                        "is_staff": True,  # Set is_staff to True for new users
+                    },
+                )
+                user.backend = "django.contrib.auth.backends.ModelBackend"
+                login(request, user)
 
-            if (
-                attributemap["email"]
-                and User.objects.filter(
-                    email__istartswith=attributemap["email"]
-                ).exists()
-            ):
-                user = User.objects.get(email__istartswith=attributemap["email"])
-            elif User.objects.filter(
-                username__iexact=attributemap["username"]
-            ).exists():
-                user = User.objects.get(username__iexact=attributemap["username"])
-            else:
-                user = User()
-            user.__dict__.update(attributemap)
-            user.save()
-            user.backend = "django.contrib.auth.backends.ModelBackend"
-            login(request, user)
+        return None
+    #         username = request.META.get("HTTP_REMOTE_USER")
+    #         first_name = request.META.get("HTTP_X_FIRST_NAME")
+    #         last_name = request.META.get("HTTP_X_LAST_NAME")
+    #         email = request.META.get("HTTP_X_EMAIL")
+
+    #         if first_name and last_name and username and email:
+    #             user = User.objects.filter(username=email).first()
+    #             if user:
+    #                 request.user = user
+    #                 BaseBackend().update_last_login(None, user)
+    #                 return self.get_response(request)
+
+    #         return self.get_response(request)
+
+
 
     # class DBCAMiddleware:
     #     def __init__(self, get_response):
