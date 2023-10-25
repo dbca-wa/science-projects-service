@@ -137,7 +137,8 @@ class DBCAMiddleware(MiddlewareMixin):
             user = User.objects.filter(username=email).first()
             if user:
                 request.user = user
-                user.update_last_login(None)  # Update last login for the user
+                user.save(update_fields=["last_login"])  # Update the last login field
+                # user.update_last_login(None)  # Update last login for the user
                 return self.get_response(request)
 
         return self.get_response(request)
