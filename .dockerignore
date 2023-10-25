@@ -16,7 +16,6 @@ deployment.yaml
 render.yaml
 extracted_table_data
 *.csv
-*.txt
 *.dump
 *.sql
 *.env
