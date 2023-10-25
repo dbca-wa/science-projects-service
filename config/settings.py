@@ -215,7 +215,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "config.dbca_middleware.SSOLoginMiddleware",
+    "config.dbca_middleware.DBCAMiddleware",
         # "dbca_utils.middleware.SSOLoginMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
