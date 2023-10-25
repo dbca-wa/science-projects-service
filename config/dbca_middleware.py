@@ -83,7 +83,7 @@ class DBCAMiddleware(MiddlewareMixin):
         self.get_response = get_response
 
     def __call__(self, request):
-        self.print_request_headers(request)
+        # self.print_request_headers(request)
 
         if "HTTP_REMOTE_USER" not in request.META or not request.META["HTTP_REMOTE_USER"]:
             return self.get_response(request)
