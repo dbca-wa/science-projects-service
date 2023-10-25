@@ -5,9 +5,9 @@ from datetime import timedelta
 import requests
 
 import dj_database_url
-import sentry_sdk
+# import sentry_sdk
 
-from sentry_sdk.integrations.django import DjangoIntegration
+# from sentry_sdk.integrations.django import DjangoIntegration
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -176,8 +176,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://cycle-test-frontend-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
-    "https://*",
-    "http://*",
+    # "https://*",
+    # "http://*",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
@@ -197,8 +197,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://cycle-test-frontend-clusterip.cycle:3000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
-    "https://*",
-    "http://*",
+    # "https://*",
+    # "http://*",
 ]
 
 # Get the additional url(s) from the environment variable and split it into a list
@@ -234,17 +234,20 @@ REST_FRAMEWORK = {
 
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 
+
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen
+
 # if not DEBUG:
-sentry_sdk.init(
-    dsn="https://cdcf29f929f0933f07cd883c3690fe41@o4504491005902848.ingest.sentry.io/4506080017317888",
-    # Set traces_sample_rate to 1.0 to capture 100%
-    # of transactions for performance monitoring.
-    traces_sample_rate=1.0,
-    # Set profiles_sample_rate to 1.0 to profile 100%
-    # of sampled transactions.
-    # We recommend adjusting this value in production.
-    profiles_sample_rate=1.0,
-)
+# sentry_sdk.init(
+#     dsn="https://cdcf29f929f0933f07cd883c3690fe41@o4504491005902848.ingest.sentry.io/4506080017317888",
+#     # Set traces_sample_rate to 1.0 to capture 100%
+#     # of transactions for performance monitoring.
+#     traces_sample_rate=1.0,
+#     # Set profiles_sample_rate to 1.0 to profile 100%
+#     # of sampled transactions.
+#     # We recommend adjusting this value in production.
+#     profiles_sample_rate=1.0,
+# )
 
 
 STATIC_URL = "/static/"

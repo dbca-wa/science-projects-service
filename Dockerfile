@@ -67,11 +67,11 @@ RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.9"/' pyproject.toml
 # Base
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     djangorestframework django psycopg2-binary python-dotenv python-dateutil \
-    requests sentry-sdk[django] whitenoise[brotli] gunicorn pandas \
+    requests whitenoise[brotli] gunicorn pandas \
     beautifulsoup4 docx2pdf lxml  
 
 # Other (jwt, pypandoc, selenium, beautifulsoup4, docx2pdf -> potentially move some to new pdf gen container)
-# RUN poetry add dbca-utils pypandoc selenium
+# RUN poetry add sentry-sdk[django] dbca-utils pypandoc selenium
 
 # RUN python manage.py collectstatic
 
