@@ -83,16 +83,16 @@ class DBCAMiddleware(MiddlewareMixin):
         self.get_response = get_response
 
     def __call__(self, request):
-        for header, value in request.META.items():
-            if header.startswith("HTTP_"):
-                print(f"{header}: {value}")
+        # for header, value in request.META.items():
+        #     if header.startswith("HTTP_"):
+        #         print(f"{header}: {value}")
 
 
         if "HTTP_REMOTE_USER" not in request.META or not request.META["HTTP_REMOTE_USER"]:
             return self.get_response(request)
 
         if (
-            request.path.startswith("/logout")
+            (request.path.startswith('/logout') or request.path.startswith('/api/v1/users/logout'))
             and "HTTP_X_LOGOUT_URL" in request.META
             and request.META["HTTP_X_LOGOUT_URL"]
         ):
@@ -113,7 +113,7 @@ class DBCAMiddleware(MiddlewareMixin):
                 if value in request.META:
                     attributemap[key] = request.META[value]
             
-            print(attributemap)
+            # print(attributemap)
 
             if attributemap["email"] and User.objects.filter(email__iexact=attributemap["email"]).exists():
                 user = User.objects.filter(email__iexact=attributemap["email"])[0]
