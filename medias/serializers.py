@@ -1,4 +1,8 @@
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import (
+    ModelSerializer,
+    SerializerMethodField,
+    ImageField,
+)
 
 from agencies.serializers import TinyBusinessAreaSerializer
 
@@ -12,13 +16,16 @@ from .models import (
     ProjectPhoto,
 )
 
+# from PIL import Image
+# from io import BytesIO
+
 
 class ProjectDocumentPDFSerializer(ModelSerializer):
     class Meta:
         model = ProjectDocumentPDF
         fields = [
             "pk",
-            "old_file",
+            # "old_file",
             "file",
             "document",
             "project",
@@ -33,7 +40,7 @@ class TinyAnnualReportMediaSerializer(ModelSerializer):
         fields = [
             "pk",
             "kind",
-            "old_file",
+            # "old_file",
             "file",
             "report",
         ]
@@ -73,7 +80,7 @@ class TinyBusinessAreaPhotoSerializer(ModelSerializer):
         model = BusinessAreaPhoto
         fields = [
             "pk",
-            "old_file",
+            # "old_file",
             "file",
             "business_area",
             "uploader",
@@ -113,7 +120,7 @@ class TinyProjectPhotoSerializer(ModelSerializer):
         model = ProjectPhoto
         fields = [
             "pk",
-            "old_file",
+            # "old_file",
             "file",
             "project",
             "uploader",
@@ -169,13 +176,17 @@ class ProjectPhotoSerializer(ModelSerializer):
 
 class TinyAgencyPhotoSerializer(ModelSerializer):
     agency = SerializerMethodField(read_only=True)
+    file = SerializerMethodField()
+    # old_file = SerializerMethodField()
 
+    # file = ImageField(source="file", read_only=True)
+    # old_file = ImageField(source="old_file", read_only=True)
     class Meta:
         model = AgencyImage
         fields = [
             "pk",
             "file",
-            "old_file",
+            # "old_file",
             "agency",
         ]
 
@@ -187,9 +198,23 @@ class TinyAgencyPhotoSerializer(ModelSerializer):
                 "name": agency.name,
             }
 
+    def get_file(self, obj):
+        file = obj.file
+        if file:
+            return file.url
+
+    # def get_old_file(self, obj):
+    #     old_file = obj.old_file
+    #     if old_file:
+    #         return old_file.url
+
 
 class AgencyPhotoSerializer(ModelSerializer):
     agency = SerializerMethodField(read_only=True)
+    file = SerializerMethodField()
+    # old_file = SerializerMethodField()
+    # file = ImageField(source="file", read_only=True)
+    # old_file = ImageField(source="old_file", read_only=True)
 
     class Meta:
         model = AgencyImage
@@ -202,6 +227,16 @@ class AgencyPhotoSerializer(ModelSerializer):
                 "id": agency.id,
                 "name": agency.name,
             }
+
+    def get_file(self, obj):
+        file = obj.file
+        if file:
+            return file.url
+
+    # def get_old_file(self, obj):
+    #     old_file = obj.old_file
+    #     if old_file:
+    #         return old_file.url
 
 
 class TinyUserAvatarSerializer(ModelSerializer):

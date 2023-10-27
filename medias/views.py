@@ -365,11 +365,12 @@ class AgencyPhotos(APIView):
         )
 
     def post(self, req):
-        ser = ProjectPhotoSerializer(
+        ser = AgencyPhotoSerializer(
             data=req.data,
         )
         if ser.is_valid():
-            agency_photo = ser.save()
+            agency_photo = ser.save(image=req.data["image"])
+            # agency_photo = ser.save()
             return Response(
                 TinyAgencyPhotoSerializer(agency_photo).data,
                 status=HTTP_201_CREATED,

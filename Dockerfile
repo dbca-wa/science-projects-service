@@ -70,7 +70,8 @@ RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     requests whitenoise[brotli] gunicorn pandas \
     beautifulsoup4 docx2pdf lxml sentry-sdk[django]
 
-# RUN poetry add dbca-utils
+RUN poetry add pillow
+# dbca-utils
 
 # Other (jwt, pypandoc, selenium, beautifulsoup4, docx2pdf -> potentially move some to new pdf gen container)
 # RUN poetry add sentry-sdk[django] dbca-utils pypandoc selenium

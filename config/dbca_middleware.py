@@ -26,7 +26,7 @@ class DBCAMiddleware(MiddlewareMixin):
                     last_name=attributemap["last_name"],
                     email=attributemap["email"],
                 )
-                UserWork.objects.create(user=user)
+                UserWork.objects.create(user=user, agency=1)
                 UserProfile.objects.create(user=user)
                 UserContact.objects.create(user=user)
 
@@ -37,18 +37,22 @@ class DBCAMiddleware(MiddlewareMixin):
         except Exception as e:
             raise ParseError(str(e))
 
-
     def __call__(self, request):
         # for header, value in request.META.items():
         #     if header.startswith("HTTP_"):
         #         print(f"{header}: {value}")
 
-
-        if "HTTP_REMOTE_USER" not in request.META or not request.META["HTTP_REMOTE_USER"]:
+        if (
+            "HTTP_REMOTE_USER" not in request.META
+            or not request.META["HTTP_REMOTE_USER"]
+        ):
             return self.get_response(request)
 
         if (
-            (request.path.startswith('/logout') or request.path.startswith('/api/v1/users/logout'))
+            (
+                request.path.startswith("/logout")
+                or request.path.startswith("/api/v1/users/logout")
+            )
             and "HTTP_X_LOGOUT_URL" in request.META
             and request.META["HTTP_X_LOGOUT_URL"]
         ):
@@ -68,12 +72,20 @@ class DBCAMiddleware(MiddlewareMixin):
             for key, value in attributemap.items():
                 if value in request.META:
                     attributemap[key] = request.META[value]
-            
+
             # print(attributemap)
 
-            if attributemap["email"] and User.objects.filter(email__iexact=attributemap["email"]).exists():
+            if (
+                attributemap["email"]
+                and User.objects.filter(email__iexact=attributemap["email"]).exists()
+            ):
                 user = User.objects.filter(email__iexact=attributemap["email"])[0]
-            elif User.__name__ != "EmailUser" and User.objects.filter(username__iexact=attributemap["username"]).exists():
+            elif (
+                User.__name__ != "EmailUser"
+                and User.objects.filter(
+                    username__iexact=attributemap["username"]
+                ).exists()
+            ):
                 user = User.objects.filter(username__iexact=attributemap["username"])[0]
             else:
                 user = self.create_user_and_associated_entries(request, attributemap)
@@ -94,7 +106,7 @@ class DBCAMiddleware(MiddlewareMixin):
             user = User.objects.filter(username=email).first()
             if user:
                 request.user = user
-                user.save(update_fields=["last_login"])  
+                user.save(update_fields=["last_login"])
                 return self.get_response(request)
 
         return self.get_response(request)

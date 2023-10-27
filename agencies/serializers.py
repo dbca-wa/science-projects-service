@@ -32,11 +32,10 @@ class TinyAgencySerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         agency_image = obj.image
-        if agency_image:
+        if agency_image and agency_image.file:
             return {
                 "pk": agency_image.pk,
-                "old_file": agency_image.old_file,
-                "file": agency_image.file,
+                "file": agency_image.file.url,
             }
         return None
 
@@ -111,11 +110,11 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
 
             # Get the image URL (choose old_file or file based on your requirement)
             pk = business_area_photo.pk
-            old_file = business_area_photo.old_file
+            # old_file = business_area_photo.old_file
             file = business_area_photo.file
             return {
                 "pk": pk,
-                "old_file": old_file,
+                # "old_file": old_file,
                 "file": file,
             }
         except BusinessAreaPhoto.DoesNotExist:

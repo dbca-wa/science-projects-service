@@ -23,7 +23,8 @@ from django.utils import timezone
 from math import ceil
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-
+from django.core.files.base import ContentFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 import time
 from django.http import HttpResponse
 from documents.models import (
@@ -46,6 +47,7 @@ from documents.serializers import (
     TinyProjectPlanSerializer,
     TinyStudentReportSerializer,
 )
+from medias.models import ProjectPhoto
 
 from .serializers import (
     ExternalProjectDetailSerializer,
@@ -366,6 +368,18 @@ class Projects(APIView):
         if ser.is_valid():
             # Ensures db interactions only committed if everything is okay
             with transaction.atomic():
+                # create the image
+                if image_data:
+                    project_photo = ProjectPhoto(project=proj, uploader=req.user)
+
+                    # Create a ContentFile from the image's content
+                    image_content = ContentFile(image_data.read())
+
+                    # Assign the ContentFile to the FileField
+                    project_photo.file.save(image_data.name, image_content)
+
+                    project_photo.save()
+
                 print("LEGIT PROJECT SERIALIZER")
                 proj = ser.save()
                 project_id = proj.pk

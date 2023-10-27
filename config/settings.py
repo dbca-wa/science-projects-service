@@ -113,10 +113,8 @@ if not DEBUG:
             "NAME": env("PRODUCTION_DB_NAME"),
             "USER": env("PRODUCTION_USERNAME"),
             "PASSWORD": env("PRODUCTION_PASSWORD"),
-            "HOST": env(
-                "PRODUCTION_HOST"
-            ), 
-            "PORT": "5432", 
+            "HOST": env("PRODUCTION_HOST"),
+            "PORT": "5432",
             "OPTIONS": {
                 "options": "-c client_encoding=utf8",
             },
@@ -136,8 +134,8 @@ else:
             },
             "CONN_MAX_AGE": 600,
         }
-}
-    
+    }
+
 ALLOWED_HOSTS = [
     "scienceprojects-test-api.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
@@ -157,8 +155,8 @@ if additional_host:
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
 CORS_ALLOW_HEADERS = [
-    'X-CSRFToken',
-    'Content-Type',
+    "X-CSRFToken",
+    "Content-Type",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -249,22 +247,22 @@ if not DEBUG:
         profiles_sample_rate=1.0,
     )
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-    'root': {
-        'handlers': ['console'],
-        'level': 'ERROR',  # Change to 'DEBUG' to see more detailed logs
+    "root": {
+        "handlers": ["console"],
+        "level": "ERROR",  # Change to 'DEBUG' to see more detailed logs
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'ERROR',  # Change to 'DEBUG' to see more detailed logs
-            'propagate': True,
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "ERROR",  # Change to 'DEBUG' to see more detailed logs
+            "propagate": True,
         },
     },
 }
@@ -276,8 +274,7 @@ if not DEBUG:  # Whitenoise brotli config for static files on render
     MEDIA_ROOT = os.path.join(BASE_DIR, "uploads")
 
 MEDIA_ROOT = "uploads"
-MEDIA_URL = "user-uploads/"
+MEDIA_URL = "files/"
 
 PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
-

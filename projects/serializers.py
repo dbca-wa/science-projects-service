@@ -38,6 +38,7 @@ class ResearchFunctionSerializer(ModelSerializer):
 
 
 class ProjectSerializer(ModelSerializer):
+    # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
 
     class Meta:

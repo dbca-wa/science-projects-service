@@ -7,6 +7,10 @@ from rest_framework.views import APIView
 from math import ceil
 
 import urllib3
+from django.utils.text import slugify
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+
 
 from contacts.models import UserContact
 from medias.models import UserAvatar
@@ -49,6 +53,7 @@ from rest_framework.permissions import (
 )
 from rest_framework.exceptions import ParseError
 from django.contrib.auth import authenticate, login, logout
+
 # import jwt
 from django.conf import settings
 from django.db.models import Q
@@ -795,6 +800,42 @@ class UpdateProfile(APIView):
         #             "Failed to upload file to cloudflare",
         #         )
 
+    def handle_image(self, image):
+        print(f"Image is", image)
+        if isinstance(image, str):
+            return image
+        elif image is not None:
+            print("Image is a file")
+            # Get the original file name with extension
+            original_filename = image.name
+
+            # Specify the subfolder within your media directory
+            subfolder = "user_avatars"
+
+            # Combine the subfolder and filename to create the full file path
+            file_path = f"{subfolder}/{original_filename}"
+
+            # Check if a file with the same name exists in the subfolder
+            if default_storage.exists(file_path):
+                # A file with the same name already exists
+                full_file_path = default_storage.path(file_path)
+                if os.path.exists(full_file_path):
+                    existing_file_size = os.path.getsize(full_file_path)
+                    new_file_size = (
+                        image.size
+                    )  # Assuming image.size returns the size of the uploaded file
+                    if existing_file_size == new_file_size:
+                        # The file with the same name and size already exists, so use the existing file
+                        return file_path
+
+            # If the file doesn't exist or has a different size, continue with the file-saving logic
+            content = ContentFile(image.read())
+            file_path = default_storage.save(file_path, content)
+            # `file_path` now contains the path to the saved file
+            print("File saved to:", file_path)
+
+            return file_path
+
     def put(self, req, pk):
         print(req.data)
         image = req.data.get("image")
@@ -810,51 +851,49 @@ class UpdateProfile(APIView):
         about = req.data.get("about")
         expertise = req.data.get("expertise")
 
-        def handle_image(image):
-            print(f"Image is", image)
-            if isinstance(image, str):
-                print("Image is string")
-                return image
-            elif image is not None:
-                print("Image is file")
-                image_id, upload_url = self.create_cf_url()
+        # if isinstance(image, str):
+        #     print("Image is string")
+        #     return image
+        # elif image is not None:
+        #     print("Image is file")
+        #     image_id, upload_url = self.create_cf_url()
 
-                # Try using the temporary file path
-                try:
-                    file_path = image.temporary_file_path()
-                except Exception as e:
-                    print(e)
-                    file_path = None
+        #     # Try using the temporary file path
+        #     try:
+        #         file_path = image.temporary_file_path()
+        #     except Exception as e:
+        #         print(e)
+        #         file_path = None
 
-                if file_path:
-                    print("Using temporary file path")
-                    variants_string = self.upload_to_cf_url(
-                        upload_url, file_path=file_path
-                    )
-                else:
-                    print("Using inMemory file")
-                    variants_string = self.upload_to_cf_url(
-                        upload_url,
-                        file_content=image.read()
-                        # image.file.name
-                    )
+        #     if file_path:
+        #         print("Using temporary file path")
+        #         variants_string = self.upload_to_cf_url(
+        #             upload_url, file_path=file_path
+        #         )
+        #     else:
+        #         print("Using inMemory file")
+        #         variants_string = self.upload_to_cf_url(
+        #             upload_url,
+        #             file_content=image.read()
+        #             # image.file.name
+        #         )
 
-                print(variants_string)
-                return variants_string
+        #     print(variants_string)
+        #     return variants_string
 
-            # if isinstance(image, str):
-            #     print("Image is string")
-            #     return image
-            # elif image is not None:
-            #     print("Image is file")
-            #     image_id, upload_url = self.create_cf_url()
-            #     print("getting temp file path")
-            #     file_path = image.temporary_file_path()  # Get the temporary file path
-            #     variants_string = self.upload_to_cf_url(upload_url, file_path)
-            #     print(variants_string)
-            #     return variants_string
-            else:
-                return None
+        # # if isinstance(image, str):
+        # #     print("Image is string")
+        # #     return image
+        # # elif image is not None:
+        # #     print("Image is file")
+        # #     image_id, upload_url = self.create_cf_url()
+        # #     print("getting temp file path")
+        # #     file_path = image.temporary_file_path()  # Get the temporary file path
+        # #     variants_string = self.upload_to_cf_url(upload_url, file_path)
+        # #     print(variants_string)
+        # #     return variants_string
+        # else:
+        #     return None
 
         user = self.go(pk)
         user_avatar_post_view = UserAvatars()
@@ -864,6 +903,7 @@ class UpdateProfile(APIView):
         #     "Image is not none"
         # )
 
+        # If user didn't update the image
         if image is None:
             print("NO IMAGE, RUNNING FIRST IF BLOCK")
             updated_data = {}
@@ -902,13 +942,14 @@ class UpdateProfile(APIView):
                     status=HTTP_400_BAD_REQUEST,
                 )
 
+        # If user updated the image
         else:
             if avatar_exists:
                 # Prep the data for if an avatar exists already (put)
 
                 try:
                     avatar_data = {
-                        "file": handle_image(image),
+                        "file": self.handle_image(image),
                     }
                 except ValueError as e:
                     error_message = str(e)
@@ -934,8 +975,8 @@ class UpdateProfile(APIView):
                 try:
                     # Prep the data for if an avatar doesnt exist (post)
                     avatar_data = {
-                        "old_file": None,
-                        "file": handle_image(image),
+                        # "old_file": None,
+                        "file": self.handle_image(image),
                         "user": user,
                     }
                 except ValueError as e:
@@ -1007,21 +1048,6 @@ class UpdateProfile(APIView):
                     ser.errors,
                     status=HTTP_400_BAD_REQUEST,
                 )
-
-            # if ser.is_valid():
-            #     updated_user = ser.save()
-            #     u_ser = UpdateProfileSerializer(updated_user).data
-            #     print(u_ser)
-            #     return Response(
-            #         u_ser,
-            #         status=HTTP_202_ACCEPTED,
-            #     )
-            # else:
-            #     print(ser.errors)
-            #     return Response(
-            #         ser.errors,
-            #         status=HTTP_400_BAD_REQUEST,
-            #     )
 
 
 class UpdateMembership(APIView):

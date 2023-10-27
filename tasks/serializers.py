@@ -73,9 +73,9 @@ class TinyTaskSerializer(ModelSerializer):
                     "file": obj.project.image.file.url
                     if obj.project.image and obj.project.image.file
                     else None,
-                    "old_file": obj.project.image.old_file
-                    if obj.project.image
-                    else None,
+                    # "old_file": obj.project.image.old_file
+                    # if obj.project.image
+                    # else None,
                 }
             else:
                 project_data["image"] = None

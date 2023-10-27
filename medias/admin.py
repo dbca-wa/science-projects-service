@@ -8,12 +8,32 @@ from .models import (
     ProjectDocumentPDF,
 )
 
+from django import forms
+
+
+class AgencyImageAdminForm(forms.ModelForm):
+    class Meta:
+        model = AgencyImage
+        fields = "__all__"
+
+    file = forms.ImageField(required=True, label="Upload File")
+    # old_file = forms.ImageField(required=False, label="Upload Old File")
+
+
+@admin.register(AgencyImage)
+class AgencyImageAdmin(admin.ModelAdmin):
+    form = AgencyImageAdminForm
+    list_display = (
+        "agency",
+        "file",
+    )
+
 
 @admin.register(ProjectDocumentPDF)
 class ProjectDocumentPDFAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
-        "old_file",
+        # "old_file",
         "file",
         "document",
         "project",
@@ -34,7 +54,7 @@ class AnnualReportMediaAdmin(admin.ModelAdmin):
     list_display = [
         "report",
         "kind",
-        "old_file",
+        # "old_file",
         "file",
         "uploader",
     ]
@@ -49,7 +69,7 @@ class AnnualReportMediaAdmin(admin.ModelAdmin):
 class BusinessAreaPhotoAdmin(admin.ModelAdmin):
     list_display = (
         "business_area",
-        "old_file",
+        # "old_file",
         "file",
         "uploader",
     )
@@ -59,24 +79,16 @@ class BusinessAreaPhotoAdmin(admin.ModelAdmin):
 class ProjectPhotoAdmin(admin.ModelAdmin):
     list_display = (
         "project",
-        "old_file",
+        # "old_file",
         "file",
         "uploader",
-    )
-
-
-@admin.register(AgencyImage)
-class AgencyImageAdmin(admin.ModelAdmin):
-    list_display = (
-        "agency",
-        "file",
     )
 
 
 @admin.register(UserAvatar)
 class UserAvatarAdmin(admin.ModelAdmin):
     list_display = (
-        "old_file",
+        # "old_file",
         "file",
         "user",
     )
