@@ -11,6 +11,7 @@ from rest_framework.status import (
     HTTP_202_ACCEPTED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,6 +23,9 @@ from django.utils import timezone
 from django.db.models import Q
 
 import time
+
+from medias.models import BusinessAreaPhoto
+from medias.serializers import TinyBusinessAreaPhotoSerializer
 
 from .models import (
     Branch,
@@ -46,6 +50,9 @@ from .serializers import (
 )
 
 # Using APIView to ensure that we can easily edit and understand the code
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+import os
 
 
 class Affiliations(APIView):
@@ -182,16 +189,102 @@ class BusinessAreas(APIView):
             status=HTTP_200_OK,
         )
 
+    def handle_ba_image(self, image):
+        print(f"Image is", image)
+        if isinstance(image, str):
+            return image
+        elif image is not None:
+            print("Image is a file")
+            print(image)
+            # Get the original file name with extension
+            original_filename = image.name
+
+            # Specify the subfolder within your media directory
+            subfolder = "business_areas"
+
+            # Combine the subfolder and filename to create the full file path
+            file_path = f"{subfolder}/{original_filename}"
+
+            # Check if a file with the same name exists in the subfolder
+            if default_storage.exists(file_path):
+                # A file with the same name already exists
+                full_file_path = default_storage.path(file_path)
+                if os.path.exists(full_file_path):
+                    existing_file_size = os.path.getsize(full_file_path)
+                    new_file_size = (
+                        image.size
+                    )  # Assuming image.size returns the size of the uploaded file
+                    if existing_file_size == new_file_size:
+                        # The file with the same name and size already exists, so use the existing file
+                        return file_path
+
+            # If the file doesn't exist or has a different size, continue with the file-saving logic
+            content = ContentFile(image.read())
+            file_path = default_storage.save(file_path, content)
+            # `file_path` now contains the path to the saved file
+            print("File saved to:", file_path)
+
+            return file_path
+
     def post(self, req):
-        ser = BusinessAreaSerializer(
-            data=req.data,
-        )
+        image = req.data.get("image")
+        if image:
+            if isinstance(image, str) and (
+                image.startswith("http://") or image.startswith("https://")
+            ):
+                # URL provided, validate the URL
+                if not image.lower().endswith((".jpg", ".jpeg", ".png")):
+                    error_message = "The URL is not a valid photo file"
+                    return Response(error_message, status=HTTP_400_BAD_REQUEST)
+
+        ba_data = {
+            "old_id": req.data.get("old_id"),
+            "name": req.data.get("name"),
+            "slug": req.data.get("slug"),
+            "agency": req.data.get("agency"),
+            "focus": req.data.get("focus"),
+            "introduction": req.data.get("introduction"),
+            "data_custodian": req.data.get("data_custodian"),
+            "finance_admin": req.data.get("finance_admin"),
+            "leader": req.data.get("leader"),
+        }
+
+        ser = BusinessAreaSerializer(data=ba_data)
+
         if ser.is_valid():
-            ba = ser.save()
-            return Response(
-                TinyBusinessAreaSerializer(ba).data,
-                status=HTTP_201_CREATED,
-            )
+            with transaction.atomic():
+                # First create the Business Area
+                new_business_area = ser.save()
+
+                # Then create the related image based on the ba
+                try:
+                    image_data = {
+                        "file": self.handle_ba_image(image),
+                        "uploader": req.user,
+                        "business_area": new_business_area,
+                    }
+                except ValueError as e:
+                    error_message = str(e)
+                    response_data = {"error": error_message}
+                    return Response(response_data, status=HTTP_400_BAD_REQUEST)
+
+                # Create the image with prepped data
+                try:
+                    new_bap_instance = BusinessAreaPhoto.objects.create(**image_data)
+                    bap_response = TinyBusinessAreaPhotoSerializer(
+                        new_bap_instance
+                    ).data
+                except Exception as e:
+                    print(e)
+                    response_data = {"error": str(e)}
+                    return Response(
+                        response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+
+                return Response(
+                    TinyBusinessAreaSerializer(new_business_area).data,
+                    status=HTTP_201_CREATED,
+                )
         else:
             return Response(
                 ser.errors,

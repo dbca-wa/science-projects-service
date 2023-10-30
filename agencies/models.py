@@ -150,6 +150,7 @@ class BusinessArea(CommonModel):  # Renamed from program
     class Meta:
         verbose_name = "Business Area"
         verbose_name_plural = "Business Areas"
+        unique_together = ("name", "agency")
 
 
 # DONE
