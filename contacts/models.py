@@ -14,14 +14,14 @@ class Address(CommonModel):
         "agencies.agency",
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="address",
     )
     branch = models.ForeignKey(
         "agencies.Branch",
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="address",
     )
     street = models.CharField(max_length=140)
