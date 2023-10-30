@@ -7,7 +7,7 @@ extracted_table_data
 *.sql
 *.env
 extract_data.py
-
+/uploads/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

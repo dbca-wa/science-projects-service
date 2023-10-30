@@ -1073,9 +1073,15 @@ class UpdateMembership(APIView):
         # Convert primary key values to integers
 
         if user.is_staff:
-            user_pk = int(req.data.get("user_pk"))
-            branch_pk = int(req.data.get("branch_pk"))
-            business_area_pk = int(req.data.get("business_area"))
+            user_pk = int(req.data.get("user_pk")) if req.data.get("user_pk") else 0
+            branch_pk = (
+                int(req.data.get("branch_pk")) if req.data.get("branch_pk") else 0
+            )
+            business_area_pk = (
+                int(req.data.get("business_area"))
+                if req.data.get("business_area")
+                else 0
+            )
 
             data_obj = {}
             data_obj["user_pk"] = user_pk
