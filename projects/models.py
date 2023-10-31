@@ -18,7 +18,7 @@ class ResearchFunction(CommonModel):
 
     """
 
-    name = models.CharField(max_length=150)
+    name = models.CharField(max_length=150, unique=True)
     description = models.TextField(
         null=True,
         blank=True,

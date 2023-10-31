@@ -99,10 +99,12 @@ class ResearchFunctions(APIView):
         )
 
     def post(self, req):
+        print(req.data)
         ser = ResearchFunctionSerializer(
             data=req.data,
         )
         if ser.is_valid():
+            print("valid")
             rf = ser.save()
             return Response(
                 TinyResearchFunctionSerializer(rf).data,
@@ -110,6 +112,7 @@ class ResearchFunctions(APIView):
             )
         else:
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
