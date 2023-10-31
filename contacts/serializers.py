@@ -16,7 +16,9 @@ class TinyAddressSerializer(serializers.ModelSerializer):
             "pk",
             "street",
             "city",
+            "state",
             "country",
+            "zipcode",
             "agency",
             "branch",
             "pobox",
@@ -37,22 +39,20 @@ class AddressSerializer(serializers.ModelSerializer):
         queryset=Branch.objects.all(), required=False  # Not required
     )
 
+    # def validate(self, data):
     def validate(self, data):
         agency = data.get("agency")
         branch = data.get("branch")
 
-        if not agency and not branch:
-            raise ValidationError(
-                "Either 'agency' or 'branch' must have a value, but not both."
-            )
-
-        if agency and branch:
-            raise ValidationError(
-                "Only one of 'agency' or 'branch' can have a value, not both."
-            )
-
-        if branch and Address.objects.filter(branch=branch).exists():
-            raise ValidationError("An address with the same branch already exists.")
+        if branch:
+            # Check if an address with the same branch already exists in the database during updates.
+            if self.instance and self.instance.branch == branch:
+                # Ignore the error when updating an existing address for the branch.
+                pass
+            elif Address.objects.filter(branch=branch).exists():
+                raise serializers.ValidationError(
+                    "An address with the same branch already exists."
+                )
 
         return data
 
