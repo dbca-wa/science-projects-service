@@ -40,6 +40,7 @@ class Area(CommonModel):
     class Meta:
         verbose_name = "Area"
         verbose_name_plural = "Areas"
+        unique_together = (("name", "area_type"),)
 
     def __str__(self) -> str:
         return self.name
