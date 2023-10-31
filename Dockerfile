@@ -46,6 +46,7 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias home="cd ~"\n' \
     'alias settz="export TZ=$TZ"\n' \
     'alias edit="home && vim .bashrc"\n' \
+    'alias cleardb="python manage.py sqlflush | python manage.py dbshell"\n' \
     'alias migrate="python manage.py makemigrations && python manage.py migrate"\n' \
     'alias dump_prod="PGPASSWORD=$PRODUCTION_PASSWORD pg_dump -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -f prod_dump.sql"\n' \
     'alias res_prod="PGPASSWORD=$PRODUCTION_PASSWORD psql -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -a -f prod_dump.sql"\n' \

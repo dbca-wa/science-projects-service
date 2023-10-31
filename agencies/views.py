@@ -513,20 +513,113 @@ class BusinessAreaDetail(APIView):
             status=HTTP_204_NO_CONTENT,
         )
 
+    def handle_ba_image(self, image):
+        print(f"Image is", image)
+        if isinstance(image, str):
+            return image
+        elif image is not None:
+            print("Image is a file")
+            print(image)
+            # Get the original file name with extension
+            original_filename = image.name
+
+            # Specify the subfolder within your media directory
+            subfolder = "business_areas"
+
+            # Combine the subfolder and filename to create the full file path
+            file_path = f"{subfolder}/{original_filename}"
+
+            # Check if a file with the same name exists in the subfolder
+            if default_storage.exists(file_path):
+                # A file with the same name already exists
+                full_file_path = default_storage.path(file_path)
+                if os.path.exists(full_file_path):
+                    existing_file_size = os.path.getsize(full_file_path)
+                    new_file_size = (
+                        image.size
+                    )  # Assuming image.size returns the size of the uploaded file
+                    if existing_file_size == new_file_size:
+                        # The file with the same name and size already exists, so use the existing file
+                        return file_path
+
+            # If the file doesn't exist or has a different size, continue with the file-saving logic
+            content = ContentFile(image.read())
+            file_path = default_storage.save(file_path, content)
+            # `file_path` now contains the path to the saved file
+            print("File saved to:", file_path)
+
+            return file_path
+
+    def get_ba_photo(self, pk):
+        try:
+            obj = BusinessAreaPhoto.objects.get(business_area=pk)
+        except BusinessAreaPhoto.DoesNotExist:
+            raise NotFound
+        return obj
+
     def put(self, req, pk):
         ba = self.go(pk)
+
+        image = req.data.get("image")
+        if image:
+            if isinstance(image, str) and (
+                image.startswith("http://") or image.startswith("https://")
+            ):
+                # URL provided, validate the URL
+                if not image.lower().endswith((".jpg", ".jpeg", ".png")):
+                    error_message = "The URL is not a valid photo file"
+                    return Response(error_message, status=HTTP_400_BAD_REQUEST)
+
+        ba_data = {
+            "old_id": req.data.get("old_id"),
+            "name": req.data.get("name"),
+            "slug": req.data.get("slug"),
+            "agency": req.data.get("agency"),
+            "focus": req.data.get("focus"),
+            "introduction": req.data.get("introduction"),
+            "data_custodian": req.data.get("data_custodian"),
+            "finance_admin": req.data.get("finance_admin"),
+            "leader": req.data.get("leader"),
+        }
+
         ser = BusinessAreaSerializer(
             ba,
-            data=req.data,
+            data=ba_data,
             partial=True,
         )
+
         if ser.is_valid():
-            uba = ser.save()
-            return Response(
-                TinyBusinessAreaSerializer(uba).data,
-                status=HTTP_202_ACCEPTED,
-            )
+            with transaction.atomic():
+                # First create or update the Business Area
+                uba = ser.save()
+
+                if image:
+                    try:
+                        # Check if Photo already present:
+                        currentphoto = BusinessAreaPhoto.objects.get(business_area=pk)
+                        print(currentphoto)
+                        print("all good1")
+                    except BusinessAreaPhoto.DoesNotExist:
+                        # If the image doesn't exist, create it
+                        image_data = {
+                            "file": self.handle_ba_image(image),
+                            "uploader": req.user,
+                            "business_area": uba,
+                        }
+                        currentphoto = BusinessAreaPhoto.objects.create(**image_data)
+                        print("all good2")
+                    else:
+                        # Update the existing photo
+                        print("all good3")
+                        currentphoto.file = self.handle_ba_image(image)
+                        currentphoto.save()
+
+                return Response(
+                    TinyBusinessAreaSerializer(uba).data,
+                    status=HTTP_202_ACCEPTED,
+                )
         else:
+            print(ser.errors)
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,

@@ -68,6 +68,7 @@ class AnnualReportMediaAdmin(admin.ModelAdmin):
 @admin.register(BusinessAreaPhoto)
 class BusinessAreaPhotoAdmin(admin.ModelAdmin):
     list_display = (
+        "pk",
         "business_area",
         # "old_file",
         "file",
@@ -89,6 +90,7 @@ class ProjectPhotoAdmin(admin.ModelAdmin):
 class UserAvatarAdmin(admin.ModelAdmin):
     list_display = (
         # "old_file",
+        "pk",
         "file",
         "user",
     )

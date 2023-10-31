@@ -206,7 +206,7 @@ class SmallInternalUserSearch(APIView):
         search_term = request.GET.get("searchTerm")
         only_internal = request.GET.get("onlyInternal")
 
-        print(only_internal)
+        # print(only_internal)
 
         try:
             only_internal = ast.literal_eval(only_internal)
@@ -314,7 +314,7 @@ class Users(APIView):
         return Response(response_data, status=HTTP_200_OK)
 
     def post(self, req):
-        print(req.data)
+        # print(req.data)
         ser = PrivateTinyUserSerializer(
             data=req.data,
         )
@@ -337,7 +337,7 @@ class Users(APIView):
 
                     new_user.set_password(settings.EXTERNAL_PASS)
                     new_user.save()
-                    print(new_user)
+                    # print(new_user)
                     ser = TinyUserSerializer(new_user)
                     return Response(
                         ser.data,
@@ -370,7 +370,7 @@ class UserDetail(APIView):
             user,
             context={"request": req},
         )
-        print(ser.data)
+        # print(ser.data)
         return Response(
             ser.data,
             status=HTTP_200_OK,
@@ -624,7 +624,7 @@ class UpdatePersonalInformation(APIView):
     def get(self, req, pk):
         user = self.go(pk)
         ser = UpdatePISerializer(user)
-        print(ser.data)
+        # print(ser.data)
         return Response(
             ser.data,
             status=HTTP_200_OK,
@@ -689,7 +689,7 @@ class SwitchAdmin(APIView):
 
     def post(self, req, pk):
         user = self.go(pk)
-        print(user)
+        # print(user)
 
         # Toggle the is_admin attribute
         user.is_superuser = not user.is_superuser
@@ -714,9 +714,9 @@ class UpdateProfile(APIView):
 
     def get(self, req, pk):
         user = self.go(pk)
-        print(f"\nUSER: {user}\n")
+        # print(f"\nUSER: {user}\n")
         ser = ProfilePageSerializer(user)
-        print(ser.data)
+        # print(ser.data)
         return Response(
             ser.data,
             status=HTTP_200_OK,
@@ -837,7 +837,7 @@ class UpdateProfile(APIView):
             return file_path
 
     def put(self, req, pk):
-        print(req.data)
+        # print(req.data)
         image = req.data.get("image")
         if image:
             if isinstance(image, str) and (
@@ -929,7 +929,7 @@ class UpdateProfile(APIView):
                 print("serializer is valid")
                 updated_user = ser.save()
                 u_ser = UpdateProfileSerializer(updated_user).data
-                print(u_ser)
+                # print(u_ser)
                 return Response(
                     u_ser,
                     status=HTTP_202_ACCEPTED,
@@ -999,7 +999,7 @@ class UpdateProfile(APIView):
                     )
 
             # Set the image, now in db
-            print(avatar_response)
+            # print(avatar_response)
 
             updated_data = {}
 
@@ -1036,7 +1036,7 @@ class UpdateProfile(APIView):
                 print("serializer is valid")
                 updated_user = ser.save()
                 u_ser = UpdateProfileSerializer(updated_user).data
-                print(u_ser)
+                # print(u_ser)
                 return Response(
                     u_ser,
                     status=HTTP_202_ACCEPTED,
@@ -1068,7 +1068,7 @@ class UpdateMembership(APIView):
     def put(self, req, pk):
         user = self.go(pk)
         user_work = user.work
-        print(req.data)
+        # print(req.data)
 
         # Convert primary key values to integers
 

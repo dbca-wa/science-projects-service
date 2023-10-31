@@ -81,7 +81,7 @@ class TinyBusinessAreaPhotoSerializer(ModelSerializer):
         fields = [
             "pk",
             # "old_file",
-            "file",
+            # "file",
             "business_area",
             "uploader",
         ]

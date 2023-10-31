@@ -89,8 +89,10 @@ class BusinessAreaPhoto(CommonModel):
     Model Definition for BusinessArea Photos
     """
 
-    old_file = models.URLField(null=True, blank=True)
-    file = models.URLField(null=True, blank=True)
+    # old_file = models.URLField(null=True, blank=True)
+    # file = models.URLField(null=True, blank=True)
+    file = models.ImageField(upload_to="business_areas/", blank=True, null=True)
+
     business_area = models.OneToOneField(
         "agencies.BusinessArea",
         on_delete=models.CASCADE,
@@ -120,8 +122,9 @@ class ProjectPhoto(CommonModel):  # Includes student projects
     Model Definition for Project Photos
     """
 
-    old_file = models.URLField(null=True, blank=True)
-    file = models.URLField(null=True, blank=True)
+    # old_file = models.URLField(null=True, blank=True)
+    # file = models.URLField(null=True, blank=True)
+    file = models.ImageField(upload_to="projects/", blank=True, null=True)
     project = models.OneToOneField(
         "projects.Project",
         on_delete=models.CASCADE,
