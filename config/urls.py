@@ -18,6 +18,10 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.static import serve
+
+from django.urls import re_path
+
 # from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # class CustomAdminSite(admin.AdminSite):
@@ -43,6 +47,7 @@ urlpatterns = [
     path("api/v1/quotes/", include("quotes.urls")),
     path("api/v1/locations/", include("locations.urls")),
     path("api/v1/tasks/", include("tasks.urls")),
+    re_path(r"^files/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ] + static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT,
