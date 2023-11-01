@@ -273,17 +273,24 @@ MEDIA_URL = "/files/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "files")
 # MEDIA_ROOT = "/usr/src/app/backend/files"
 
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
-STORAGES = {
-    # Enable WhiteNoise's GZip and Brotli compression of static assets:
-    # https://whitenoise.readthedocs.io/en/latest/django.html#add-compression-and-caching-support
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-    "files": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
+# STORAGES = {
+#     # Enable WhiteNoise's GZip and Brotli compression of static assets:
+#     # https://whitenoise.readthedocs.io/en/latest/django.html#add-compression-and-caching-support
+#     "staticfiles": {
+#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+#     },
+#     "files": {
+#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+#     },
+#     "default": {
+#         "ENGINE": "django.core.files.storage.FileSystemStorage",
+#         "OPTIONS": {
+#             # Storage-specific options (if any)
+#         },
+#     },
+# }
 
 # if not DEBUG:  # Whitenoise brotli config for static files in production ()
 #     # Django < 4.2
