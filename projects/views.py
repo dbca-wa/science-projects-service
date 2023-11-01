@@ -371,6 +371,10 @@ class Projects(APIView):
         if ser.is_valid():
             # Ensures db interactions only committed if everything is okay
             with transaction.atomic():
+                print("LEGIT PROJECT SERIALIZER")
+                proj = ser.save()
+                project_id = proj.pk
+                print(project_id)
                 # create the image
                 if image_data:
                     project_photo = ProjectPhoto(project=proj, uploader=req.user)
@@ -382,11 +386,6 @@ class Projects(APIView):
                     project_photo.file.save(image_data.name, image_content)
 
                     project_photo.save()
-
-                print("LEGIT PROJECT SERIALIZER")
-                proj = ser.save()
-                project_id = proj.pk
-                print(project_id)
 
                 # Create an entry for project areas
                 project_area_data_object = {
