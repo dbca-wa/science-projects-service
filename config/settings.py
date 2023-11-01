@@ -268,15 +268,22 @@ LOGGING = {
 }
 
 STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/files/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "files")
+# MEDIA_ROOT = "/usr/src/app/backend/files"
 
-MEDIA_ROOT = "files"
+# if not DEBUG:  # Whitenoise brotli config for static files in production ()
+#     # Django < 4.2
+#     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-if not DEBUG:  # Whitenoise brotli config for static files on render
-    # MEDIA_ROOT = "/usr/src/app/backend/files"
-    MEDIA_ROOT = os.path.join(BASE_DIR, "files")
-    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+#     # Django 4.2+
+#     STORAGES = {
+#         # ...
+#         "staticfiles": {
+#             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+#         },
+#     }
 
 
 PAGE_SIZE = 10
