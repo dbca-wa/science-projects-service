@@ -268,14 +268,15 @@ LOGGING = {
 }
 
 STATIC_URL = "/static/"
+MEDIA_URL = "/files/"
 
 MEDIA_ROOT = "files"
-MEDIA_URL = "files/"
 
 if not DEBUG:  # Whitenoise brotli config for static files on render
+    # MEDIA_ROOT = "/usr/src/app/backend/files"
+    MEDIA_ROOT = os.path.join(BASE_DIR, "files")
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-    MEDIA_ROOT = "/usr/src/app/backend/files"
 
 
 PAGE_SIZE = 10
