@@ -25,6 +25,7 @@ import time
 from .models import (
     AgencyImage,
     AnnualReportMedia,
+    AnnualReportPDF,
     BusinessAreaPhoto,
     ProjectDocumentPDF,
     ProjectPhoto,
@@ -33,11 +34,13 @@ from .models import (
 from .serializers import (
     AgencyPhotoSerializer,
     AnnualReportMediaSerializer,
+    AnnualReportPDFSerializer,
     BusinessAreaPhotoSerializer,
     ProjectDocumentPDFSerializer,
     ProjectPhotoSerializer,
     TinyAgencyPhotoSerializer,
     TinyAnnualReportMediaSerializer,
+    TinyAnnualReportPDFSerializer,
     TinyBusinessAreaPhotoSerializer,
     TinyProjectPhotoSerializer,
     TinyUserAvatarSerializer,
@@ -81,6 +84,85 @@ class ProjectDocPDFS(APIView):
 # https://scienceprojects.dbca.wa.gov.au/media/ararreports/12/AnnualReport20222023_25.pdf
 
 # ANNUAL REPORT ==================================================================================================
+
+
+class AnnualReportPDFs(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        all = AnnualReportPDF.objects.all()
+        ser = TinyAnnualReportPDFSerializer(
+            all,
+            many=True,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        ser = AnnualReportPDFSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            reportmedia = ser.save()
+            return Response(
+                TinyAnnualReportPDFSerializer(reportmedia).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+class AnnualReportPDFDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = AnnualReportPDF.objects.get(pk=pk)
+        except AnnualReportPDF.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        reportmedia = self.go(pk)
+        ser = AnnualReportPDFSerializer(
+            reportmedia,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        reportmedia = self.go(pk)
+        reportmedia.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        reportmedia = self.go(pk)
+        ser = AnnualReportPDFSerializer(
+            reportmedia,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_reportmedia = ser.save()
+            return Response(
+                TinyAnnualReportPDFSerializer(u_reportmedia).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class AnnualReportMedias(APIView):

@@ -9,6 +9,7 @@ from agencies.serializers import TinyBusinessAreaSerializer
 # from documents.serializers import AnnualReportSerializer
 from .models import (
     AnnualReportMedia,
+    AnnualReportPDF,
     BusinessAreaPhoto,
     ProjectDocumentPDF,
     UserAvatar,
@@ -60,6 +61,45 @@ class AnnualReportMediaSerializer(ModelSerializer):
 
     class Meta:
         model = AnnualReportMedia
+        fields = "__all__"
+
+    def get_report(self, obj):
+        report = obj.report
+        if report:
+            return {
+                "id": report.id,
+                "year": report.year,
+            }
+        return None
+
+
+class TinyAnnualReportPDFSerializer(ModelSerializer):
+    report = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AnnualReportPDF
+        fields = [
+            "pk",
+            "old_file",
+            "file",
+            "report",
+        ]
+
+    def get_report(self, obj):
+        report = obj.report
+        if report:
+            return {
+                "id": report.id,
+                "year": report.year,
+            }
+        return None
+
+
+class AnnualReportPDFSerializer(ModelSerializer):
+    report = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = AnnualReportPDF
         fields = "__all__"
 
     def get_report(self, obj):

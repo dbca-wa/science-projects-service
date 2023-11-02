@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import (
     AnnualReportMedia,
+    AnnualReportPDF,
     BusinessAreaPhoto,
     UserAvatar,
     ProjectPhoto,
@@ -47,6 +48,20 @@ class ProjectDocumentPDFAdmin(admin.ModelAdmin):
     #     "project",
     #     "document",
     # ]
+
+
+@admin.register(AnnualReportPDF)
+class AnnualReportPDFAdmin(admin.ModelAdmin):
+    list_display = [
+        "report",
+        "old_file",
+        "file",
+        "creator",
+    ]
+
+    list_filter = [
+        "report",
+    ]
 
 
 @admin.register(AnnualReportMedia)

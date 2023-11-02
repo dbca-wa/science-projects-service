@@ -70,6 +70,7 @@ from django.conf import settings
 import subprocess
 from django.http import HttpResponse
 from docx2pdf import convert  # You can use docx2pdf to convert HTML to PDF
+
 # import pypandoc
 from django.template import Context
 from django.template.loader import get_template
@@ -454,8 +455,31 @@ class Reports(APIView):
         )
 
     def post(self, req):
+        print(req.data)
+        year = req.data.get("year")
+        date_open = req.data.get("date_open")
+        date_closed = req.data.get("date_closed")
+
+        creator = req.user.pk
+        modifier = req.user.pk
+        old_id = req.data.get("old_id", 1)
+
+        creation_data = {
+            "old_id": old_id,
+            "year": year,
+            "date_open": date_open,
+            "date_closed": date_closed,
+            "dm": "",
+            "publications": "",
+            "research_intro": "",
+            "service_delivery_intro": "",
+            "student_intro": "",
+            "creator": creator,
+            "modifier": modifier,
+        }
+
         ser = AnnualReportSerializer(
-            data=req.data,
+            data={**creation_data},
         )
         if ser.is_valid():
             report = ser.save()
@@ -465,6 +489,7 @@ class Reports(APIView):
             )
         else:
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 

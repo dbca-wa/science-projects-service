@@ -31,9 +31,9 @@ class ProjectDocumentPDF(CommonModel):
 # DONE
 class AnnualReportMedia(
     CommonModel
-):  #  All media related to annual reports stored here
+):  #  All media related to annual reports stored here (except pdf, which is stored seperately)
     """
-    Model Definition for Report Media
+    Model Images for Report Media
     """
 
     class MediaTypes(models.TextChoices):
@@ -46,10 +46,9 @@ class AnnualReportMedia(
         COLLABORATIONSCHAPTER = "collaborations", "Collaborations"
         STUDENTPROJECTSCHAPTER = "student_projects", "Student Projects"
         PUBLICATIONSCHAPTER = "publications", "Publications"
-        PDF = "pdf", "PDF"
 
     old_file = models.URLField(null=True, blank=True)
-    file = models.URLField(null=True, blank=True)
+    file = models.ImageField(upload_to="annual_reports/images/", null=True, blank=True)
     kind = models.CharField(
         max_length=140,
         choices=MediaTypes.choices,
@@ -71,8 +70,8 @@ class AnnualReportMedia(
         return f"({self.report.year}) {self.kind.capitalize()} Annual Report Media"
 
     class Meta:
-        verbose_name = "Annual Report Media"
-        verbose_name_plural = "Annual Report Media"
+        verbose_name = "Annual Report Image"
+        verbose_name_plural = "Annual Report Images"
         # Ensures there is only one kind of media per report/year (cannot have two rear covers etc.)
         constraints = [
             UniqueConstraint(
@@ -80,6 +79,34 @@ class AnnualReportMedia(
                 fields=["kind", "report"],
             )
         ]
+
+
+class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
+    """
+    PDF for Report Media
+    """
+
+    old_file = models.URLField(null=True, blank=True)
+    file = models.FileField(upload_to="annual_reports/pdfs/", null=True, blank=True)
+    report = models.OneToOneField(
+        "documents.AnnualReport",
+        on_delete=models.CASCADE,
+        related_name="pdf",
+    )
+    creator = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="annual_report_pdf_generated",
+    )
+
+    def __str__(self) -> str:
+        return f"({self.report.year}) {self.kind.capitalize()} Annual Report PDF"
+
+    class Meta:
+        verbose_name = "Annual Report PDF"
+        verbose_name_plural = "Annual Report PDFs"
 
 
 # DONE
