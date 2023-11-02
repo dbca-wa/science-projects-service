@@ -102,7 +102,7 @@ class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
     )
 
     def __str__(self) -> str:
-        return f"({self.report.year}) {self.kind.capitalize()} Annual Report PDF"
+        return f"({self.report.year}) Annual Report PDF"
 
     class Meta:
         verbose_name = "Annual Report PDF"
