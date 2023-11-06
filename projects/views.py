@@ -12,6 +12,7 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -35,19 +36,27 @@ from documents.models import (
     StudentReport,
 )
 
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+import os
+
+
 from documents.serializers import (
     ConceptPlanSerializer,
     ProgressReportSerializer,
     ProjectClosureSerializer,
+    ProjectDocumentSerializer,
     ProjectPlanSerializer,
     StudentReportSerializer,
     TinyConceptPlanSerializer,
     TinyProgressReportSerializer,
     TinyProjectClosureSerializer,
+    TinyProjectDocumentSerializer,
     TinyProjectPlanSerializer,
     TinyStudentReportSerializer,
 )
 from medias.models import ProjectPhoto
+from medias.serializers import TinyProjectPhotoSerializer
 
 from .serializers import (
     ExternalProjectDetailSerializer,
@@ -308,38 +317,69 @@ class Projects(APIView):
 
         return Response(response_data, status=HTTP_200_OK)
 
-    def post(self, req):
-        # Get the data out of the request =========
-        data = req.data
-        # Individual values (base)
+    def handle_project_image(self, image):
+        print(f"Image is", image)
+        if isinstance(image, str):
+            return image
+        elif image is not None:
+            print("Image is a file")
+            print(image)
+            # Get the original file name with extension
+            original_filename = image.name
 
-        year = int(data.get("year"))  # Extract the integer value from the list
-        creator = data.get("creator")
-        kind = data.get("kind")
-        title = data.get("title")
-        description = data.get("description")
+            # Specify the subfolder within your media directory
+            subfolder = "projects"
+
+            # Combine the subfolder and filename to create the full file path
+            file_path = f"{subfolder}/{original_filename}"
+
+            # Check if a file with the same name exists in the subfolder
+            if default_storage.exists(file_path):
+                # A file with the same name already exists
+                full_file_path = default_storage.path(file_path)
+                if os.path.exists(full_file_path):
+                    existing_file_size = os.path.getsize(full_file_path)
+                    new_file_size = (
+                        image.size
+                    )  # Assuming image.size returns the size of the uploaded file
+                    if existing_file_size == new_file_size:
+                        # The file with the same name and size already exists, so use the existing file
+                        return file_path
+
+            # If the file doesn't exist or has a different size, continue with the file-saving logic
+            content = ContentFile(image.read())
+            file_path = default_storage.save(file_path, content)
+            # `file_path` now contains the path to the saved file
+            print("File saved to:", file_path)
+
+            return file_path
+
+    def post(self, req):
+        # DATA WRANGLING =============================================================
+        # Get and print the data
+        data = req.data
         print(data)
 
+        # Extract into individual values for base information
+        title = data.get("title")
+        description = data.get("description")
+        year = int(data.get("year"))
+        creator = data.get("creator")
+        kind = data.get("kind")
+        image_data = req.FILES.get("imageData")
         keywords_str = data.get("keywords")
+
+        # Convert keywords to a string and then list.
         keywords_str = keywords_str.strip("[]").replace('"', "")
         keywords_list = keywords_str.split(",")
-
         print(keywords_str)
-        # # Convert list of keywords to a single string
-        # keywords_str = ", ".join(keywords)  # Use comma and space as separator
 
-        image_data = req.FILES.get("imageData")
-
-        # Individual values (details)
+        # Extract into individual values for the details
         business_area = data.get("businessArea")
         research_function = data.get("researchFunction")
         departmental_service = data.get("departmentalService")
         data_custodian = data.get("dataCustodian")
-        supervising_scientist = data.get(
-            "supervisingScientist"
-        )  # or research scientist (leader of project)
-        print(supervising_scientist)
-        print(data_custodian)
+        supervising_scientist = data.get("supervisingScientist")
         dates = data.getlist("dates")
 
         # Convert dates to 'YYYY-MM-DD' format
@@ -349,10 +389,11 @@ class Projects(APIView):
 
         # Individual values (location)
         location_data_list = data.getlist("locations")
-
         status = "new"
+        # DATA WRANGLING =============================================================
 
-        # Create the base project to send for creation ===============
+        # OBJECT CREATION =============================================================
+        # Create base project object & serialize
         project_data_object = {
             "old_id": 1,
             "kind": kind,
@@ -374,34 +415,49 @@ class Projects(APIView):
                 print("LEGIT PROJECT SERIALIZER")
                 proj = ser.save()
                 project_id = proj.pk
-                print(project_id)
-                # create the image
+
+                # Create the project image, if an image was sent
                 if image_data:
-                    project_photo = ProjectPhoto(project=proj, uploader=req.user)
+                    # Prep the object
+                    try:
+                        image_data = {
+                            "file": self.handle_project_image(image_data),
+                            "uploader": req.user,
+                            "project": proj,
+                        }
+                    except ValueError as e:
+                        error_message = str(e)
+                        response_data = {"error": error_message}
+                        return Response(response_data, status=HTTP_400_BAD_REQUEST)
 
-                    # Create a ContentFile from the image's content
-                    image_content = ContentFile(image_data.read())
-
-                    # Assign the ContentFile to the FileField
-                    project_photo.file.save(image_data.name, image_content)
-
-                    project_photo.save()
+                    # Create the image with prepped object
+                    try:
+                        new_proj_photo_instance = ProjectPhoto.objects.create(
+                            **image_data
+                        )
+                        response = TinyProjectPhotoSerializer(
+                            new_proj_photo_instance
+                        ).data
+                    except Exception as e:
+                        print(e)
+                        response_data = {"error": str(e)}
+                        return Response(
+                            response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
+                        )
 
                 # Create an entry for project areas
                 project_area_data_object = {
                     "project": project_id,
                     "areas": location_data_list,
                 }
-                print(project_area_data_object)
 
                 project_area_ser = ProjectAreaSerializer(data=project_area_data_object)
                 if project_area_ser.is_valid():
-                    with transaction.atomic():
-                        print("LEGIT Area SERIALIZER")
-                        try:
-                            project_area_ser.save()
-                        except Exception as e:
-                            print(e)
+                    print("LEGIT Area SERIALIZER")
+                    try:
+                        project_area_ser.save()
+                    except Exception as e:
+                        print(e)
                 else:
                     print("Project Area")
                     print(project_area_ser.errors)
@@ -410,7 +466,6 @@ class Projects(APIView):
                         HTTP_400_BAD_REQUEST,
                     )
 
-                print("here")
                 # Create an entry for project members
                 project_member_data_object = {
                     "project": project_id,
@@ -456,6 +511,7 @@ class Projects(APIView):
                     "creator": creator,
                     "modifier": creator,
                     "owner": creator,
+                    "service": departmental_service,
                     "data_custodian": data_custodian,
                     # site_custodian:,
                     "research_function": research_function,
@@ -548,6 +604,86 @@ class Projects(APIView):
                         print(external_details_ser.errors)
                         return Response(
                             HTTP_400_BAD_REQUEST,
+                        )
+
+                if kind != "student" and kind != "external":
+                    print(
+                        f"PROJECTPK====================\n\nprojpk: {proj.pk}, project_id: {project_id}\n\n===================="
+                    )
+
+                    # create document for concept plan data
+                    project_document_data_object = {
+                        "old_id": 1,
+                        "kind": "concept",
+                        "status": "new",
+                        "project": proj,
+                        "creator": req.user.pk,
+                        "modifier": req.user.pk,
+                    }
+
+                    project_document_serializer = ProjectDocumentSerializer(
+                        data=project_document_data_object
+                    )
+
+                    if project_document_serializer.is_valid():
+                        print("Serializer is valid for proj document")
+                        with transaction.atomic():
+                            try:
+                                creator = User.objects.get(pk=req.user.pk)
+
+                                project_document_data_object = {
+                                    "old_id": 1,
+                                    "kind": "concept",
+                                    "status": "new",
+                                    "project": proj,
+                                    "creator": creator,
+                                    "modifier": creator,
+                                }
+
+                                project_document = project_document_serializer.create(
+                                    validated_data=project_document_data_object
+                                )
+
+                            except Exception as e:
+                                print(f"Error saving:, {e}")
+                            else:
+                                print("saved")
+
+                                concept_plan_data_object = {
+                                    "document": project_document,  # Assuming you have the Project Document object
+                                    "background": "<p></p>",
+                                    "aims": "<p></p>",
+                                    "outcome": "<p></p>",
+                                    "collaborations": "<p></p>",
+                                    "strategic_context": "<p></p>",
+                                    "staff_time_allocation": "<p></p>",
+                                    "budget": "<p></p>",
+                                }
+
+                                concept_plan_serializer = ConceptPlanSerializer(
+                                    data=concept_plan_data_object
+                                )
+
+                                if concept_plan_serializer.is_valid():
+                                    print("concept plan valid")
+                                    with transaction.atomic():
+                                        try:
+                                            concept_plan_serializer.save()
+                                        except Exception as e:
+                                            print(f"Concept Plan error: {e}")
+                                else:
+                                    print("Concept Plan")
+                                    print(concept_plan_serializer.errors)
+                                    return Response(
+                                        concept_plan_serializer.errors,
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+                    else:
+                        print("Project Document")
+                        print(project_document_serializer.errors)
+                        return Response(
+                            project_document_serializer.errors,
+                            status=HTTP_400_BAD_REQUEST,
                         )
 
                 return Response(
@@ -692,6 +828,7 @@ class ProjectDetails(APIView):
         )
 
     def put(self, req, pk):
+        print(req.data)
         proj = self.go(pk)
         ser = ProjectSerializer(
             proj,

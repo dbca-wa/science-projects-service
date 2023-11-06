@@ -339,6 +339,14 @@ class ProjectDetail(CommonModel):
         null=True,
         on_delete=models.SET_NULL,
     )
+
+    service = models.ForeignKey(
+        "agencies.DepartmentalService",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
     old_output_program_id = models.BigIntegerField(
         blank=True,
         null=True,

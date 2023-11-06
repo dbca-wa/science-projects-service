@@ -192,7 +192,20 @@ class AnnualReportSerializer(serializers.ModelSerializer):
 
 class ProjectDocumentSerializer(serializers.ModelSerializer):
     project = TinyProjectSerializer(read_only=True)
+    # project = TinyProjectSerializer()
+
     details = serializers.SerializerMethodField()
+
+    # def create(self, validated_data):
+    #     # Extract the project_id from validated_data
+    #     project_id = validated_data.pop("project_id")
+
+    #     # Create a new ProjectDocument with the provided project_id
+    #     project_document = ProjectDocument.objects.create(
+    #         project_id=project_id, **validated_data
+    #     )
+
+    #     return project_document
 
     def get_details(self, obj):
         kind = obj.kind
@@ -236,7 +249,22 @@ class ProjectDocumentSerializer(serializers.ModelSerializer):
 
 
 class ConceptPlanSerializer(serializers.ModelSerializer):
-    document = TinyProjectDocumentSerializer(read_only=True)
+    # document = TinyProjectDocumentSerializer(read_only=True)
+    document = TinyProjectDocumentSerializer()
+
+    def create(self, validated_data):
+        # Retrieve the 'document' data from validated_data
+        document_data = validated_data.pop("document")
+
+        # Create the ConceptPlan instance
+        concept_plan = ConceptPlan.objects.create(**validated_data)
+
+        # Create the related ProjectDocument with the retrieved 'document' data
+        project_document = ProjectDocument.objects.create(
+            document=concept_plan, **document_data
+        )
+
+        return concept_plan
 
     class Meta:
         model = ConceptPlan
