@@ -37,6 +37,15 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniAnnualReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AnnualReport
+        fields = [
+            "pk",
+            "year",
+        ]
+
+
 class TinyProjectDocumentSerializer(serializers.ModelSerializer):
     project = TinyProjectSerializer(read_only=True)
     created_year = serializers.SerializerMethodField()
@@ -284,6 +293,42 @@ class ConceptPlanSerializer(serializers.ModelSerializer):
             "strategic_context",
             "staff_time_allocation",
             "budget",
+        ]
+
+
+class ProgressReportCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProgressReport
+        fields = [
+            "document",
+            "report",
+            "year",
+            "is_final_report",
+            "context",
+            "aims",
+            "progress",
+            "implications",
+            "future",
+        ]
+
+
+class ProgressReportSerializer(serializers.ModelSerializer):
+    document = TinyProjectDocumentSerializer(read_only=True)
+    report = TinyAnnualReportSerializer(read_only=True)
+
+    class Meta:
+        model = ProgressReport
+        fields = [
+            "pk",
+            "document",
+            "report",
+            "year",
+            "is_final_report",
+            "context",
+            "aims",
+            "progress",
+            "implications",
+            "future",
         ]
 
 

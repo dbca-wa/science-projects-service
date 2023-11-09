@@ -390,8 +390,8 @@ class ProgressReport(models.Model):
     )
 
     year = models.PositiveIntegerField(
-        editable=False,
-        default=dt.today().year,
+        # editable=False,
+        # default=dt.today().year,
         help_text="The year on which this progress report reports on with four digits, e.g. 2014 for FY 2013/14.",
     )
 

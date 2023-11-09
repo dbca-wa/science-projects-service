@@ -25,6 +25,8 @@ from .serializers import (
     ConceptPlanSerializer,
     EndorsementCreationSerializer,
     EndorsementSerializer,
+    MiniAnnualReportSerializer,
+    ProgressReportCreateSerializer,
     ProgressReportSerializer,
     ProjectClosureCreationSerializer,
     ProjectClosureSerializer,
@@ -566,6 +568,42 @@ class GetLatestReportYear(APIView):
             raise NotFound
 
 
+class GetAvailableReportYearsForProgressReport(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # Returns a list of serialized reports with the following:
+    # year, report id
+    # Only returns the years in which a progress report doesn't already exist for a given project
+    def get(self, request, project_pk):
+        if project_pk:
+            all_progress_reports = ProgressReport.objects.filter(
+                document__project_id=project_pk
+            ).all()
+            list_of_years_from_progress_reports = list(
+                set([report.year for report in all_progress_reports])
+            )
+            all_annual_report_years = AnnualReport.objects.values_list(
+                "year", flat=True
+            ).distinct()
+
+            available_years = list(
+                set(all_annual_report_years) - set(list_of_years_from_progress_reports)
+            )
+            available_reports = AnnualReport.objects.filter(year__in=available_years)
+
+            serializer = MiniAnnualReportSerializer(
+                available_reports,
+                many=True,
+                context={"request": request},
+            )
+            return Response(
+                serializer.data,
+                status=HTTP_200_OK,
+            )
+        else:
+            raise NotFound
+
+
 class GetCompletedReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -660,6 +698,7 @@ class ProjectDocuments(APIView):
             # doc = document_serializer.save()
             with transaction.atomic():
                 doc = document_serializer.save()
+                print("saved doc")
                 if kind == "projectplan":
                     project_plan_data_object = {
                         "document": doc.pk,
@@ -747,12 +786,53 @@ class ProjectDocuments(APIView):
                             closure_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
+                elif kind == "progressreport":
+                    report_id = req.data.get("report")
+                    year = req.data.get("year")
+                    project = req.data.get("project")
+
+                    progress_report_data_object = {
+                        "document": doc.pk,
+                        "report": report_id,
+                        "project": project,
+                        "year": year,
+                        "context": "<p></p>",
+                        "implications": "<p></p>",
+                        "future": "<p></p>",
+                        "progress": "<p></p>",
+                        "aims": "<p></p>",
+                    }
+
+                    pr_serializer = ProgressReportCreateSerializer(
+                        data=progress_report_data_object
+                    )
+
+                    if pr_serializer.is_valid():
+                        print("progress report valid")
+                        try:
+                            with transaction.atomic():
+                                progress_report = pr_serializer.save()
+                                progress_report.document.project.status = "active"
+                                print("saving project")
+                                progress_report.document.project.save()
+                                print("project saved")
+
+                        except Exception as e:
+                            print(f"Progress Report save error: {e}")
+                    else:
+                        print("Progress Report Error")
+                        print(pr_serializer.errors)
+                        return Response(
+                            pr_serializer.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
 
                 return Response(
                     TinyProjectDocumentSerializer(doc).data,
                     status=HTTP_201_CREATED,
                 )
         else:
+            print("Main Doc Serializer issue")
             print(document_serializer.errors)
             return Response(
                 document_serializer.errors,

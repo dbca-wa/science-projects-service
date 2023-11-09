@@ -31,6 +31,10 @@ urlpatterns = [
     path("spawn", views.DocumentSpawner.as_view()),
     path("reports/download", views.DownloadAnnualReport.as_view()),
     path("reports/latestyear", views.GetLatestReportYear.as_view()),
+    path(
+        "reports/availableyears/<int:project_pk>",
+        views.GetAvailableReportYearsForProgressReport.as_view(),
+    ),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
     # Actions (PROGRESS REPORT)
