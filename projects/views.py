@@ -42,9 +42,11 @@ import os
 
 
 from documents.serializers import (
+    ConceptPlanCreateSerializer,
     ConceptPlanSerializer,
     ProgressReportSerializer,
     ProjectClosureSerializer,
+    ProjectDocumentCreateSerializer,
     ProjectDocumentSerializer,
     ProjectPlanSerializer,
     StudentReportSerializer,
@@ -59,6 +61,7 @@ from medias.models import ProjectPhoto
 from medias.serializers import TinyProjectPhotoSerializer
 
 from .serializers import (
+    CreateProjectSerializer,
     ExternalProjectDetailSerializer,
     ProjectAreaSerializer,
     ProjectDetailSerializer,
@@ -408,17 +411,15 @@ class Projects(APIView):
             "business_area": business_area,
         }
 
-        ser = ProjectSerializer(data=project_data_object)
+        ser = CreateProjectSerializer(data=project_data_object)
         if ser.is_valid():
-            # Ensures db interactions only committed if everything is okay
+            print("LEGIT PROJECT SERIALIZER")
             with transaction.atomic():
-                print("LEGIT PROJECT SERIALIZER")
                 proj = ser.save()
                 project_id = proj.pk
 
-                # Create the project image, if an image was sent
+                # Prep and create the project image, if an image was sent
                 if image_data:
-                    # Prep the object
                     try:
                         image_data = {
                             "file": self.handle_project_image(image_data),
@@ -430,7 +431,6 @@ class Projects(APIView):
                         response_data = {"error": error_message}
                         return Response(response_data, status=HTTP_400_BAD_REQUEST)
 
-                    # Create the image with prepped object
                     try:
                         new_proj_photo_instance = ProjectPhoto.objects.create(
                             **image_data
@@ -445,12 +445,11 @@ class Projects(APIView):
                             response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
                         )
 
-                # Create an entry for project areas
+                # Prep and create the areas of the project
                 project_area_data_object = {
                     "project": project_id,
                     "areas": location_data_list,
                 }
-
                 project_area_ser = ProjectAreaSerializer(data=project_area_data_object)
                 if project_area_ser.is_valid():
                     print("LEGIT Area SERIALIZER")
@@ -458,6 +457,11 @@ class Projects(APIView):
                         project_area_ser.save()
                     except Exception as e:
                         print(e)
+                        response_data = {"error": str(e)}
+                        return Response(
+                            response_data,
+                            HTTP_400_BAD_REQUEST,
+                        )
                 else:
                     print("Project Area")
                     print(project_area_ser.errors)
@@ -479,21 +483,21 @@ class Projects(APIView):
                     data=project_member_data_object
                 )
                 if project_member_ser.is_valid():
-                    with transaction.atomic():
-                        print("Legit members")
-                        try:
-                            project_member_ser.save()
-                        except IntegrityError as e:
-                            print(e)
-                            print(project_member_ser.data)
-                            return Response(
-                                "An identical user already exists on this project",
-                                HTTP_400_BAD_REQUEST,
-                            )
+                    # with transaction.atomic():
+                    print("Legit members")
+                    try:
+                        project_member_ser.save()
+                    except IntegrityError as e:
+                        print(e)
+                        print(project_member_ser.data)
+                        return Response(
+                            "An identical user already exists on this project",
+                            HTTP_400_BAD_REQUEST,
+                        )
 
-                        except Exception as e:
-                            print(e)
-                            print(project_member_ser.data)
+                    except Exception as e:
+                        print(e)
+                        print(project_member_ser.data)
                 else:
                     print("Project Members")
                     print(project_member_ser.errors)
@@ -522,12 +526,12 @@ class Projects(APIView):
                     data=project_detail_data_object
                 )
                 if project_detail_ser.is_valid():
-                    with transaction.atomic():
-                        print("project details legit")
-                        try:
-                            project_detail_ser.save()
-                        except Exception as e:
-                            print(e)
+                    # with transaction.atomic():
+                    print("project details legit")
+                    try:
+                        project_detail_ser.save()
+                    except Exception as e:
+                        print(e)
                 else:
                     print("Project Detail")
 
@@ -555,12 +559,12 @@ class Projects(APIView):
                         data=student_project_details_data_object
                     )
                     if student_proj_details_ser.is_valid():
-                        with transaction.atomic():
-                            print("LEGIT STUDENT DETAILS SERIALIZER")
-                            try:
-                                student_proj_details_ser.save()
-                            except Exception as e:
-                                print(e)
+                        # with transaction.atomic():
+                        print("LEGIT STUDENT DETAILS SERIALIZER")
+                        try:
+                            student_proj_details_ser.save()
+                        except Exception as e:
+                            print(e)
                     else:
                         print("Student Detail")
 
@@ -571,12 +575,12 @@ class Projects(APIView):
                         )
 
                 # Create unique entries in external table if external project
-                if kind == "external":
+                elif kind == "external":
                     old_id = 1
-                    externalDescription = data.get("externalDescription")[0]
-                    aims = data.get("aims")[0]
-                    budget = data.get("budget")[0]
-                    collaboration_with = data.get("collaborationWith")[0]
+                    externalDescription = data.get("externalDescription")
+                    aims = data.get("aims")
+                    budget = data.get("budget")
+                    collaboration_with = data.get("collaborationWith")
 
                     # Create the object
                     external_details_data_object = {
@@ -592,12 +596,13 @@ class Projects(APIView):
                         data=external_details_data_object
                     )
                     if external_details_ser.is_valid():
-                        with transaction.atomic():
-                            print("LEGIT EXTERNAL DETAILS SERIALIZER")
-                            try:
-                                external_details_ser.save()
-                            except Exception as e:
-                                print(e)
+                        # with transaction.atomic():
+                        print("LEGIT EXTERNAL DETAILS SERIALIZER")
+                        print(external_details_data_object)
+                        try:
+                            external_details_ser.save()
+                        except Exception as e:
+                            print(e)
                     else:
                         print("External Detail")
 
@@ -605,84 +610,66 @@ class Projects(APIView):
                         return Response(
                             HTTP_400_BAD_REQUEST,
                         )
-
-                if kind != "student" and kind != "external":
+                # if kind != "student" and kind != "external"
+                else:
                     print(
-                        f"PROJECTPK====================\n\nprojpk: {proj.pk}, project_id: {project_id}\n\n===================="
+                        f"PROJECTPK====================\n\nprojpk: {proj.pk}, project_id: {project_id}, kind: {proj.kind}\n\n===================="
                     )
+
+                    serialized_proj = ProjectSerializer(proj)
+                    print(serialized_proj.data)
 
                     # create document for concept plan data
-                    project_document_data_object = {
-                        "old_id": 1,
-                        "kind": "concept",
-                        "status": "new",
-                        "project": proj,
-                        "creator": req.user.pk,
-                        "modifier": req.user.pk,
-                    }
-
-                    project_document_serializer = ProjectDocumentSerializer(
-                        data=project_document_data_object
+                    document_serializer = ProjectDocumentCreateSerializer(
+                        data={
+                            "old_id": 1,
+                            "kind": "concept",
+                            "status": "new",
+                            "project": proj.pk,
+                            "creator": req.user.pk,
+                            "modifier": req.user.pk,
+                        }
                     )
 
-                    if project_document_serializer.is_valid():
-                        print("Serializer is valid for proj document")
+                    if document_serializer.is_valid():
+                        print("Serializer for doc is good")
+                        # print(document_serializer.data)
+                        # doc = document_serializer.save()
                         with transaction.atomic():
-                            try:
-                                creator = User.objects.get(pk=req.user.pk)
+                            doc = document_serializer.save()
+                            concept_plan_data_object = {
+                                "document": doc.pk,
+                                "background": "<p></p>",
+                                "aims": "<p></p>",
+                                "outcome": "<p></p>",
+                                "collaborations": "<p></p>",
+                                "strategic_context": "<p></p>",
+                                "staff_time_allocation": "<p></p>",
+                                "budget": "<p></p>",
+                            }
+                            concept_plan_serializer = ConceptPlanCreateSerializer(
+                                data=concept_plan_data_object
+                            )
 
-                                project_document_data_object = {
-                                    "old_id": 1,
-                                    "kind": "concept",
-                                    "status": "new",
-                                    "project": proj,
-                                    "creator": creator,
-                                    "modifier": creator,
-                                }
-
-                                project_document = project_document_serializer.create(
-                                    validated_data=project_document_data_object
-                                )
-
-                            except Exception as e:
-                                print(f"Error saving:, {e}")
+                            if concept_plan_serializer.is_valid():
+                                print("concept plan valid")
+                                # with transaction.atomic():
+                                try:
+                                    concept_plan_serializer.save()
+                                except Exception as e:
+                                    print(f"Concept Plan error: {e}")
                             else:
-                                print("saved")
-
-                                concept_plan_data_object = {
-                                    "document": project_document,  # Assuming you have the Project Document object
-                                    "background": "<p></p>",
-                                    "aims": "<p></p>",
-                                    "outcome": "<p></p>",
-                                    "collaborations": "<p></p>",
-                                    "strategic_context": "<p></p>",
-                                    "staff_time_allocation": "<p></p>",
-                                    "budget": "<p></p>",
-                                }
-
-                                concept_plan_serializer = ConceptPlanSerializer(
-                                    data=concept_plan_data_object
+                                print("Concept Plan")
+                                print(concept_plan_serializer.errors)
+                                return Response(
+                                    concept_plan_serializer.errors,
+                                    status=HTTP_400_BAD_REQUEST,
                                 )
-
-                                if concept_plan_serializer.is_valid():
-                                    print("concept plan valid")
-                                    with transaction.atomic():
-                                        try:
-                                            concept_plan_serializer.save()
-                                        except Exception as e:
-                                            print(f"Concept Plan error: {e}")
-                                else:
-                                    print("Concept Plan")
-                                    print(concept_plan_serializer.errors)
-                                    return Response(
-                                        concept_plan_serializer.errors,
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
                     else:
-                        print("Project Document")
-                        print(project_document_serializer.errors)
+                        print("Project Document (Concept kind)")
+                        print(document_serializer.errors)
                         return Response(
-                            project_document_serializer.errors,
+                            document_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
 
@@ -1304,6 +1291,22 @@ class PromoteToLeader(APIView):
 #                 ser.errors,
 #                 status=HTTP_400_BAD_REQUEST,
 #             )
+
+
+class ProjectLeaderDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, project_id):
+        try:
+            obj = ProjectMember.objects.get(project__pk=project_id, is_leader=True)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, project_id):
+        leader = self.go(project_id)
+        ser = ProjectMemberSerializer(leader)
+        return Response(ser.data, status=HTTP_200_OK)
 
 
 class ProjectMemberDetail(APIView):

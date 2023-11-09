@@ -37,9 +37,30 @@ class ResearchFunctionSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class CreateProjectSerializer(ModelSerializer):
+    # image = ProjectPhotoSerializer(read_only=True)
+    image = ProjectPhotoSerializer(read_only=True)
+    # business_area = TinyBusinessAreaSerializer()
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        # Get the serialized data from the parent class
+        representation = super().to_representation(instance)
+
+        # Check if the custom context key is present and use 'pk' instead of 'id'
+        if self.context.get("use_pk_for_id"):
+            representation["pk"] = representation.pop("id")
+
+        return representation
+
+
 class ProjectSerializer(ModelSerializer):
     # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
+    business_area = TinyBusinessAreaSerializer(read_only=True)
 
     class Meta:
         model = Project
@@ -354,6 +375,7 @@ class TinyStudentProjectDetailSerializer(ModelSerializer):
 
 class ExternalProjectDetailSerializer(ModelSerializer):
     # project = SerializerMethodField(read_only=True)
+    # project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ExternalProjectDetails
@@ -367,6 +389,15 @@ class ExternalProjectDetailSerializer(ModelSerializer):
                 "title": project.title,
             }
         return None
+
+    # def get_project(self, obj):
+    #     project = obj.project
+    #     if project:
+    #         return {
+    #             "pk": project.pk,
+    #             "title": project.title,
+    #         }
+    #     return None
 
 
 class TinyExternalProjectDetailSerializer(ModelSerializer):

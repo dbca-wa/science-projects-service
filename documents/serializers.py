@@ -1,4 +1,4 @@
-from projects.serializers import TinyProjectSerializer
+from projects.serializers import ProjectSerializer, TinyProjectSerializer
 from users.serializers import TinyUserSerializer
 from .models import (
     ConceptPlan,
@@ -37,7 +37,38 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
         ]
 
 
+class TinyProjectDocumentSerializer(serializers.ModelSerializer):
+    project = TinyProjectSerializer(read_only=True)
+    created_year = serializers.SerializerMethodField()
+    pdf = ProjectDocumentPDFSerializer(read_only=True)  # Include the PDF serializer
+
+    def get_created_year(self, obj):
+        return obj.created_at.year
+
+    class Meta:
+        model = ProjectDocument
+        fields = [
+            "pk",
+            # "document",
+            "created_at",
+            "updated_at",
+            "creator",
+            "modifier",
+            "created_year",
+            "kind",
+            "status",
+            "project",
+            "project_lead_approval_granted",
+            "business_area_lead_approval_granted",
+            "directorate_approval_granted",
+            "pdf",
+            "pdf_generation_in_progress",
+        ]
+
+
 class TinyConceptPlanSerializer(serializers.ModelSerializer):
+    document = TinyProjectDocumentSerializer()
+
     class Meta:
         model = ConceptPlan
         fields = [
@@ -84,35 +115,6 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
             "hc_endorsement",
             "ae_endorsement",
             "data_manager_endorsement",
-        ]
-
-
-class TinyProjectDocumentSerializer(serializers.ModelSerializer):
-    project = TinyProjectSerializer(read_only=True)
-    created_year = serializers.SerializerMethodField()
-    pdf = ProjectDocumentPDFSerializer(read_only=True)  # Include the PDF serializer
-
-    def get_created_year(self, obj):
-        return obj.created_at.year
-
-    class Meta:
-        model = ProjectDocument
-        fields = [
-            "pk",
-            # "document",
-            "created_at",
-            "updated_at",
-            "creator",
-            "modifier",
-            "created_year",
-            "kind",
-            "status",
-            "project",
-            "project_lead_approval_granted",
-            "business_area_lead_approval_granted",
-            "directorate_approval_granted",
-            "pdf",
-            "pdf_generation_in_progress",
         ]
 
 
@@ -190,81 +192,85 @@ class AnnualReportSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ProjectDocumentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectDocument
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # Create a new ConceptPlan with the provided document primary key
+        concept_plan = ProjectDocument.objects.create(**validated_data)
+        return concept_plan
+
+
 class ProjectDocumentSerializer(serializers.ModelSerializer):
+    # details = serializers.Serializer()
+
     project = TinyProjectSerializer(read_only=True)
-    # project = TinyProjectSerializer()
-
-    details = serializers.SerializerMethodField()
-
-    # def create(self, validated_data):
-    #     # Extract the project_id from validated_data
-    #     project_id = validated_data.pop("project_id")
-
-    #     # Create a new ProjectDocument with the provided project_id
-    #     project_document = ProjectDocument.objects.create(
-    #         project_id=project_id, **validated_data
-    #     )
-
-    #     return project_document
-
-    def get_details(self, obj):
-        kind = obj.kind
-
-        if kind == "concept_plan":
-            concept_plan_details = obj.concept_plan_details.first()
-            if concept_plan_details:
-                return TinyConceptPlanSerializer(
-                    concept_plan_details, context=self.context
-                ).data
-        elif kind == "project_plan":
-            project_plan_details = obj.project_plan_details.first()
-            if project_plan_details:
-                return TinyProjectPlanSerializer(
-                    project_plan_details, context=self.context
-                ).data
-        elif kind == "progressreport":
-            progress_report_details = obj.progress_report_details.first()
-            if progress_report_details:
-                return TinyProgressReportSerializer(
-                    progress_report_details, context=self.context
-                ).data
-        elif kind == "studentreport":
-            student_report_details = obj.student_report_details.first()
-            if student_report_details:
-                return TinyStudentReportSerializer(
-                    student_report_details, context=self.context
-                ).data
-        elif kind == "projectclosure":
-            project_closure_details = obj.project_closure_details.first()
-            if project_closure_details:
-                return TinyProjectClosureSerializer(
-                    project_closure_details, context=self.context
-                ).data
-
-        return None
 
     class Meta:
         model = ProjectDocument
         fields = "__all__"
 
+    # def get_details(self, obj):
+    #     kind = obj.kind
 
-class ConceptPlanSerializer(serializers.ModelSerializer):
-    # document = TinyProjectDocumentSerializer(read_only=True)
-    document = TinyProjectDocumentSerializer()
+    #     if kind == "concept_plan":
+    #         concept_plan_details = obj.concept_plan_details.first()
+    #         if concept_plan_details:
+    #             return TinyConceptPlanSerializer(
+    #                 concept_plan_details, context=self.context
+    #             ).data
+    #     elif kind == "project_plan":
+    #         project_plan_details = obj.project_plan_details.first()
+    #         if project_plan_details:
+    #             return TinyProjectPlanSerializer(
+    #                 project_plan_details, context=self.context
+    #             ).data
+    #     elif kind == "progressreport":
+    #         progress_report_details = obj.progress_report_details.first()
+    #         if progress_report_details:
+    #             return TinyProgressReportSerializer(
+    #                 progress_report_details, context=self.context
+    #             ).data
+    #     elif kind == "studentreport":
+    #         student_report_details = obj.student_report_details.first()
+    #         if student_report_details:
+    #             return TinyStudentReportSerializer(
+    #                 student_report_details, context=self.context
+    #             ).data
+    #     elif kind == "projectclosure":
+    #         project_closure_details = obj.project_closure_details.first()
+    #         if project_closure_details:
+    #             return TinyProjectClosureSerializer(
+    #                 project_closure_details, context=self.context
+    #             ).data
+
+    #     return None
+
+
+class ConceptPlanCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConceptPlan
+        fields = [
+            "document",
+            "background",
+            "aims",
+            "outcome",
+            "collaborations",
+            "strategic_context",
+            "staff_time_allocation",
+            "budget",
+        ]
 
     def create(self, validated_data):
-        # Retrieve the 'document' data from validated_data
-        document_data = validated_data.pop("document")
-
-        # Create the ConceptPlan instance
+        # Create a new ConceptPlan with the provided document primary key
         concept_plan = ConceptPlan.objects.create(**validated_data)
-
-        # Create the related ProjectDocument with the retrieved 'document' data
-        project_document = ProjectDocument.objects.create(
-            document=concept_plan, **document_data
-        )
-
         return concept_plan
+
+
+class ConceptPlanSerializer(serializers.ModelSerializer):
+    document = ProjectDocumentSerializer()
 
     class Meta:
         model = ConceptPlan
@@ -281,8 +287,47 @@ class ConceptPlanSerializer(serializers.ModelSerializer):
         ]
 
 
+class ProjectClosureCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectClosure
+        fields = [
+            "document",
+            "intended_outcome",
+            "reason",
+            "scientific_outputs",
+            "knowledge_transfer",
+            "data_location",
+            "hardcopy_location",
+            "backup_location",
+        ]
+
+
+class ProjectPlanCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectPlan
+        fields = [
+            "document",
+            "background",
+            "methodology",
+            "aims",
+            "outcome",
+            "knowledge_transfer",
+            "listed_references",
+            "involves_plants",
+            "involves_animals",
+            "operating_budget",
+            "operating_budget_external",
+            "related_projects",
+        ]
+
+    def create(self, validated_data):
+        # Create a new ConceptPlan with the provided document primary key
+        project_plan = ProjectPlan.objects.create(**validated_data)
+        return project_plan
+
+
 class ProjectPlanSerializer(serializers.ModelSerializer):
-    document = TinyProjectDocumentSerializer(read_only=True)
+    document = ProjectDocumentSerializer()
     # endorsements = EndorsementSerializerForProjectPlanView(read_only=True)
 
     endorsements = serializers.SerializerMethodField(
@@ -327,6 +372,19 @@ class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
             "data_management",
             "no_specimens",
         ]
+
+
+class EndorsementCreationSerializer(serializers.ModelSerializer):
+    # project_plan = TinyProjectPlanSerializer(read_only=True)
+
+    class Meta:
+        model = Endorsement
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # Create a new ConceptPlan with the provided document primary key
+        endorsement = Endorsement.objects.create(**validated_data)
+        return endorsement
 
 
 class EndorsementSerializer(serializers.ModelSerializer):

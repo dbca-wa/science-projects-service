@@ -1,3 +1,4 @@
+import datetime
 import os
 import time
 from django.shortcuts import render
@@ -22,10 +23,14 @@ from .models import (
 from .serializers import (
     AnnualReportSerializer,
     ConceptPlanSerializer,
+    EndorsementCreationSerializer,
     EndorsementSerializer,
     ProgressReportSerializer,
+    ProjectClosureCreationSerializer,
     ProjectClosureSerializer,
+    ProjectDocumentCreateSerializer,
     ProjectDocumentSerializer,
+    ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
     PublicationSerializer,
     StudentReportSerializer,
@@ -634,17 +639,123 @@ class ProjectDocuments(APIView):
         )
 
     def post(self, req):
-        ser = ProjectDocumentSerializer(
-            data=req.data,
+        print(req.data)
+        kind = req.data.get("kind")
+        project_pk = req.data.get("project")
+        document_serializer = ProjectDocumentCreateSerializer(
+            data={
+                "old_id": 1,
+                "kind": kind,
+                "status": "new",
+                "project": project_pk,
+                "creator": req.user.pk,
+                "modifier": req.user.pk,
+            }
         )
-        if ser.is_valid():
-            project_document = ser.save()
-            return Response(
-                TinyProjectDocumentSerializer(project_document).data,
-                status=HTTP_201_CREATED,
-            )
+
+        if document_serializer.is_valid():
+            print("\n\nvalid\n\n")
+            print("Serializer for doc is good")
+            # print(document_serializer.data)
+            # doc = document_serializer.save()
+            with transaction.atomic():
+                doc = document_serializer.save()
+                if kind == "projectplan":
+                    project_plan_data_object = {
+                        "document": doc.pk,
+                        "background": "<p></p>",
+                        "methodology": "<p></p>",
+                        "aims": "<p></p>",
+                        "outcome": "<p></p>",
+                        "knowledge_transfer": "<p></p>",
+                        "listed_references": "<p></p>",
+                        "involves_plants": False,
+                        "involves_animals": False,
+                        "operating_budget": "<p></p>",
+                        "operating_budget_external": "<p></p>",
+                        "related_projects": "<p></p>",
+                    }
+                    project_plan_serializer = ProjectPlanCreateSerializer(
+                        data=project_plan_data_object
+                    )
+
+                    if project_plan_serializer.is_valid():
+                        print("project plan valid")
+                        # with transaction.atomic():
+                        try:
+                            projplan = project_plan_serializer.save()
+                            print("saved")
+                            endorsements = EndorsementCreationSerializer(
+                                data={"project_plan": projplan.pk}
+                            )
+                            if endorsements.is_valid():
+                                print("saving endorsement...")
+                                endorsements.save()
+                                print("saved")
+
+                            else:
+                                print(endorsements.errors)
+                                return Response(
+                                    endorsements.errors,
+                                    HTTP_400_BAD_REQUEST,
+                                )
+
+                        except Exception as e:
+                            print(f"project Plan error: {e}")
+                    else:
+                        print("project Plan")
+                        print(project_plan_serializer.errors)
+                        return Response(
+                            project_plan_serializer.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                elif kind == "projectclosure":
+                    reason = req.data.get("reason")
+                    outcome = req.data.get("outcome")
+
+                    closure_data_object = {
+                        "document": doc.pk,
+                        "intended_outcome": outcome,
+                        "reason": reason,
+                        "scientific_outputs": "<p></p>",
+                        "knowledge_transfer": "<p></p>",
+                        "data_location": "<p></p>",
+                        "hardcopy_location": "<p></p>",
+                        "backup_location": "<p></p>",
+                    }
+
+                    closure_serializer = ProjectClosureCreationSerializer(
+                        data=closure_data_object
+                    )
+
+                    if closure_serializer.is_valid():
+                        print("closure valid")
+                        try:
+                            with transaction.atomic():
+                                closure = closure_serializer.save()
+                                closure.document.project.status = outcome
+                                print("saving project")
+                                closure.document.project.save()
+                                print("project saved")
+
+                        except Exception as e:
+                            print(f"Closure save error: {e}")
+                    else:
+                        print("Closure Error")
+                        print(closure_serializer.errors)
+                        return Response(
+                            closure_serializer.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+
+                return Response(
+                    TinyProjectDocumentSerializer(doc).data,
+                    status=HTTP_201_CREATED,
+                )
         else:
+            print(document_serializer.errors)
             return Response(
+                document_serializer.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -892,6 +1003,10 @@ class ConceptPlanDetail(APIView):
         )
         if ser.is_valid():
             u_concept_plan = ser.save()
+            u_concept_plan.document.updated_at = datetime.datetime.now()
+            u_concept_plan.document.modifier = req.user
+            u_concept_plan.document.save()
+
             return Response(
                 TinyConceptPlanSerializer(u_concept_plan).data,
                 status=HTTP_202_ACCEPTED,
@@ -1095,10 +1210,47 @@ class ProjectClosureDetail(APIView):
             )
 
 
+class RepoenProject(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # def get_project(self, pk):
+    #     try:
+    #         obj = Project.objects.get(pk=pk)
+    # #     except Project.DoesNotExist:
+    #         raise NotFound
+    #     return obj
+
+    def get_base_document(self, project_pk):
+        try:
+            obj = ProjectDocument.objects.get(project=project_pk, kind="projectclosure")
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    # def get_closure(self, project_pk):
+    #     try:
+    #         obj = ProjectClosure.objects.get(pr=project_pk)
+    #     except ProjectClosure.DoesNotExist:
+    #         raise NotFound
+    #     return obj
+
+    def post(self, req, pk):
+        with transaction.atomic():
+            try:
+                project_document = self.get_base_document(pk)
+                project_document.project.status = "updating"
+                project_document.project.save()
+                project_document.delete()
+                return Response(status=HTTP_204_NO_CONTENT)
+            except Exception as e:
+                print(e)
+                return Response(f"{e}", status=HTTP_400_BAD_REQUEST)
+
+
 # ENDORSEMENTS & APPROVALS ==========================================================
 
 
-class ProgressReportApproval(APIView):
+class DocApproval(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_document(self, pk):
@@ -1112,9 +1264,8 @@ class ProgressReportApproval(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        progress_report_pk = req.data["progressReportPk"]
-        print(user, stage, document_pk, progress_report_pk)
-        if not stage and not document_pk and not progress_report_pk:
+        print(user, stage, document_pk)
+        if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
@@ -1158,7 +1309,7 @@ class ProgressReportApproval(APIView):
             )
 
 
-class ProgressReportRecall(APIView):
+class DocRecall(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_document(self, pk):
@@ -1172,9 +1323,8 @@ class ProgressReportRecall(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        progress_report_pk = req.data["progressReportPk"]
-        print(user, stage, document_pk, progress_report_pk)
-        if not stage and not document_pk and not progress_report_pk:
+        print(user, stage, document_pk)
+        if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
@@ -1223,7 +1373,7 @@ class ProgressReportRecall(APIView):
             )
 
 
-class ProgressReportSendBack(APIView):
+class DocSendBack(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_document(self, pk):
@@ -1237,9 +1387,8 @@ class ProgressReportSendBack(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        progress_report_pk = req.data["progressReportPk"]
-        print(user, stage, document_pk, progress_report_pk)
-        if not stage and not document_pk and not progress_report_pk:
+        print(user, stage, document_pk)
+        if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)

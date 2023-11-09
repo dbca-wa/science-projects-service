@@ -9,6 +9,7 @@ extracted_table_data
 extract_data.py
 files/
 
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

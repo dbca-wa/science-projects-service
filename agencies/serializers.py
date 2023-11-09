@@ -123,6 +123,8 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
 
 
 class BusinessAreaSerializer(serializers.ModelSerializer):
+    # pk = serializers.IntegerField(source="id")  # Map 'id' to 'pk'
+
     class Meta:
         model = BusinessArea
         fields = "__all__"

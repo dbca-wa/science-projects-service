@@ -159,6 +159,8 @@ class ProjectDocument(CommonModel):
     directorate_approval_granted = models.BooleanField(default=False)
     pdf_generation_in_progress = models.BooleanField(default=False)
 
+    # id, created, updated, oldid, status, kind, p,b,d,p, creator, modifier, projid
+
     def __str__(self) -> str:
         return f"{self.created_at.year} | {self.kind.capitalize()} - {self.project}"
 

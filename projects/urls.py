@@ -20,6 +20,9 @@ urlpatterns = [
         "project_members/<int:project_id>/<int:user_id>",
         views.ProjectMemberDetail.as_view(),
     ),
+    path(
+        "project_members/<int:project_id>/leader", views.ProjectLeaderDetail.as_view()
+    ),
     path("project_details", views.ProjectAdditional.as_view()),
     path("project_details/<int:pk>", views.ProjectAdditionalDetail.as_view()),
     path("student_project_details", views.StudentProjectAdditional.as_view()),

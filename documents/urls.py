@@ -20,6 +20,7 @@ urlpatterns = [
     path("studentreports/<int:pk>", views.StudentReportDetail.as_view()),
     path("projectclosures", views.ProjectClosures.as_view()),
     path("projectclosures/<int:pk>", views.ProjectClosureDetail.as_view()),
+    path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
     path("reports", views.Reports.as_view()),
     path("reports/<int:pk>", views.ReportDetail.as_view()),
     path("publications", views.Publications.as_view()),
@@ -32,8 +33,8 @@ urlpatterns = [
     path("reports/latestyear", views.GetLatestReportYear.as_view()),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
-    # Actions
-    path("progressreports/approve", views.ProgressReportApproval.as_view()),
-    path("progressreports/recall", views.ProgressReportRecall.as_view()),
-    path("progressreports/send_back", views.ProgressReportSendBack.as_view()),
+    # Actions (PROGRESS REPORT)
+    path("actions/approve", views.DocApproval.as_view()),
+    path("actions/recall", views.DocRecall.as_view()),
+    path("actions/send_back", views.DocSendBack.as_view()),
 ]

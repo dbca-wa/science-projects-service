@@ -252,6 +252,7 @@ class BusinessAreas(APIView):
         ser = BusinessAreaSerializer(data=ba_data)
 
         if ser.is_valid():
+            print("valid serializer")
             with transaction.atomic():
                 # First create the Business Area
                 new_business_area = ser.save()
@@ -286,6 +287,7 @@ class BusinessAreas(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
+            print("invalid serializer", ser.errors)
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
