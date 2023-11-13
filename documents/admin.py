@@ -39,7 +39,7 @@ class ProjectDocumentAdmin(admin.ModelAdmin):
     def display_year(self, obj):
         return obj.created_at.year
 
-    display_year.short_description = "Year"
+    display_year.short_description = "Created Year"
 
     class YearFilter(admin.SimpleListFilter):
         title = "Year"

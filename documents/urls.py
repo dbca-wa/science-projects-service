@@ -16,8 +16,16 @@ urlpatterns = [
     ),
     path("progressreports", views.ProgressReports.as_view()),
     path("progressreports/<int:pk>", views.ProgressReportDetail.as_view()),
+    path(
+        "progressreports/<int:project>/<int:year>",
+        views.ProgressReportByYear.as_view(),
+    ),
     path("studentreports", views.StudentReports.as_view()),
     path("studentreports/<int:pk>", views.StudentReportDetail.as_view()),
+    path(
+        "studentreports/<int:project>/<int:year>",
+        views.StudentReportByYear.as_view(),
+    ),
     path("projectclosures", views.ProjectClosures.as_view()),
     path("projectclosures/<int:pk>", views.ProjectClosureDetail.as_view()),
     path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
@@ -32,8 +40,12 @@ urlpatterns = [
     path("reports/download", views.DownloadAnnualReport.as_view()),
     path("reports/latestyear", views.GetLatestReportYear.as_view()),
     path(
-        "reports/availableyears/<int:project_pk>",
+        "reports/availableyears/<int:project_pk>/progressreport",
         views.GetAvailableReportYearsForProgressReport.as_view(),
+    ),
+    path(
+        "reports/availableyears/<int:project_pk>/studentreport",
+        views.GetAvailableReportYearsForStudentReport.as_view(),
     ),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),

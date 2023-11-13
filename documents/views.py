@@ -19,6 +19,7 @@ from .models import (
     Endorsement,
     Publication,
 )
+from django.db.models import Q, F
 
 from .serializers import (
     AnnualReportSerializer,
@@ -35,6 +36,7 @@ from .serializers import (
     ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
     PublicationSerializer,
+    StudentReportCreateSerializer,
     StudentReportSerializer,
     TinyAnnualReportSerializer,
     TinyConceptPlanSerializer,
@@ -489,11 +491,134 @@ class Reports(APIView):
             data={**creation_data},
         )
         if ser.is_valid():
-            report = ser.save()
-            return Response(
-                TinyAnnualReportSerializer(report).data,
-                status=HTTP_201_CREATED,
-            )
+            with transaction.atomic():
+                print("Fetching eligible project")
+                report = ser.save()
+
+                # Create progress reports
+                eligible_projects = Project.objects.filter(
+                    Q(status__in=Project.ACTIVE_ONLY)
+                    & Q(
+                        kind__in=[
+                            Project.CategoryKindChoices.SCIENCE,
+                            Project.CategoryKindChoices.COREFUNCTION,
+                        ]
+                    )
+                    & Q(documents__kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN)
+                    & Q(documents__status=ProjectDocument.StatusChoices.APPROVED)
+                ).exclude(documents__progress_report_details__report__year=year)
+
+                eligible_student_projects = Project.objects.filter(
+                    Q(status__in=Project.ACTIVE_ONLY)
+                    & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+                ).exclude(documents__progress_report_details__report__year=year)
+
+                # Combine the two querysets
+                all_eligible_projects = eligible_projects | eligible_student_projects
+                print("Fetched eligible project")
+
+                for project in all_eligible_projects:
+                    if project.kind == Project.CategoryKindChoices.STUDENT:
+                        typeofdoc = ProjectDocument.CategoryKindChoices.STUDENTREPORT
+                    elif (
+                        project.kind == Project.CategoryKindChoices.SCIENCE
+                        or project.kind == Project.CategoryKindChoices.COREFUNCTION
+                    ):
+                        typeofdoc = ProjectDocument.CategoryKindChoices.PROGRESSREPORT
+                    new_doc_data = {
+                        "old_id": 1,
+                        "kind": typeofdoc,
+                        "status": "new",
+                        "modifier": req.user.pk,
+                        "creator": req.user.pk,
+                        "project": project.pk,
+                    }
+
+                    print("Serializing document")
+
+                    new_project_document = ProjectDocumentCreateSerializer(
+                        data=new_doc_data
+                    )
+                    print("Serialized document")
+
+                    if new_project_document.is_valid():
+                        with transaction.atomic():
+                            print("Saving document")
+                            doc = new_project_document.save()
+                            print("Saved document")
+                            if project.kind != Project.CategoryKindChoices.STUDENT:
+                                progress_report_data = {
+                                    "document": doc.pk,
+                                    "report": report.pk,
+                                    "project": project.pk,
+                                    "year": year,
+                                    "context": "<p></p>",
+                                    "implications": "<p></p>",
+                                    "future": "<p></p>",
+                                    "progress": "<p></p>",
+                                    "aims": "<p></p>",
+                                }
+                                print("Serializing PR")
+
+                                progress_report = ProgressReportCreateSerializer(
+                                    data=progress_report_data
+                                )
+                                print("Serialized PR")
+
+                                if progress_report.is_valid():
+                                    print("Saving PR")
+                                    progress_report.save()
+                                    print("Saved PR")
+                                    project.status = Project.StatusChoices.UPDATING
+                                    project.save()
+                                else:
+                                    print(
+                                        "ERROR IN PROGRESS REPORT SERIALIZER",
+                                        progress_report.errors,
+                                    )
+                                    return Response(
+                                        progress_report.errors, HTTP_400_BAD_REQUEST
+                                    )
+                            else:
+                                student_report_data = {
+                                    "document": doc.pk,
+                                    "report": report.pk,
+                                    "project": project.pk,
+                                    "year": year,
+                                    "progress_report": "<p></p>",
+                                }
+                                print("Serializing SR")
+
+                                progress_report = StudentReportCreateSerializer(
+                                    data=student_report_data
+                                )
+                                print("Serialized SR")
+
+                                if progress_report.is_valid():
+                                    print("Saving SPR")
+                                    progress_report.save()
+                                    print("Saved SPR")
+                                    project.status = Project.StatusChoices.UPDATING
+                                    project.save()
+                                else:
+                                    print(
+                                        "ERROR IN PROGRESS REPORT SERIALIZER",
+                                        progress_report.errors,
+                                    )
+                                    return Response(
+                                        progress_report.errors, HTTP_400_BAD_REQUEST
+                                    )
+
+                    else:
+                        print("ERROR IN DOC SERIALIZER", new_project_document.errors)
+                        return Response(
+                            new_project_document.errors, HTTP_400_BAD_REQUEST
+                        )
+
+                return Response(
+                    TinyAnnualReportSerializer(report).data,
+                    status=HTTP_201_CREATED,
+                )
         else:
             return Response(
                 ser.errors,
@@ -524,6 +649,13 @@ class ReportDetail(APIView):
 
     def delete(self, req, pk):
         report = self.go(pk)
+
+        def delete_reports(report):
+            reports = ProgressReport.objects.filter(report=report).all()
+            for report in reports:
+                report.document.delete()
+
+        delete_reports(report)
         report.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -558,6 +690,42 @@ class GetLatestReportYear(APIView):
             latest_report = max(all_reports, key=lambda report: report.year)
             serializer = AnnualReportSerializer(
                 latest_report,
+                context={"request": request},
+            )
+            return Response(
+                serializer.data,
+                status=HTTP_200_OK,
+            )
+        else:
+            raise NotFound
+
+
+class GetAvailableReportYearsForStudentReport(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # Returns a list of serialized reports with the following:
+    # year, report id
+    # Only returns the years in which a progress report doesn't already exist for a given project
+    def get(self, request, project_pk):
+        if project_pk:
+            all_student_reports = StudentReport.objects.filter(
+                document__project_id=project_pk
+            ).all()
+            list_of_years_from_student_reports = list(
+                set([report.year for report in all_student_reports])
+            )
+            all_annual_report_years = AnnualReport.objects.values_list(
+                "year", flat=True
+            ).distinct()
+
+            available_years = list(
+                set(all_annual_report_years) - set(list_of_years_from_student_reports)
+            )
+            available_reports = AnnualReport.objects.filter(year__in=available_years)
+
+            serializer = MiniAnnualReportSerializer(
+                available_reports,
+                many=True,
                 context={"request": request},
             )
             return Response(
@@ -824,6 +992,44 @@ class ProjectDocuments(APIView):
                         print(pr_serializer.errors)
                         return Response(
                             pr_serializer.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+
+                elif kind == "studentreport":
+                    report_id = req.data.get("report")
+                    report = AnnualReport.objects.get(pk=report_id)
+                    year = req.data.get("year")
+                    project = req.data.get("project")
+
+                    student_report_data_object = {
+                        "document": doc.pk,
+                        "report": report_id,
+                        "project": project,
+                        "year": report.year,
+                        "progress_report": "<p></p>",
+                    }
+
+                    sr_serializer = StudentReportCreateSerializer(
+                        data=student_report_data_object
+                    )
+
+                    if sr_serializer.is_valid():
+                        print("Student report valid")
+                        try:
+                            with transaction.atomic():
+                                student_report = sr_serializer.save()
+                                student_report.document.project.status = "active"
+                                print("saving project")
+                                student_report.document.project.save()
+                                print("project saved")
+
+                        except Exception as e:
+                            print(f"Student Report save error: {e}")
+                    else:
+                        print("Student Report Error")
+                        print(sr_serializer.errors)
+                        return Response(
+                            sr_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
 
@@ -1127,6 +1333,19 @@ class ProjectPlanDetail(APIView):
         )
 
     def put(self, req, pk):
+        print(req.data)
+        if "data_management" in req.data or "specimens" in req.data:
+            endorsement_to_edit = Endorsement.objects.filter(project_plan=pk).first()
+            if "specimens" in req.data:
+                specimen_value = req.data["specimens"]
+                print(f"specimen value: {specimen_value}")
+                endorsement_to_edit.no_specimens = specimen_value
+
+            if "data_management" in req.data:
+                data_management_value = req.data["data_management"]
+                print(f"data_management value: {data_management_value}")
+                endorsement_to_edit.data_management = data_management_value
+            endorsement_to_edit.save()
         project_plan = self.go(pk)
         ser = ProjectPlanSerializer(
             project_plan,
@@ -1144,6 +1363,50 @@ class ProjectPlanDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class ProgressReportByYear(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, project, year):
+        try:
+            obj = ProgressReport.objects.get(year=year, document__project=project)
+        except ProgressReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, project, year):
+        progress_report = self.go(project=project, year=year)
+        ser = ProgressReportSerializer(
+            progress_report,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class StudentReportByYear(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, project, year):
+        try:
+            obj = StudentReport.objects.get(year=year, document__project=project)
+        except StudentReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, project, year):
+        progress_report = self.go(project=project, year=year)
+        ser = StudentReportSerializer(
+            progress_report,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
 
 
 class ProgressReportDetail(APIView):
@@ -1378,6 +1641,17 @@ class DocApproval(APIView):
         )
         if ser.is_valid():
             u_document = ser.save()
+            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
+                print("weeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+                print(u_document.project.status)
+                u_document.project.status = Project.StatusChoices.ACTIVE
+                u_document.project.save()
+                print(u_document.project.status)
+            else:
+                print("nope")
+                print(u_document.kind)
+                print(stage)
+
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
                 status=HTTP_202_ACCEPTED,
@@ -1441,6 +1715,17 @@ class DocRecall(APIView):
         )
         if ser.is_valid():
             u_document = ser.save()
+            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
+                print("weeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+                print(u_document.project.status)
+                u_document.project.status = Project.StatusChoices.PENDING
+                u_document.project.save()
+                print(u_document.project.status)
+            else:
+                print("nope")
+                print(u_document.kind)
+                print(stage)
+
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
                 status=HTTP_202_ACCEPTED,

@@ -383,9 +383,7 @@ class ProgressReport(models.Model):
 
     report = models.ForeignKey(
         "documents.AnnualReport",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
+        on_delete=models.CASCADE,
         help_text="The annual report publishing this Report",
     )
 

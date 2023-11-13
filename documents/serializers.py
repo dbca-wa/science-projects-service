@@ -401,8 +401,8 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
 
     def get_endorsements(self, obj):
         project_plan = obj
-        endorsements = Endorsement.objects.filter(project_plan=project_plan)
-        return EndorsementSerializerForProjectPlanView(endorsements, many=True).data
+        endorsements = Endorsement.objects.get(project_plan=project_plan)
+        return EndorsementSerializerForProjectPlanView(endorsements).data
 
 
 class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
@@ -458,6 +458,12 @@ class ProgressReportSerializer(serializers.ModelSerializer):
             "implications",
             "future",
         ]
+
+
+class StudentReportCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentReport
+        fields = "__all__"
 
 
 class StudentReportSerializer(serializers.ModelSerializer):
