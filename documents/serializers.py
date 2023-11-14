@@ -120,10 +120,14 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
         fields = [
             "pk",
             "project_plan",
-            "bm_endorsement",
-            "hc_endorsement",
-            "ae_endorsement",
-            "data_manager_endorsement",
+            "bm_endorsement_required",
+            "hc_endorsement_required",
+            "ae_endorsement_required",
+            "dm_endorsement_required",
+            "bm_endorsement_provided",
+            "hc_endorsement_provided",
+            "ae_endorsement_provided",
+            "dm_endorsement_provided",
         ]
 
 
@@ -410,10 +414,14 @@ class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
         model = Endorsement
         fields = [
             "pk",
-            "bm_endorsement",
-            "hc_endorsement",
-            "ae_endorsement",
-            "data_manager_endorsement",
+            "bm_endorsement_required",
+            "hc_endorsement_required",
+            "ae_endorsement_required",
+            "dm_endorsement_required",
+            "bm_endorsement_provided",
+            "hc_endorsement_provided",
+            "ae_endorsement_provided",
+            "dm_endorsement_provided",
             "data_management",
             "no_specimens",
         ]

@@ -578,52 +578,75 @@ class Endorsement(models.Model):
         on_delete=models.CASCADE,
     )
 
-    bm_endorsement = models.CharField(
-        max_length=100,
-        choices=EndorsementChoices.choices,
-        default=EndorsementChoices.REQUIRED,
-        help_text="The Biometrician's endorsement of the methodology's statistical validity.",
+    ae_endorsement_required = models.BooleanField(
+        default=False,
+        help_text="Whether Animal Ethics Committee Endorsement is Required.",
     )
 
-    hc_endorsement = models.CharField(
-        blank=True,
-        null=True,
-        max_length=100,
-        default=EndorsementChoices.NOTREQUIRED,
-        choices=EndorsementChoices.choices,
-        help_text="The Herbarium Curator's endorsement of the planned collection of voucher specimens.",
+    bm_endorsement_required = models.BooleanField(
+        default=True,
+        help_text="Whether Biometrician Endorsement is Required.",
+    )
+    hc_endorsement_required = models.BooleanField(
+        default=False,
+        help_text="Whether Herbarium Curator Endorsement is Required.",
     )
 
-    ae_endorsement = models.CharField(
-        blank=True,
-        null=True,
-        max_length=100,
-        default=EndorsementChoices.NOTREQUIRED,
-        choices=EndorsementChoices.choices,
+    ae_endorsement_provided = models.BooleanField(
+        default=False,
         help_text="The Animal Ethics Committee's endorsement of the planned direct interaction with animals. Approval process is currently handled outside of SPMS.",
+        # blank=True,
+        # null=True,
+        # max_length=100,
+        # default=EndorsementChoices.NOTREQUIRED,
+        # choices=EndorsementChoices.choices,
     )
 
-    data_manager_endorsement = models.CharField(
-        blank=True,
-        null=True,
-        max_length=100,
-        default=EndorsementChoices.NOTREQUIRED,
-        choices=EndorsementChoices.choices,
-        help_text="The Data Manager's endorsement of the project's data management. \
-            The DM will help to set up Wiki pages, data catalogue permissions, \
-            scientific sites, and advise on metadata creation.",
+    bm_endorsement_provided = models.BooleanField(
+        default=False,
+        help_text="The Biometrician's endorsement of the methodology's statistical validity.",
+        # max_length=100,
+        # choices=EndorsementChoices.choices,
+        # default=EndorsementChoices.REQUIRED,
     )
 
-    data_management = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Describe how and where data will be maintained, archived, cataloged. Read DBCA guideline 16.",
+    hc_endorsement_provided = models.BooleanField(
+        default=False,
+        help_text="The Herbarium Curator's endorsement of the planned collection of voucher specimens.",
+        # blank=True,
+        # null=True,
+        # max_length=100,
+        # default=EndorsementChoices.NOTREQUIRED,
+        # choices=EndorsementChoices.choices,
     )
 
     no_specimens = models.TextField(
         blank=True,
         null=True,
         help_text="Estimate the number of collected vouchered specimens. Provide any additional info required for the Harbarium Curator's endorsement.",
+    )
+
+    dm_endorsement_required = models.BooleanField(
+        default=True,
+        help_text="Whether the data manager's endorsement is required.",
+    )
+
+    dm_endorsement_provided = models.BooleanField(
+        default=False,
+        help_text="The Data Manager's endorsement of the project's data management. \
+            The DM will help to set up Wiki pages, data catalogue permissions, \
+            scientific sites, and advise on metadata creation.",
+        # blank=True,
+        # null=True,
+        # max_length=100,
+        # default=EndorsementChoices.NOTREQUIRED,
+        # choices=EndorsementChoices.choices,
+    )
+
+    data_management = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Describe how and where data will be maintained, archived, cataloged. Read DBCA guideline 16.",
     )
 
     def __str__(self) -> str:

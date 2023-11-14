@@ -893,7 +893,19 @@ class ProjectDocuments(APIView):
                             projplan = project_plan_serializer.save()
                             print("saved")
                             endorsements = EndorsementCreationSerializer(
-                                data={"project_plan": projplan.pk}
+                                data={
+                                    "project_plan": projplan.pk,
+                                    "bm_endorsement_required": True,
+                                    "hc_endorsement_required": False,
+                                    "dm_endorsement_required": True,
+                                    "ae_endorsement_required": False,
+                                    "bm_endorsement_provided": False,
+                                    "hc_endorsement_provided": False,
+                                    "ae_endorsement_provided": False,
+                                    "dm_endorsement_provided": False,
+                                    "data_management": "<p></p>",
+                                    "no_specimens": "<p></p>",
+                                }
                             )
                             if endorsements.is_valid():
                                 print("saving endorsement...")
@@ -1334,7 +1346,12 @@ class ProjectPlanDetail(APIView):
 
     def put(self, req, pk):
         print(req.data)
-        if "data_management" in req.data or "specimens" in req.data:
+        if (
+            "data_management" in req.data
+            or "specimens" in req.data
+            or "involves_animals" in req.data
+            or "involves_plants" in req.data
+        ):
             endorsement_to_edit = Endorsement.objects.filter(project_plan=pk).first()
             if "specimens" in req.data:
                 specimen_value = req.data["specimens"]
@@ -1345,7 +1362,27 @@ class ProjectPlanDetail(APIView):
                 data_management_value = req.data["data_management"]
                 print(f"data_management value: {data_management_value}")
                 endorsement_to_edit.data_management = data_management_value
+
+            if "involves_animals" in req.data or "involves_plants" in req.data:
+                involves_animals_value = req.data["involves_animals"]
+                involves_plants_value = req.data["involves_plants"]
+                aec_approval_value = req.data["ae_endorsement"]
+                hc_approval_value = req.data["hc_endorsement"]
+
+                # Auto set the endorsement to false if it does not involve plants or animals
+                # Else set it to the value provided.
+                if involves_animals_value == True:
+                    endorsement_to_edit.ae_endorsement = aec_approval_value
+                else:
+                    endorsement_to_edit.ae_endorsement = False
+
+                if involves_plants_value == True:
+                    endorsement_to_edit.hc_endorsement = hc_approval_value
+                else:
+                    endorsement_to_edit.hc_endorsement = False
+
             endorsement_to_edit.save()
+
         project_plan = self.go(pk)
         ser = ProjectPlanSerializer(
             project_plan,
