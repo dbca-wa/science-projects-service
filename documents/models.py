@@ -181,6 +181,12 @@ class ConceptPlan(models.Model):
         related_name="concept_plan_details",
     )
 
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="concept_plan",
+    )
+
     # =========
     background = models.TextField(
         blank=True, null=True, help_text="Provide background in up to 500 words"
@@ -258,6 +264,12 @@ class ProjectPlan(models.Model):
         "documents.ProjectDocument",
         on_delete=models.CASCADE,
         related_name="project_plan_details",
+    )
+
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="project_plan",
     )
 
     background = models.TextField(
@@ -387,6 +399,12 @@ class ProgressReport(models.Model):
         help_text="The annual report publishing this Report",
     )
 
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="progress_reports",
+    )
+
     year = models.PositiveIntegerField(
         # editable=False,
         # default=dt.today().year,
@@ -437,6 +455,7 @@ class ProgressReport(models.Model):
     class Meta:
         verbose_name = "Progress Report"
         verbose_name_plural = "Progress Reports"
+        unique_together = ("report", "project")
 
 
 # Done
@@ -461,6 +480,12 @@ class StudentReport(models.Model):
         help_text="The annual report publishing this StudentReport",
     )
 
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="student_reports",
+    )
+
     progress_report = models.TextField(
         blank=True,
         null=True,
@@ -482,6 +507,7 @@ class StudentReport(models.Model):
     class Meta:
         verbose_name = "Student Report"
         verbose_name_plural = "Student Reports"
+        unique_together = ("report", "project")
 
 
 # Done
@@ -494,6 +520,10 @@ class ProjectClosure(models.Model):
         "documents.ProjectDocument",
         on_delete=models.CASCADE,
         related_name="project_closure_details",
+    )
+
+    project = models.ForeignKey(
+        "projects.Project", on_delete=models.CASCADE, related_name="closure"
     )
 
     # renamed from goal_coices

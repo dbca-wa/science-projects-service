@@ -867,20 +867,93 @@ class ProjectDocuments(APIView):
             with transaction.atomic():
                 doc = document_serializer.save()
                 print("saved doc")
-                if kind == "projectplan":
+                if kind == "concept":
+                    project = req.data.get("project")
+                    concept_plan_data_object = {
+                        "document": doc.pk,
+                        "project": project,
+                        "aims": req.data.get("aims")
+                        if req.data.get("aims") is not None
+                        else "<p></p>",
+                        "outcome": req.data.get("outcome")
+                        if req.data.get("outcome") is not None
+                        else "<p></p>",
+                        "collaborations": req.data.get("collaborations")
+                        if req.data.get("collaborations") is not None
+                        else "<p></p>",
+                        "strategic_context": req.data.get("strategic_context")
+                        if req.data.get("strategic_context") is not None
+                        else "<p></p>",
+                        "staff_time_allocation": req.data.get("staff_time_allocation")
+                        if req.data.get("staff_time_allocation") is not None
+                        else "<p></p>",
+                        "budget": req.data.get("budget")
+                        if req.data.get("budget") is not None
+                        else "<p></p>",
+                    }
+                    concept_plan_serializer = ConceptPlanCreateSerializer(
+                        data=concept_plan_data_object
+                    )
+                    if concept_plan_serializer.is_valid():
+                        print("concept plan valid")
+                        # with transaction.atomic():
+                        try:
+                            concplan = concept_plan_serializer.save()
+                            print("saved")
+                        except Exception as e:
+                            print(f"concept Plan error: {e}")
+                            return Response(
+                                e,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                    else:
+                        print("concept Plan")
+                        print(project_plan_serializer.errors)
+                        return Response(
+                            project_plan_serializer.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+
+                elif kind == "projectplan":
+                    project = req.data.get("project")
                     project_plan_data_object = {
                         "document": doc.pk,
-                        "background": "<p></p>",
-                        "methodology": "<p></p>",
-                        "aims": "<p></p>",
-                        "outcome": "<p></p>",
-                        "knowledge_transfer": "<p></p>",
-                        "listed_references": "<p></p>",
-                        "involves_plants": False,
-                        "involves_animals": False,
-                        "operating_budget": "<p></p>",
-                        "operating_budget_external": "<p></p>",
-                        "related_projects": "<p></p>",
+                        "project": project,
+                        "background": req.data.get("background")
+                        if req.data.get("background") is not None
+                        else "<p></p>",
+                        "methodology": req.data.get("methodology")
+                        if req.data.get("methodology") is not None
+                        else "<p></p>",
+                        "aims": req.data.get("aims")
+                        if req.data.get("aims") is not None
+                        else "<p></p>",
+                        "outcome": req.data.get("outcome")
+                        if req.data.get("outcome") is not None
+                        else "<p></p>",
+                        "knowledge_transfer": req.data.get("knowledge_transfer")
+                        if req.data.get("knowledge_transfer") is not None
+                        else "<p></p>",
+                        "listed_references": req.data.get("listed_references")
+                        if req.data.get("listed_references") is not None
+                        else "<p></p>",
+                        "involves_plants": req.data.get("involves_plants")
+                        if req.data.get("involves_plants") is not None
+                        else False,
+                        "involves_animals": req.data.get("involves_animals")
+                        if req.data.get("involves_animals") is not None
+                        else False,
+                        "operating_budget": req.data.get("operating_budget")
+                        if req.data.get("operating_budget") is not None
+                        else "<p></p>",
+                        "operating_budget_external": req.data.get(
+                            "operating_budget_external"
+                        )
+                        if req.data.get("operating_budget_external") is not None
+                        else "<p></p>",
+                        "related_projects": req.data.get("related_projects")
+                        if req.data.get("related_projects") is not None
+                        else "<p></p>",
                     }
                     project_plan_serializer = ProjectPlanCreateSerializer(
                         data=project_plan_data_object
@@ -921,6 +994,10 @@ class ProjectDocuments(APIView):
 
                         except Exception as e:
                             print(f"project Plan error: {e}")
+                            return Response(
+                                e,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
                     else:
                         print("project Plan")
                         print(project_plan_serializer.errors)
@@ -931,16 +1008,28 @@ class ProjectDocuments(APIView):
                 elif kind == "projectclosure":
                     reason = req.data.get("reason")
                     outcome = req.data.get("outcome")
+                    project = req.data.get("project")
 
                     closure_data_object = {
                         "document": doc.pk,
+                        "project": project,
                         "intended_outcome": outcome,
                         "reason": reason,
-                        "scientific_outputs": "<p></p>",
-                        "knowledge_transfer": "<p></p>",
-                        "data_location": "<p></p>",
-                        "hardcopy_location": "<p></p>",
-                        "backup_location": "<p></p>",
+                        "scientific_outputs": req.data.get("scientific_outputs")
+                        if req.data.get("scientific_outputs") is not None
+                        else "<p></p>",
+                        "knowledge_transfer": req.data.get("knowledge_transfer")
+                        if req.data.get("knowledge_transfer") is not None
+                        else "<p></p>",
+                        "data_location": req.data.get("data_location")
+                        if req.data.get("data_location") is not None
+                        else "<p></p>",
+                        "hardcopy_location": req.data.get("hardcopy_location")
+                        if req.data.get("hardcopy_location") is not None
+                        else "<p></p>",
+                        "backup_location": req.data.get("backup_location")
+                        if req.data.get("backup_location") is not None
+                        else "<p></p>",
                     }
 
                     closure_serializer = ProjectClosureCreationSerializer(
@@ -959,6 +1048,10 @@ class ProjectDocuments(APIView):
 
                         except Exception as e:
                             print(f"Closure save error: {e}")
+                            return Response(
+                                e,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
                     else:
                         print("Closure Error")
                         print(closure_serializer.errors)
@@ -976,11 +1069,24 @@ class ProjectDocuments(APIView):
                         "report": report_id,
                         "project": project,
                         "year": year,
-                        "context": "<p></p>",
-                        "implications": "<p></p>",
-                        "future": "<p></p>",
-                        "progress": "<p></p>",
-                        "aims": "<p></p>",
+                        "context": req.data.get("context")
+                        if req.data.get("context") is not None
+                        else "<p></p>",
+                        "implications": req.data.get("implications")
+                        if req.data.get("implications") is not None
+                        else "<p></p>",
+                        "future": req.data.get("future")
+                        if req.data.get("future") is not None
+                        else "<p></p>",
+                        "progress": req.data.get("progress")
+                        if req.data.get("progress") is not None
+                        else "<p></p>",
+                        "aims": req.data.get("aims")
+                        if req.data.get("aims") is not None
+                        else "<p></p>",
+                        "is_final_report": req.data.get("is_final_report")
+                        if req.data.get("is_final_report") is not None
+                        else False,
                     }
 
                     pr_serializer = ProgressReportCreateSerializer(
@@ -992,13 +1098,17 @@ class ProjectDocuments(APIView):
                         try:
                             with transaction.atomic():
                                 progress_report = pr_serializer.save()
-                                progress_report.document.project.status = "active"
+                                progress_report.document.project.status = "updating"
                                 print("saving project")
                                 progress_report.document.project.save()
                                 print("project saved")
 
                         except Exception as e:
                             print(f"Progress Report save error: {e}")
+                            return Response(
+                                e,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
                     else:
                         print("Progress Report Error")
                         print(pr_serializer.errors)
@@ -1008,19 +1118,26 @@ class ProjectDocuments(APIView):
                         )
 
                 elif kind == "studentreport":
-                    report_id = req.data.get("report")
-                    report = AnnualReport.objects.get(pk=report_id)
-                    year = req.data.get("year")
+                    print("Kind is Student")
+
                     project = req.data.get("project")
+                    report_id = req.data.get("report")
+                    print("getting report...")
+                    report = AnnualReport.objects.get(pk=report_id)
+                    print("got report...", report)
 
                     student_report_data_object = {
                         "document": doc.pk,
-                        "report": report_id,
+                        "report": report.pk,
                         "project": project,
                         "year": report.year,
-                        "progress_report": "<p></p>",
+                        "progress_report": req.data.get("progress_report")
+                        if req.data.get("progress_report") is not None
+                        else "<p></p>",
                     }
-
+                    print("DATA:")
+                    print(student_report_data_object)
+                    print("Serializing...")
                     sr_serializer = StudentReportCreateSerializer(
                         data=student_report_data_object
                     )
@@ -1029,14 +1146,20 @@ class ProjectDocuments(APIView):
                         print("Student report valid")
                         try:
                             with transaction.atomic():
+                                print("saving student serializer...")
                                 student_report = sr_serializer.save()
-                                student_report.document.project.status = "active"
+                                print("student serializer saved...")
+                                student_report.document.project.status = "updating"
                                 print("saving project")
                                 student_report.document.project.save()
                                 print("project saved")
 
                         except Exception as e:
                             print(f"Student Report save error: {e}")
+                            return Response(
+                                e,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
                     else:
                         print("Student Report Error")
                         print(sr_serializer.errors)
