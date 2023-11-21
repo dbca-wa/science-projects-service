@@ -4,6 +4,10 @@ from . import views
 urlpatterns = [
     # REST framework
     path("projectdocuments", views.ProjectDocuments.as_view()),
+    path(
+        "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
+    ),
+    # path("projectdocuments/pendingapproval/reports", views.ReportDocsPendingApproval.as_view()),
     path("projectdocuments/<int:pk>", views.ProjectDocumentDetail.as_view()),
     path("conceptplans", views.ConceptPlans.as_view()),
     path("conceptplans/<int:pk>", views.ConceptPlanDetail.as_view()),
@@ -47,6 +51,7 @@ urlpatterns = [
         "reports/availableyears/<int:project_pk>/studentreport",
         views.GetAvailableReportYearsForStudentReport.as_view(),
     ),
+    path("reports/withoutPDF", views.GetWithoutPDFs.as_view()),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
     # Actions (PROGRESS REPORT)

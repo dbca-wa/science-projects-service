@@ -65,6 +65,7 @@ from .serializers import (
     ExternalProjectDetailSerializer,
     ProjectAreaSerializer,
     ProjectDetailSerializer,
+    ProjectDetailViewSerializer,
     ProjectSerializer,
     ProjectMemberSerializer,
     # MiniProjectMemberSerializer,
@@ -529,9 +530,16 @@ class Projects(APIView):
                     # with transaction.atomic():
                     print("project details legit")
                     try:
+                        print("saving details...")
                         project_detail_ser.save()
+                        print("details saved")
                     except Exception as e:
+                        print("Exception in save details for project")
                         print(e)
+                        return Response(
+                            e,
+                            HTTP_400_BAD_REQUEST,
+                        )
                 else:
                     print("Project Detail")
 
@@ -543,6 +551,7 @@ class Projects(APIView):
 
                 # Create unique entries in student table if student project
                 if kind == "student":
+                    print("Kind is Student")
                     level = data.get("level")
                     organisation = data.get("organisation")
                     old_id = 1
@@ -636,17 +645,41 @@ class Projects(APIView):
                         # print(document_serializer.data)
                         # doc = document_serializer.save()
                         with transaction.atomic():
-                            doc = document_serializer.save()
+                            try:
+                                print("Attempting to save doc via project view...")
+                                doc = document_serializer.save()
+                                print("Saved...")
+                            except Exception as e:
+                                print(e)
+                                return Response(
+                                    e,
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
                             concept_plan_data_object = {
                                 "document": doc.pk,
-                                "background": "<p></p>",
-                                "aims": "<p></p>",
-                                "outcome": "<p></p>",
-                                "collaborations": "<p></p>",
-                                "strategic_context": "<p></p>",
-                                "staff_time_allocation": "<p></p>",
-                                "budget": "<p></p>",
+                                "project": proj.pk,
+                                "aims": req.data.get("aims")
+                                if req.data.get("aims") is not None
+                                else "<p></p>",
+                                "outcome": req.data.get("outcome")
+                                if req.data.get("outcome") is not None
+                                else "<p></p>",
+                                "collaborations": req.data.get("collaborations")
+                                if req.data.get("collaborations") is not None
+                                else "<p></p>",
+                                "strategic_context": req.data.get("strategic_context")
+                                if req.data.get("strategic_context") is not None
+                                else "<p></p>",
+                                "staff_time_allocation": req.data.get(
+                                    "staff_time_allocation"
+                                )
+                                if req.data.get("staff_time_allocation") is not None
+                                else "<p></p>",
+                                "budget": req.data.get("budget")
+                                if req.data.get("budget") is not None
+                                else "<p></p>",
                             }
+
                             concept_plan_serializer = ConceptPlanCreateSerializer(
                                 data=concept_plan_data_object
                             )
@@ -658,8 +691,12 @@ class Projects(APIView):
                                     concept_plan_serializer.save()
                                 except Exception as e:
                                     print(f"Concept Plan error: {e}")
+                                    return Response(
+                                        e,
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
                             else:
-                                print("Concept Plan")
+                                print("Concept Plan ser not valid")
                                 print(concept_plan_serializer.errors)
                                 return Response(
                                     concept_plan_serializer.errors,
@@ -712,7 +749,7 @@ class ProjectDetails(APIView):
             external_details = []
 
         details = {
-            "base": ProjectDetailSerializer(
+            "base": ProjectDetailViewSerializer(
                 base_details,
             ).data,
             "student": StudentProjectDetailSerializer(
@@ -781,13 +818,22 @@ class ProjectDetails(APIView):
             else None
         )
 
-        return details, documents, members
+        try:
+            project_areas = ProjectArea.objects.get(project=obj)
+        except ProjectArea.DoesNotExist:
+            project_areas = None
+
+        area_obj = (
+            ProjectAreaSerializer(project_areas).data if project_areas != None else None
+        )
+
+        return details, documents, members, area_obj
 
     def get(self, req, pk):
         proj = self.go(pk=pk)
         print(proj)
         ser = ProjectSerializer(proj).data
-        details, documents, members = self.get_full_object(pk)
+        details, documents, members, area_obj = self.get_full_object(pk)
         # print(documents)
         return Response(
             {
@@ -795,6 +841,7 @@ class ProjectDetails(APIView):
                 "details": details,
                 "documents": documents,
                 "members": members,
+                "location": area_obj,
             },
             status=HTTP_200_OK,
         )

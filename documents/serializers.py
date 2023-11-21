@@ -104,8 +104,8 @@ class TinyProjectPlanSerializer(serializers.ModelSerializer):
             "outcome",
             "knowledge_transfer",
             "listed_references",
-            "involves_plants",
-            "involves_animals",
+            # "involves_plants",
+            # "involves_animals",
             "operating_budget",
             "operating_budget_external",
             "related_projects",
@@ -123,11 +123,11 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
             "bm_endorsement_required",
             "hc_endorsement_required",
             "ae_endorsement_required",
-            "dm_endorsement_required",
+            # "dm_endorsement_required",
             "bm_endorsement_provided",
             "hc_endorsement_provided",
             "ae_endorsement_provided",
-            "dm_endorsement_provided",
+            # "dm_endorsement_provided",
         ]
 
 
@@ -212,8 +212,8 @@ class ProjectDocumentCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         # Create a new ConceptPlan with the provided document primary key
-        concept_plan = ProjectDocument.objects.create(**validated_data)
-        return concept_plan
+        projdoc = ProjectDocument.objects.create(**validated_data)
+        return projdoc
 
 
 class ProjectDocumentSerializer(serializers.ModelSerializer):
@@ -265,16 +265,17 @@ class ProjectDocumentSerializer(serializers.ModelSerializer):
 class ConceptPlanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConceptPlan
-        fields = [
-            "document",
-            "background",
-            "aims",
-            "outcome",
-            "collaborations",
-            "strategic_context",
-            "staff_time_allocation",
-            "budget",
-        ]
+        fields = "__all__"
+        # fields = [
+        #     "document",
+        #     "background",
+        #     "aims",
+        #     "outcome",
+        #     "collaborations",
+        #     "strategic_context",
+        #     "staff_time_allocation",
+        #     "budget",
+        # ]
 
     def create(self, validated_data):
         # Create a new ConceptPlan with the provided document primary key
@@ -284,12 +285,14 @@ class ConceptPlanCreateSerializer(serializers.ModelSerializer):
 
 class ConceptPlanSerializer(serializers.ModelSerializer):
     document = ProjectDocumentSerializer()
+    project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ConceptPlan
         fields = [
             "pk",
             "document",
+            "project",
             "background",
             "aims",
             "outcome",
@@ -303,28 +306,39 @@ class ConceptPlanSerializer(serializers.ModelSerializer):
 class ProgressReportCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressReport
-        fields = [
-            "document",
-            "report",
-            "year",
-            "is_final_report",
-            "context",
-            "aims",
-            "progress",
-            "implications",
-            "future",
-        ]
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # Create a new ConceptPlan with the provided document primary key
+        progress_report = ProgressReport.objects.create(**validated_data)
+        return progress_report
+
+    # class Meta:
+    #     model = ProgressReport
+    #     fields = [
+    #         "document",
+    #         "report",
+    #         "year",
+    #         "is_final_report",
+    #         "context",
+    #         "aims",
+    #         "progress",
+    #         "implications",
+    #         "future",
+    #     ]
 
 
 class ProgressReportSerializer(serializers.ModelSerializer):
     document = TinyProjectDocumentSerializer(read_only=True)
     report = TinyAnnualReportSerializer(read_only=True)
+    project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ProgressReport
         fields = [
             "pk",
             "document",
+            "project",
             "report",
             "year",
             "is_final_report",
@@ -337,37 +351,33 @@ class ProgressReportSerializer(serializers.ModelSerializer):
 
 
 class ProjectClosureCreationSerializer(serializers.ModelSerializer):
+    # class Meta:
+    #     model = ProjectClosure
+    #     fields = [
+    #         "document",
+    #         "project",
+    #         "intended_outcome",
+    #         "reason",
+    #         "scientific_outputs",
+    #         "knowledge_transfer",
+    #         "data_location",
+    #         "hardcopy_location",
+    #         "backup_location",
+    #     ]
     class Meta:
         model = ProjectClosure
-        fields = [
-            "document",
-            "intended_outcome",
-            "reason",
-            "scientific_outputs",
-            "knowledge_transfer",
-            "data_location",
-            "hardcopy_location",
-            "backup_location",
-        ]
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # Create a new ConceptPlan with the provided document primary key
+        project_closure = ProjectClosure.objects.create(**validated_data)
+        return project_closure
 
 
 class ProjectPlanCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectPlan
-        fields = [
-            "document",
-            "background",
-            "methodology",
-            "aims",
-            "outcome",
-            "knowledge_transfer",
-            "listed_references",
-            "involves_plants",
-            "involves_animals",
-            "operating_budget",
-            "operating_budget_external",
-            "related_projects",
-        ]
+        fields = "__all__"
 
     def create(self, validated_data):
         # Create a new ConceptPlan with the provided document primary key
@@ -382,12 +392,14 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
     endorsements = serializers.SerializerMethodField(
         read_only=True, source="documents.Endorsement"
     )
+    project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ProjectPlan
         fields = [
             "pk",
             "document",
+            "project",
             "endorsements",
             "background",
             "project_tasks",
@@ -396,8 +408,8 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
             "outcome",
             "knowledge_transfer",
             "listed_references",
-            "involves_plants",
-            "involves_animals",
+            # "involves_plants",
+            # "involves_animals",
             "operating_budget",
             "operating_budget_external",
             "related_projects",
@@ -417,14 +429,25 @@ class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
             "bm_endorsement_required",
             "hc_endorsement_required",
             "ae_endorsement_required",
-            "dm_endorsement_required",
+            # "dm_endorsement_required",
             "bm_endorsement_provided",
             "hc_endorsement_provided",
             "ae_endorsement_provided",
-            "dm_endorsement_provided",
+            # "dm_endorsement_provided",
             "data_management",
             "no_specimens",
         ]
+
+
+class ConceptPlanCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConceptPlan
+        fields = "__all__"
+
+    def create(self, validated_data):
+        # Create a new ConceptPlan with the provided document primary key
+        cp = ConceptPlan.objects.create(**validated_data)
+        return cp
 
 
 class EndorsementCreationSerializer(serializers.ModelSerializer):
@@ -451,12 +474,14 @@ class EndorsementSerializer(serializers.ModelSerializer):
 class ProgressReportSerializer(serializers.ModelSerializer):
     document = TinyProjectDocumentSerializer(read_only=True)
     report = TinyAnnualReportSerializer(read_only=True)
+    project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ProgressReport
         fields = [
             "pk",
             "document",
+            "project",
             "report",
             "year",
             "is_final_report",
@@ -477,11 +502,13 @@ class StudentReportCreateSerializer(serializers.ModelSerializer):
 class StudentReportSerializer(serializers.ModelSerializer):
     document = TinyProjectDocumentSerializer(read_only=True)
     report = TinyAnnualReportSerializer(read_only=True)
+    project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = StudentReport
         fields = [
             "pk",
+            "project",
             "document",
             "report",
             "progress_report",

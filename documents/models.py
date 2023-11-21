@@ -316,15 +316,15 @@ class ProjectPlan(models.Model):
         help_text="Describe the study design and statistical analysis.",
     )
 
-    involves_plants = models.BooleanField(
-        default=False,
-        help_text="Tick to indicate that this project will collect plant specimens, which will require endorsement by the Herbarium Curator.",
-    )
+    # involves_plants = models.BooleanField(
+    #     default=False,
+    #     help_text="Tick to indicate that this project will collect plant specimens, which will require endorsement by the Herbarium Curator.",
+    # )
 
-    involves_animals = models.BooleanField(
-        default=False,
-        help_text="Tick to indicate that this project will involve direct interaction with animals, which will require endorsement by the Animal Ethics Committee.",
-    )
+    # involves_animals = models.BooleanField(
+    #     default=False,
+    #     help_text="Tick to indicate that this project will involve direct interaction with animals, which will require endorsement by the Animal Ethics Committee.",
+    # )
 
     operating_budget = models.TextField(
         blank=True,
@@ -493,8 +493,8 @@ class StudentReport(models.Model):
     )
 
     year = models.PositiveIntegerField(
-        editable=False,
-        default=dt.today().year,
+        # editable=False,
+        # default=dt.today().year,
         help_text="The year on which this progress report reports on with four digits, e.g. 2014 for FY 2013/14.",
     )
 
@@ -608,28 +608,9 @@ class Endorsement(models.Model):
         on_delete=models.CASCADE,
     )
 
-    ae_endorsement_required = models.BooleanField(
-        default=False,
-        help_text="Whether Animal Ethics Committee Endorsement is Required.",
-    )
-
     bm_endorsement_required = models.BooleanField(
         default=True,
         help_text="Whether Biometrician Endorsement is Required.",
-    )
-    hc_endorsement_required = models.BooleanField(
-        default=False,
-        help_text="Whether Herbarium Curator Endorsement is Required.",
-    )
-
-    ae_endorsement_provided = models.BooleanField(
-        default=False,
-        help_text="The Animal Ethics Committee's endorsement of the planned direct interaction with animals. Approval process is currently handled outside of SPMS.",
-        # blank=True,
-        # null=True,
-        # max_length=100,
-        # default=EndorsementChoices.NOTREQUIRED,
-        # choices=EndorsementChoices.choices,
     )
 
     bm_endorsement_provided = models.BooleanField(
@@ -640,14 +621,24 @@ class Endorsement(models.Model):
         # default=EndorsementChoices.REQUIRED,
     )
 
+    hc_endorsement_required = models.BooleanField(
+        default=False,
+        help_text="Whether Herbarium Curator Endorsement is Required.",
+    )
+
     hc_endorsement_provided = models.BooleanField(
         default=False,
         help_text="The Herbarium Curator's endorsement of the planned collection of voucher specimens.",
-        # blank=True,
-        # null=True,
-        # max_length=100,
-        # default=EndorsementChoices.NOTREQUIRED,
-        # choices=EndorsementChoices.choices,
+    )
+
+    ae_endorsement_required = models.BooleanField(
+        default=False,
+        help_text="Whether Animal Ethics Committee Endorsement is Required.",
+    )
+
+    ae_endorsement_provided = models.BooleanField(
+        default=False,
+        help_text="The Animal Ethics Committee's endorsement of the planned direct interaction with animals. Approval process is currently handled outside of SPMS.",
     )
 
     no_specimens = models.TextField(
@@ -666,11 +657,6 @@ class Endorsement(models.Model):
         help_text="The Data Manager's endorsement of the project's data management. \
             The DM will help to set up Wiki pages, data catalogue permissions, \
             scientific sites, and advise on metadata creation.",
-        # blank=True,
-        # null=True,
-        # max_length=100,
-        # default=EndorsementChoices.NOTREQUIRED,
-        # choices=EndorsementChoices.choices,
     )
 
     data_management = models.TextField(

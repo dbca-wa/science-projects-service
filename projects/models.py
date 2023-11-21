@@ -181,6 +181,20 @@ class Project(CommonModel):
         #  related_name='business'
     )
 
+    # service = models.ForeignKey(
+    #     "agencies.DepartmentalService",
+    #     null=True,
+    #     blank=True,
+    #     on_delete=models.SET_NULL,
+    # )
+
+    # research_function = models.ForeignKey(
+    #     "agencies.ResearchFunction",
+    #     null=True,
+    #     blank=True,
+    #     on_delete=models.SET_NULL,
+    # )
+
     def __str__(self) -> str:
         return f"({self.kind.upper()}) {self.title}"
 

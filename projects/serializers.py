@@ -152,14 +152,15 @@ class ProjectMemberSerializer(ModelSerializer):
         fields = "__all__"
 
 
-class ProjectDetailSerializer(ModelSerializer):
-    # project = SerializerMethodField(read_only=True)
-    # research_function = SerializerMethodField(read_only=True)
-    # creator = SerializerMethodField(read_only=True)
-    # modifier = SerializerMethodField(read_only=True)
-    # owner = SerializerMethodField(read_only=True)
-    # data_custodian = SerializerMethodField(read_only=True)
-    # site_custodian = SerializerMethodField(read_only=True)
+class ProjectDetailViewSerializer(ModelSerializer):
+    project = SerializerMethodField(read_only=True)
+    research_function = SerializerMethodField(read_only=True)
+    service = SerializerMethodField(read_only=True)
+    creator = SerializerMethodField(read_only=True)
+    modifier = SerializerMethodField(read_only=True)
+    owner = SerializerMethodField(read_only=True)
+    data_custodian = SerializerMethodField(read_only=True)
+    site_custodian = SerializerMethodField(read_only=True)
 
     class Meta:
         model = ProjectDetail
@@ -181,6 +182,15 @@ class ProjectDetailSerializer(ModelSerializer):
             return {
                 "pk": research_function.pk,
                 "name": research_function.name,
+            }
+        return None
+
+    def get_service(self, obj):
+        service = obj.service
+        if service:
+            return {
+                "pk": service.pk,
+                "name": service.name,
             }
         return None
 
@@ -229,12 +239,90 @@ class ProjectDetailSerializer(ModelSerializer):
             }
         return None
 
+
+class ProjectDetailSerializer(ModelSerializer):
+    # project = SerializerMethodField(read_only=True)
+    # research_function = SerializerMethodField(read_only=True)
+    # creator = SerializerMethodField(read_only=True)
+    # modifier = SerializerMethodField(read_only=True)
+    # owner = SerializerMethodField(read_only=True)
+    # data_custodian = SerializerMethodField(read_only=True)
+    # site_custodian = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProjectDetail
+        fields = "__all__"
+
+    def get_project(self, obj):
+        print(obj)
+        project = obj.project
+        if project:
+            return {
+                "pk": project.pk,
+                "title": project.title,
+            }
+        return None
+
     def get_research_function(self, obj):
         research_function = obj.research_function
         if research_function:
             return {
                 "pk": research_function.pk,
                 "name": research_function.name,
+            }
+        return None
+
+    def get_service(self, obj):
+        service = obj.service
+        if service:
+            return {
+                "pk": service.pk,
+                "name": service.name,
+            }
+        return None
+
+    def get_creator(self, obj):
+        user = obj.creator
+        if user:
+            return {
+                "pk": user.pk,
+                "username": user.username,
+            }
+        return None
+
+    def get_modifier(self, obj):
+        user = obj.modifier
+        if user:
+            return {
+                "id": user.id,
+                "username": user.username,
+            }
+        return None
+
+    def get_owner(self, obj):
+        user = obj.owner
+        if user:
+            return {
+                "pk": user.pk,
+                "username": user.username,
+            }
+        return None
+
+    def get_data_custodian(self, obj):
+        user = obj.data_custodian
+        if user:
+            return {
+                "id": user.id,
+                "username": user.username,
+            }
+        return None
+
+    def get_site_custodian(self, obj):
+        user = obj.site_custodian
+        if user:
+            return {
+                "pk": user.id,
+                "username": user.username,
             }
         return None
 
