@@ -1,3 +1,4 @@
+import ast
 import json
 from rest_framework.exceptions import (
     NotFound,
@@ -861,23 +862,235 @@ class ProjectDetails(APIView):
             status=HTTP_204_NO_CONTENT,
         )
 
+    def handle_project_image(self, image):
+        print(f"Image is", image)
+        if isinstance(image, str):
+            return image
+        elif image is not None:
+            print("Image is a file")
+            print(image)
+            # Get the original file name with extension
+            original_filename = image.name
+
+            # Specify the subfolder within your media directory
+            subfolder = "projects"
+
+            # Combine the subfolder and filename to create the full file path
+            file_path = f"{subfolder}/{original_filename}"
+
+            # Check if a file with the same name exists in the subfolder
+            if default_storage.exists(file_path):
+                # A file with the same name already exists
+                full_file_path = default_storage.path(file_path)
+                if os.path.exists(full_file_path):
+                    existing_file_size = os.path.getsize(full_file_path)
+                    new_file_size = (
+                        image.size
+                    )  # Assuming image.size returns the size of the uploaded file
+                    if existing_file_size == new_file_size:
+                        # The file with the same name and size already exists, so use the existing file
+                        return file_path
+
+            # If the file doesn't exist or has a different size, continue with the file-saving logic
+            content = ContentFile(image.read())
+            file_path = default_storage.save(file_path, content)
+            # `file_path` now contains the path to the saved file
+            print("File saved to:", file_path)
+
+            return file_path
+
     def put(self, req, pk):
         print(req.data)
         proj = self.go(pk)
-        ser = ProjectSerializer(
+        title = req.data.get("title")
+        description = req.data.get("description")
+        image = req.data.get("image")
+        status = req.data.get("status")
+        data_custodian = req.data.get("data_custodian")
+
+        keywords = req.data.get("keywords")
+        locations_str = req.data.get("locations")
+        if locations_str:
+            locations = locations_str
+
+        dates = req.data.getlist("dates")
+
+        # Check if dates is not empty
+        if dates:
+            start_date = dt.fromisoformat(dates[0]).date()
+            end_date = dt.fromisoformat(dates[-1]).date()
+        else:
+            start_date = None
+            end_date = None
+
+        service = req.data.get("service")
+        research_function = req.data.get("research_function")
+        business_area = req.data.get("business_area")
+
+        updated_base_proj_data = {
+            key: value
+            for key, value in {
+                "title": title,
+                "description": description,
+                "business_area": business_area,
+                "keywords": keywords,
+                "status": status,
+                "start_date": start_date,
+                "end_date": end_date,
+            }.items()
+            if value is not None and (not isinstance(value, list) or value)
+        }
+
+        updated_proj_detail_data = {
+            key: value
+            for key, value in {
+                "research_function": research_function,
+                "service": service,
+                "data_custodian": data_custodian,
+                "modifier": req.user.pk,
+            }.items()
+            if value is not None and (not isinstance(value, list) or value)
+        }
+
+        updated_proj_area_data = {
+            key: value
+            for key, value in {
+                "areas": json.loads(locations),
+            }.items()
+            if value is not None and (not isinstance(value, list) or value)
+        }
+
+        updated_proj_image_data = {
+            key: value
+            for key, value in {
+                "file": image,
+            }.items()
+            if value is not None and (not isinstance(value, list) or value)
+        }
+
+        print(
+            # proj,
+            # title,
+            # description,
+            # image,
+            # status,
+            # data_custodian,
+            # keywords,
+            # dates,
+            # locations,
+            # service,
+            # research_function,
+            # business_area,
+            updated_base_proj_data,
+            updated_proj_detail_data,
+            updated_proj_area_data,
+            updated_proj_image_data,
+            sep="\n",
+        )
+
+        # return Response(
+        #     status=HTTP_202_ACCEPTED,
+        # )
+
+        base_ser = ProjectSerializer(
             proj,
-            data=req.data,
+            data=updated_base_proj_data,
             partial=True,
         )
-        if ser.is_valid():
-            uproj = ser.save()
-            return Response(
-                TinyProjectSerializer(uproj).data,
-                status=HTTP_202_ACCEPTED,
-            )
+
+        if base_ser.is_valid():
+            with transaction.atomic():
+                # Create the image or update the file if an image is present
+                uproj = base_ser.save()
+
+                if updated_proj_detail_data:
+                    project_details = ProjectDetail.objects.get(project=proj)
+                    detail_ser = ProjectDetailSerializer(
+                        project_details,
+                        data=updated_proj_detail_data,
+                        partial=True,
+                    )
+                    if detail_ser.is_valid():
+                        detail_ser.save()
+                    else:
+                        print(detail_ser.errors)
+                        return Response(
+                            detail_ser.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                if updated_proj_image_data:
+                    # Check if project already has an image:
+                    try:
+                        project_photo = ProjectPhoto.objects.get(project=pk)
+                    except ProjectPhoto.DoesNotExist:
+                        print("Could not find a related project photo")
+                        # Create the object with the data
+                        try:
+                            image_data = {
+                                "file": self.handle_project_image(image_data),
+                                "uploader": req.user,
+                                "project": proj,
+                            }
+                        except ValueError as e:
+                            error_message = str(e)
+                            print(error_message)
+                            response_data = {"error": error_message}
+                            return Response(response_data, status=HTTP_400_BAD_REQUEST)
+
+                        try:
+                            new_proj_photo_instance = ProjectPhoto.objects.create(
+                                **image_data
+                            )
+                            response = TinyProjectPhotoSerializer(
+                                new_proj_photo_instance
+                            ).data
+                        except Exception as e:
+                            print(e)
+                            response_data = {"error": str(e)}
+                            return Response(
+                                response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
+                            )
+                    #
+                    else:
+                        # project_photo.file = self.handle_project_image(image_data)
+                        img_ser = TinyProjectPhotoSerializer(
+                            project_photo,
+                            data=updated_proj_image_data,
+                            partial=True,
+                        )
+                        if img_ser.is_valid():
+                            img_ser.save()
+                        else:
+                            print(img_ser.errors)
+                            return Response(
+                                img_ser.errors,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                        # project_photo.updated_at = dt.now()
+                        # project_photo.save()
+                if updated_proj_area_data:
+                    project_area = ProjectArea.objects.get(project=proj)
+                    area_ser = ProjectAreaSerializer(
+                        project_area,
+                        data=updated_proj_area_data,
+                        partial=True,
+                    )
+                    if area_ser.is_valid():
+                        area_ser.save()
+                    else:
+                        print(area_ser.errors)
+                        return Response(
+                            area_ser.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                return Response(
+                    TinyProjectSerializer(uproj).data,
+                    status=HTTP_202_ACCEPTED,
+                )
         else:
+            print(base_ser.errors)
             return Response(
-                ser.errors,
+                base_ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
 

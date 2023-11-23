@@ -15,6 +15,7 @@ from medias.serializers import (
     ProjectDocumentPDFSerializer,
     TinyAnnualReportMediaSerializer,
     AnnualReportMediaSerializer,
+    TinyAnnualReportPDFSerializer,
 )
 
 from rest_framework import serializers
@@ -24,6 +25,7 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
     media = TinyAnnualReportMediaSerializer(
         many=True, read_only=True, source="media.all"
     )
+    pdf = TinyAnnualReportPDFSerializer(read_only=True)
 
     class Meta:
         model = AnnualReport
@@ -34,6 +36,7 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
             "date_open",
             "date_closed",
             "media",
+            "pdf",
         ]
 
 

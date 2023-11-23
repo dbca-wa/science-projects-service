@@ -95,6 +95,28 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
         return None
 
 
+class AnnualReportPDFCreateSerializer(ModelSerializer):
+    # report = SerializerMethodField()
+
+    class Meta:
+        model = AnnualReportPDF
+        fields = "__all__"
+
+    def create(self, validated_data):
+        cp = AnnualReportPDF.objects.create(**validated_data)
+        return cp
+
+    # def get_report(self, obj):
+    #     report = obj.report
+    #     print(report)
+    #     if report:
+    #         return {
+    #             "id": report.id,
+    #             "year": report.year,
+    #         }
+    #     return None
+
+
 class AnnualReportPDFSerializer(ModelSerializer):
     report = SerializerMethodField(read_only=True)
 

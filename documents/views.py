@@ -814,6 +814,23 @@ class GetWithoutPDFs(APIView):
             return None
 
 
+class GetWithPDFs(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, request):
+        reports_with_pdfs = AnnualReport.objects.exclude(pdf__isnull=True)
+
+        # if reports_with_pdfs:
+        serializer = TinyAnnualReportSerializer(
+            reports_with_pdfs,
+            context={"request": request},
+            many=True,
+        )
+        return Response(serializer.data, status=HTTP_200_OK)
+        # else:
+        #     return None
+
+
 class GetCompletedReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 

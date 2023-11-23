@@ -18,9 +18,12 @@ from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
 from django.utils import timezone
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 
 import requests
 import time
+
+from documents.models import AnnualReport
 
 from .models import (
     AgencyImage,
@@ -34,6 +37,7 @@ from .models import (
 from .serializers import (
     AgencyPhotoSerializer,
     AnnualReportMediaSerializer,
+    AnnualReportPDFCreateSerializer,
     AnnualReportPDFSerializer,
     BusinessAreaPhotoSerializer,
     ProjectDocumentPDFSerializer,
@@ -46,6 +50,10 @@ from .serializers import (
     TinyUserAvatarSerializer,
     UserAvatarSerializer,
 )
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+import os
 
 # PROJECT DOCS ==================================================================================================
 
@@ -101,18 +109,72 @@ class AnnualReportPDFs(APIView):
             status=HTTP_200_OK,
         )
 
+    # def handle_pdf(self, pdf):
+    #     print(f"PDF is", pdf)
+    #     if isinstance(pdf, str):
+    #         return pdf
+    #     elif pdf is not None:
+    #         print(f"PDF is a {type(pdf)}")
+    #         # Get the original file name with extension
+    #         original_filename = pdf.name
+
+    #         # Specify the subfolder within your media directory
+    #         subfolder = "annual_reports/pdfs"
+
+    #         # Combine the subfolder and filename to create the full file path
+    #         file_path = f"{subfolder}/{original_filename}"
+
+    #         # Check if a file with the same name exists in the subfolder
+    #         if default_storage.exists(file_path):
+    #             # A file with the same name already exists
+    #             full_file_path = default_storage.path(file_path)
+    #             if os.path.exists(full_file_path):
+    #                 existing_file_size = os.path.getsize(full_file_path)
+    #                 new_file_size = (
+    #                     pdf.size
+    #                 )  # Assuming image.size returns the size of the uploaded file
+    #                 if existing_file_size == new_file_size:
+    #                     # The file with the same name and size already exists, so use the existing file
+    #                     print("file exists, returning path")
+    #                     print(file_path)
+    #                     # return file_path
+    #                     return ContentFile(open(full_file_path, "rb").read())
+    #         # If the file doesn't exist or has a different size, continue with the file-saving logic
+    #         if isinstance(pdf, (TemporaryUploadedFile, InMemoryUploadedFile)):
+    #             content = ContentFile(pdf.read())
+    #         else:
+    #             content = ContentFile(pdf.file.read())
+
+    #         file_path = default_storage.save(file_path, content)
+    #         # `file_path` now contains the path to the saved file
+    #         print("File saved to:", file_path)
+
+    #         # return file_path
+    #         return ContentFile(pdf.read())
+
     def post(self, req):
-        ser = AnnualReportPDFSerializer(
-            data=req.data,
-        )
-        if ser.is_valid():
-            reportmedia = ser.save()
+        file = req.FILES.get("file")
+        report_id = req.data.get("report")
+
+        data = {
+            "file": file,
+            "report": report_id,
+            "creator": req.user.pk,
+        }
+        new_instance = AnnualReportPDFCreateSerializer(data=data)
+        if new_instance.is_valid():
+            print("valid serializer")
+            print("saving")
+            saved_instance = new_instance.save()
+            print("saved")
             return Response(
-                TinyAnnualReportPDFSerializer(reportmedia).data,
+                TinyAnnualReportPDFSerializer(saved_instance).data,
                 status=HTTP_201_CREATED,
             )
         else:
+            print(new_instance.errors)
             return Response(
+                new_instance.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
