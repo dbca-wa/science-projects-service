@@ -7,6 +7,9 @@ urlpatterns = [
     path(
         "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
     ),
+    path(
+        "projectdocuments/pendingmyaction", views.ProjectDocsPendingMyAction.as_view()
+    ),
     # path("projectdocuments/pendingapproval/reports", views.ReportDocsPendingApproval.as_view()),
     path("projectdocuments/<int:pk>", views.ProjectDocumentDetail.as_view()),
     path("conceptplans", views.ConceptPlans.as_view()),

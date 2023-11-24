@@ -4,13 +4,14 @@ import time
 from django.shortcuts import render
 
 # from config.tasks import generate_pdf
-from projects.models import Project
+from projects.models import Project, ProjectMember
 
 from medias.models import AnnualReportPDF, ProjectDocumentPDF
 from medias.serializers import (
     ProjectDocumentPDFSerializer,
     TinyAnnualReportPDFSerializer,
 )
+from users.models import User, UserWork
 from .models import (
     ConceptPlan,
     ProgressReport,
@@ -72,6 +73,7 @@ from rest_framework.status import (
     HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
 )
+from django.db.models import Max
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -710,9 +712,10 @@ class GetLatestReportYear(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
-        all_reports = AnnualReport.objects.all()
-        if all_reports:
-            latest_report = max(all_reports, key=lambda report: report.year)
+        latest_year = AnnualReport.objects.aggregate(Max("year"))["year__max"]
+
+        if latest_year is not None:
+            latest_report = AnnualReport.objects.get(year=latest_year)
             serializer = AnnualReportSerializer(
                 latest_report,
                 context={"request": request},
@@ -1001,12 +1004,12 @@ class ProjectDocuments(APIView):
                         "listed_references": req.data.get("listed_references")
                         if req.data.get("listed_references") is not None
                         else "<p></p>",
-                        "involves_plants": req.data.get("involves_plants")
-                        if req.data.get("involves_plants") is not None
-                        else False,
-                        "involves_animals": req.data.get("involves_animals")
-                        if req.data.get("involves_animals") is not None
-                        else False,
+                        # "involves_plants": req.data.get("involves_plants")
+                        # if req.data.get("involves_plants") is not None
+                        # else False,
+                        # "involves_animals": req.data.get("involves_animals")
+                        # if req.data.get("involves_animals") is not None
+                        # else False,
                         "operating_budget": req.data.get("operating_budget")
                         if req.data.get("operating_budget") is not None
                         else "<p></p>",
@@ -1035,12 +1038,12 @@ class ProjectDocuments(APIView):
                                     "project_plan": projplan.pk,
                                     "bm_endorsement_required": True,
                                     "hc_endorsement_required": False,
-                                    "dm_endorsement_required": True,
+                                    # "dm_endorsement_required": True,
                                     "ae_endorsement_required": False,
                                     "bm_endorsement_provided": False,
                                     "hc_endorsement_provided": False,
                                     "ae_endorsement_provided": False,
-                                    "dm_endorsement_provided": False,
+                                    # "dm_endorsement_provided": False,
                                     "data_management": "<p></p>",
                                     "no_specimens": "<p></p>",
                                 }
@@ -1261,6 +1264,200 @@ class ProjectDocsPendingApproval(APIView):
         )
         return Response(
             ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class ProjectDocsPendingMyAction(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        documents = []
+        pm_bl_input_required = []
+        ba_input_required = []
+        directorate_input_required = []
+        aec_input_required = []
+        bm_input_required = []
+        hc_input_required = []
+
+        user_work = UserWork.objects.get(user=req.user.pk)
+
+        # Directorate flagging
+        is_directorate = user_work.business_area.name == "Directorate"
+        if is_directorate:
+            active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+
+            for project in active_projects:
+                project_docs = (
+                    ProjectDocument.objects.filter(project=project)
+                    .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                    .all()
+                )
+                for doc in project_docs:
+                    if (doc.business_area_lead_approval_granted == True) and (
+                        doc.directorate_approval_granted == False
+                    ):
+                        documents.append(doc)
+                        directorate_input_required.append(doc)
+
+        # Business Area Lead Flagging
+        is_business_area_lead = user_work.business_area.leader == req.user
+        if is_business_area_lead:
+            active_projects_in_ba = (
+                Project.objects.filter(business_area=user_work.business_area)
+                .exclude(status=Project.CLOSED_ONLY)
+                .all()
+            )
+
+            for project in active_projects_in_ba:
+                project_docs = (
+                    ProjectDocument.objects.filter(project=project)
+                    .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                    .all()
+                )
+                for doc in project_docs:
+                    if (doc.project_lead_approval_granted == True) and (
+                        doc.business_area_lead_approval_granted == False
+                    ):
+                        documents.append(doc)
+                        ba_input_required.append(doc)
+
+        # Project Lead / Team Member Flagging
+        # projects_where_leader = ProjectMember.objects.filter(is_leader=True, user=req.user).all()
+        all_proj_pks_where_member = []
+        project_membership = ProjectMember.objects.filter(user=req.user).all()
+        for proj in project_membership:
+            all_proj_pks_where_member.append(proj.project)
+        for project in all_proj_pks_where_member:
+            project_docs = (
+                ProjectDocument.objects.filter(project=project)
+                .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                .all()
+            )
+            for doc in project_docs:
+                if doc.project_lead_approval_granted == False:
+                    documents.append(doc)
+                    pm_bl_input_required.append(doc)
+
+        is_bio = req.user.is_biometrician
+        is_hc = req.user.is_herbarium_curator
+        is_aec = req.user.is_aec
+        is_superuser = req.user.is_superuser
+
+        # 2) if user is bio, get all progress/student reports requiring that endorsement, but not marked as
+        # actually endorsed
+        if is_bio or is_superuser or is_aec or is_hc:
+            active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
+
+            for project in active_projects:
+                project_docs = ProjectDocument.objects.filter(
+                    project=project,
+                    kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
+                ).all()
+                for doc in project_docs:
+                    # find the related project plan
+                    project_plan = ProjectPlan.objects.filter(document=doc).first()
+                    endorsements = Endorsement.objects.get(project_plan=project_plan)
+                    if (
+                        (is_bio or is_superuser)
+                        and (endorsements.bm_endorsement_required)
+                        and not (endorsements.bm_endorsement_provided)
+                    ):
+                        print("Doc found where bio required, but not yet granted")
+                        print(doc)
+                        documents.append(doc)
+                        bm_input_required.append(doc)
+                    if (
+                        (is_aec or is_superuser)
+                        and (endorsements.ae_endorsement_required)
+                        and not (endorsements.ae_endorsement_provided)
+                    ):
+                        print("Doc found where aec required, but not yet granted")
+
+                        print(doc)
+                        documents.append(doc)
+                        aec_input_required.append(doc)
+                    if (
+                        (is_hc or is_superuser)
+                        and (endorsements.hc_endorsement_required)
+                        and not (endorsements.hc_endorsement_provided)
+                    ):
+                        print("Doc found where hc required, but not yet granted")
+                        print(doc)
+                        documents.append(doc)
+                        hc_input_required.append(doc)
+
+        print(is_bio, is_hc, is_aec, is_superuser)
+
+        # TODO: Instead return a set of arrays which have been filtered
+        # pm_bl_input_required
+        # ba_input_required
+        # directorate_input_required
+        # aec_input_required
+        # bm_input_required
+        # hc_input_required
+
+        filtered_documents = list({doc.id: doc for doc in documents}.values())
+        filtered_pm_bl_input_required = list(
+            {doc.id: doc for doc in pm_bl_input_required}.values()
+        )
+        filtered_ba_input_required = list(
+            {doc.id: doc for doc in ba_input_required}.values()
+        )
+        filtered_directorate_input_required = list(
+            {doc.id: doc for doc in directorate_input_required}.values()
+        )
+        filtered_aec_input_required = list(
+            {doc.id: doc for doc in aec_input_required}.values()
+        )
+        filtered_bm_input_required = list(
+            {doc.id: doc for doc in bm_input_required}.values()
+        )
+        filtered_hc_input_required = list(
+            {doc.id: doc for doc in hc_input_required}.values()
+        )
+        ser = TinyProjectDocumentSerializer(
+            filtered_documents,
+            many=True,
+            context={"request": req},
+        )
+
+        data = {
+            "all": ser.data,
+            "team": TinyProjectDocumentSerializer(
+                filtered_pm_bl_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "ba": TinyProjectDocumentSerializer(
+                filtered_ba_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "directorate": TinyProjectDocumentSerializer(
+                filtered_directorate_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "aec": TinyProjectDocumentSerializer(
+                filtered_aec_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "bm": TinyProjectDocumentSerializer(
+                filtered_bm_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "hc": TinyProjectDocumentSerializer(
+                filtered_hc_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+        }
+
+        return Response(
+            data,
             status=HTTP_200_OK,
         )
 

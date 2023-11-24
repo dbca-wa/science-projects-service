@@ -647,17 +647,17 @@ class Endorsement(models.Model):
         help_text="Estimate the number of collected vouchered specimens. Provide any additional info required for the Harbarium Curator's endorsement.",
     )
 
-    dm_endorsement_required = models.BooleanField(
-        default=True,
-        help_text="Whether the data manager's endorsement is required.",
-    )
+    # dm_endorsement_required = models.BooleanField(
+    #     default=True,
+    #     help_text="Whether the data manager's endorsement is required.",
+    # )
 
-    dm_endorsement_provided = models.BooleanField(
-        default=False,
-        help_text="The Data Manager's endorsement of the project's data management. \
-            The DM will help to set up Wiki pages, data catalogue permissions, \
-            scientific sites, and advise on metadata creation.",
-    )
+    # dm_endorsement_provided = models.BooleanField(
+    #     default=False,
+    #     help_text="The Data Manager's endorsement of the project's data management. \
+    #         The DM will help to set up Wiki pages, data catalogue permissions, \
+    #         scientific sites, and advise on metadata creation.",
+    # )
 
     data_management = models.TextField(
         blank=True,

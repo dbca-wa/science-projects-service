@@ -166,11 +166,11 @@ class EndorsementAdmin(admin.ModelAdmin):
         "bm_endorsement_required",
         "hc_endorsement_required",
         "ae_endorsement_required",
-        "dm_endorsement_required",
+        # "dm_endorsement_required",
         "bm_endorsement_provided",
         "hc_endorsement_provided",
         "ae_endorsement_provided",
-        "dm_endorsement_provided",
+        # "dm_endorsement_provided",
         "display_data_management",
         "no_specimens",
     )
@@ -190,11 +190,11 @@ class EndorsementAdmin(admin.ModelAdmin):
         "bm_endorsement_required",
         "hc_endorsement_required",
         "ae_endorsement_required",
-        "dm_endorsement_required",
+        # "dm_endorsement_required",
         "bm_endorsement_provided",
         "hc_endorsement_provided",
         "ae_endorsement_provided",
-        "dm_endorsement_provided",
+        # "dm_endorsement_provided",
     )
 
     search_fields = [
