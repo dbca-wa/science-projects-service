@@ -1054,7 +1054,7 @@ class ProjectDocuments(APIView):
                                 print("saved")
 
                             else:
-                                print(endorsements.errors)
+                                print(f"endorsement error: {endorsements.errors}")
                                 return Response(
                                     endorsements.errors,
                                     HTTP_400_BAD_REQUEST,

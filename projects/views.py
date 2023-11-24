@@ -913,15 +913,15 @@ class ProjectDetails(APIView):
         if locations_str:
             locations = locations_str
 
-        dates = req.data.getlist("dates")
-
-        # Check if dates is not empty
-        if dates:
-            start_date = dt.fromisoformat(dates[0]).date()
-            end_date = dt.fromisoformat(dates[-1]).date()
+        dates = req.data.get("dates")
+        if dates is not None:
+            if isinstance(dates, list):
+                start_date = dt.fromisoformat(dates[0]).date()
+                end_date = dt.fromisoformat(dates[-1]).date()
+            else:
+                start_date = end_date = dt.fromisoformat(dates).date()
         else:
-            start_date = None
-            end_date = None
+            start_date = end_date = None
 
         service = req.data.get("service")
         research_function = req.data.get("research_function")
@@ -952,13 +952,16 @@ class ProjectDetails(APIView):
             if value is not None and (not isinstance(value, list) or value)
         }
 
-        updated_proj_area_data = {
-            key: value
-            for key, value in {
-                "areas": json.loads(locations),
-            }.items()
-            if value is not None and (not isinstance(value, list) or value)
-        }
+        if locations_str:
+            updated_proj_area_data = {
+                key: value
+                for key, value in {
+                    "areas": json.loads(locations),
+                }.items()
+                if value is not None and (not isinstance(value, list) or value)
+            }
+        else:
+            updated_proj_area_data = {}
 
         updated_proj_image_data = {
             key: value
