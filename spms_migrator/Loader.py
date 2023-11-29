@@ -945,22 +945,30 @@ class Loader:
             print(
                 f"{self.misc.bcolors.WARNING}Establishing conn...{self.misc.bcolors.ENDC}"
             )
-            if (self.os.getenv("DJANGO_DEBUG") == "True") or (self.os.getenv("DJANGO_DEBUG")== True):
+
+            env = environ.Env()
+            BASE_DIR = Path(__file__).resolve().parent
+            environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+            print("basedir:", BASE_DIR)
+            debugmode = env("DJANGO_DEBUG")
+            print('debug:', debugmode)
+            print('connecting to', env("SPMS_DESTINATION_HOST") if debugmode == "True" else env("PRODUCTION_HOST"))
+            if debugmode == "True" or debugmode == True: 
                 connection = self.psycopg2.connect(
-                    host=self.os.getenv("SPMS_DESTINATION_HOST"),
-                    port=self.os.getenv("SPMS_DESTINATION_PORT"),
-                    database=self.os.getenv("SPMS_DESTINATION_DB"),
-                    user=self.os.getenv("SPMS_DESTINATION_USER"),
-                    password=self.os.getenv("SPMS_DESTINATION_PASSWORD"),
-                )
+                    host=env("SPMS_DESTINATION_HOST"),
+                    port=env("SPMS_DESTINATION_PORT"),
+                    database=env("SPMS_DESTINATION_DB"),
+                    user=env("SPMS_DESTINATION_USER"),
+                    password=env("SPMS_DESTINATION_PASSWORD"),
+                )            
             else:
                 connection = self.psycopg2.connect(
-                    host=self.os.getenv("PRODUCTION_HOST"),
+                    host=env("PRODUCTION_HOST"),
                     port=5432,
-                    database=self.os.getenv("PRODUCTION_DB_NAME"),
-                    user=self.os.getenv("PRODUCTION_USERNAME"),
-                    password=self.os.getenv("PRODUCTION_PASSWORD"),
-                )
+                    database=env("PRODUCTION_DB_NAME"),
+                    user=env("PRODUCTION_USERNAME"),
+                    password=env("PRODUCTION_PASSWORD"),
+                )    
 
             # Create a cursor object to execute SQL queries
             print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
