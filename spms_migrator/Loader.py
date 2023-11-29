@@ -1,24 +1,24 @@
 from datetime import datetime as dt
 import subprocess
-import time
+# import time
 import traceback
 from django.conf import settings
 import requests
 from django.contrib.auth.hashers import make_password
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+# from selenium import webdriver
+# from selenium.webdriver.common.by import By
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
 import environ
 import random
 import string
 import urllib3
 import json
 import os
-from django.core.files import File
-from django.core.files.uploadedfile import SimpleUploadedFile
-from psycopg2 import Binary
-from django.core.files.images import ImageFile
+# from django.core.files import File
+# from django.core.files.uploadedfile import SimpleUploadedFile
+# from psycopg2 import Binary
+# from django.core.files.images import ImageFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files.storage import default_storage
 # from ..config.settings 
@@ -8379,414 +8379,414 @@ class Loader:
     # Creates a .csv file with column names from_table, id, and new_location - in that order
     # the new location is the new location on the local device inside the 'downloads' folder
 
-    def spms_download_and_log_photo_file(self, from_table, dataframe, column_names):
-        #  Check if the file already uploaded
-
-        # Use the existing Chrome browser session
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument(
-            "--user-data-dir=C:\\Users\\JaridPrince\\AppData\\Local\\Google\\Chrome\\User Data"
-        )
-        # Path to your Chrome profile directory
-
-        # Instantiate the Chrome WebDriver with the existing user data directory
-        chrome_driver = webdriver.Chrome(options=chrome_options)
-
-        try:
-            # Open the first tab to the desired URL (https://scienceprojects.dbca.wa.gov.au/)
-            chrome_driver.execute_script("window.open('about:blank', '_blank');")
-            chrome_driver.switch_to.window(chrome_driver.window_handles[0])
-            chrome_driver.get("https://scienceprojects.dbca.wa.gov.au/")
-
-            self.misc.nls(
-                f"{self.misc.bcolors.OKBLUE}DOWNLOADING IMAGE FILES for {from_table} {self.misc.bcolors.ENDC}"
-            )
-
-            # Read the DataFrame with upload_location column
-            csv_path = f"download_references/{from_table}_file_references.csv"
-
-            # Iterate over each row in the DataFrame
-            for index, row in dataframe.iterrows():
-                # if row["upload_location"] != "":
-                #     self.misc.nls("Upload location already exists. Skipping...")
-                #     continue
-                if from_table == "annualreportmedia":
-                    if row["kind"] == "pdf":
-                        self.misc.nls(
-                            f"{self.misc.bcolors.WARNING}It's a pdf. Skipping...{self.misc.bcolors.ENDC}"
-                        )
-                        continue
-                    else:
-                        # Get the file link from the row
-                        file_link_from_db = row["old_file"]
-                        id = row["id"]
-
-                        # Check if the id exists in the df DataFrame and upload_location is empty
-                        # df_check = df[df["id"] == id]
-                        # if not self.pd.isna(df_check["upload_location"]).any():
-                        #     # Skip the current iteration
-                        #     print(
-                        #         f"Upload location is not empty for id {id}. Skipping..."
-                        #     )
-                        #     continue
-
-                        if file_link_from_db != None:
-                            # Open a new tab and navigate to the file link
-                            chrome_driver.execute_script(
-                                "window.open('about:blank', '_blank');"
-                            )
-                            chrome_driver.switch_to.window(
-                                chrome_driver.window_handles[-1]
-                            )
-                            chrome_driver.get(file_link_from_db)
-
-                            file_path_destination = f"downloads/{from_table}"
-                            if not file_link_from_db.endswith(".apng"):
-                                # Wait for the file to be downloaded
-                                wait = WebDriverWait(chrome_driver, 10)
-                                wait.until(
-                                    EC.presence_of_element_located((By.TAG_NAME, "img"))
-                                )
-
-                                # Save the file to a desired location using requests library
-                                file_download_path = file_path_destination  # Path to the folder where files are downloaded
-                            else:
-                                time.sleep(5)
-                                file_download_path = "C:\\Users\\JaridPrince\\Downloads"  # Path to the folder where files are downloaded
-
-                            self.os.makedirs(file_download_path, exist_ok=True)
-
-                            # Get the file extension
-                            file_extension = self.os.path.splitext(file_link_from_db)[
-                                1
-                            ].lower()
-
-                            # Check if the file extension is not .jpg, .jpeg, or .png
-                            # if file_extension not in [".jpg", ".jpeg", ".png"]:
-                            #     file_extension = (
-                            #         ".png"  # Change the extension to .png
-                            #     )
-
-                            # Modify the file path to include the updated extension
-                            file_name = file_link_from_db.split("/")[-1]
-                            file_name_without_extension = self.os.path.splitext(
-                                file_name
-                            )[0]
-                            file_path = f"{file_path_destination}/{file_name_without_extension}{file_extension}"
-
-                            if not file_link_from_db.endswith(".apng"):
-                                # Use Selenium to retrieve the image data and save it locally
-                                image_element = chrome_driver.find_element(
-                                    By.TAG_NAME, "img"
-                                )
-                                image_data = image_element.screenshot_as_png
-                                with open(file_path, "wb") as file:
-                                    file.write(image_data)
-
-                            else:
-                                file_path_apng = f"{file_download_path}/{file_name_without_extension}.apng"
-                                file_path_destination2 = f"{file_path_destination}/{file_name_without_extension}.png"
-
-                                # Replace the file and change the extension to .png
-                                self.os.replace(file_path_apng, file_path_destination2)
-
-                                file_path = file_path_destination2
-
-                                # "C:\\Users\\JaridPrince\\Downloads"
-
-                            # Save the reference to the file location in a CSV file
-                            csv_path = (
-                                f"download_references/{from_table}_file_references.csv"
-                            )
-                            data = {
-                                "from_table": [from_table],
-                                "id": row["id"],
-                                "file_path": [file_path],
-                                "spms_location": row["old_file"],
-                            }
-
-                            # Check if the entry already exists in the CSV file
-                            if self.os.path.isfile(csv_path):
-                                df = self.pd.read_csv(csv_path)
-                                existing_entry_index = df[
-                                    (df["from_table"] == from_table)
-                                    & (df["id"] == row["id"])
-                                ].index
-
-                                if not existing_entry_index.empty:
-                                    # Update the existing entry in the DataFrame
-                                    df.loc[
-                                        existing_entry_index, "file_path"
-                                    ] = file_path
-                                else:
-                                    # Append a new entry to the DataFrame
-                                    # df = df.append(self.pd.DataFrame(data))
-                                    df = self.pd.concat(
-                                        [df, self.pd.DataFrame(data)],
-                                        ignore_index=True,
-                                    )
-
-                            else:
-                                # Create a new DataFrame with the entry
-                                df = self.pd.DataFrame(data)
-
-                            # Save the DataFrame back to the CSV file
-                            df.to_csv(csv_path, index=False)
-
-                            # Close the tab
-                            chrome_driver.close()
-                            chrome_driver.switch_to.window(
-                                chrome_driver.window_handles[0]
-                            )
-
-                        else:
-                            self.misc.nls("No Old File, skipping...")
-
-                else:
-                    # Get the file link from the row
-
-                    # Get the file link from the row
-                    file_link_from_db = row["old_file"]
-                    id = row["id"]
-
-                    # df_check = df[df["id"] == id]
-                    # if not self.pd.isna(df_check["upload_location"]).any():
-                    #     # Skip the current iteration
-                    #     print(f"Upload location is not empty for id {id}. Skipping...")
-                    #     continue
-
-                    if file_link_from_db != None:
-                        # Open a new tab and navigate to the file link
-                        chrome_driver.execute_script(
-                            "window.open('about:blank', '_blank');"
-                        )
-                        chrome_driver.switch_to.window(chrome_driver.window_handles[-1])
-                        chrome_driver.get(file_link_from_db)
-
-                        file_path_destination = f"downloads/{from_table}"
-                        if not file_link_from_db.endswith(".apng"):
-                            # Wait for the file to be downloaded
-                            wait = WebDriverWait(chrome_driver, 10)
-                            wait.until(
-                                EC.presence_of_element_located((By.TAG_NAME, "img"))
-                            )
-
-                            # Save the file to a desired location using requests library
-                            file_download_path = file_path_destination  # Path to the folder where files are downloaded
-                        else:
-                            time.sleep(5)
-                            file_download_path = "C:\\Users\\JaridPrince\\Downloads"  # Path to the folder where files are downloaded
-
-                        self.os.makedirs(file_download_path, exist_ok=True)
-
-                        # Get the file extension
-                        file_extension = self.os.path.splitext(file_link_from_db)[
-                            1
-                        ].lower()
-
-                        # Check if the file extension is not .jpg, .jpeg, or .png
-                        # if file_extension not in [".jpg", ".jpeg", ".png"]:
-                        #     file_extension = (
-                        #         ".png"  # Change the extension to .png
-                        #     )
-
-                        # Modify the file path to include the updated extension
-                        file_name = file_link_from_db.split("/")[-1]
-                        file_name_without_extension = self.os.path.splitext(file_name)[
-                            0
-                        ]
-                        file_path = f"{file_path_destination}/{file_name_without_extension}{file_extension}"
-
-                        if not file_link_from_db.endswith(".apng"):
-                            # Use Selenium to retrieve the image data and save it locally
-                            image_element = chrome_driver.find_element(
-                                By.TAG_NAME, "img"
-                            )
-                            image_data = image_element.screenshot_as_png
-                            with open(file_path, "wb") as file:
-                                file.write(image_data)
-
-                        else:
-                            file_path_apng = f"{file_download_path}/{file_name_without_extension}.apng"
-                            file_path_destination2 = f"{file_path_destination}/{file_name_without_extension}.png"
-
-                            # Replace the file and change the extension to .png
-                            self.os.replace(file_path_apng, file_path_destination2)
-
-                            file_path = file_path_destination2
-
-                            # "C:\\Users\\JaridPrince\\Downloads"
-
-                        # Save the reference to the file location in a CSV file
-                        csv_path = (
-                            f"download_references/{from_table}_file_references.csv"
-                        )
-                        data = {
-                            "from_table": [from_table],
-                            "id": row["id"],
-                            "file_path": [file_path],
-                            "spms_location": row["old_file"],
-                        }
-
-                        # Check if the entry already exists in the CSV file
-                        if self.os.path.isfile(csv_path):
-                            df = self.pd.read_csv(csv_path)
-                            existing_entry_index = df[
-                                (df["from_table"] == from_table)
-                                & (df["id"] == row["id"])
-                            ].index
-
-                            if not existing_entry_index.empty:
-                                # Update the existing entry in the DataFrame
-                                df.loc[existing_entry_index, "file_path"] = file_path
-                            else:
-                                # Append a new entry to the DataFrame
-                                # df = df.append(self.pd.DataFrame(data))
-                                df = self.pd.concat(
-                                    [df, self.pd.DataFrame(data)],
-                                    ignore_index=True,
-                                )
-
-                        else:
-                            # Create a new DataFrame with the entry
-                            df = self.pd.DataFrame(data)
-
-                        # Save the DataFrame back to the CSV file
-                        df.to_csv(csv_path, index=False)
-
-                        # Close the tab
-                        chrome_driver.close()
-                        chrome_driver.switch_to.window(chrome_driver.window_handles[0])
-
-                    else:
-                        self.misc.nls("No Old File, skipping...")
-
-        except Exception as e:
-            print(f"Error occurred while downloading files: {e}")
-
-        finally:
-            # Quit the Chrome browser
-            chrome_driver.quit()
-            return csv_path
-
-    def spms_replace_photo_with_cf_file(self, from_table):
-        (
-            cursor,
-            connection,
-        ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-
-        print(from_table)
-
-        # Construct the SQL query
-        sql = f"""
-            SELECT * FROM medias_{from_table}
-        """
-
-        # Execute the query with the user name
-        cursor.execute(sql)
-
-        # Fetch all rows from the query result
-        rows = cursor.fetchall()
-
-        # Create a dataframe based on the query result
-        column_names = [desc[0] for desc in cursor.description]
-        dataframe = self.pd.DataFrame(rows, columns=column_names)
-
-        # Access csv as df
-        csv_path = f"download_references/{from_table}_file_references.csv"
-
-        if self.os.path.exists(csv_path):
-            df = self.pd.read_csv(csv_path)
-
-            # Check if the columns already exist in the DataFrame
-            if "upload_location" not in df.columns:
-                # Add a new column for upload_location
-                df.insert(len(df.columns), "upload_location", "")
-
-            if "spms_location" not in df.columns:
-                # Add a new column for spms_location
-                df.insert(len(df.columns), "spms_location", "")
-
-            # Check if any entry has a null/na 'upload_location' - to prevent reuploading
-            if (
-                df["upload_location"].isna().any()
-                or (df["upload_location"] == "").any()
-            ):
-                # Call the download function and return the csv path
-                csv_path = self.spms_download_and_log_photo_file(
-                    from_table, dataframe, column_names
-                )
-                df = self.pd.read_csv(csv_path)
-                # Check if the columns already exist in the DataFrame
-                if "upload_location" not in df.columns:
-                    # Add a new column for upload_location
-                    df.insert(len(df.columns), "upload_location", "")
-
-                if "spms_location" not in df.columns:
-                    # Add a new column for spms_location
-                    df.insert(len(df.columns), "spms_location", "")
-        else:
-            csv_path = self.spms_download_and_log_photo_file(
-                from_table, dataframe, column_names
-            )
-            df = self.pd.read_csv(csv_path)
-            # Check if the columns already exist in the DataFrame
-            if "upload_location" not in df.columns:
-                # Add a new column for upload_location
-                df.insert(len(df.columns), "upload_location", "")
-
-            if "spms_location" not in df.columns:
-                # Add a new column for spms_location
-                df.insert(len(df.columns), "spms_location", "")
-
-        # Get the file_path for each row and upload
-        for index, entry in df.iterrows():
-            if entry["upload_location"] == "":
-                file = entry["file_path"]
-
-                # Get the cloudflare link to send the file to
-                try:
-                    self.misc.nls("Getting upload URL (cloudflare)")
-                    cf_image_id, upload_url = self.spms_get_cf_images_upload_url()
-                except Exception as e:
-                    self.misc.nli(
-                        f"{self.misc.bcolors.FAIL}FAILED TO GET UPLOAD URL: {e}{self.misc.bcolors.ENDC}"
-                    )
-                else:
-                    print(f"IMAGE_ID:{cf_image_id}, UPLOAD_URL: {upload_url}")
-
-                # Upload the file to cloudflare images once you have the link
-                try:
-                    new_cf_file_location = self.spms_upload_to_cf_url(
-                        url=upload_url, file_path=file
-                    )
-                    print(f"New Location: {new_cf_file_location}")
-                except Exception as e:
-                    self.misc.nli(
-                        f"{self.misc.bcolors.FAIL}FAILED TO UPLOAD IMAGE TO CF: {e}{self.misc.bcolors.ENDC}"
-                    )
-                else:
-                    # Once uploaded, replace the entry['file_path'] with the new_cf_location
-                    df.at[index, "upload_location"] = new_cf_file_location
-
-        # Saving back to csv
-        df.to_csv(csv_path, index=False)
-
-        # # Update the corresponding database table
-        self.misc.nls("Save complete, updating database.")
-
-        for index, item in df.iterrows():
-            update_sql = f"""
-                UPDATE medias_{from_table} SET file = '{item['upload_location']}' where id = {item['id']}
-            """
-            try:
-                cursor.execute(update_sql)
-            except Exception as e:
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}FAILED TO UPDATE IMAGE IN DB: {e}{self.misc.bcolors.ENDC}"
-                )
-        cursor.close()
-        connection.close()
+    # def spms_download_and_log_photo_file(self, from_table, dataframe, column_names):
+    #     #  Check if the file already uploaded
+
+    #     # Use the existing Chrome browser session
+    #     chrome_options = webdriver.ChromeOptions()
+    #     chrome_options.add_argument(
+    #         "--user-data-dir=C:\\Users\\JaridPrince\\AppData\\Local\\Google\\Chrome\\User Data"
+    #     )
+    #     # Path to your Chrome profile directory
+
+    #     # Instantiate the Chrome WebDriver with the existing user data directory
+    #     chrome_driver = webdriver.Chrome(options=chrome_options)
+
+    #     try:
+    #         # Open the first tab to the desired URL (https://scienceprojects.dbca.wa.gov.au/)
+    #         chrome_driver.execute_script("window.open('about:blank', '_blank');")
+    #         chrome_driver.switch_to.window(chrome_driver.window_handles[0])
+    #         chrome_driver.get("https://scienceprojects.dbca.wa.gov.au/")
+
+    #         self.misc.nls(
+    #             f"{self.misc.bcolors.OKBLUE}DOWNLOADING IMAGE FILES for {from_table} {self.misc.bcolors.ENDC}"
+    #         )
+
+    #         # Read the DataFrame with upload_location column
+    #         csv_path = f"download_references/{from_table}_file_references.csv"
+
+    #         # Iterate over each row in the DataFrame
+    #         for index, row in dataframe.iterrows():
+    #             # if row["upload_location"] != "":
+    #             #     self.misc.nls("Upload location already exists. Skipping...")
+    #             #     continue
+    #             if from_table == "annualreportmedia":
+    #                 if row["kind"] == "pdf":
+    #                     self.misc.nls(
+    #                         f"{self.misc.bcolors.WARNING}It's a pdf. Skipping...{self.misc.bcolors.ENDC}"
+    #                     )
+    #                     continue
+    #                 else:
+    #                     # Get the file link from the row
+    #                     file_link_from_db = row["old_file"]
+    #                     id = row["id"]
+
+    #                     # Check if the id exists in the df DataFrame and upload_location is empty
+    #                     # df_check = df[df["id"] == id]
+    #                     # if not self.pd.isna(df_check["upload_location"]).any():
+    #                     #     # Skip the current iteration
+    #                     #     print(
+    #                     #         f"Upload location is not empty for id {id}. Skipping..."
+    #                     #     )
+    #                     #     continue
+
+    #                     if file_link_from_db != None:
+    #                         # Open a new tab and navigate to the file link
+    #                         chrome_driver.execute_script(
+    #                             "window.open('about:blank', '_blank');"
+    #                         )
+    #                         chrome_driver.switch_to.window(
+    #                             chrome_driver.window_handles[-1]
+    #                         )
+    #                         chrome_driver.get(file_link_from_db)
+
+    #                         file_path_destination = f"downloads/{from_table}"
+    #                         if not file_link_from_db.endswith(".apng"):
+    #                             # Wait for the file to be downloaded
+    #                             wait = WebDriverWait(chrome_driver, 10)
+    #                             wait.until(
+    #                                 EC.presence_of_element_located((By.TAG_NAME, "img"))
+    #                             )
+
+    #                             # Save the file to a desired location using requests library
+    #                             file_download_path = file_path_destination  # Path to the folder where files are downloaded
+    #                         else:
+    #                             time.sleep(5)
+    #                             file_download_path = "C:\\Users\\JaridPrince\\Downloads"  # Path to the folder where files are downloaded
+
+    #                         self.os.makedirs(file_download_path, exist_ok=True)
+
+    #                         # Get the file extension
+    #                         file_extension = self.os.path.splitext(file_link_from_db)[
+    #                             1
+    #                         ].lower()
+
+    #                         # Check if the file extension is not .jpg, .jpeg, or .png
+    #                         # if file_extension not in [".jpg", ".jpeg", ".png"]:
+    #                         #     file_extension = (
+    #                         #         ".png"  # Change the extension to .png
+    #                         #     )
+
+    #                         # Modify the file path to include the updated extension
+    #                         file_name = file_link_from_db.split("/")[-1]
+    #                         file_name_without_extension = self.os.path.splitext(
+    #                             file_name
+    #                         )[0]
+    #                         file_path = f"{file_path_destination}/{file_name_without_extension}{file_extension}"
+
+    #                         if not file_link_from_db.endswith(".apng"):
+    #                             # Use Selenium to retrieve the image data and save it locally
+    #                             image_element = chrome_driver.find_element(
+    #                                 By.TAG_NAME, "img"
+    #                             )
+    #                             image_data = image_element.screenshot_as_png
+    #                             with open(file_path, "wb") as file:
+    #                                 file.write(image_data)
+
+    #                         else:
+    #                             file_path_apng = f"{file_download_path}/{file_name_without_extension}.apng"
+    #                             file_path_destination2 = f"{file_path_destination}/{file_name_without_extension}.png"
+
+    #                             # Replace the file and change the extension to .png
+    #                             self.os.replace(file_path_apng, file_path_destination2)
+
+    #                             file_path = file_path_destination2
+
+    #                             # "C:\\Users\\JaridPrince\\Downloads"
+
+    #                         # Save the reference to the file location in a CSV file
+    #                         csv_path = (
+    #                             f"download_references/{from_table}_file_references.csv"
+    #                         )
+    #                         data = {
+    #                             "from_table": [from_table],
+    #                             "id": row["id"],
+    #                             "file_path": [file_path],
+    #                             "spms_location": row["old_file"],
+    #                         }
+
+    #                         # Check if the entry already exists in the CSV file
+    #                         if self.os.path.isfile(csv_path):
+    #                             df = self.pd.read_csv(csv_path)
+    #                             existing_entry_index = df[
+    #                                 (df["from_table"] == from_table)
+    #                                 & (df["id"] == row["id"])
+    #                             ].index
+
+    #                             if not existing_entry_index.empty:
+    #                                 # Update the existing entry in the DataFrame
+    #                                 df.loc[
+    #                                     existing_entry_index, "file_path"
+    #                                 ] = file_path
+    #                             else:
+    #                                 # Append a new entry to the DataFrame
+    #                                 # df = df.append(self.pd.DataFrame(data))
+    #                                 df = self.pd.concat(
+    #                                     [df, self.pd.DataFrame(data)],
+    #                                     ignore_index=True,
+    #                                 )
+
+    #                         else:
+    #                             # Create a new DataFrame with the entry
+    #                             df = self.pd.DataFrame(data)
+
+    #                         # Save the DataFrame back to the CSV file
+    #                         df.to_csv(csv_path, index=False)
+
+    #                         # Close the tab
+    #                         chrome_driver.close()
+    #                         chrome_driver.switch_to.window(
+    #                             chrome_driver.window_handles[0]
+    #                         )
+
+    #                     else:
+    #                         self.misc.nls("No Old File, skipping...")
+
+    #             else:
+    #                 # Get the file link from the row
+
+    #                 # Get the file link from the row
+    #                 file_link_from_db = row["old_file"]
+    #                 id = row["id"]
+
+    #                 # df_check = df[df["id"] == id]
+    #                 # if not self.pd.isna(df_check["upload_location"]).any():
+    #                 #     # Skip the current iteration
+    #                 #     print(f"Upload location is not empty for id {id}. Skipping...")
+    #                 #     continue
+
+    #                 if file_link_from_db != None:
+    #                     # Open a new tab and navigate to the file link
+    #                     chrome_driver.execute_script(
+    #                         "window.open('about:blank', '_blank');"
+    #                     )
+    #                     chrome_driver.switch_to.window(chrome_driver.window_handles[-1])
+    #                     chrome_driver.get(file_link_from_db)
+
+    #                     file_path_destination = f"downloads/{from_table}"
+    #                     if not file_link_from_db.endswith(".apng"):
+    #                         # Wait for the file to be downloaded
+    #                         wait = WebDriverWait(chrome_driver, 10)
+    #                         wait.until(
+    #                             EC.presence_of_element_located((By.TAG_NAME, "img"))
+    #                         )
+
+    #                         # Save the file to a desired location using requests library
+    #                         file_download_path = file_path_destination  # Path to the folder where files are downloaded
+    #                     else:
+    #                         time.sleep(5)
+    #                         file_download_path = "C:\\Users\\JaridPrince\\Downloads"  # Path to the folder where files are downloaded
+
+    #                     self.os.makedirs(file_download_path, exist_ok=True)
+
+    #                     # Get the file extension
+    #                     file_extension = self.os.path.splitext(file_link_from_db)[
+    #                         1
+    #                     ].lower()
+
+    #                     # Check if the file extension is not .jpg, .jpeg, or .png
+    #                     # if file_extension not in [".jpg", ".jpeg", ".png"]:
+    #                     #     file_extension = (
+    #                     #         ".png"  # Change the extension to .png
+    #                     #     )
+
+    #                     # Modify the file path to include the updated extension
+    #                     file_name = file_link_from_db.split("/")[-1]
+    #                     file_name_without_extension = self.os.path.splitext(file_name)[
+    #                         0
+    #                     ]
+    #                     file_path = f"{file_path_destination}/{file_name_without_extension}{file_extension}"
+
+    #                     if not file_link_from_db.endswith(".apng"):
+    #                         # Use Selenium to retrieve the image data and save it locally
+    #                         image_element = chrome_driver.find_element(
+    #                             By.TAG_NAME, "img"
+    #                         )
+    #                         image_data = image_element.screenshot_as_png
+    #                         with open(file_path, "wb") as file:
+    #                             file.write(image_data)
+
+    #                     else:
+    #                         file_path_apng = f"{file_download_path}/{file_name_without_extension}.apng"
+    #                         file_path_destination2 = f"{file_path_destination}/{file_name_without_extension}.png"
+
+    #                         # Replace the file and change the extension to .png
+    #                         self.os.replace(file_path_apng, file_path_destination2)
+
+    #                         file_path = file_path_destination2
+
+    #                         # "C:\\Users\\JaridPrince\\Downloads"
+
+    #                     # Save the reference to the file location in a CSV file
+    #                     csv_path = (
+    #                         f"download_references/{from_table}_file_references.csv"
+    #                     )
+    #                     data = {
+    #                         "from_table": [from_table],
+    #                         "id": row["id"],
+    #                         "file_path": [file_path],
+    #                         "spms_location": row["old_file"],
+    #                     }
+
+    #                     # Check if the entry already exists in the CSV file
+    #                     if self.os.path.isfile(csv_path):
+    #                         df = self.pd.read_csv(csv_path)
+    #                         existing_entry_index = df[
+    #                             (df["from_table"] == from_table)
+    #                             & (df["id"] == row["id"])
+    #                         ].index
+
+    #                         if not existing_entry_index.empty:
+    #                             # Update the existing entry in the DataFrame
+    #                             df.loc[existing_entry_index, "file_path"] = file_path
+    #                         else:
+    #                             # Append a new entry to the DataFrame
+    #                             # df = df.append(self.pd.DataFrame(data))
+    #                             df = self.pd.concat(
+    #                                 [df, self.pd.DataFrame(data)],
+    #                                 ignore_index=True,
+    #                             )
+
+    #                     else:
+    #                         # Create a new DataFrame with the entry
+    #                         df = self.pd.DataFrame(data)
+
+    #                     # Save the DataFrame back to the CSV file
+    #                     df.to_csv(csv_path, index=False)
+
+    #                     # Close the tab
+    #                     chrome_driver.close()
+    #                     chrome_driver.switch_to.window(chrome_driver.window_handles[0])
+
+    #                 else:
+    #                     self.misc.nls("No Old File, skipping...")
+
+    #     except Exception as e:
+    #         print(f"Error occurred while downloading files: {e}")
+
+    #     finally:
+    #         # Quit the Chrome browser
+    #         chrome_driver.quit()
+    #         return csv_path
+
+    # def spms_replace_photo_with_cf_file(self, from_table):
+    #     (
+    #         cursor,
+    #         connection,
+    #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+
+    #     print(from_table)
+
+    #     # Construct the SQL query
+    #     sql = f"""
+    #         SELECT * FROM medias_{from_table}
+    #     """
+
+    #     # Execute the query with the user name
+    #     cursor.execute(sql)
+
+    #     # Fetch all rows from the query result
+    #     rows = cursor.fetchall()
+
+    #     # Create a dataframe based on the query result
+    #     column_names = [desc[0] for desc in cursor.description]
+    #     dataframe = self.pd.DataFrame(rows, columns=column_names)
+
+    #     # Access csv as df
+    #     csv_path = f"download_references/{from_table}_file_references.csv"
+
+    #     if self.os.path.exists(csv_path):
+    #         df = self.pd.read_csv(csv_path)
+
+    #         # Check if the columns already exist in the DataFrame
+    #         if "upload_location" not in df.columns:
+    #             # Add a new column for upload_location
+    #             df.insert(len(df.columns), "upload_location", "")
+
+    #         if "spms_location" not in df.columns:
+    #             # Add a new column for spms_location
+    #             df.insert(len(df.columns), "spms_location", "")
+
+    #         # Check if any entry has a null/na 'upload_location' - to prevent reuploading
+    #         if (
+    #             df["upload_location"].isna().any()
+    #             or (df["upload_location"] == "").any()
+    #         ):
+    #             # Call the download function and return the csv path
+    #             csv_path = self.spms_download_and_log_photo_file(
+    #                 from_table, dataframe, column_names
+    #             )
+    #             df = self.pd.read_csv(csv_path)
+    #             # Check if the columns already exist in the DataFrame
+    #             if "upload_location" not in df.columns:
+    #                 # Add a new column for upload_location
+    #                 df.insert(len(df.columns), "upload_location", "")
+
+    #             if "spms_location" not in df.columns:
+    #                 # Add a new column for spms_location
+    #                 df.insert(len(df.columns), "spms_location", "")
+    #     else:
+    #         csv_path = self.spms_download_and_log_photo_file(
+    #             from_table, dataframe, column_names
+    #         )
+    #         df = self.pd.read_csv(csv_path)
+    #         # Check if the columns already exist in the DataFrame
+    #         if "upload_location" not in df.columns:
+    #             # Add a new column for upload_location
+    #             df.insert(len(df.columns), "upload_location", "")
+
+    #         if "spms_location" not in df.columns:
+    #             # Add a new column for spms_location
+    #             df.insert(len(df.columns), "spms_location", "")
+
+    #     # Get the file_path for each row and upload
+    #     for index, entry in df.iterrows():
+    #         if entry["upload_location"] == "":
+    #             file = entry["file_path"]
+
+    #             # Get the cloudflare link to send the file to
+    #             try:
+    #                 self.misc.nls("Getting upload URL (cloudflare)")
+    #                 cf_image_id, upload_url = self.spms_get_cf_images_upload_url()
+    #             except Exception as e:
+    #                 self.misc.nli(
+    #                     f"{self.misc.bcolors.FAIL}FAILED TO GET UPLOAD URL: {e}{self.misc.bcolors.ENDC}"
+    #                 )
+    #             else:
+    #                 print(f"IMAGE_ID:{cf_image_id}, UPLOAD_URL: {upload_url}")
+
+    #             # Upload the file to cloudflare images once you have the link
+    #             try:
+    #                 new_cf_file_location = self.spms_upload_to_cf_url(
+    #                     url=upload_url, file_path=file
+    #                 )
+    #                 print(f"New Location: {new_cf_file_location}")
+    #             except Exception as e:
+    #                 self.misc.nli(
+    #                     f"{self.misc.bcolors.FAIL}FAILED TO UPLOAD IMAGE TO CF: {e}{self.misc.bcolors.ENDC}"
+    #                 )
+    #             else:
+    #                 # Once uploaded, replace the entry['file_path'] with the new_cf_location
+    #                 df.at[index, "upload_location"] = new_cf_file_location
+
+    #     # Saving back to csv
+    #     df.to_csv(csv_path, index=False)
+
+    #     # # Update the corresponding database table
+    #     self.misc.nls("Save complete, updating database.")
+
+    #     for index, item in df.iterrows():
+    #         update_sql = f"""
+    #             UPDATE medias_{from_table} SET file = '{item['upload_location']}' where id = {item['id']}
+    #         """
+    #         try:
+    #             cursor.execute(update_sql)
+    #         except Exception as e:
+    #             self.misc.nli(
+    #                 f"{self.misc.bcolors.FAIL}FAILED TO UPDATE IMAGE IN DB: {e}{self.misc.bcolors.ENDC}"
+    #             )
+    #     cursor.close()
+    #     connection.close()
 
 
 # ============================================================================================================

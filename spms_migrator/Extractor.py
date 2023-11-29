@@ -1,9 +1,5 @@
-import csv
-import os
-import re
 import subprocess
 import psycopg2
-import chardet
 
 
 class Extractor:
