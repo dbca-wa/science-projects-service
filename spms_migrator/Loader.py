@@ -1054,6 +1054,12 @@ class Loader:
 
     def spms_clean_migrations(self):
         removed_items = []
+        env = environ.Env()
+        BASE_DIR = Path(__file__).resolve().parent.parent
+        environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+        print("basedir:", BASE_DIR)
+        debugmode = env("DJANGO_DEBUG")
+
         for root, dirs, files in self.os.walk(self.django_project_path):
             for dir_name in dirs:
                 if dir_name == "migrations":
@@ -1064,14 +1070,26 @@ class Loader:
                                 file_path = self.os.path.join(
                                     migrations_path, file_name
                                 )
-                                try:
-                                    self.os.remove(file_path)
-                                    print(f"Removed file: {file_path}")
-                                    removed_items.append(file_path)
-                                except PermissionError:
-                                    self.misc.nli(
-                                        f"Permission denied: {file_path} - [WinError 5] Access is denied"
-                                    )
+                                if debugmode == "True":
+                                    try:
+                                        self.os.remove(file_path)
+                                        print(f"Removed file: {file_path}")
+                                        removed_items.append(file_path)
+                                    except PermissionError:
+                                        self.misc.nli(
+                                            f"Permission denied: {file_path} - [WinError 5] Access is denied"
+                                        )
+                                    except Exception as e:
+                                        print(e)
+
+                                else:
+                                    try:
+                                        subprocess.run(["rm", file_path])
+                                        print(f"Removed file using rm command: {file_path}")
+                                        removed_items.append(file_path)   
+                                    except Exception as e:
+                                        print(f"Error removing file {file_path} with rm command: {e}")
+
                     print(f"Removed files in {migrations_path}")
                 elif dir_name == "__pycache__":
                     migrations_path = self.os.path.join(root, dir_name)
@@ -1088,7 +1106,7 @@ class Loader:
                                 f"Permission denied: {file_path} - [WinError 5] Access is denied"
                             )
                     print(f"Removed files in {migrations_path}")
-
+     
 
         self.misc.nls("Removed theses files:")
         for item in removed_items:
