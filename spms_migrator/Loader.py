@@ -929,13 +929,22 @@ class Loader:
             print(
                 f"{self.misc.bcolors.WARNING}Establishing conn...{self.misc.bcolors.ENDC}"
             )
-            connection = self.psycopg2.connect(
-                host=self.os.getenv("SPMS_DESTINATION_HOST"),
-                port=self.os.getenv("SPMS_DESTINATION_PORT"),
-                database=self.os.getenv("SPMS_DESTINATION_DB"),
-                user=self.os.getenv("SPMS_DESTINATION_USER"),
-                password=self.os.getenv("SPMS_DESTINATION_PASSWORD"),
-            )
+            if (self.os.getenv("DJANGO_DEBUG") == "True") or (self.os.getenv("DJANGO_DEBUG")== True):
+                connection = self.psycopg2.connect(
+                    host=self.os.getenv("SPMS_DESTINATION_HOST"),
+                    port=self.os.getenv("SPMS_DESTINATION_PORT"),
+                    database=self.os.getenv("SPMS_DESTINATION_DB"),
+                    user=self.os.getenv("SPMS_DESTINATION_USER"),
+                    password=self.os.getenv("SPMS_DESTINATION_PASSWORD"),
+                )
+            else:
+                connection = self.psycopg2.connect(
+                    host=self.os.getenv("PRODUCTION_HOST"),
+                    port=5432,
+                    database=self.os.getenv("PRODUCTION_DB_NAME"),
+                    user=self.os.getenv("PRODUCTION_USERNAME"),
+                    password=self.os.getenv("PRODUCTION_PASSWORD"),
+                )
 
             # Create a cursor object to execute SQL queries
             print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
