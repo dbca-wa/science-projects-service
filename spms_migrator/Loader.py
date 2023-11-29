@@ -1109,14 +1109,14 @@ class Loader:
             self.misc.nls(
                 f"{self.misc.bcolors.OKGREEN}MAKING MIGRATIONS!{self.misc.bcolors.ENDC}"
             )
-            makemigrations_command = "py manage.py makemigrations"
+            makemigrations_command = "python manage.py makemigrations"
             subprocess.run(makemigrations_command, shell=True)
 
             # Run the migrate command
             self.misc.nls(
                 f"{self.misc.bcolors.OKGREEN}MIGRATING!{self.misc.bcolors.ENDC}"
             )            
-            migrate_command = "py manage.py migrate"
+            migrate_command = "python manage.py migrate"
             subprocess.run(migrate_command, shell=True)
         except Exception as e:
             self.misc.nli(
