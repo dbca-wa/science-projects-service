@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from pathlib import Path
 import subprocess
 # import time
 import traceback
@@ -25,6 +26,18 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 import psycopg2
 
+def determine_project_folder():
+    env = environ.Env()
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+    print("basedir:", BASE_DIR)
+    debugmode = env("DJANGO_DEBUG")
+    print('debug:', debugmode)
+    if debugmode == "True":
+        return os.path.join("C:\\Users\\JaridPrince\\Documents\\GitHub\\service_spms")
+    else:
+        return os.path.join("/usr/src/app/backend")
+        
 class Loader:
     def __init__(
         self,
@@ -43,8 +56,9 @@ class Loader:
         self.pd = pd
         self.psycopg2 = psycopg2
         self.misc = misc
-        self.django_project_path = "C:\\Users\\JaridPrince\\Documents\\GitHub\\service_spms"
-        self.migrator_path = f"{self.django_project_path}\\spms_migrator"
+        self.django_project_path = determine_project_folder()
+
+        self.migrator_path = os.path.join(self.django_project_path, "spms_migrator")
         self.parent_directory = parent_directory
         self.file_handler = file_handler
         self.db_source = ""
@@ -80,6 +94,8 @@ class Loader:
         ]
 
     # GETTERS =====================================================================================
+
+
 
     def spms_upload_image_file(self, file_string, static=False):
         if file_string is not None:
@@ -2663,6 +2679,7 @@ class Loader:
             flush_command = f"python manage.py flush --noinput"
             subprocess.run(flush_command, shell=True, cwd=self.django_project_path)
         except Exception as e:
+            print('project path', self.django_project_path)
             self.misc.nli(
                 f"{self.misc.bcolors.FAIL}Could not run flush command: {e}{self.misc.bcolors.ENDC}",
             )
