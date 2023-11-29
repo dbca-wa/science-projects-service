@@ -162,7 +162,7 @@ class ProjectDocument(CommonModel):
     # id, created, updated, oldid, status, kind, p,b,d,p, creator, modifier, projid
 
     def __str__(self) -> str:
-        return f"{self.created_at.year} | {self.kind.capitalize()} - {self.project}"
+        return f"({self.pk}) {self.created_at.year} | {self.kind.capitalize()} - {self.project}"
 
     class Meta:
         verbose_name = "Project Document"

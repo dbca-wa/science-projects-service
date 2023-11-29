@@ -1,11 +1,9 @@
 from datetime import datetime as dt
-import re
 import subprocess
 import time
 import traceback
 from django.conf import settings
 import requests
-import shutil
 from django.contrib.auth.hashers import make_password
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -136,6 +134,41 @@ class Loader:
                 f"{self.misc.bcolors.OKGREEN}Affiliation retrieved ({affiliation_id})!{self.misc.bcolors.ENDC}"
             )
             return affiliation_id
+
+    def spms_check_proj_pdf_exists(self, doc_id, cursor, connection):
+        try:
+            cursor = connection.cursor()
+
+            # Construct the SQL query
+            sql = """
+                    SELECT id FROM medias_projectdocumentpdf WHERE document_id = %s
+                """
+
+            # Execute the query with the user name
+            cursor.execute(sql, (doc_id,))
+
+            # Fetch the result
+            result = cursor.fetchone()
+
+            print(f"Result: {result}")
+
+            if result:
+                pdf_id = result[0]  # Return the report id
+            else:
+                return False
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}No PDF: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+            return False
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}PDF retrieved ({pdf_id})!{self.misc.bcolors.ENDC}"
+            )
+            return True
+
 
     def spms_get_new_report_id_by_year(self, connection, cursor, year):
         try:
@@ -550,6 +583,7 @@ class Loader:
             sql = """
                 SELECT id FROM projects_project WHERE old_id = %s
             """
+            print(f"Seeking old id {old_id} in new table")
 
             # Execute the query with the user name
             cursor.execute(sql, (old_id,))
@@ -1898,21 +1932,6 @@ class Loader:
         else:
             print("All files in subdirectories deleted successfully.")
 
-        try:
-            self.clean_files(dump_path_docs)
-        except Exception as e:
-            print(f'Error removing dupes for {dump_path_docs}: {e}')
-        else:
-            print(f"All dupes in {dump_path_docs} deleted successfully.")
-
-        try:
-            self.clean_files(dump_path_arar)
-        except Exception as e:
-            print(f'Error removing dupes for {dump_path_arar}: {e}')
-        else:
-            print(f"All dupes in {dump_path_arar} deleted successfully.")
-
-
 
     def spms_run_all(self):
         self.spms_clear_files()
@@ -1943,8 +1962,8 @@ class Loader:
         self.spms_create_annual_reports()
         self.spms_create_project_documents()  # Creates the concept, progress/stu report, project plan, closure And related tasks
         # # input("Create comments?")
-        # self.spms_create_document_comments()
-        # self.spms_create_superuser_todos()
+        self.spms_create_document_comments()
+        self.spms_create_superuser_todos()
 
         # # Majority of media photo uploads
         # self.spms_replace_photo_with_cf_file(from_table="agencyimage")
@@ -2621,6 +2640,28 @@ class Loader:
                 cursor.close()
             if connection is not None:
                 connection.close()
+    
+    def spms_clean_database(self):
+        # Load environment variables from .env file
+        print(f"{self.misc.bcolors.WARNING}Loading Env...{self.misc.bcolors.ENDC}")
+        self.load_dotenv()
+
+        # Run the sqlflush command
+        print(
+            f"{self.misc.bcolors.WARNING}Running sqlflush command...{self.misc.bcolors.ENDC}"
+        )
+        try:
+            flush_command = f"python manage.py flush --noinput"
+            subprocess.run(flush_command, shell=True, cwd=self.django_project_path)
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Could not run flush command{self.misc.bcolors.ENDC}",
+                e,
+            )
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Database cleaned successfully{self.misc.bcolors.ENDC}"
+            )
 
     def spms_recreate_db(self):
         print(
@@ -2631,7 +2672,8 @@ class Loader:
         self.misc.nls(
             f"{self.misc.bcolors.OKBLUE}Recreating DB...{self.misc.bcolors.ENDC}"
         )
-        self.spms_drop_and_create()
+        # self.spms_drop_and_create()
+        self.spms_clean_database()
 
         # Removing migration files
         self.misc.nls(
@@ -4273,6 +4315,7 @@ class Loader:
                     cursor=cursor, connection=connection, old_id=project["program_id"]
                 )
 
+            start_date = project["start_date"] if not self.pd.isna(project["start_date"]) else project["created"]
             try:
                 # Start a transaction
                 cursor = connection.cursor()
@@ -4293,15 +4336,15 @@ class Loader:
                         None
                         if self.pd.isna(project["tagline"])
                         else project["tagline"],
-                        None
+                        ""
                         if self.pd.isna(project["keywords"])
                         else project["keywords"],
-                        project["start_date"]
-                        if not self.pd.isna(project["start_date"])
-                        else None,
+                        start_date,
+                        # else None,
                         project["end_date"]
                         if not self.pd.isna(project["end_date"])
-                        else None,
+                        else start_date,
+                        # else None,
                         business_area_id,
                         # image_id,
                     ),
@@ -4857,6 +4900,47 @@ class Loader:
 
         finally:
             connection.commit()
+
+
+        # Create empty array entries for projects without areas to avoid null values
+        # Fetch all project IDs from the Project model
+        cursor.execute("SELECT id FROM projects_project")
+        all_project_ids = [row[0] for row in cursor.fetchall()]
+
+        # Fetch all project IDs from the ProjectArea model
+        cursor.execute("SELECT project_id FROM projects_projectarea")
+        existing_project_area_ids = [row[0] for row in cursor.fetchall()]
+
+        # Identify projects without ProjectArea entries
+        projects_without_project_area = set(all_project_ids) - set(existing_project_area_ids)
+
+        # Create empty entries for projects without ProjectArea entries
+        for project_id in projects_without_project_area:
+            print(f"{self.misc.bcolors.WARNING}Creating empty Project Area entry for Project ID: {project_id}...{self.misc.bcolors.ENDC}")
+            try:
+                # Start a transaction
+                cursor.execute(
+                    project_area_sql,
+                    (
+                        current_datetime,  # created at
+                        current_datetime,  # updated at
+                        project_id,
+                        [],  # Empty list for areas as there are no areas
+                    ),
+                )
+            except Exception as e:
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating empty Project Area: {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+        # Commit the transaction for empty entries
+        connection.commit()
+
+            
+
 
     def spms_project_comments_setter(self, projects_df, cursor, connection):
         pass
@@ -5819,13 +5903,13 @@ class Loader:
             finally:
                 connection.commit()
 
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=new_document_id,
-                doc_status=status,
-                doc_type="Concept Plan",
-            )
+            # self.spms_create_tasks_for_document(
+            #     connection=connection,
+            #     cursor=cursor,
+            #     document_id=new_document_id,
+            #     doc_status=status,
+            #     doc_type="Concept Plan",
+            # )
 
             if pdf != None:
                 file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
@@ -5847,10 +5931,11 @@ class Loader:
                         self.create_project_document_pdf(
                             connection=connection,
                             cursor=cursor,
-                            related_document_id=new_proj_id,
-                            related_project_id=new_document_id,
+                            related_document_id=new_document_id,
+                            related_project_id=new_proj_id,
                             data=saved_file,
                         )
+
                     except Exception as e:
                         print(e)
                         continue
@@ -6182,7 +6267,7 @@ class Loader:
                 )
                 bm_endorsement_provided = (
                     True
-                    if (project_plan["bm_endorsement"] == "granted")
+                    if ((project_plan["bm_endorsement"] == "granted") or (bm_endorsement_required == True and project_plan["status"] == 'approved'))
                     else False
                 )
                 hc_endorsement_required = (
@@ -6193,7 +6278,7 @@ class Loader:
                 )
                 hc_endorsement_provided = (
                     True
-                    if (project_plan["hc_endorsement"] == "granted")
+                    if ((project_plan["hc_endorsement"] == "granted") or (hc_endorsement_required == True and project_plan["status"] == 'approved'))
                     else False
                 )
                 ae_endorsement_required = (
@@ -6204,7 +6289,7 @@ class Loader:
                 )
                 ae_endorsement_provided = (
                     True
-                    if (project_plan["ae_endorsement"] == "granted")
+                    if ((project_plan["ae_endorsement"] == "granted") or (ae_endorsement_required == True and project_plan["status"] == 'approved'))
                     else False
                 )
 
@@ -6224,7 +6309,7 @@ class Loader:
                     endorsements_sql,
                     (
                         project_plan_detail_id,
-                        new_proj_id,
+                        # new_proj_id,
                         bm_endorsement_required,
                         bm_endorsement_provided,
                         hc_endorsement_required,
@@ -6239,15 +6324,16 @@ class Loader:
 
             except Exception as e:
                 print(
-                    project_plan_detail_id,
-                    bm_endorsement_required,
-                    bm_endorsement_provided,
-                    hc_endorsement_required,
-                    hc_endorsement_provided,
-                    ae_endorsement_required, 
-                    ae_endorsement_provided,
-                    data_management,
-                    no_specimens,
+                        project_plan_detail_id,
+                        # new_proj_id,
+                        bm_endorsement_required,
+                        bm_endorsement_provided,
+                        hc_endorsement_required,
+                        hc_endorsement_provided,
+                        ae_endorsement_required, 
+                        ae_endorsement_provided,
+                        data_management,
+                        no_specimens,
                 )
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Endorsements ({project_plan_detail_id}): {str(e)}{self.misc.bcolors.ENDC}"
@@ -6267,13 +6353,13 @@ class Loader:
             finally:
                 connection.commit()
 
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=new_document_id,
-                doc_status=status,
-                doc_type="Project Plan",
-            )
+            # self.spms_create_tasks_for_document(
+            #     connection=connection,
+            #     cursor=cursor,
+            #     document_id=new_document_id,
+            #     doc_status=status,
+            #     doc_type="Project Plan",
+            # )
 
             if pdf != None:
                 file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
@@ -6290,12 +6376,13 @@ class Loader:
                     )
 
                     saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+
                     try:
                         self.create_project_document_pdf(
                             connection=connection,
                             cursor=cursor,
-                            related_document_id=new_proj_id,
-                            related_project_id=new_document_id,
+                            related_document_id=new_document_id,
+                            related_project_id=new_proj_id,
                             data=saved_file,
                         )
                     except Exception as e:
@@ -6420,41 +6507,13 @@ class Loader:
                     f"{self.misc.bcolors.OKGREEN}Progress Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
                 )
 
-            finally:
+            # finally:
                 connection.commit()
 
             # Construct the SQL query for progressreports
 
-            progress_report_sql = """
-                BEGIN;
-                INSERT INTO documents_progressreport (
-                    document_id, 
-                    project_id,
-                    report_id, 
-                    year, 
-                    is_final_report,
-                    context, 
-                    aims, 
-                    progress, 
-                    implications, 
-                    future        
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-                COMMIT;
-            """
 
             try:
-                new_document_id = self.spms_get_document_id_by_old_id(
-                    cursor=cursor,
-                    connection=connection,
-                    old_id=old_id,
-                )
-                report_id = (
-                    None
-                    if self.pd.isna(progress_report["report_id"])
-                    else self.spms_calculate_new_report_id(
-                        doc=progress_report, old_report_id=progress_report["report_id"]
-                    )
-                )
                 year = (
                     None
                     if self.pd.isna(progress_report["year"])
@@ -6490,25 +6549,64 @@ class Loader:
                     if self.pd.isna(progress_report["future"])
                     else progress_report["future"]
                 )
-
-                # Start a transaction
-                # cursor = connection.cursor()
-                cursor.execute(
-                    progress_report_sql,
-                    (
-                        new_document_id,
-                        new_proj_id,
-                        report_id,
-                        year,
-                        is_final_report,
-                        context,
-                        aims,
-                        progress,
-                        implications,
-                        future,
-                        # pdf,
-                    ),
+                new_document_id = self.spms_get_document_id_by_old_id(
+                    cursor=cursor,
+                    connection=connection,
+                    old_id=old_id,
                 )
+
+                report_id = (
+                    None
+                    if self.pd.isna(progress_report["report_id"])
+                    else self.spms_calculate_new_report_id(
+                        doc=progress_report, old_report_id=progress_report["report_id"]
+                    )
+                )
+       
+                if report_id is None:
+                    report_id = self.spms_get_new_report_id_by_year(year=year, connection=connection, cursor=cursor)
+                
+                print(f"NEW DOC ID: {new_document_id}")
+                print(f"NEW REPORT ID: {report_id}")
+                print(f"NEW PROJ ID: {new_proj_id}")
+
+
+                progress_report_sql = """
+                    BEGIN;
+                    INSERT INTO documents_progressreport (
+                        document_id, 
+                        project_id,
+                        report_id, 
+                        year, 
+                        is_final_report,
+                        context, 
+                        aims, 
+                        progress, 
+                        implications, 
+                        future        
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    COMMIT;
+                """
+
+                if report_id is not None:
+                    # Start a transaction
+                    # cursor = connection.cursor()
+                    cursor.execute(
+                        progress_report_sql,
+                        (
+                            new_document_id,
+                            new_proj_id,
+                            report_id,
+                            year,
+                            is_final_report,
+                            context,
+                            aims,
+                            progress,
+                            implications,
+                            future,
+                            # pdf,
+                        ),
+                    )
             except Exception as e:
                 print(
                     new_document_id,
@@ -6543,15 +6641,15 @@ class Loader:
 
 
 
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=new_document_id,
-                doc_status=status,
-                doc_type="Progress Report",
-            )
+            # self.spms_create_tasks_for_document(
+            #     connection=connection,
+            #     cursor=cursor,
+            #     document_id=new_document_id,
+            #     doc_status=status,
+            #     doc_type="Progress Report",
+            # )
 
-            if pdf != None:
+            if (pdf != None) and (report_id != None):
                 file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
                 print(file_directory)
                 with open(file_directory, 'rb') as file:
@@ -6566,12 +6664,13 @@ class Loader:
                     )
 
                     saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+
                     try:
                         self.create_project_document_pdf(
                             connection=connection,
                             cursor=cursor,
-                            related_document_id=new_proj_id,
-                            related_project_id=new_document_id,
+                            related_document_id=new_document_id,
+                            related_project_id=new_proj_id,
                             data=saved_file,
                         )
                     except Exception as e:
@@ -6777,13 +6876,13 @@ class Loader:
 
 
 
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=document_id,
-                doc_status=status,
-                doc_type="Student Report",
-            )
+            # self.spms_create_tasks_for_document(
+            #     connection=connection,
+            #     cursor=cursor,
+            #     document_id=document_id,
+            #     doc_status=status,
+            #     doc_type="Student Report",
+            # )
 
             if pdf != None:
                 file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
@@ -6804,8 +6903,8 @@ class Loader:
                         self.create_project_document_pdf(
                             connection=connection,
                             cursor=cursor,
-                            related_document_id=new_proj_id,
-                            related_project_id=document_id,
+                            related_document_id=document_id,
+                            related_project_id=new_proj_id,
                             data=saved_file,
                         )
                     except Exception as e:
@@ -6932,22 +7031,7 @@ class Loader:
                 connection.commit()
 
 
-            # Construct the SQL query for projectclosure
-            project_closure_sql = """
-                BEGIN;
-                INSERT INTO documents_projectclosure (
-                    document_id, 
-                    project_id, 
-                    intended_outcome, 
-                    reason,
-                    scientific_outputs, 
-                    knowledge_transfer,
-                    data_location,
-                    hardcopy_location, 
-                    backup_location          
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
-                COMMIT;
-            """
+            
 
             try:
                 document_id = self.spms_get_document_id_by_old_id(
@@ -6989,11 +7073,27 @@ class Loader:
                 )
                 # Start a transaction
                 # cursor = connection.cursor()
-
+#                Construct the SQL query for projectclosure
+                project_closure_sql = """
+                    BEGIN;
+                    INSERT INTO documents_projectclosure (
+                        document_id, 
+                        project_id, 
+                        intended_outcome, 
+                        reason,
+                        scientific_outputs, 
+                        knowledge_transfer,
+                        data_location,
+                        hardcopy_location, 
+                        backup_location          
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    COMMIT;
+                """
                 cursor.execute(
                     project_closure_sql,
                     (
                         document_id,
+                        new_proj_id,
                         intended_outcome,
                         reason,
                         scientific_outputs,
@@ -7034,13 +7134,13 @@ class Loader:
             finally:
                 connection.commit()
 
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=document_id,
-                doc_status=status,
-                doc_type="Project Closure",
-            )
+            # self.spms_create_tasks_for_document(
+            #     connection=connection,
+            #     cursor=cursor,
+            #     document_id=document_id,
+            #     doc_status=status,
+            #     doc_type="Project Closure",
+            # )
 
             if pdf != None:
                 file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
@@ -7062,10 +7162,11 @@ class Loader:
                         self.create_project_document_pdf(
                             connection=connection,
                             cursor=cursor,
-                            related_document_id=new_proj_id,
-                            related_project_id=document_id,
+                            related_document_id=document_id,
+                            related_project_id=new_proj_id,
                             data=saved_file,
                         )
+
                     except Exception as e:
                         print(e)
                         continue
@@ -8021,46 +8122,13 @@ class Loader:
     #             rear_cover_page,
     #         ]
 
-    def extract_base_name_and_index(self, file_name):
-        # Use regular expression to extract base name and index from the file name
-        match = re.match(r'^(.+)_(\d+)$', file_name)
-        if match:
-            base_name, index = match.groups()
-            return base_name, int(index)
-        else:
-            # If no match, return the file name as base name and index 0
-            return file_name, 0
-
-
-    def clean_files(self, directory):
-        # Walk through the initial folder
-        for subdir, _, files in os.walk(directory):
-            # Create a dictionary to store files with the same base name
-            file_dict = {}
-
-            # Assess the files available in each subdirectory
-            for file in files:
-                # Extract the base name and index from the file name
-                base_name, index = self.extract_base_name_and_index(file)
-
-                # Check if the base name is already in the dictionary
-                if base_name in file_dict:
-                    # Compare indexes and keep the file with the highest index
-                    if index > file_dict[base_name][1]:
-                        os.remove(os.path.join(subdir, file_dict[base_name][0]))
-                        file_dict[base_name] = (file, index)
-                    else:
-                        os.remove(os.path.join(subdir, file))
-                else:
-                    # If the base name is not in the dictionary, add it
-                    file_dict[base_name] = (file, index)
-
     def create_project_document_pdf(       
         self, connection, cursor, related_project_id, related_document_id, data
     ):
         self.misc.nls(
             f"{self.misc.bcolors.OKBLUE}Creating Project Doc PDF for DOC ID {related_document_id}...{self.misc.bcolors.ENDC}"
         )
+        print(f"Proj: {related_project_id}")
 
         try:
             project_document_pdf_sql = """
@@ -8088,16 +8156,19 @@ class Loader:
             project = related_project_id
             # uploader = self.spms_get_superuser(connection, cursor)
 
-            cursor.execute(                     
-                project_document_pdf_sql,        
-                (
-                    created_at, 
-                    updated_at, 
-                    file, 
-                    document,
-                    project, 
-                ),
-            )
+            # Check if pdf matching doc already exists (data issues)
+            already_present = self.spms_check_proj_pdf_exists(doc_id=document, cursor=cursor, connection=connection)
+            if already_present == False:
+                cursor.execute(                     
+                    project_document_pdf_sql,        
+                    (
+                        created_at, 
+                        updated_at, 
+                        file, 
+                        document,
+                        project, 
+                    ),
+                )
 
         except Exception as e:
             self.misc.nli(
