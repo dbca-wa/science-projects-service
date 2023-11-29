@@ -2664,8 +2664,7 @@ class Loader:
             subprocess.run(flush_command, shell=True, cwd=self.django_project_path)
         except Exception as e:
             self.misc.nli(
-                f"{self.misc.bcolors.FAIL}Could not run flush command{self.misc.bcolors.ENDC}",
-                e,
+                f"{self.misc.bcolors.FAIL}Could not run flush command: {e}{self.misc.bcolors.ENDC}",
             )
         else:
             self.misc.nls(
