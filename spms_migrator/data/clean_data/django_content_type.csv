@@ -1,0 +1,42 @@
+id,name,app_label,model
+1,log entry,admin,logentry
+2,content type,contenttypes,contenttype
+3,group,auth,group
+4,permission,auth,permission
+5,session,sessions,session
+6,site,sites,site
+7,arar report,pythia,ararreport
+8,division,pythia,division
+9,district,pythia,district
+10,area,pythia,area
+11,region,pythia,region
+12,web resource domain,pythia,webresourcedomain
+13,work centre,pythia,workcenter
+14,web resource,pythia,webresource
+15,program,pythia,program
+16,URL prefix,pythia,urlprefix
+17,address,pythia,address
+18,user,pythia,user
+19,Progress Report,documents,progressreport
+20,student report,documents,studentreport
+21,project closure,documents,projectclosure
+22,project plan,documents,projectplan
+23,document,documents,document
+24,concept plan,documents,conceptplan
+25,science project,projects,scienceproject
+26,student project,projects,studentproject
+27,project,projects,project
+28,project membership,projects,projectmembership
+29,core function,projects,corefunctionproject
+30,collaboration project,projects,collaborationproject
+31,comment,django_comments,comment
+32,comment flag,django_comments,commentflag
+33,key map,django_select2,keymap
+34,migration history,south,migrationhistory
+35,version,reversion,version
+36,revision,reversion,revision
+37,group object permission,guardian,groupobjectpermission
+38,user object permission,guardian,userobjectpermission
+39,research function,projects,researchfunction
+40,staff time estimate,documents,stafftimeestimate
+41,Service,pythia,service

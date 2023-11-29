@@ -1,0 +1,316 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report CF 2011-111 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1690/}{Progress Report CF 2011-111 (FY 2015-2016)}}
+%\chead{\href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dpaw.wa.gov.au/about-us/science-and-research}{\includegraphics[height=6mm, keepaspectratio]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Tue, 12 Sep 2017 09:21:24 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report CF 2011-111
+}
+\title{The Western Australian Plant Census and Australian Plant Census
+}
+\subtitle{Plant Science and Herbarium
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Cheryl Parker
+\\
+\textbf{Data Custodian} & John Huisman
+\\
+\textbf{Site Custodian} & DrKevin Thiele (Eubio Consulting)
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Sept. 12, 2017, 9:21 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Sept. 12, 2017, 9:21 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{The Western Australian Plant Census and Australian Plant Census
+}
+
+C Parker, J Percy-Bower, T Macfarlane, K Knight
+
+
+
+\section*{Context}
+
+The Western Australian Plant Census (a component of WACensus) is the
+authoritative database of all names of plants in Western Australia,
+including synonyms created by taxonomic change. It is continually
+updated to reflect changes in our knowledge of the flora. The census
+constitutes the fundamental master list for many Parks and Wildlife
+processes and datasets, including the Threatened and Priority Flora
+databases maintained by the Species and Communities Branch, the
+Herbarium's specimen database, the Max database utility, FloraBase and
+NatureMap.
+
+The Australian Plant Census (APC) is a project of the Council of Heads
+of Australasian Herbaria, designed to provide a consensus view of all
+Australian plant taxa. Until now plant censuses have been only
+state-based, which has made it difficult to obtain authoritative
+information on what species occur in Australia as a whole, to obtain
+accurate national statistics, and to deal with differences in opinion
+and knowledge for taxa that cross state boundaries. In addition to
+working systematically through the vascular plant families, the APC
+process provides for updates as taxonomic changes or new findings are
+published. The consensus also extends from family and genus level to an
+overall classification of the plants that occur in Australia. As the APC
+project continues, the Western Australian Plant Census is updated to
+reflect the consensus view.
+
+
+
+
+\section*{Aims}
+
+Maintain an accurate and~timely listing of all plants, algae and fungi
+in Western Australia, including both current names and synonyms, and
+integrate this with the national consensus.
+
+
+
+
+\section*{Progress}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  559 plant names were added to WACensus, comprising 534 names formally
+  published and 25 informal names.
+\item
+  1,231~other edits were made to the census.
+\item
+  Smut fungi were added to WACensus (92 names).
+\item
+  WACensus updates were regularly distributed to 245 registered Max
+  users.
+\item
+  The last major family processed for the APC (Orchidaceae) was
+  progressed and is still ongoing, awaiting compilation of all
+  jurisdictional responses.
+\item
+  An APC update list is in the final stages of checking and covers
+  changes to a number of taxa in families, including Asteraceae,
+  Cyperaceae, Dilleniaceae, Ericaceae, Euphorbiaceae, Fabaceae,
+  Hypoxidaceae, Lamiaceae, Myrtaceae and~Phrymaceae.
+\item
+  Maintained records of changes to WACensus as a pending~contribution
+  of~updates to~the APC.
+\end{itemize}
+
+
+
+
+\section*{Management implications}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  All Parks and Wildlife systems using Western Australian plant names
+  are based on, or integrated with, the WACensus database.
+\item
+  Staff maintaining plant databases can use Max and the regular WACensus
+  updates to check name currency.
+\end{itemize}
+
+
+
+
+\section*{Future directions}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Provide a comprehensive and up to date census across all plant groups
+  with a particular focus on completing the fungi.
+\item
+  Incorporate modifications based on the globally accepted list of
+  families and family circumscriptions of the Angiosperm Phylogeny
+  Group~(APG) IV (2016) and APC.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

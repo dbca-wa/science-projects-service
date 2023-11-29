@@ -1,0 +1,340 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2014-004 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1601/}{Progress Report SP 2014-004
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Mon, 11 Jul 2016 12:59:47 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2014-004
+}
+\title{Improving the understanding of West Pilbara marine habitats and
+associated taxa: their connectivity and recovery potential following
+natural and human induced disturbance
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Richard D Evans
+\\
+\textbf{Data Custodian} & Richard D Evans
+\\
+\textbf{Site Custodian} & Richard D Evans
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 11, 2016, 12:59 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 11, 2016, 12:59 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Improving the understanding of West Pilbara marine habitats and
+associated taxa: their connectivity and recovery potential following
+natural and human induced disturbance
+}
+
+RD Evans, S Wilson, M Byrne, R Douglas, R Binks, B Macdonald
+
+
+\section*{Context}
+The focus of work for Wheatstone Development Offset Project B will be to
+add to the understanding of west Pilbara marine habitats (including
+coral and seagrass communities) and associated taxa, including their
+level of connectivity and their recovery potential should they be
+impacted by natural and human induced disturbance. This research aims to
+build on existing knowledge and integrate with current and proposed
+connectivity projects on habitat-forming taxa and associated taxa in the
+tropical north-west of Australia. Broad-scale connectivity studies of
+flora and fauna within and between the offshore islands of the
+north-west continental shelf have shown varying levels of connectivity.
+Previous studies have also shown limited connectivity between inshore
+and offshore marine communities but there have been no studies looking
+at connectivity and recovery potential between locations within the
+Pilbara region, and their connections with the broader inshore locations
+of Ningaloo to the south-west, and the Kimberley to the north-east.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Determine levels of population connectivity and assess the extent and
+  spatial scales of local adaptation.
+\item
+  Correlate genetic parameters with modeling of environmental variables
+  to determine factors that have a significant influence on
+  connectivity.
+\item
+  Investigate coral demographics and recruitment to understand how the
+  environment influences the corals in the Pilbara.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Coral recruitment settlement tiles were deployed and collected in the
+  Onslow region for the third year of the temporal study of recruitment
+  processes.
+\item
+  A third in-situ assessment of recruit corals on Onslow region reefs
+  was undertaken using quadrats with underwater visual census and
+  digital photographs.
+\item
+  Pre-dredging benthic images provided by Chevron were analysed to
+  understand the size-class frequency distribution of corals in the
+  Onslow region.
+\item
+  DNA extractions for mangroves, seagrass and fish were completed.
+\item
+  Sequencing for fish, mangroves, and seagrass were completed and data
+  analyses have commenced.
+\item
+  Coral extractions are still in progress with some delays caused by
+  taxonomic and technical issues.
+\item
+  One paper on techniques to identify cryptic species of coral is in
+  press with \emph{Coral Reefs.}
+\item
+  A paper on coral population genomics and connectivity is in review
+  with \emph{Global Change Biology} and a review of dredging impacts on
+  fishes has been submitted to \emph{Fish and Fisheries Review}.
+\item
+  A \emph{Landscope} article titled \emph{Understanding Marine
+  Connectivity} is in press.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  The project will improve our understanding of how well populations of
+  marine species are linked, providing an indication on how fast they
+  are likely to recover following natural and anthropogenic
+  disturbances, with a focus on key habitat forming species that support
+  important ecological processes.
+\item
+  Understanding the extent of connectivity for different taxa will
+  inform marine planners about how reserves and management zones can be
+  configured to best facilitate propagule transfer among meta
+  populations, therefore improving recovery potential after disturbance.
+\item
+  Improved temporal understanding of the impact of natural and human
+  disturbance in the Pilbara, as well as the demography and recovery
+  potential of coral communities, will allow resource managers and
+  industry to understand the resilience of the system, and allow for
+  better spatial and temporal planning of developments and general use
+  management zoning.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Laboratory work will continue for the coral connectivity study,
+  including DNA extracting and sequencing, data analyses and manuscript
+  preparation.
+\item
+  Analyses of genetic data for fish, mangroves and seagrass species will
+  continue.
+\item
+  A manuscript for all genetic results will be prepared.
+\item
+  The third year of data on coral settlement will be analysed.
+\item
+  Analysis of benthic images from `post dredge operations' period for
+  coral demographics assessment and reporting.
+\item
+  Analysis and prepare manuscript on~coral recovery potential in the
+  Onslow region.
+\item
+  Coral settlement tiles will be re-deployed in February and May 2017 to
+  determine settlement differentials across the period of spawning.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

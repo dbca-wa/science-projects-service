@@ -1,0 +1,1159 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dpaw.wa.gov.au}{\textbf{Project Plan SP 2014-018}}}
+%\chead{\href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dpaw.wa.gov.au/about-us/science-and-research}{\includegraphics[height=8mm, keepaspectratio]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2014-018
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dpaw.wa.gov.au/documents/projectplan/1483/}{Project Plan SP 2014-018}}
+%\chead{\href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dpaw.wa.gov.au/about-us/science-and-research}{\includegraphics[height=6mm, keepaspectratio]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Thu, 5 Jul 2018 13:43:02 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2014-018
+}
+\title{Distribution and abundance estimate of Australian snubfin dolphins
+(\emph{Orcaella heinsohni}) at a key site in the Kimberley region,
+Western Australia
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Kelly Waples
+\\
+\textbf{Data Custodian} & Holly Raudino
+\\
+\textbf{Site Custodian} & Holly Raudino
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 5, 2018, 1:43 p.m.}
+\begin{tabu} {X X}
+& Update requested
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 5, 2018, 1:43 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{not required}{ not required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Distribution and abundance estimate of Australian snubfin dolphins
+(\emph{Orcaella heinsohni}) at a key site in the Kimberley region,
+Western Australia
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Marine Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 2: Conserving Habitats, Species and Ecological Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Kelly Waples & 0.03\\
+
+Research Scientist & Holly Raudino & 0.1\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+None
+
+
+\subsection*{Proposed period of the project}
+May 31, 2014 -- June 30, 2018
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+The Australian snubfin dolphin (Orcaella heinsohni) was formally
+differentiated from the Irrawaddy dolphin (Orcaella brevirostris) in
+2005 (Beasley et al., 2005). Currently, there is limited information
+available for the species and local population are likely to be small in
+size (Parra \emph{et al}. 2006, Cagnazzi \emph{et al}. 2010, Palmer
+\emph{et al.} in press) and geographically or genetically isolated
+(Cagnazzi 2010). Fewer than 100 individuals of snubfin wereestimated at
+three sites in the tropical and sub-tropical waters of Queensland (Parra
+\emph{et al}. 2006, Cagnazzi 2010). ~More recently in the NT (2008 --
+2010), photo-identification surveys were undertaken in Port Essington,
+Cobourg Peninsula and Darwin Harbour (Palmer et al., 2010, Palmer 2010),
+however, there were too few data on snubfin in Darwin Harbour to support
+capture-recapture modelling (Palmer \emph{et al.} submitted). In Port
+Essington, total abundance estimates for snubfin dolphins were highly
+variable across different sampling periods and varied from 136 to 222
+(Palmer \emph{et al}. submitted). In 2010, a nomination was made for the
+listing of this species as threatened under the EPBC Act, based on its
+known biological characteristics and rising pressures resulting from
+coastal developments and numerous industrial activities. However, the
+conservation status of the species could not be properly assessed due to
+a lack of information on the animals' population dynamics and
+distribution.~ A coordinated research strategy is being developed by the
+Commonwealth to provide some direction and prioritisation for research
+to fill this information gap, leading to a better understanding of the
+conservation status of this species and the current threats that it
+faces.
+
+~
+
+This project will begin to address these information needs by focusing
+on the data that already exist within WA. A primary objective of the
+project will be to compile and analyse these data so that they are
+compatible and comparable with those from other areas within the
+species' range and will be available for comparison with ongoing and
+future research effort. This will result in a better understanding of
+snubfin dolphin distribution and abundance in northern Australia.
+
+~
+
+Specifically, the project aims to assess dolphin distribution via
+collation and review of existing sighting data collected across the
+Kimberley region between 2004-2012. The first abundance estimates at one
+key site in the Kimberley region (Roebuck Bay) will be analysed, extent
+of occurrence and area of occupancy, including integrating traditional
+knowledge that has been contributed by Indigenous communities through
+sea ranger surveys over the greater Kimberley area. To collate the data
+for abundance estimation, we propose to migrate survey data into DolFin,
+an Oracle database with Access interface that has been developed by the
+NT government. It has been agreed that the database technology will be
+made available to other states (WA and QLD) to achieve standardisation
+of data storage and facilitate comparisons between sites and datasets.
+This will enable longer-range movements and distributions to be examined
+across the snubfins' range, aligning with a key priority identified by
+in the Commonwealth Tropical Inshore Dolphin Draft Research Strategy.
+
+
+
+
+\subsection*{Aims}
+
+The project objectives are therefore to use existing data to:
+
+~
+
+1) Provide a quantitative abundance estimate for Roebuck Bay, WA that
+will stand as a baseline for this population and will also enable
+comparison with abundance estimates of the species from sites in QLD and
+NT e.g. Cleveland Bay and Port Essington
+
+2) Compare methods for abundance estimation (Mark-recapture versus
+distance sampling) and the suitability of these methods for abundance
+estimation of this species.
+
+3) Map the extent of occurrence and area of occupancy of snubfin
+dolphins in the Kimberley, WA by combining traditional knowledge and
+dolphin sightings from Indigenous communities by integrating sea ranger
+and scientific survey sightings.
+
+4) Integrate data into a standardised database system for the management
+of data and the facilitation of data sharing between jurisdictions and
+sites~
+
+
+
+
+\subsection*{Expected outcome}
+
+The project will assess dolphin distribution via collation and review of
+existing sighting data collected across the Kimberley region between
+2004-2012. This will provide an abundance estimate for snubfin dolphins
+in Roebuck Bay, a key asset of the proposed marine park, which can be
+used for future monitoring programs.~ The project will also bring a
+shared database to WA that is currently in use in the Northern
+Territory. Sharing a database and compatible data collection and
+analysis methods, will enable longer-range movements and distributions
+to be examined across the snubfins' range, aligning with a key priority
+identified by in the Commonwealth Tropical Inshore Dolphin Draft
+Research Strategy. DPAW will have an improved understanding of a key
+species in the northwest including baseline data, monitoring protocol
+and distribution across the broader Kimberley to focus future research
+and monitoring effort.~~
+
+
+
+
+\subsection*{Knowledge transfer}
+
+The primary users of the knowledge gained will be within DPAW, namely
+the Marine Science Program and Kimberley Region. The research findings
+will be used to establish and inform research and monitoring of inshore
+tropical dolphins in the northwest for both of these groups. Traditional
+owners will have an interest in the outcomes as they participated in
+some field work.~ All data will be readily provided to TOs and to the
+Regions and discussions will be held to address future monitoring
+protocols and ongoing use of the database.~
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+\begin{longtable}[c]{@{}ll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+\textbf{Milestone}
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+\textbf{Timing}
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Integrating distribution and mapping data ino GIS system and data
+validation for DolFIN
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Installation and training in DolFIN
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+May 14
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Processing photo id data including entry into DolFIN
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+June 14
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Progress report to AMMC
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+July 14
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Workshop with TOs and users
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+October 14
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Abundance estimate mark-recapture
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+Nov 14
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Abundance estimate- distance sampling
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+Nov 14
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Final report
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+April 15
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+Publication
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+December 15
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+
+
+
+\subsection*{References}
+
+Allen, S. J., Cagnazzi, D. D., Hodgson, A. J., Loneragan, N. R. \&
+Bejder, L. 2012. Tropical inshore dolphins of north-western Australia:
+Unknown populations in a rapidly changing region. Pacific Conservation
+Biology, 18, 56-63.
+
+~
+
+Beasley I., K.M. Robertson \& P. Arnold (2005). Description of a new
+dolphin: The Australian snubfin dolphin~Orcaella heinsohni~sp.n.
+(Cetacea, Delphinidae).~Marine Mammal Science. 21(3):365-400.
+
+~
+
+Bejder, L., Hodgson, A., Loneragan, N. \& Allen, S. 2012. Coastal
+dolphins in north-western Australia: The need for re-evaluation of
+species listings and short-comings in the Environmental Impact
+Assessment process. Pacific Conservation Biology, 18, 22-25.
+
+~
+
+Buckland, S. (2001). Shipboard sighting surveys: Methodological
+developments to meet practical needs. \emph{Bulletin of the
+International Statistical Institute} Book 1, 315-318.
+
+~
+
+Cagnazzi, D. (2010). Conservation Status of Australian snubfin dolphin,
+Orcaella heinsohni, and Indo-Pacific humpback dolphin, Sousa chinensis,
+in the Capricorn Coast, Central Queensland, Australia PhD Thesis,
+Southern Cross University.
+
+~
+
+Palmer, C., Parra, G. Rogers, T. and Woinarski, J. C. Z. (In Press).
+Collation and review of sightings and distribution of three coastal
+dolphin species in waters of the Northern Territory, Australia. Pacific
+Conservation Biology
+
+~
+
+~
+
+Hines, J., E., et al. ``Tigers on trails: occupancy modeling for cluster
+sampling.'' \emph{Ecological Applications} 20.5 (2010): 1456-1466.
+
+~
+
+Palmer, C., Murphy, S. A., Thiele, D., Parra, G. J., Robertson, K. M.,
+Beasley, I. \& Austin, C. M. 2011. Analysis of mitochondrial DNA
+clarifies the taxonomy and distribution of the Australian snubfin
+dolphin (Orcaella heinsohni) in northern Australian waters. Marine and
+Freshwater Research, 62, 1303-1307.
+
+~
+
+Palmer, C., 2010. Interim Report: Darwin Harbour Coastal Dolphin
+Project. Northern Territory Department of Natural Resources,
+Environment, the Arts and Sport. 16 pp.
+
+~
+
+~Palmer, C., Fitzgerald, P., Wood, A. and McKenzie, A., 2010.
+Conservation Assessment of Priority Non-Fish Marine Threatened Species
+in the NT: Project no. 2007 / 134. Monitoring and assessment of inshore
+dolphins in Coburg Marine Park (Garig Gunak Barlu National Park), Final
+Report. Call no. 599.33, Palmerston, Northern Territory.
+
+~
+
+Parra, G. J. 2006. Resource partitioning in sympatric delphinids: space
+use and habitat preferences of Australian snubfin and Indo-Pacific
+humpback dolphins. Journal of Animal Ecology, 75, 862-874.
+
+~
+
+Parra, G. J., Corkeron, P. J. \& Arnold, P. 2011. Grouping and
+fission--fusion dynamics in Australian snubfin and Indo-Pacific humpback
+dolphins. Animal Behaviour.
+
+~
+
+Parra, G. J., Corkeron, P. J. \& Marsh, H. 2006a. Population sizes, site
+fidelity and residence patterns of Australian snubfin and Indo-Pacific
+humback dolphins: Implications for conservation. Biological
+Conservation, 129, 167-180.
+
+~
+
+Parra, G., Schick, R. \& Corkeron, P. J. 2006b. Spatial distribution and
+environmental correlates of Australian snubfin and Indo-Pacific humpback
+dolphins. Ecography, 29, 396-406.
+
+~
+
+Smith, B. D. and Reeves, R. R. 2000. Methods for studying Freshwater
+Cetaceans. Survey Methods for Population Assessment of Asian River
+Dolphins. In Biology and Conservation of Freshwater Cetaceans in Asia.
+IUCN Species Survival Commission, Occasional Paper of the IUCN Species
+Survival Commission No. 23. Pp. 97 - 115.
+
+~
+
+Thiele, D. 2005. Report of an opportunistic survey for Irrawaddy
+dolphins, \emph{Orcaella brevirostris}, off the Kimberley coast,
+northwest Australia. Working paper presented at the 57th International
+Whaling Commission annual meeting, Small Cetaceans Scientific Committee
+(IWC/SC57/SM2), Ulsan, Republic of Korea.
+
+Thiele, D. 2008. Ecology of inshore and riverine dolphin species in
+northwestern Australian waters. Kimberley coast Orcaella project.
+Summary of current knowledge -- EPBC listed inshore dolphin species on
+the Kimberley Coast. Unpublished background report to DSEWPaC.
+
+Thiele, D. 2010a. Collision course: snubfin dolphin injuries in Roebuck
+Bay. p. 15 pp.: WWF - Australia.
+
+Thiele, D. 2010b. Iconic marine wildlife surveys. Unpublished final
+report to WWF.
+
+Torres, L. G., Reid, A. J., Halpin, P. 2008. Fine scale habitat modeling
+of a top marine predator: Do prey data improve predictive capacity?
+Ecological Applications 18 (7): 1702 -- 1717.
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+The project will analyse existing data gathered from both dedicated and
+opportunistic vessel-based surveys conducted in the Kimberley between
+2004 and 2012.~
+
+~
+
+(i) \textbf{ROEBUCK BAY}-Abundance Estimation
+
+\emph{~}
+
+\textbf{Survey design \& methods:}
+
+Dedicated boat-based surveys have been conducted in Roebuck Bay:
+
+in 2007 (April/May), 2008 (July \& December) using a standard zig zag
+line transect design (Map 1); and
+
+In 2009 (May-Sept) with a total of 28 survey days completed using a
+standardised grid survey method (Map 2).
+
+~
+
+The 2009 survey design used multiple grids to achieve consistent
+sampling effort across the full range of nearshore environments in the
+bay and regular parallel sweeps along the inshore 1 metre depth contour
+(NB: 1 metre depth contour changes with the tide) to ensure that the
+grid surveys were not missing significant number of dolphins between
+grids. Once a full set of the grids was completed a parallel sweep would
+follow. The order of grids was randomly selected each day but dependent
+on sea conditions in the survey area (Roebuck Bay). Abundance estimates
+will be calculated for each year (season) but inter-annual comparisons
+will not be made due to the difference in sampling effort and survey
+design.
+
+~
+
+Map 1- Survey design for Roebuck Bay, Kimberley WA depicting grid of
+transect lines used in 2007 and 2008.
+
+~
+
+Map 2- Survey design for Roebuck Bay, Kimberley WA depicting grid of
+transect lines used in 2009.
+
+~
+
+Observers searched ahead of the vessel (following line transect methods
+(Buckland, 2001) and one observer checked behind the vessel. When a
+sighting occurred the vessel was stopped and the distance and angle to
+the dolphin group was recorded, along with the GPS position of the
+vessel, and measurements of water depth, sea surface temperature were
+taken The dolphin group was approached for the purpose of
+photo-identification if they were approachable and did not behave
+evasively. The aim was to photograph all individuals in a group without
+compromising the survey of transect lines and grids and avoiding
+changing the distribution of the animals by causing responsive movement
+to the vessel. The grid was repeated if photo-identification occurred
+over a protracted period.
+
+~
+
+In total, 387 nautical miles of transect lines were covered on effort
+resulting in snubfin sightings 64/217 (group/individuals).
+
+Total effort (includes grid transects and transits between transect
+lines (off-effort)) 903nautical miles; snubfin sightings 139/480.
+
+\textbf{~}
+
+\textbf{Abundance estimation methods:}
+
+~
+
+\emph{Distance sampling:}
+
+Public domain programme DISTANCE v6.0 will be used to generate absolute
+abundance estimates (accounting for detection probability) for snubfin
+dolphins within the Roebuck Bay region, based on visual sightings
+recorded during the vessel-based surveys described above.
+
+The computer software programmes DISTANCE (PB), R, and ArcGIS (PB\&DT)
+will be used for the density and abundance estimate and broad-scale
+spatial analysis.
+
+~
+
+\emph{Mark-recapture:}
+
+Photo-ID images for each individual dolphin with the accompanying survey
+and spatial information will need to be migrated into the DolFin
+database. This database was developed for Department of Land and
+Resource Management, NT and is currently used for all dolphin photo id
+work.~~ CP and an experienced Research Assistant working with this team
+(AP) will be contracted to quality-check the photo-identification images
+for and enter them into the database. AP and DT will work
+collaboratively to ensure the quality of the data and a successful
+migration into the new database.
+
+~
+
+To estimate abundance, the computer software programme MARK (HR\&LB)
+will be used with model types such as POPAN or Robust Design. The
+sighting history files will need to be constructed from the DolFin
+database in a binary (0,1) format that can be read by the mark-recapture
+software MARK. These sighting histories will indicate the presence or
+absence of an individual and will likely be compiled over several
+temporal scales (seasons and years). These binary data will be read into
+MARK and the models parameterised based on relevant survey design and
+sampling regime assumptions. Multiple models will be fitted and ranked
+to achieve the best abundance estimate with corresponding confidence
+intervals.
+
+~
+
+The resulting abundance estimates and confidence intervals will be
+compared. This comparison will yield insights into the feasibility and
+robustness of each method as a candidate technique for the future
+monitoring of snubfin populations.
+
+~
+
+(ii) \textbf{KIMBERLEY COAST}- Mapping distribution
+
+\textbf{~}
+
+\textbf{Survey design \& methods}
+
+Two broad-scale surveys were conducted by DT (2004 \& 2006) along the
+Kimberley coast:
+
+~
+
+The 2004 survey (Darwin to Broome 14 days) was conducted during
+September (4\textsuperscript{th} -- 18th) aboard a yacht, RV Pelican.
+The purpose of the survey was to investigate the presence of snubfin
+dolphins in riverine and estuarine habitats. Survey effort was conducted
+throughout all daylight hours when the vessel was motoring or sailing
+unless weather conditions were poor. DT, D. Cook and others on the
+vessel maintained a constant watch 180º ahead of the vessel from the
+bow, side bridge and upper bridge platforms.
+
+~
+
+All effort, sighting, habitat, position, weather and associated data
+(including evidence of human activities e.g. fishing vessels, tourist
+vessels, pearl farming etc.) were recorded using the IFAW LOGGER
+software program. Group size estimates for cetaceans included best, high
+and low estimates. Sightings of all wildlife were recorded, and images
+of habitats were regularly taken. Cetaceans, turtles, sea snakes and
+dugong were recorded individually, and seabirds were recorded by species
+and flock size
+
+~
+
+Photographs of cetacean sightings were collected wherever possible.
+Images were also collected for human activities (i.e. fishing vessels,
+pearl farms, tourist vessels) and as records of habitat along river and
+estuarine transits. When sightings of Irrawaddy dolphins were made, the
+vessel would slow or stop or move closer in order to confirm
+identification at slow speed. Although the vessel did maintain
+position/distance in relation to groups of dolphins until positive
+identification was made, animals were not directly followed or pursued
+at any time.
+
+~
+
+Groups of snubfin dolphins (7/36) were found in nearshore waters near
+Cape Londonderry, Anjo Peninsula, Vansittart Bay, Augustus Island and
+Roebuck Bay in Broome. No groups were found in the rivers surveyed (the
+Berkeley River, King George River and Sampson Inlet). Survey effort
+125h; snubfin sightings 7/36.
+
+~
+
+The 2006 survey (Darwin to Broome 14 days) was conducted during May
+(14\textsuperscript{th} -- 28th) aboard a mackerel boat, the RV Rachel.
+The main vessel was supported by a small vessel, used to survey in
+shallow estuarine areas and for close work (e.g. photo-ID, biopsy). The
+purpose of the survey was to investigate the presence of snubfin
+dolphins in riverine and estuarine habitats and to obtain photo-ID
+records, acoustic recordings and biopsies. Search effort on the main
+vessel was conducted from the main deck in front \& sides of the bridge.
+Searching was conducted by two to five observers (most often four
+observers) using the naked eye and 7x50 Fujinon binoculars. Additional
+survey protocols were as noted above (2004 survey).
+
+Survey effort 125h1m 1m; snubfin sightings 15/88
+
+~
+
+A series of surveys with six coastal ranger groups were also conducted
+between August 2009 and June 2012. The surveys covered two broad regions
+\& the Prince Regent River:
+
+~
+
+(i) north and south of Kalumburu (Napier Broome Bay including the
+Drysdale River); and
+
+(ii) the region from Talbot Bay through to King Sound.
+
+Most surveys were supported by a large vessel while utilising small
+boats for survey transects during the day.~ Travelling more than 4200km
+in boats, a total of 392 hours of survey effort was spent looking for
+snubfin and Indo-Pacific Humpback dolphins as the focus species, but
+also recording a wide range of other species as they were encountered.
+~Total snubfin dolphin sightings:7/15.
+
+~
+
+\textbf{ARC GIS MAPPING METHODS}
+
+The information from these surveys will be used for distribution
+analysis but not for abundance estimation. Maps will be produced using
+ArcGIS that depict extent of occurrence and area of occupancy using
+existing data from scientific surveys and traditional knowledge
+contributed by Indigenous communities. GIS mapping the distribution
+(extent of occurrence and area of occupancy) using existing sighting
+data from surveyed areas of the Kimberley.~
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Data management}
+
+Data will be maintained at the Marine Science Program, Science and
+Conservation Division, and stored on the DPaW Science and Conservation
+Division server (T drive) in DolFIN database, an oracle database
+acquired from the Northern Territory Government.
+
+~
+
+~~~~~~~~~ Hard copies of the any reports/publications will be held at
+the following locations:
+
+~~~~~~~~~ DPaW Kimberley Region,
+
+~~~~~~~~~ Marine Science Program, Science Division, DPaW, 17 Dick Perry
+Avenue, WA, 6151
+
+~~~~~~~~~ Conservation Library, Science Division, DPaW, 17 Dick Perry
+Avenue, WA, 6151
+
+~
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist &  &  & \\
+
+
+
+FTE Technical &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime & 40,204 &  & \\
+
+
+
+Overheads &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel & 10,250 &  & \\
+
+
+
+Other & 10,900 &  & \\
+
+
+
+Total & 61354 &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

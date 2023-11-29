@@ -1,0 +1,131 @@
+
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage[colorlinks=true,pdftitle=doc\_studentreport.pdf
+,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+\renewcommand{\familydefault}{\sfdefault}
+
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/studentreport/1449/}{Progress Report 2013-15 (FY 2014-2015)} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ June 24, 2015, 3:37 p.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+
+\section*{Progress Report}
+This project focused on investigating the correlation of the
+trypanosomes found in the blood of woylies and the overall population
+decline of the host. Trypanosomes in the blood of the woylie can be
+grouped into three morphologically distinct trypomastigote forms,
+encompassing two different species; two phenotypes of \emph{Trypanosoma
+copemani} and one form of the smaller, \emph{Trypanosoma vegrandis} sp.
+\emph{nov}. The prevalence of parasitic infections varied among the
+study sites, with contrasting trypanosome prevalence observed from the
+two declining indigenous populations within the Upper Warren region in
+south-west Western Australia. Parasitaemia associated with trypanosome
+infection in the peripheral blood of the woylie exhibited a temporal
+decline as the infection progressed, being indicative of the infection
+transitioning between the acute and chronic phase. \emph{Trypanosoma
+copemani} also exhibits a predilection for certain tissues of the host,
+where they can display \emph{Trypanosoma} cruzi-like pathology at the
+time of autopsy. It appears that the chronic intracellular association
+of trypanosomes with the internal organs of the woylie may be
+potentially pathogenic and adversely affect the fitness and coordination
+of the woylie, making them more susceptible to predation, and
+contributing to the overall decline. Three scientific papers have been
+published, and one is in preparation.
+
+
+
+
+\clearpage
+
+
+
+\end{document}

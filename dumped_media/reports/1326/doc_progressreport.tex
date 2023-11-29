@@ -1,0 +1,229 @@
+
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage[colorlinks=true,pdftitle=doc\_progressreport.pdf
+,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+\renewcommand{\familydefault}{\sfdefault}
+
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1326/}{Progress Report 2013-5 (FY 2014-2015)} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ June 29, 2015, 9:38 a.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+
+\section*{Context Summary}
+The use of camera traps is often regarded as an effective tool for fauna
+survey and monitoring with the assumption that they provide high
+quality, cost effective data. However, our understanding of appropriate
+methods for general survey and species detection, particularly in the
+small to medium sized range of mammals, remains poorly understood.
+Within Parks and Wildlife use of camera traps to date has usually been
+restricted to simple species inventories or behavioural studies and
+beyond this there has been little assessment of deployment methods or
+appropriate analytical techniques. This has sometimes led to erroneous
+conclusions being derived from captured images. Camera traps have the
+potential to offer a comparatively reliable and relatively unbiased
+method for monitoring medium to large native and introduced mammal
+species throughout the state, including a number of significant cryptic
+species that are currently not incorporated under the Western Shield
+fauna monitoring program. However, research is required to validate and
+test different survey designs (temporal and spatial components) and
+methods of deploying camera traps, and to interpret the results in a
+meaningful way. In particular, work is needed to determine how best to
+use remote cameras to provide rigorous data on species detectability,
+and species richness and density.
+
+
+
+\section*{Aims Summary}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Establish suitable methodology for use of camera traps to estimate the
+  presence and relative abundances of native and introduced mammals
+  species in the south-west of Western Australia.
+\item
+  Investigate the effectiveness of baited (active) and un-baited
+  (passive) cameras sets to inventory targeted species.
+\item
+  Investigate and assess the most appropriate methods of image analysis
+  and data storage.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Completed two camera trap trials in Dryandra Woodland and one in
+  Tutanning. Results indicate that camera trapping provides consistent,
+  reliable and comparable species accumulation and detection rates.
+\item
+  Tutanning camera trap trial confirmed that woylies are no longer at
+  detectable levels in the reserve.
+\item
+  Further analysis of bait verses un-baited trial data indicates decline
+  in detection rates at baited cameras over time.
+\item
+  Completed analysis of species relative abundance from cameras deployed
+  during a known removal event (translocation of woylies to Perup),
+  which showed the method is sensitive enough to detect changes in
+  relative abundance of a species.
+\item
+  Quantified required effort to detect all species (mammals) within
+  Dryandra, which can be extrapolated to other reserves.
+\item
+  Provided advice and methodologies to other sections within Parks and
+  Wildlife, and other Tertiary institutions and NGO's.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Camera traps appear to be an effective tool in detecting a suite of
+  species currently not adequately monitored by the Western Shield
+  monitoring program. Their use should be considered in the Western
+  Shield monitoring program, either to complement the trapping program,
+  or as a separate fauna monitoring tool.
+\item
+  Recommend that the Reconyx HC600 series cameras are adopted as the
+  minimum standard of camera to be used across the department, but
+  preference should be for the PC900 camera due to its reliability and
+  greater functionality, including its operation over a wider
+  temperature range.
+\item
+  The open source Access database, Camera Base 1.6
+  (\href{http://www.atrium-biodiversity.org/tools/camerabase/}{http://www.atrium-biodiversity.org/tools/camerabase/}),
+  be adopted (with some minor modifications) as the standard method of
+  capturing and storing camera trap data. Camera Base 1.6 to be used in
+  conjunction with an image processing software such as Faststone Image
+  Viewer.
+\item
+  A standardised mounting method that is cohesive and repeatable between
+  sites should be adopted for monitoring purposes.
+\item
+  Camera traps consistently detect species that are not currently
+  censused using most other standard detection/monitoring methods, and
+  provide an effective mounting method for these species.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Develop a number of standard Access queries to better analyse outputs
+  from Camera Base, and provide this to Regional staff using Camera
+  Base.
+\item
+  Validate camera traps against other traditional methods of fauna
+  monitoring, such as cage trapping or sand plots.
+\item
+  Investigate methods to use camera traps to qualitatively and
+  quantitatively monitor invasive species.
+\item
+  Investigate the sensitivity of camera-trap data to detect changes in
+  relative abundance and occupancy of targeted species over time and
+  season.
+\end{itemize}
+
+
+
+
+\clearpage
+
+
+
+\end{document}

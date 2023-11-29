@@ -1,0 +1,4 @@
+f_table_catalog,f_table_schema,f_table_name,f_geometry_column,coord_dimension,srid,type
+sdis,public,pythia_area,mpoly,2,4326,MULTIPOLYGON
+sdis,public,pythia_district,mpoly,2,4326,MULTIPOLYGON
+sdis,public,pythia_region,mpoly,2,4326,MULTIPOLYGON

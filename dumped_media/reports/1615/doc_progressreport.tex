@@ -1,0 +1,335 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2012-034 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1615/}{Progress Report SP 2012-034
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Tue, 5 Jul 2016 11:32:37 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2012-034
+}
+\title{Genetic assessment for conservation of rare and threatened fauna
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Kym Ottewell
+\\
+\textbf{Data Custodian} & Kym Ottewell
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 5, 2016, 11:32 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 5, 2016, 11:32 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Genetic assessment for conservation of rare and threatened fauna
+}
+
+K Ottewell, M Byrne, K Morris, D Coates
+
+
+\section*{Context}
+Genetic analysis of threatened species can provide important information
+to support and guide conservation management. In particular, genetic
+tools can be used to aid resolution of the taxonomic identity of species
+to determine whether they have appropriate conservation listing. At a
+population level, analysis of the genetic diversity present in extant
+populations provides information on genetic `health' of threatened
+species and how this may be maintained or improved through management
+actions, leading to long-term positive conservation outcomes.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Resolve taxonomic boundaries of Western Australian bandicoots
+  (\emph{Isoodon} sp.), particularly \emph{I. auratus} and \emph{I.
+  obesulus} and their subspecies, to determine appropriate conservation
+  rankings.
+\item
+  In collaboration with Brian Chambers (UWA) investigate the role of
+  fauna underpasses in providing connectivity between quenda (\emph{I.
+  obesulus} ssp. \emph{fusciventer}) populations impacted by main road
+  construction.
+\item
+  In collaboration with Mark Eldridge (Australian Museum), assess the
+  genetic diversity and genetic structure of extant populations of
+  black-flanked rock wallaby (\emph{Petrogale lateralis} ssp.
+  \emph{lateralis}) to inform future conservation management, including
+  translocations.
+\item
+  Use of DNA barcoding to confirm species identifications.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  DNA sequencing of \emph{I. obesulus}, \emph{I. auratus}, \emph{I.
+  macrourus} and their subspecies using mitochondrial and nuclear
+  markers for taxonomic analysis~has been undertaken and a preliminary
+  report written and submitted. Further analyses using a more powerful
+  genomics approach are required to fully resolve species boundaries
+  between \emph{I. obesulus} and \emph{I. auratus;}however, a population
+  genetic analysis is currently underway to designate `management units'
+  in Western Australian bandicoots.
+\item
+  Population viability analyses of urban quenda populations impacted by
+  road construction have been completed exploring the long-term
+  trajectory of populations with and without fauna underpasses, and with
+  an additional range of threats (fire, urban expansion, inbreeding). A
+  manuscript has been submitted~and a further manuscript documenting
+  quenda mating patterns in remnant populations is being prepared.
+\item
+  Preliminary data analysis of genetic diversity and structure of
+  wheatbelt and mid-north rock wallaby populations has been completed.
+\item
+  DNA barcoding was used to identify a stranded dolphin carcass as a
+  Australian snubfin dolphin hybrid, most likely with a Indo-Pacific
+  humpback dolphin.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  An Australia-wide phylogenetic assessment of \emph{I. obesulus} and
+  related species/subspecies has enabled a more informed evaluation of~
+  taxonomic boundaries, showing that \emph{I. o. obesulus} is restricted
+  to eastern and southeastern Australia and identifying a range
+  extension of \emph{I. o. fusciventer} (Western Australia) into South
+  Australia. The threat status is currently being evaluated at the
+  Commonwealth level for the eastern and Tasmanian sub-species of
+  \emph{I. obesulus}.
+\item
+  Genetic and population viability analysis showed that quenda
+  populations in small, isolated patches of remnant vegetation in the
+  urban matrix are vulnerable to genetic erosion, inbreeding and
+  population decline, particularly when connectivity within (fauna
+  underpasses) or between (increased urbanisation) habitat patches is
+  inhibited. The impact of fauna underpasses on population persistence
+  is somewhat context-specific, but extinction risks are predicted to
+  increase in populations without fauna underpasses.
+\item
+  Genetic information on rock wallaby populations will enable evaluation
+  of the current status of nearly all extant populations, including the
+  assessment of the effectiveness of past management interventions, and
+  will contribute to planning of future conservation actions, including
+  translocations. ~
+\item
+  The presence of rare dolphin hybrids in Australian waters contributes
+  to our knowledge of hybridization in the marine environment.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Continue phylogenomic analysis of the genus \emph{Isoodon} to formally
+  resolve the species boundaries across the group.
+\item
+  Complete manuscripts of urban quenda populations (population viability
+  analysis and mating systems, including parentage assignment of
+  individuals using fauna underpasses).
+\item
+  Comparison of historic and contemporary population genetics of
+  wheatbelt rock wallaby populations to monitor genetic change and
+  investigate impact of past management actions. Develop population
+  viability analyses to predict future trajectory of threatened
+  populations.
+\item
+  Utilize DNA barcoding to assist in fauna identifications when
+  required.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

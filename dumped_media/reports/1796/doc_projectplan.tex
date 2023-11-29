@@ -1,0 +1,886 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Project Plan SP 2017-001}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2017-001
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/projectplan/1796/}{Project Plan SP 2017-001}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Tue, 6 Oct 2020 12:37:21 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2017-001
+}
+\title{Understanding and reducing python predation of the endangered Gilbert's
+potoroo
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & David Pearson
+\\
+\textbf{Data Custodian} & David Pearson
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Oct. 6, 2020, 12:37 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Oct. 6, 2020, 12:37 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Understanding and reducing python predation of the endangered Gilbert's
+potoroo
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Animal Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & David Pearson & 0.1\\
+
+Technical Officer & Stephanie Hill & 0.1\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+Gilbert's Potoroo SP 1996-008
+
+
+\subsection*{Proposed period of the project}
+March 27, 2017 -- June 30, 2019
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+Carpet Pythons are predators of a range of threatened mammal fauna
+(Pearson 2002, Pearson et al. 2002), including the endangered Gilbert's
+Potoroo (draft Recovery Plan, Department of Parks and Wildlife 2016).
+Python predation, especially when populations are small or under
+pressure from drought or other predators, can potentially reduce adult
+survival as well as curtailing recruitment. This is particularly
+problematic when threatened mammal populations are highly confined by
+availability of habitat or if housed in enclosures for breeding or
+conservation. Current ``predator proof'' fences used to protect WA
+threatened mammal fauna, while effective at reducing or eliminating
+predation by foxes and feral cats, are likely to have little or no
+effect on levels of python predation.
+
+The draft Gilbert's Potoroo Recovery Plan (Department of Parks and
+Wildlife 2016) identified python predation as a significant threat to
+the growth of the potoroo population in the Waychinicup NP enclosure. A
+total of 49 potoroos have been placed in this enclosure since 2010 and
+there have been 8 known python predation events of potoroos with tail
+radio-transmitters. Since only a proportion of potoroos are fitted with
+tail transmitters at any time, the number actually taken by pythons is
+likely to be much higher. Tail transmitters typically only stay attached
+to the tail for 4-6 weeks.
+
+The estimated size of the potoroo population inside the enclosure in May
+2016 was just 12 individuals. In a recent review of options following
+the Two Peoples Bay fire, it was stated that without management
+intervention, python predation was likely to cause their extinction
+within the enclosure (Tony Friend, options paper, December 2015). It
+appears that python predation is limiting population growth and hence
+the production of progeny for translocation to other sites.
+
+The potoroo population at Two Peoples Bay was believed to be relatively
+stable between 2001 and 2012 (31 animals in 2008), but then declined to
+around one-third of its previous level (9 in March 2014, Friend 2016).
+Low rainfall rather than python predation was probably the main cause,
+but nonetheless predation pressure on a low population will stop or slow
+recruitment and recovery. Despite consistent production of young
+potoroos, the Waychinicup population has not shown strong growth. The
+low survival of founders compared with the Bald Island translocation,
+together with the generally good condition of individuals, indicates
+that a significant level of predation is likely to be a major
+contributing factor to the lack of population growth (Department of
+Parks and Wildlife 2016)..
+
+Carpet Python Biology
+
+Carpet pythons are known predators of a range of native mammals up to
+the size of tammar wallabies (around 3 kg). They hunt primarily by
+ambush and since prey are swallowed whole, there is pronounced niche
+partitioning between juvenile and adult pythons, and in some areas
+between the sexes (Pearson et al. 2002a). Carpet pythons typically hunt
+in the warmer months to ensure timely digestion of prey and may cease to
+eat and remain inactive for many months in areas with cool winters such
+as Dryandra (Pearson, Shine and Williams 2005). Prey are taken by large
+pythons on the ground, while juveniles hunt on the ground as well as
+from raised positions in shrubs or even in the canopy of trees. However
+observations at Waychinicup indicate that Gilbert's Potoroos are taken
+by pythons all year round (Tony Friend, pers. comm.), which suggests
+that pythons are able to maintain warm enough body temperatures at
+Waychinicup to digest these relatively small meals (\textless{} 1kg).\\
+Telemetered pythons typically move around 100m a week in the summer
+season between ambush sites at Garden Island and Dryandra. Home ranges
+averaged around 17 ha; however adult males travel widely in the breeding
+season to locate receptive females. Exclusive territories are not
+apparent, with adults and juveniles having home ranges that are
+overlapping (Pearson et al. 2005). Growth rates are strongly driven by
+prey availability and there is pronounced sexual size dimorphism with
+males rarely exceeding 1.5 m in length and 1 kg in weight, while adult
+females can reach up to 2.5 m and 4 kg (Pearson, Shine and Williams
+2002b).
+
+Python predation risk to Potoroos
+
+The relatively small size of Gilbert's potoroos means that they are
+vulnerable to predation from a range of python cohorts -- sub-adult and
+adult females and adult males. Predation is most likely in summer months
+when warmer temperatures allow more frequent feeding and growth. Large
+adult female pythons involved in reproduction do not to feed during egg
+development and incubation; this is likely to constitute around one
+quarter to one third of the adult female population in any given summer.
+However, once egg incubation is completed in March, these females have
+lost up to 50\% of their post-oviposition weight, are hungry and will
+attempt to rapidly regain weight by feeding on whatever prey are
+available.
+
+The home range is relatively small and non-exclusive, so densities of
+carpet pythons may be high if there is suitable habitat with abundant
+prey. Inside the 380 ha Waychinicup enclosure there is likely to be a
+substantial number of resident pythons, with some inflow and outflow by
+juveniles establishing new home ranges, as well as adults looking for
+prey; and in the breeding season, males searching for receptive females.
+
+An options paper for the control and removal of pythons in the
+Waychinicup enclosure was prepared by Pearson and Friend (2016). It
+listed fencing, the removal of resident pythons by hand, trapping
+pythons and using radio-telemetry of adult males in the breeding season
+to locate female pythons. Retro-fitting the existing Waychinicup fence
+to make it python proof was considered by senior staff to be too
+expensive, so this proposal focuses on the location and removal of
+pythons within and around the enclosure to reduce the level of python
+predation on Gilbert's Potoroo.
+
+In addition, it may be possible to reduce python predation on the
+existing Mt Gardner population as it recovers from the November 2015
+bushfire. In this area, the fitting of radio-transmitters to male
+pythons could assist in the location of adult females which are likely
+to be the most significant cohort preying on potoroos.
+
+~
+
+
+
+
+\subsection*{Aims}
+
+To determine the most effective ways to locate, trap and remove carpet
+pythons from in and and around Gilbert's Potoroo populations and so
+significantly reduce the current level of python predation.
+
+~
+
+
+
+
+\subsection*{Expected outcome}
+
+Reduced python predation of the critically endangered Gilbert's Potoroo,
+to prevent its extinction within the Waychinicup enclosure and so that
+recruitment is improved and more potoroos are available for
+translocations to other sites.\\
+Since carpet pythons are important predators of a number of threatened
+mammals, the project would have applications beyond potoroo conservation
+and could assist with reducing python predation in other enclosures and
+even in field situations with wild populations if required.
+
+
+
+
+\subsection*{Knowledge transfer}
+
+Conservation managers and planners responsible for managing small
+populations of threatened species that may be threatened by reptile
+predation. This would include Parks and Wildlife operational staff and
+managers, but also be potentially useful in other jurisdictions.~
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+Application for animal ethics approval January 2017- Completed, animal
+ethics approved.
+
+2. Acquistion of python transmitters- underway, transmitters to arrive
+by February 2017
+
+3. Capture and implantation of male pythons- commencing February 2017
+and ongoing for life of project
+
+4. Briefing and training of South Coast field staff and Science staff-
+February 2017
+
+5. Design and production of python trap boxes- completed by April 2017
+
+6. Deployment of trap boxes at Waychinicup and Garden Island and
+monitoring effectiveness- April 2017
+
+7. Trap box monitoring- April to June; assessment of effectiveness by
+July 2017
+
+8. Radio-telemetry monitoring and capture of pythons; ongoing for
+project, but intensified during the breeding season, November to
+December
+
+9. Spring trap trials from October to December; assessment of
+effectiveness by January 2018
+
+10. Annual report January 2018 summarising the first year of project's
+operation; annual animal ethics report
+
+11. Continuing trap tests and modifications if required at Waychinicup
+and Garden Island January-March 2018.
+
+12. Continuing occasional radio-telemetry of males- ongoing
+
+13. Intensified radio-tracking of male pythons to locate female pythons-
+November-December 2018.
+
+14. Annual report January 2019, summarising second year of project;
+annual animal ethics report.
+
+15. Continuation of trapping of pythons if effective trap developed and
+continued radio-telemetry of males if successful in locating females.
+
+16. Assessment of the project and final report January 2020.
+
+17. Preparation of a refereed scientific papers on trap design for
+pythons, the characteristics of python predation on Gilbert's Potoroos,
+natural history of pythons on the south coast WA including breeding
+observations and diet; implications for the management of other
+threatened species impacted by native predators. Drafts complete by June
+2021.
+
+
+
+
+\subsection*{References}
+
+Courtenay, J. and Friend, T (2004). Gilbert's Potoroo (Potorous
+gilberti) Recovery Plan. Wildlife Management Program No. 32, Department
+of Conservation and Land Management, Perth.
+
+Department of Parks and Wildlife (2016 draft). Gilbert's Potoroo
+(Potorous gilberti) Recovery Plan. Wildlife Management Program (number
+not yet allocated). Department of Parks and Wildlife, Perth.
+
+Friend, T. (2016). Translocation Proposal- Gilbert's Potoroo (Potorous
+gilbertii). Bald Island and Two Peoples Bay to Michaelmas Island
+February 2016. Department of Parks and Wildlife, Science Division
+Albany.
+
+Friend, T. and Button, T. (2016). Predation of Gilbert's Potoroos by
+carpet pythons. Unpublished report, Department of Parks and Wildlife,
+Perth.
+
+Pearson, D. (2002). Ecology and Conservation of South-western Carpet
+Pythons (Morelia spilota imbricata). PhD thesis, University of Sydney
+
+Pearson, D. and Friend, T. (2016). Reducing predation of Gilbert's
+Potoroos by Carpet Pythons inside the Waychinicup enclosure. Unpublished
+internal report, Department of Parks and Wildlife.
+
+Pearson, D., Shine, R. and Williams, A. (2002a). Sex-specific niche
+partitioning and sexual size dimorphism in Australian pythons (Morelia
+spilota imbricata). Biological Journal of the Linnean Society 77:
+113-125.
+
+Pearson, D., Shine, R. and Williams, A.(2002b). Geographic variation in
+sexual size dimorphism within a single snake species (Morelia spilota,
+Pythonidae). Oecologia 131: 418-426.
+
+Pearson, D., Shine, R. and Williams, A. (2005). Spatial ecology of a
+threatened python (Morelia spilota imbricata) and the effects of
+anthropogenic habitat change. Austral Ecology 30: 261-274.
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+This project is essentially an adaptive research and management
+initiative to reduce python predation of Gilbert's Potoroos as quickly
+as possible. Several methods will be investigated and their
+effectiveness determined.
+
+Searching and hand capture- to be undertaken by Albany-based Science and
+Regional staff during normal operations within the enclosure. Specific
+targeted searches will be undertaken during the spring and summer months
+by staff and volunteers (predominantly amateur herpetologists).\\
+Body parameters will be recorded of captured pythons (SVL, gape size)
+and the contents of the lower intestinal tract gently manipulated to
+collect faecal samples. These will be analysed using hair, claws and
+bone in the pellets and compared with python characteristics. Pythons
+will then be released \textgreater{} 3 km from the enclosure.
+
+Trap boxes using a heat pad and animal odour to attact pythons- A small
+portable box design will be developed with a solar-powered heat pad. Ten
+of these will be deployed in Waychinicup and another ten on Garden
+Island and their effectiveness determine by regular checks by staff and
+remote cameras. Designs may be modified as required and then tested
+against earlier designs in which cause simple visitation metrics will be
+used for Chi-squared testing.
+
+Radio-telemetry of male pythons to locate females- Male pythons will be
+implanted with Holohil transmitters (life 3 months-2 years depending on
+python size) and tracked intensively during the breeding season to
+locate adult females. Radio-telemetry data will be stored in Access
+tables and imported into Ranges to examine daily movement rates and
+mating ranges of adult males. These data will be compared with existing
+data for Garden Island and Dryandra via Chi-squared tests.
+
+~
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+granted
+
+
+
+
+\subsection*{Data management}
+
+Python data and radio-telemetry data will be stored in Access and Excel
+and basic statistics and graph drawn in Excel. The program 'Ranges' will
+be used to analyse telemetry data and map home ranges and movement
+patterns.
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist & 11000 & 11000 & 11000\\
+
+
+
+FTE Technical & 14000 & 14000 & 14000\\
+
+
+
+Equipment & 10000 & 4000 & 4000\\
+
+
+
+Vehicle & 6000 & 6000 & 6000\\
+
+
+
+Travel & 3000 & 3000 & 3000\\
+
+
+
+Other (volunteer costs) & 1000 & 2000 & 2000\\
+
+
+
+Total & 45000 & 40000 & 40000\\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime &  &  & \\
+
+
+
+Overheads &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

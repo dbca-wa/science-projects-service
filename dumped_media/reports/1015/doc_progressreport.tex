@@ -1,0 +1,329 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2012-023 (FY 2012-2013)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1015/}{Progress Report SP 2012-023
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Tue, 2 Aug 2016 14:41:36 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2012-023
+}
+\title{Feral cat control and numbat recovery in Dryandra woodland and other
+sites
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Tony Friend
+\\
+\textbf{Data Custodian} & 
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Aug. 2, 2016, 2:41 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Aug. 2, 2016, 2:41 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{requiredbg}
+    \textbf{Program Leader} & 
+    \textcolor{required}{ required}\\
+
+%\rowcolor{requiredbg}
+    \textbf{Directorate} & 
+    \textcolor{required}{ required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Feral cat control and numbat recovery in Dryandra woodland and other
+sites
+}
+
+A Friend
+
+
+\section*{Context}
+The Dryandra numbat population showed a strong positive response to fox
+control during the 1980s and early 1990s, but then declined in 1993 and
+has since remained at low levels. Numbers dropped even further between
+2006 and 2009 despite continued fox baiting. In response to evidence of
+cat predation on radio-collared numbats (2008-09) and Nicky Marlow's
+finding that cats are responsible for 60\% of woylie deaths at Dryandra,
+an intensive study of predation on numbats and woylies there has been
+undertaken under this project.
+
+This project also investigates the effect of cat baiting using
+\emph{Eradicat}® baits on GPS-collared cats, rates of mortality amongst
+woylies and numbats and their numbers in Dryandra Woodland. Cat-baiting
+efficacy is also being investigated at Tutanning NR. Part of this study
+is an assessment of the risk posed to other native mammals, particularly
+dasyurids, in wheatbelt reserves, by the use of Eradicat® baits.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  To define the risks of using Eradicat baits to non-target species in
+  Dryandra Woodland, particularly to threatened species like the
+  red-tailed phascogale.
+\item
+  To implement cat control by baiting at Dryandra and measure the effect
+  on numbat, woylie, cat and fox population numbers and on causes of
+  death in numbats and woylies.
+\item
+  To determine the effect of ceasing fox control on feral cat movements
+  and survival at Dragon Rocks NR.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Ten numbats are currently radio-collared in Dryandra Woodland. They
+  are checked at least once a fortnight so that predation events can be
+  quickly verified.
+\item
+  Ten cats fitted with GPS collars at Dryandra (five) and Tutanning
+  (five) were recovered in June and July 2013 and the data retrieved.
+  Five more cats were collared in Tutanning in April 2014, prior to
+  baiting in May. Three more cats were collared in Dryandra in May 2014,
+  prior to the baiting, carried out in late May.
+\item
+  Eradicat® baits were distributed in Dryandra and Tutanning in groups
+  of 50 baits spaced on a 1 km grid, in line with aerial baiting
+  protocols, and also along boundary firebreaks at 200 m intervals.
+  Seven of the eight cats were still alive two weeks after the baiting,
+  and the other had been killed by a cow.
+\item
+  Sensor cameras have been deployed on the track system at Dryandra and
+  Tutanning, and activated before and after Eradicat® baiting events to
+  measure changes in cat and fox activity.
+\item
+  Four chuditch were collared in Dryandra, and nine red-tailed
+  phascogales were collared in Tutanning prior to baiting at each site.
+\item
+  Twelve cats were fitted with GPS collars in June 2013 at Dragon Rocks
+  for six months while fox control was suspended in half of the reserve.
+  The data from 10 of the collars has been retrieved. Three cats died
+  before the end of the experimental period.
+\item
+  Sensor cameras were deployed on two 3 x 6 grids with 2km spacing in
+  Dragon Rock NR, one in the northern half and one in the south and run
+  before and after the suspension of baiting in the north of the
+  reserve. An array of cameras at 3 km spacing on tracks was also
+  deployed before and after the suspension.
+\end{itemize}
+
+
+
+\section*{Management implications}
+This project has shown that cats are the most important predators of
+both woylies and Numbats in Dryandra. Cat control is essential and
+should be implemented in such a way as to minimise the impact on
+non-target species. Eradicat® can be used safely in the presence of
+chuditch and red-tailed phascogales. Most cats in Dryandra, Tutanning
+and Dragon Rocks spend significant time in adjacent farmland, reducing
+their exposure to baits laid within the reserves.
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Cats will be fitted with GPS collars in Dryandra and Tutanning prior
+  to an Eradicat® baiting in March 2015, to determine the efficacy of
+  baiting in early autumn.
+\item
+  Monitoring of radio-collared numbats will continue in order to
+  accumulate evidence on causes of death in this species over a longer
+  period.
+\item
+  Further non-target baiting trials with Eradicat® will be implemented,
+  aimed at other species, particularly the mardo.
+\item
+  Trapping on Western Shield traplines will continue to monitor woylie
+  numbers.
+\item
+  Monitoring of known numbat populations will be continued by involving
+  district staff and community members and handing over monitoring
+  responsibility to districts. Regular monitoring surveys will be
+  essential in Dragon Rocks, Dryandra, Boyagin, Tutanning and Cocanarup.
+  Other areas will be included if possible
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

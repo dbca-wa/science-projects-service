@@ -1,0 +1,4690 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dpaw.wa.gov.au}{\textbf{Project Plan SP 2016-068}}}
+%\chead{\href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/mnt/projects/sdis/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2016-068
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dpaw.wa.gov.au/documents/projectplan/1789/}{Project Plan SP 2016-068}}
+%\chead{\href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/mnt/projects/sdis/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Tue, 29 Jan 2019 08:11:04 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2016-068
+}
+\title{South West Threatened Fauna Recovery Project: Southern Jarrah Forest
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Adrian Wayne
+\\
+\textbf{Data Custodian} & Adrian Wayne
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Jan. 29, 2019, 8:11 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Jan. 29, 2019, 8:11 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{South West Threatened Fauna Recovery Project: Southern Jarrah Forest
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Animal Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Adrian Wayne & 0.5\\
+
+Technical Officer & Marika Maxwell & 0.9\\
+
+Technical Officer & Colin Ward & 0.9\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+\emph{other SWTFRP projects}
+
+
+\subsection*{Proposed period of the project}
+Feb. 1, 2016 -- Dec. 31, 2018
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+Over the last 200 years, 50 per cent of the world's mammal extinctions
+have occurred in Australia (Short and Smith 1994). In Western Australia
+alone, 12 mammals and two birds have become extinct and at 30 June 2015,
+39 terrestrial mammals and 23 terrestrial birds native to the State were
+classified as being threatened with extinction. Of these, three mammals
+and two birds are ranked as critically endangered. In mammals, most
+extinctions and declines have occurred in medium size species, in the so
+called `critical weight range' of 35g to 5500g (Burbidge and McKenzie
+1989).
+
+Predation by feral cats and foxes is a key threatening process in the
+decline of many, if not all, these species. Foxes have been successfully
+controlled for many years in a range of locations across Western
+Australia using dried meat sausage baits containing 1080 poison. Over a
+decade of research by Parks and Wildlife scientists has led to the
+development of the \emph{Eradicat®} feral cat bait, a moister meat bait,
+also containing 1080, that is more palatable to feral cats.
+\emph{Eradicat®} was registered for operational use in Western Australia
+in December 2014, providing the opportunity to integrate broadscale
+feral cat control with existing fox baiting programs and other actions,
+such as translocation, that are implemented to improve the recovery of
+threatened native animals.~
+
+On 16 July 2015, the Minister for Environment, Hon Albert Jacob MLA, and
+the Commonwealth Minister for the Environment, Hon Greg Hunt MP,
+announced \$1.7 million in funding for the Department of Parks and
+Wildlife to assist threatened animal recovery. The funding will be used
+to integrate the new \emph{Eradicat®} feral cat bait with current fox
+baiting in four different Western Australian environments. Sites have
+been specifically selected to direct the funding to improving
+conservation of species identified in the Commonwealth's Threatened
+Species Strategy, and to align with fauna recovery programs already
+underway or planned by Parks and Wildlife in the south-west of WA.
+
+This project fits within a broader suite of actions delivered by Parks
+and Wildlife to reduce the impacts of feral cats and foxes on threatened
+species in Western Australia. This includes \emph{Western Shield}, the
+Integrated Fauna Recovery Project on the south coast, Rangelands
+Restoration at Matuwa and many other smaller scale projects.
+
+The primary goal of the project is to contribute to the recovery of key
+threatened mammal and bird species found at each of these sites, through
+integrating feral cat baiting with existing fox baiting to reduce the
+impact of introduced predators, and undertaking translocations to
+establish new, secure populations, where necessary.
+
+~While the \emph{Eradicat\textsuperscript{®}} feral cat bait is a key
+tool in achieving effective feral cat control, other methods, such as
+shooting and/or trapping, may also be employed. For example, some
+individual cats appear to be reluctant to take baits or local climatic
+conditions may reduce the effectiveness of baiting alone. Some
+flexibility is built into the project plan to allow this suite of
+control options to be employed, as necessary.
+
+The project is funded for three years over the 2015-16, 2016-17 and
+2017-18 financial years. A project agreement has been signed with the
+Commonwealth Government outlining funding to be provided in each
+financial year and key deliverables.
+
+
+
+
+\subsection*{Aims}
+
+To sustainably recover the wild populations of woylies and numbats in
+the Upper Warren region, through:
+
+(a) developing protocols to allow the effective integration of feral cat
+control with existing fox control in the southern jarrah forest; and
+
+(b) effective neighbour engagement.
+
+
+
+
+\subsection*{Expected outcome}
+
+Integration of feral cat control with the current fox control program,
+including developing standard protocols for delivery of
+\emph{Eradicat\textsuperscript{®}} to maximise its effectiveness and the
+use of other introduced predator control techniques designed to minimise
+the impact of introduced predators on native fauna;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Identification of the efficacy of Eradicat\emph{\textsuperscript{®}}
+  baiting according to current operational delivery methods aerial and
+  ground) and time of year.
+\item
+  Quantification of the risk to potentially vulnerable non-target native
+  mammals in the southern jarrah forest to operational use of
+  Eradicat\emph{\textsuperscript{®}}
+\item
+  Understand the effect of integrated fox and cat control on i)
+  introduced predators, ii) non-target native mammals potentially at
+  risk from management actions (i.e. chuditch, brush-tailed phascogale,
+  quenda), and iii) numbats, woylies and other native species vulnerable
+  to introduced predators by means of monitoring.
+\item
+  Community awareness and engagement to ensure understanding of and
+  support for management actions.
+\end{itemize}
+
+
+
+
+\subsection*{Knowledge transfer}
+
+Western Shield
+
+Managers of introduced predators
+
+Managers of threatened fauna species threatened by introduced predators
+(e.g. critical weight range species)
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+Year 1- 2015/16
+
+\begin{longtable}[c]{@{}lllll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Task
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Milestones
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Outputs
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Timeframe
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Responsibility
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake research to inform the development of baiting prescriptions
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Pilot trials to develop bait uptake trial methods
+
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Protocols for use of remote sensor cameras
+
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+March -- June 2016
+
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Science -- A. Wayne
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake Woylie monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Trapping -- Moopinup, Warrup, Boyicup
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Abundance estimates
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Feb-May 2016
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake Numbat monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake monitoring of Dasyurids
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Trapping (chuditch) \& Nestbox transect (phascogales) -- Moopinup,
+Warrup, Boyicup
+
+ii) Nestbox grid (K4, K5, K6, Stretch)
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Abundance estimates
+
+ii) abundance estimates and infrastructure condition assessment
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Feb-May 2016
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~
+
+Year 2- 2016/17
+
+\begin{longtable}[c]{@{}lllll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Task
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Milestones
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Outputs
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Timeframe
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Responsibility
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Optimising Eradicat\textsuperscript{®} baiting protocols
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Eradicat\textsuperscript{®} bait uptake trials
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) trial site selection and set up
+
+ii) trials conducted to identify the most effective time and delivery
+method for Eradicat\textsuperscript{®} bait deployment
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Aug - Sept 2016
+
+ii) Sept 2016 -- Oct 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i \& ii) Science -- A. Wayne
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake cat/fox monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+GPS collars on cats to understand spatial ecology~
+
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Identify how cats use the landscape (i.e. where best to target baiting)
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Mar- Nov 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Science -- A. Wayne
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake Woylie monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Woylie monitored by trapping
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Woylie abundance estimate
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Oct-Nov 2016, Mar-Apr 2017
+
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake Numbat monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Numbat monitoring by RS cameras
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Numbat index of abundance
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Sept 2016 - April 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RSFM \& Science
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake monitoring of Dasyurids
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Phascogale nest boxes monitored
+
+ii) Chuditch monitored by trapping
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Phascogale index of abundance
+
+ii) chuditch abundance estimate
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Feb \& June 2017
+
+ii) Oct-Nov 2016, Mar-Apr 2017
+
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Review and adapt monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Report and review monitoring program
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Monitoring plan beyond June 2017 for Stage 2
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+June 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake neighbour engagement
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Public information on introduced predator control
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Increased awareness
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+June 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake media /awareness
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+PICA~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Reporting
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Progress report
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Progress report
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+June 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS~~ \& Science
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~
+
+~
+
+Year 3 -- 2017/18
+
+\begin{longtable}[c]{@{}lllll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Task
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Milestones
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Outputs
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Timeframe
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Responsibility
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake operational feral cat baiting
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Operational scale deployment of Eradicat\textsuperscript{®} baits
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Cat baiting in the optimum conditions to maximise efficacy with low risk
+to non-targets
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+TBC based on earlier work that identifies best timing (nominally Feb
+2018)
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake cat/fox monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Camera monitoring
+
+Radio-collars on cats
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Effect of Eradicat\textsuperscript{®} baiting event on introduced
+predator abundance and survivorship (i.e. efficacy quantified)
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+TBC dependent on the optimal timing of baiting, which will be identified
+in stage 1 of this project
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Science -- A. Wayne
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake Woylie monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Woylie monitored by trapping
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Effect of Eradicat\textsuperscript{®} baiting event on Woylie abundance
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+As above
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake Numbat monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Numbat monitoring by RS cameras
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Effect of Eradicat\textsuperscript{®} baiting event on Numbat abundance
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+As above
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RSFM \& Science
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake monitoring of Dasyurids
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+i) Phascogale nest boxes monitored
+
+ii) Chuditch monitored by trapping
+
+iii) Chuditch survivorship monitoring by radio-telemetry (funding
+dependent)
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Effect of Eradicat\textsuperscript{®} baiting event on Dasyurid
+abundance and survivorship (i.e. risk to potentially vulnerable
+non-targets quantified)
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+As above
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Review and adapt monitoring
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Report and review monitoring program
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Monitoring plan beyond Stage 2
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+June 2018
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake neighbour engagement
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Public information on introduced predator control
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Increased awareness
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+June 2017
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Undertake media /awareness
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+PICA~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Reporting
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Final project report
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Final project report
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Dec 2018
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+RFMS \& Science
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~~
+
+~
+
+
+
+
+\subsection*{References}
+
+Burbidge, A.A., McKenzie, N.L., 1989. Patterns in the modern decline of
+Western Australia's vertebrate fauna: causes and conservation
+implications. Biological Conservation 50, 143-198.
+
+Forest and Ecosystem Management Division, 2015. \emph{Feral Cat Baiting
+Prescription}. Department of Parks and Wildlife
+
+Martin, G.R., Twigg, L.E., Marlow, N.J., Kirkpatrick, W.E., King, D.R.,
+Gaikhorst, G., 2002. The acceptability of three types of predator baits
+to captive non-target animals. Wildlife Research 29, 489-502.
+
+Parks and Wildlife, 2012. Training Manual: Safe and effective use of
+1080 for vertebrate pest control. Training version 5 (1/5/2012)
+
+Short, J., Smith, A., 1994. Mammal decline and recovery in Australia.
+Journal of Mammalogy 75(2), 288-297.
+
+Thomas, M.L., Parry, L.J., Allan, R.A., Elgar, M.A., 1999. Geographic
+affinity, cuticular hydrocarbons and colony recognition in the
+Australian meat ant \emph{Iridomyrmex purpureus}. Naturwissenschaften
+86, 87-92.
+
+Van Dyck, S., Strahan, R., 2008. The mammals of Australia. Thrid
+edition. Reed New Holland, Sydney.
+
+Wayne, A.F., Maxwell, M.A., Ward, C.G., Vellios, C.V., Wilson, I.J.,
+Dawson, K.E., 2013. Woylie Conservation and Research Project: Progress
+Report 2010-2013. Department of Parks and Wildlife, Perth, Western
+Australia.
+
+Wayne, A.F., Maxwell, M.A., Ward, C.G., Wayne, J.C., Vellios, C.V.,
+Wilson, I., in review. Recoveries and cascading declines of native
+mammals associated with control of an introduced predator. Journal of
+Mammalogy.
+
+~
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+\section{Project summary}
+
+GOAL: To sustainably recover wild populations of woylies and numbats in
+the Upper Warren region through effective integration of feral cat
+control with existing fox control.
+
+\textbf{~}
+
+OBJECTIVE: Develop an effective cat and fox control program using
+Eradicat\emph{\textsuperscript{®}} and Probait baits that reduces the
+impact of introduced predators sufficiently to support sustainable
+populations of vulnerable threatened native fauna in the southern jarrah
+forests.
+
+~
+
+\textbf{Stage 1 -- Optimising
+Eradicat}\emph{\textsuperscript{®}}\textbf{baiting protocols}
+
+Specific objective: Determine when, how and where to deploy
+Eradicat\emph{\textsuperscript{®}} baits using the current operational
+protocols for aerial and ground deployment (Feral Cat Baiting
+Prescription; Forest and Ecosystem Management Division, 2015) that
+maximises the number/proportion of cats killed by baits and minimises
+the potential risks to non-target native species within the southern
+jarrah forest bioregion.
+
+Strategies: i) use bait uptake trials (using remote sensor cameras) and
+ii) understand the spatial ecology (using GPS collars and
+radio-telemetry) of a sample of feral cats to identify when, how and
+where Eradicat\textsuperscript{®} baits may maximise their impact on
+cats and minimise their possible risk to non-target native species.
+
+~
+
+\textbf{Stage 2 -- Operational deployment of
+Eradicat\textsuperscript{®}}
+
+Specific objectives: Quantify the effects of an optimised operational
+use of Eradicat\textsuperscript{®} ~baits (informed by stage 1) at the
+individual and population levels of i) feral cats and foxes, ii)
+potentially vulnerable non-target native species, and iii) priority
+native species threatened by introduced predators (Numbats, Woylies,
+etc) within the Upper Warren region.
+
+Strategy: Conduct an Eradicat\textsuperscript{®} baiting program within
+a limited area of the Upper Warren (e.g. 225-400 km\textsuperscript{2}),
+within a comparative / experimental framework, to assess the
+effectiveness on target species (cats and foxes) and effects on
+non-target species (with a focus on potentially vulnerable and priority
+beneficiaries).
+
+~
+
+\textbf{Subsequent stages beyond the scope of the current project}
+
+Stage 3 Objective: Operationally integrate Eradicat\textsuperscript{®}
+and Probait into the introduced predator control and monitoring program
+across the Upper Warren region (Western Shield's Manjimup baiting cell).
+
+Stage 4 Objective: Consider the merits of rolling out the improved
+introduced predator control and monitoring program across other forested
+landscapes in south-western Australia.
+
+~
+
+\section{Project area}
+
+Stage 1 (optimising baiting protocols) will be conducted in the southern
+jarrah forest ecosystems managed by Parks and Wildlife (predominantly in
+the Southern Jarrah Forest (JAF02) IBRA subregion), where standard fox
+baiting is currently applied and where feral cat control is a priority.
+
+Stages 2 \& 3 (larger scale operational baiting trial) will be conducted
+in the Upper Warren region given that it is a priority area for
+threatened mammal conservation.
+
+~
+
+\section{Stage 1 - Optimising Eradicat\textsuperscript{®} baiting
+protocols}
+
+Proposed program overview:
+
+\begin{enumerate}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  a) Pilot trial and method development
+\item
+  b) Eradicat\textsuperscript{®} bait uptake trials to determine when,
+  how and where the best time to bait is
+\item
+  c) Bait condition trials to determine how the application of Coopex
+  and environmental conditions affect Eradicat\textsuperscript{®} bait
+  characteristics {[}dependent on securing additional funds{]}
+\item
+  d) Spatial ecology of cats to determine where in the landscape to
+  target baiting to maximise the chance of baits being encountered by
+  cats {[}dependent on securing additional funds{]}
+\end{enumerate}
+
+\section{~}
+
+\section{1a) Pilot trial and method development}
+
+Summary: Technical and methodological trials will be conducted to
+determine the most effective and efficient protocols for the use of
+remote sensor cameras (RSC) to detect the consumers of
+Eradicat\textsuperscript{®} baits deployed in the southern jarrah
+forest.
+
+Objectives:
+
+\begin{enumerate}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Determine the longevity of Eradicat\textsuperscript{®} baits in the
+  southern jarrah forest (i.e. the duration until the bait is
+  consumed/removed to ascertain how long RSCs need to be deployed to
+  capture the consumption of baits during the subsequent bait uptake
+  trials).
+\item
+  Identify the optimal set up of the RSCs to maximize the detection of
+  fauna interacting with the Eradicat\textsuperscript{®} bait (i.e. by
+  means of a comparison of camera orientations and distances from the
+  bait).
+\end{enumerate}
+
+~
+
+\section{1b) Bait uptake trials}
+
+Summary: Bait uptake trials will be conducted over at least 12-14 months
+using covert remote sensor cameras to observe species/individuals
+consuming Eradicat\textsuperscript{®} baits. This is the preferred
+method based on affordability, efficiency and return for effort, for
+directly informing when, how and where it is best to bait for cats and
+assessing the risk to potential vulnerable non-target species.
+
+~
+
+Key principles:
+
+\begin{enumerate}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  The Eradicat\textsuperscript{®} bait trials should resemble
+  operational conditions as closely as possible. E.g. - mimic the
+  spatial pattern of bait deployment by aircraft and ground deployment
+  (Note bait location will not be biased to open areas where cameras can
+  detect animals and observe their interactions with the bait) - bait
+  treatment and characteristics (e.g. sweating, coopex, age, toxicity,
+  etc)
+\item
+  Observer effects should be minimised as much as practically possible
+  E.g. - remote sensor cameras need to be as covert as practically
+  possible - minimise disturbance to sites as much as practically
+  possible (including anthropogenic cues such as smell, etc) - allow
+  enough time for animals to become accustomed to cameras and other
+  infrastructure - minimise the cues for bait deployment (e.g. dummy
+  cameras to be in place for an extended period beforehand so animals do
+  not learn that cameras mean food)
+\end{enumerate}
+
+Other considerations:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Spatial independence between sites is required to maximise the
+  encounters of different cats and minimise the influence of earlier
+  trials nearby (e.g. removal of cats by toxic baits, opportunities for
+  learning by individuals) that in turn affect inferences, etc (i.e.
+  trials need to be conducted across all or much of the southern jarrah
+  forest).
+\item
+  A balance is needed between having a design that is robust and that
+  will provide adequate and appropriate data that can be used to
+  confidently identify the most effective cat baiting regime in the
+  southern jarrah forests, and having a design that is practical and
+  affordable with the time and resources available.
+\item
+  Trials conducted across larger spatial and temporal scales will
+  provide better results - More replicate sites will provide more data
+  and results that can better account for the variability between sites
+  - Trials over multiple years will more confidently confirm when and
+  under what circumstances baiting is likely to be most effective (but
+  this is not currently planned and may not be practical).
+\item
+  Repeat trials on the same sites should be avoided or minimised.
+  Ideally sites should not be subject to repeat trials more than once
+  every 12 months; to reduce issues associated with the effects of
+  earlier trials influencing the results of subsequent trials (e.g.
+  learning by animals, removal of individuals by toxic baits).
+\item
+  Additional benefits from this project include information on the
+  distribution and activity/occupancy/abundance of mammal fauna (e.g.
+  numbats, quokka, woylies, ngwayir, wambenger, tammar, quenda,
+  chuditch, koomal, western brush wallaby, introduced mammals, etc) in
+  the southern jarrah forest.
+\end{itemize}
+
+Aerial and ground baiting trials:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Both aerial and ground bait delivery protocols should be tested given
+  differences in cat detection on and off track (e.g. Wayne\emph{et al.}
+  2013); Aerial deployment = 50 baits km\textsuperscript{-2} scattered
+  as 50 baits within a 200m x 40m area every 1 km along transect lines
+  space 1 km apart Ground deployment = 100 m intervals along road/track
+  access allowing for replacement during the ``baiting window'' but not
+  exceeding 50 baits/linear km/year
+\item
+  Ground baiting is likely to be more successful at baiting cats (i.e.
+  adjacent to tracks) but operationally more limiting (i.e. higher
+  operational costs over equivalent areas; patchy delivery given
+  limitations to tracks that provide adequate forest access; and,
+  potentially access limitations at some times of the year due to
+  dieback hygiene constraints). During the bait uptake trials, camera
+  security is likely to be substantially more problematic on- versus
+  off-track.
+\end{itemize}
+
+~
+
+\subsubsection{Best pragmatic design for Eradicat\textsuperscript{®}
+bait uptake trials}
+
+2 x deployment methods (aerial and ground)
+
+2 x replicates
+
+10 x trials
+
+= 40 sites. (Table 1).
+
+\textbf{Table 1. The experimental design for the
+Eradicat}\textsuperscript{®}\textbf{bait uptake trials, showing in which
+site (as indicated by its number) each trial will be conducted.}
+
+In each of 10 sessions four randomly assigned sites will have
+Eradicat\textsuperscript{®} baits deployed in a similar spatial pattern
+to operational protocols for aerial or ground baiting, with two
+replicates for each deployment method. Sites (numbered 1-40 in the table
+matrix) are spatially independent (\textgreater{}10 km) and randomly
+selected grid cells (5 x 5 km) in southern jarrah forest ecosystem type.
+
+\begin{longtable}[c]{@{}lllll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Deployment protocol
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Aerial
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Aerial
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Ground
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+Ground
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Replicate
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+2
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+Session
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+39
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+23
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+8
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+6
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+16
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+11
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+20
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+9
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+3
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+29
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+4
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+34
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+17
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+4
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+38
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+10
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+31
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+40
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+5
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+26
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+2
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+21
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+5
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+6
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+7
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+33
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+14
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+12
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+7
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+37
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+32
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+25
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+18
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+8
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+3
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+28
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+22
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+24
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+9
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+15
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+35
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+36
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+27
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.17\columnwidth}\raggedright
+10
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+30
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+1
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+13
+\end{minipage} & \begin{minipage}[t]{0.17\columnwidth}\raggedright
+19
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Missing data will make analysis much more difficult. The orthogonal
+  and balanced design is very important to maintain throughout the
+  study.
+\end{itemize}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Having 40 sites provides some flexibility in the timing of trials but
+  an incomplete picture throughout the calendar year (i.e. aerial and
+  ground bait trials will only be active during 33\% and 67\% of the
+  year, respectively). The times of year that are omitted can be regular
+  (e.g. 2 weeks between each trial) or strategic (e.g. avoid periods
+  when baiting effectiveness may otherwise be expected to be poor, such
+  as the wettest times of the year when bait condition may be
+  compromised).
+\end{itemize}
+
+\subsubsection{Site selection for Eradicat\textsuperscript{®} bait
+uptake trials:}
+
+The southern jarrah forest ecosystem will be subdivided into 5 x 5 km
+cells (i.e. 2,500 ha each; Figure 1). Criteria for candidate cells
+include;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Study area: southern jarrah forest (SJF) ecosystem and other minor
+  jarrah forest ecosystem types immediately adjacent to SJF (Jarrah -
+  Unicup, woodland, and north east ecosystem types) within the IBRA
+  subregion JAF02 and Warren IBRA bioregion (WAR)), i.e.
+  \textasciitilde{}197 cells between Nannup in the northwest, Tonebride
+  in the north east, Rocky Gully and Nornalup in the south east and
+  Peerabeelup in the southwest.
+\item
+  \textgreater{}75\% area having Conservation Commission land tenure
+  and/or land managed by the Department of Parks and Wildlife.
+\item
+  \textgreater{}75\% currently subject to Western Shield fox control
+\item
+  Practical access available and relatively close to Manjimup (i.e. to
+  reduce costs)
+\item
+  Candidate areas planned to be burned or timber-harvested during
+  2016/17 will need to be considered carefully to co-ordinate the trials
+  where possible when/where they won't be adversely impacted
+\end{itemize}
+
+~
+
+Cell selection from the pool of candidates will be stratified-random --
+i.e. the initial cell will be randomly selected and then subsequent
+cells will be selected based on having a spatial separation of at least
+10 km from other selected cells. Each selected cell will be randomly
+assigned to the sequential order of when and how (aerial or a ground)
+the baits are deployed.
+
+~
+
+~
+
+\textbf{Figure 1.} a) 5 x 5 km grid cells with predominantly southern
+jarrah forest ecosystems on lands managed by the Dept. of Parks and
+Wildlife. b) Indicative location of the 40 Stage 1b sites to determine
+how, when, where best to bait using Eradicat\textsuperscript{®}.
+
+\subsubsection{Site layout for Eradicat\textsuperscript{®} bait uptake
+trials}
+
+Aerial bait treatment sites will be;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  located as close to the centre of the cell as possible (to maximise
+  spatial separation from other selected treatment sites)
+\item
+  \textgreater{} 100 m from trafficable tracks and \textgreater{}200 m
+  from main public roads (for site security)
+\item
+  Each site will have 50 bait stations roughly evenly spaced in an
+  approximate grid layout (4 x 13 rows at 13 m x 16 m intervals) within
+  an area of about 200 m x 40 m -- to resemble operational protocols for
+  aerial cat baiting as closely as possible (Algar et al. 2013; ``Feral
+  Cat Baiting Prescription'', Forest and Ecosystem Management Division
+  2015).
+\item
+  Note: the spatial separations between aerial bait sites will be much
+  greater than the operational deployment of 50 baits
+  km\textsuperscript{-1} -- this will affect how the results can be
+  interpreted (e.g. the likelihood of detecting a bait consumption by an
+  introduced predator during the trials may be higher than if the baits
+  were deployed at operational densities (conversely the proportion of
+  cats removed will be lower); similarly, the lower than operational
+  density of baits at the landscape level during the trials will the
+  lower the risk to chuditch but not quantify the risk to individuals
+  that may encounter multiple bait clusters deployed at operational
+  densities).
+\end{itemize}
+
+~
+
+Ground bait deployment treatments sites will be;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  5 km transects positioned as centrally as possible within the cell and
+  maximising the distance from other selected cells nearby
+\item
+  Forest tracks frequently used by vehicles will be avoided to minimise
+  the disruption cause by temporary road closures.
+\item
+  The roads will be closed to unauthorised access along the baiting
+  transect during the baiting trial on that site (i.e. 4-8 weeks) by
+  means of signs and flagging tape. This is to reduce the baiting risk
+  to humans and their animal companions and to reduce the risk of
+  interference or theft of cameras.
+\item
+  Baits will be at 100 m intervals along the 5 km road/track transect.
+  The bait stations will be 5-10 m off the track with the cameras
+  positioned to conceal them from the track as much as practically
+  possible.
+\end{itemize}
+
+~
+
+\subsubsection{Bait stations for both aerial and ground treatments:}
+
+Each bait station will have a dummy remote sensor camera deployed for at
+least 4 weeks prior to the start of the bait trials. A real remote
+sensor camera (a randomly allocated Reconyx HC 600 or PC900 model) with
+a toxic Eradicat\textsuperscript{®} bait at the centre of the field of
+view will be deployed at the beginning of the bait trials at each site.
+
+The camera will be as concealed as practically possible to reduce
+detection (i.e. within or adjacent to existing natural structures such
+as vegetation, logs or debris) but adjacent to and focussed on an open
+area in which the bait can be placed and monitored by the camera.
+
+Some minimal modification of the vegetation in front of the camera and
+around the bait location may be required (e.g. selective light pruning)
+to improve camera surveillance of the bait and the animals around the
+bait.
+
+The dummy cameras are necessary to reduce the cues and learning by
+animals of baits being available and to reduce the aversion of some
+animals to new and artificial objects in their environment (i.e.
+minimise behavioural responses of animals to the trials -- i.e. observer
+effect).
+
+~
+
+Camera set-up protocols for Eradicat\textsuperscript{®} bait uptake
+trials:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Cameras to face between SE and SW (ideally S)
+\item
+  Distance to bait 1.5 m
+\item
+  Cameras to be at height 20-30 cm above ground
+\item
+  Camera settings: 10 images per trigger (HC600 models) or more (PC900
+  models). No delay between triggers. High sensitivity, motion sensor
+  on.
+\item
+  Security measures: code lock activated, cameras labelled indicating
+  security code protected and engraved,
+\item
+  no flagging tape or any other visible indications of the location of
+  the site or camera/bait stations. GPS co-ordinates of each camera to
+  be recorded.
+\end{itemize}
+
+\subsubsection{Bait preparation for Eradicat\textsuperscript{®} bait
+uptake trials}
+
+Bait characteristics will be identical to those used operationally
+including, manufacturing process, toxicity, age and preparation.
+Eradicat\textsuperscript{®} bait preparation will be done in accordance
+with the ``Feral Cat Baiting Prescription'' (Forest and Ecosystem
+Management Division, 2015). Prior to deployment;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Sweat on racks under sunny conditions to allow the oils and
+  lipid-soluble digest material to exude from the surface of the bait.
+\item
+  All baits are sprayed on all sides, during the sweating process, with
+  an ant deterrent compound (Coopex) at a concentration of 12.5 g
+  l\textsuperscript{-1} as per the manufacturer's instructions.
+\end{itemize}
+
+\subsubsection{Timing of Eradicat\textsuperscript{®} bait uptake trials}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Four trials (sites) will run simultaneously within a session; 2
+  replicates of each of two treatments (aerial and ground baiting)
+  (Table 1, Appendix 3).
+\item
+  The length of each trial will include 2-4 weeks with dummy cameras
+  then 2 and 4 weeks for the aerial and ground bait trials,
+  respectively, using real cameras and Eradicat\textsuperscript{®}
+  baits.
+\item
+  The bait uptake trials will be conducted predominantly in the
+  warmer-drier periods of the year (October -- April) and
+  opportunistically during the forecast drier spells (i.e. 6-7 days with
+  \textless{}5-10 mm total rainfall forecast) in the cooler-wetter
+  months between May and September inclusive (i.e. \textgreater{}50 mm
+  average per month). This is in general accordance with the baiting
+  prescriptions designed to avoid moist conditions in which the bait
+  quality may be reduced (Forest and Ecosystem Management Division
+  2015). While specifics are not provided, a general operational
+  guideline is to aim for ≤5mm of rainfall on the day of baiting and a
+  minimum of 5 days post baiting (Gareth Watkins pers comm.). But we
+  consider temperature, humidity and evaporation rates also to be
+  important factors that affect the duration and magnitudes of ambient
+  moisture levels and there is currently insufficient detail available
+  on how environmental conditions affect bait quality or palatability.
+  This may be examined as part of this study (see part 1c details
+  below). Note that Western Shield protocols for the use of 1080 poison
+  grain baits and dried meat baits is for deployment in conditions when
+  \textless{} 6 mm and \textless{}40- 50 mm rainfall is forecast ,
+  respectively (Parks and Wildlife 2012).
+\item
+  The timing of trials within the group of four sites within a session
+  will be staggered (i.e. start on four successive days, as they are set
+  up) so long as rainfall and extreme weather events are avoided during
+  the four successive setup days and the 3-4 initial days post bait
+  deployment (i.e. similar starting conditions for the four sites). The
+  order of staggered entry within a group will be randomised. Some
+  flexibility in the timing of the start of the trials will be needed to
+  accommodate weather forecasts. If poor weather is forecast, the
+  alternative is to have a staggered setup and simultaneous trial start
+  (i.e. set up cameras over successive days then deploy the baits
+  simultaneously at all four sites when the weather is clear - note this
+  requires more resources / visits to the field sites). Note at least 2
+  days (3-4 people) are required to set up the 50 camera/bait stations
+  at a site and another full day to deploy and activate the cameras.
+\item
+  Aerial baiting treatments will only have one deployment of 50 baits
+  per trial. The ground baiting treatments will have baits replenished
+  on multiple occasions (\textless{} 5 baits per station) within the
+  four week trial period at each site, in accordance with the protocols
+  (``\ldots{}Baits can be replaced during the ``baiting window'' if
+  taken or spoiled but should not exceed 50 baits in total/linear
+  km/year\ldots{}'', Forest and Ecosystem Management Division, 2015).
+  i.e. up to 250 baits per trial
+\end{itemize}
+
+\subsubsection{Research questions and analysis approach for
+Eradicat\textsuperscript{®} bait uptake trials}
+
+~
+
+\textbf{General theme: Eradicat}\textsuperscript{®}\textbf{bait
+consumption differences in relation to when, how and where baits are
+deployed and other factors (i.e. bait effectiveness)}
+
+~
+
+Common response variable(s):
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Number or proportion of baits consumed by species `\emph{x'} per
+  site/trial
+\item
+  Number of individuals of species `\emph{x'} that consumed 1 or more
+  baits per site/trial
+\end{itemize}
+
+Note: data may be sparse (lots of zeros) for bait consumption by cats,
+which will have implications for analysis
+
+~
+
+~
+
+\textbf{Q1: Does Eradicat}\textsuperscript{®}\textbf{bait consumption by
+the target (feral cat) and non-target species vary according to time of
+year?}
+
+Plot: Average number and proportion of baits consumed by species
+`\emph{x'} per trial within each session (y-axis) by start date of each
+session (x-axis)
+
+Analysis: possibly just descriptive graphics given temporal factors will
+be examined in more detail in subsequent questions
+
+Results: Identifies generally when bait consumption by cats and other
+species is greatest but does not consider differences or interactions
+due to other factors such as deployment method, habitat and landscape
+factors, etc.
+
+\textbf{~}
+
+\textbf{Q2: Does Eradicat}\textsuperscript{®}\textbf{bait consumption by
+the target (feral cat) and non-target species vary according to season,
+within season (session), and deployment method?}
+
+~
+
+Analysis options:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Multifactor ANOVA or mixed effects model. The appropriate approach
+  will depend on whether all factors are fixed or whether the time
+  factors represent random effects (session dates probably do).
+\item
+  Log rank tests to examine differences between deployment method.
+\end{itemize}
+
+Response variable = number of baits consumed by each species / number of
+baits deployed or number of trials (i.e. the former takes into account
+bait replenishment during ground baiting, the latter compares the
+deployment methods).
+
+~
+
+\textbf{Q3: Are there environmental factors (e.g. weather, proximity to
+agriculture, landscape position) or biological factors (e.g.
+competitors, food availability and breeding seasons) that relate to
+changes in Eradicat}\textsuperscript{®}\textbf{bait consumption by i)
+target and ii) non-target species?}
+
+Analysis:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Potential covariates include landscape attributes, site attributes,
+  animal attributes, detectability of the bait, bait condition, and
+  environmental attributes - see Appendix 4 for details
+\item
+  Multivariate analyses would be needed to relate differences in bait
+  consumption or `survival' to other factors such as time of year,
+  spatial factors, bait uptake by other species, environmental and
+  biological factors, etc.
+\item
+  With only 40 sites the number of covariates in the analysis will be
+  limited (e.g. \textasciitilde{}4-6 covariates). Therefore a process of
+  culling covariates will be necessary (e.g. autocorrelation, step-wise
+  approaches, etc)
+\item
+  The use of the information theoretic approach to model selection may
+  be appropriate with this data.
+\end{itemize}
+
+\textbf{~}
+
+\textbf{General theme: Nature of
+Eradicat}\textsuperscript{®}\textbf{bait consumption}
+
+\textbf{~}
+
+\textbf{Q4: How long do Eradicat}\textsuperscript{®}\textbf{baits last
+until they are consumed or removed (i.e. bait longevity)?}
+
+Analysis:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Bait longevity can be described as a range (min-max), mean (+SE)
+  and/or median number of days until 50\%, 95\% or 100\% of baits were
+  removed
+\item
+  Plot of mean number of baits (+SE) remaining per day
+\item
+  If there is a high level of variance in the mean number of baits
+  remaining per day and/or the time taken for 95-100\% of baits to be
+  removed, then further analyses could seek to account for these
+  differences -- e.g. landscape position, subregion, season, etc\ldots{}
+\item
+  Bait survival or Bait consumption by a particular species (i.e. the
+  primary response variable) can be measured using a survival analysis
+  approach (i.e. consumption by other species and camera failures are
+  censored). Pollock's staggered entry model or Kaplan-Meir survival
+  analysis approaches may be appropriate.
+\end{itemize}
+
+~
+
+\textbf{General theme: Animal behaviour in relation to baits (i.e. to
+understand how to improve bait effectiveness)}
+
+\textbf{~}
+
+\textbf{Q5: How do target and non-target species interact with the
+baits? Specifically, Do targets and non-targets detect baits? And. once
+a bait has been detected, do targets and non-targets consume baits?}
+
+Once a bait has been detected, do targets and non-targets consume baits?
+
+This will focus on information that provides some indications how to
+improve target and non-target consumption rates.
+
+General descriptive metrics will include;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Absolute number of baits consumed by each species
+\item
+  Absolute number of individuals of focal species (e.g. cat, fox,
+  chuditch) that consumed at least one bait
+\item
+  Proportion of individuals of focal species detected that consumed at
+  least one bait
+\end{itemize}
+
+Detailed metrics for focal species will include;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Detection rate = \# bait detection events / \# events animals are
+  within close proximity of the bait (i.e. within field of view of the
+  camera)
+\item
+  Investigation (approach) rate = \# baits investigated/ \# bait
+  detection events
+\item
+  Contact rate = \# baits contacted (i.e. close investigation or
+  physical contact)/ \# bait detection events
+\item
+  Consumption rate = \# consumed/\# bait detection events
+\end{itemize}
+
+Other possible metrics include;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Frequency or proportion of partial v whole consumption (i.e. what is
+  the risk of sublethal bait consumption by target species?)
+\end{itemize}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Frequency or proportion of baits consumed in situ or removed (i.e. are
+  removed baits likely to be consumed or cached elsewhere; is there a
+  risk that removed baits remain available)
+\item
+  Were solitary or multiple individuals involved (i.e. potential for
+  learning, sub-lethal doses, etc)?
+\end{itemize}
+
+~
+
+\textbf{General theme: Potential impact to individuals and populations
+of Eradicat}\textsuperscript{®}\textbf{baiting on target and non-target
+species}
+
+\textbf{~}
+
+\textbf{Q6: Do individuals consume multiple baits in a day or within a
+baiting session?}
+
+i.e. what is the possible risk to vulnerable non-targets?
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Absolute number and proportion of detected individuals of species
+  \emph{x} that consumed multiple baits.
+\end{itemize}
+
+\textbf{~}
+
+\textbf{Q7: What is the potential and relative impact of
+Eradicat}\textsuperscript{®}\textbf{baits on individuals and populations
+of feral cat, fox and potentially vulnerable non-target species?}
+
+i.e. how many and what proportion of individuals might have been killed
+by toxic baits? Does this change over space and time? Are there any
+patterns in the types of individuals that consumed the baits (e.g. size,
+age, gender)? Is this number or proportion of individuals that consumed
+baits likely to have a significant impact at the population level?
+
+\textbf{~}
+
+\textbf{General theme: Recommended
+Eradicat}\textsuperscript{®}\textbf{baiting protocol to maximise
+efficacy}
+
+\textbf{~}
+
+\textbf{Q8: When, how and where is it best to conduct
+Eradicat}\textsuperscript{®}\textbf{baiting to maximise bait consumption
+by feral cats and minimise the risk to non-target species?}
+
+I.e. a synthesis of the results from the previous questions and an
+understanding of the biology and ecology of the target and non-target
+species to make an assessment of when, how and where
+Eradicat\textsuperscript{®} bating is likely to be most
+efficient/effective.
+
+Also consider what needs to be done to be informed how to make further
+improvements on the timing and location of the baits.
+
+~
+
+\subsection{Other considerations}
+
+\textbf{Low bait consumption rates by cats is a major risk for the bait
+uptake trials}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Low detection rates of cats and even lower bait uptake rates by cats
+  is expected. A major challenge of this study will be to get sufficient
+  data on cat interactions with baits to satisfactorily inform when, how
+  and where to most effectively use Eradicat\textsuperscript{®} to
+  control cats and minimise risks to non-targets. Cat and fox densities
+  are estimated to be about 1 each per 500 ha -- 2000 ha (A. Wayne
+  unpublished data). Therefore bait uptake is likely to be \textless{}1
+  cat and \textless{}1 fox per trial. This means that to get a routine
+  and operationally realistic appreciation of when baits might be most
+  effective to target cats, it is likely to require a lot of replicate
+  trials to get sufficient data.
+\item
+  It would be possible to estimate how many trials might be required but
+  the estimates would be very rough, particularly since bait consumption
+  rates are dependent on the probability a cat or fox comes within close
+  proximity with a bait and guesswork as to what proportion might then
+  actually detect, investigate and consume the bait.
+\item
+  Conversely, based on the proposed experimental design with 40 trials,
+  it might be possible to estimate what consumption rate of baits might
+  be required to get sufficient data to identify significant differences
+  in bait consumption by cats in relation to when, how and where the
+  baits are deployed.
+\item
+  Having trials of the ground baiting protocols are likely to be very
+  important in getting enough data on target species interactions with
+  baits because; 1) introduced predators are detected more frequently on
+  track than off track (Wayne et al. 2013) and replenishment of the
+  ground-deployed baits during the trials increases the opportunities
+  for cats to encounter baits
+\item
+  Data from the uptake trials will be regularly analysed to ensure
+  sufficient data is being generated by the trials. If there is
+  insufficient data then an increase in the number of concurrent trials
+  may be required (e.g. greater than 4 concurrent trials across
+  additional sites, requiring additional cameras and/or the period of
+  the trials may need to be extended).
+\item
+  Note that under the operational conditions of an aerial baiting event
+  with introduced predator densities at these levels, 1 bait consumed by
+  a cat (or fox) for every 250 -- 1000 baits deployed at 50
+  baits/km\textsuperscript{2} (i.e. within a 500 ha -- 2000 ha area)
+  would result in a 100\% target removal - this is very low (i.e. 99.2\%
+  - 99.8\% non-target uptake of baits could indicate a successful
+  baiting program for both cats and foxes).
+\item
+  Need to think what else could be done to improve detection and bait
+  consumption rates -- by cats (i.e. more data) e.g. target areas with
+  high cat densities.
+\end{itemize}
+
+\textbf{Repeat trials and confounding between learning by animals and
+time of year}
+
+Repeat trials on the same sites runs the risk of animals learning and
+changing their behaviour in relation to the baits (e.g. increased bait
+attraction or aversion), which is confounded with time of year. This
+could have a major effect on the study being able to identify when the
+best time to bait is (e.g. increased non-target uptake by possums or
+corvids could substantially reduce bait availability to targets over
+time). Therefore, the number of repeat trials should be minimised and
+the intervals between repeat trials should be maximised or avoided
+altogether if possible.
+
+Note: The extent of learning within and between trials might be possible
+to quantify to some extent if individuals can be confidently identified.
+But this will be difficult for some problem species such as brush tail
+possums and corvids.
+
+~
+
+\textbf{Toxic or non-toxic baits?}
+
+These trials could be done with toxic or non-toxic
+Eradicat\textsuperscript{®} baits. It is recommended that toxic baits
+are used.
+
+~
+
+Using toxic baits:
+
+Advantages
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Trials closer to real operational conditions
+\item
+  Some cat removal may be a direct outcome of the trial (but it will
+  make negligible difference at a population level given the density of
+  trial sites relative to cat densities)
+\end{itemize}
+
+Disadvantages
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Necessitates greater/complete spatial independence between sites (i.e.
+  \textless{}10 km separation) the consequences of which include a
+  larger study area, higher logistic costs (e.g. vehicle running and
+  travel time), greater variance in the results due to greater variation
+  between sites over a larger area.
+\item
+  There is some risk to non-target native individuals (e.g. chuditch,
+  phascogale, etc) but given the large spatial separation between sites
+  there should be negligible impact at the population level)
+\item
+  There is some risk to domestic cats and dogs that visit the trial
+  sites and nearby if some baits are relocated by wildlife (a risk
+  assessment would be required as part of the baiting approval process)
+\item
+  It will complicate the stage 2 comparative operational trials by
+  potentially removing some cats across all treatments and potentially
+  having some surviving individuals with a prior experience with
+  Eradicat\textsuperscript{®} baits, albeit at very low densities (i.e.
+  50 baits per 100 km\textsuperscript{2}). Therefore the first
+  application of Eradicat\textsuperscript{®} at an operational scale
+  will not be to an entirely naïve population (i.e. the scale of impact
+  of the initial operational deployment of Eradicat\textsuperscript{®}
+  baits may be very slightly less than what might have been achieved had
+  the population been absolutely naïve).
+\end{itemize}
+
+Using non-toxic baits:
+
+Advantages
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  No risk to non-target individuals
+\item
+  Spatial independence between trial sites is not as critical (because
+  cats from earlier trials will not have been removed from the
+  opportunity to encounter baits in subsequent trials nearby)
+\item
+  The bait uptake trials will not influence cat densities for the
+  subsequent Stage 2 comparative trials of the effectiveness of an
+  operational-scale baiting program
+\end{itemize}
+
+Disadvantages
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Not identical to operational baits, therefore some additional
+  assumptions as to how the results relate to operational conditions
+  would need to be made
+\item
+  No removal of any cats
+\item
+  Uptake rates of both targets and non-targets (because of multiple
+  consumptions by the same individual) may be greater than with toxic
+  baits. This might be partially accountable if individuals are
+  distinguishable but this may not be possible for some species such as
+  koomal.
+\end{itemize}
+
+~
+
+\textbf{Camera security}
+
+Camera management and location will be important for security from theft
+and damage (e.g. from fire)
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Covert as possible for reducing detectability (also beneficial to the
+  study if it reduces detectability by fauna -- i.e. reduced observer
+  effects) -- based on location (next to/within/under natural vegetation
+  and structures), camouflage (shape, shine, silhouette, surface,
+  shadow, smell), etc
+\item
+  Aerial deployment trials should be relatively low risk - located
+  \textgreater{}100 m from any trafficable vehicle tracks and
+  \textgreater{}200 m from frequently used public roads.
+\item
+  Vehicle access to tracks near the cameras should be temporarily closed
+  during the trials wherever possible. This will also reduce
+  human-related risks of using toxic baits. Departmentally-managed roads
+  can be closed under existing authority provisions available to the
+  department. The roads could be closed with signage, danger tape,
+  official 1080 signs and potentially have a covert camera for incursion
+  surveillance. Signs can be produced cheaply on corflute boards and
+  could be used for other departmental activities such as pig control.
+  The text could state something like,
+\end{itemize}
+
+~
+
+~
+
+\begin{longtable}[c]{@{}l@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.97\columnwidth}\raggedright
+\textbf{DANGER - DO NOT ENTER.}
+
+Road Temporarily Closed. \textbf{No unauthorised access}\textbf{.}
+
+Pest control operations for conservation currently underway.
+
+\textbf{1080 Poison baits \& firearms may be in use}\textbf{.}
+
+For more information contact the local Parks and Wildlife office Ph:
+97761207
+
+Planned date of completion: \_\_\_ / \_\_\_ / \_\_\_\_\_\_~~~~~~~~~~~~
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  All cameras to be code locked activated, cameras labelled indicating
+  security code protected and engraved
+\item
+  No flagging tape or any other visible indications of the location of
+  the site or camera/bait stations
+\end{itemize}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Consider additional dedicated surveillance cameras to record human
+  visits to trial sites
+\item
+  Consider insurance policy in case of theft.
+\item
+  Avoid areas imminently planned to be burned during the trial period.
+  Have all sites registered with local district operations and fire
+  management staff so they are aware of their location and can notify
+  the project in case of imminent wildfire risks and other disturbance
+  activities. Having the forest tracks closed with signage will also
+  make workers in the area aware and thereby reduce the risk of damage
+  due to planned burns or wildfire.
+\end{itemize}
+
+\section{1c) Bait condition trials in relation to Coopex treatment and
+environmental conditions}
+
+\textbf{Subject to additional funds being secured}: experimental bait
+condition trials may be conducted concurrently to the bait uptake trials
+to;
+
+\begin{enumerate}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Determine the effectiveness of different Coopex application methods to
+  baits aimed at reducing invertebrate impact on
+  Eradicat\textsuperscript{®} bait characteristics
+\item
+  Determine how environmental conditions influence
+  Eradicat\textsuperscript{®} bait characteristics, including
+  spatio-temporal factors, the weather and ambient conditions,
+  invertebrate interference, etc.
+\end{enumerate}
+
+~
+
+Note: This would make an excellent honours or masters student project;
+Year 1 -- data and sample collection (with or without the student), Year
+2 - sample analysis and write up.
+
+~
+
+\subsubsection{Testing the effectiveness of Coopex applications}
+
+Design:
+
+3 bait treatments -- sprayed, dipped, no Coopex
+
+3 replicates of each treatment per site
+
+5 sites per trial - each of the 4 bait uptake trial sites and a
+reference site (i.e. the 4 bait uptake trial sites will vary between
+trials (total of 40 sites) and the reference site (in jarrah forest near
+Manjimup) will remain the same throughout the successive trials (i.e. 41
+sites in total).
+
+10 trials conducted over a year
+
+~
+
+Method:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  The bait condition trial sites will be 1-3 km from the bait uptake
+  trial sites for independence (i.e. to reduce the influence of one
+  trial on the results of the other). Note that independence will not be
+  absolute (because some vertebrates may encounter both trials) but
+  environmental conditions should be comparable between the paired
+  trials sites.
+\item
+  Experimental unit / Bait station = 1 Eradicat\textsuperscript{®} bait
+  placed in contact with the ground within a 5-sided wire cage cube
+  securely pegged to the ground (i.e. to allow invertebrate access but
+  not vertebrates. Note the size of the cube and the mesh needs to
+  overcome interference from possums and canids that might dig).
+\item
+  Each bait station will be at least 100 m from other bait stations
+  (based on estimated Australian meat ant (\emph{Iridomyrmex purureus})
+  territory sizes being \textless{}5900 m\textsuperscript{2} (Thomas
+  \emph{et al.} 1999; Note that \emph{Iridomyrmex conifer} is likely to
+  be the most problematic species in the forest)
+\item
+  The trials will be conducted concurrently to the bait up-take trials
+  and run for two weeks.
+\item
+  Bait condition (photographed, weighed, visual assessment), soil
+  moisture and invertebrate activity will be recorded at the beginning
+  or the trials, at least once during the trials (day 4-10; for the
+  trials associated with the ground baiting and reference sites only)
+  and at the end of the trial (day 14 for aerial deployment trials). At
+  the end of the trials the baits will be retained and frozen for later,
+  more detailed, assessment if required.
+\item
+  Environmental data to be collected at each trial site will include
+  ambient conditions (temperature, relative humidity, rainfall, and soil
+  moisture by means of data loggers and rainfall gauges; evaporation
+  rates).
+\item
+  Invertebrate species will be sampled i) that are found on the baits
+  when they are checked during the trials, and ii) by means of a pair of
+  delta traps with replaceable sticky bases (one in each pair being
+  baited with 4 cm\textsuperscript{3} piece of non-toxic
+  Eradicat\textsuperscript{®} bait), located \textasciitilde{}10 m from
+  each Eradicat\textsuperscript{®} bait station.
+\end{itemize}
+
+~
+
+Note: Being able to explain the factors affecting the rates and
+differences in the degradation of Eradicat\textsuperscript{®} baits is
+important to being able to understand the scale of the problem and to
+identify solutions, and when and where they may be needed.
+
+~
+
+\section{1d) Spatial ecology of cats}
+
+\textbf{Subject to additional funds being secured}. Summary:
+Radio-telemetry using GPS collars on up to 10 cats will be used to get
+spatio-temporal data within the Upper Warren region to provide a general
+understanding of;
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  home range size, area covered per night and other information on
+  movement patterns (e.g. useful to help estimate density, probability
+  of encounter of potential bait locations, etc)
+\item
+  how they use the landscape (e.g. habitat preferences/selection --
+  landscape position, proximity to agriculture, use of roads and tracks,
+  etc).
+\item
+  try to identify when/where cats are more likely to eat baits, such as
+  feeding areas as distinct from other activities such as shelter,
+  territorial maintenance, breeding, social interaction, etc.
+\item
+  This work is currently unfunded except for the procurement of the GPS
+  collars.
+\end{itemize}
+
+Cat selection:
+
+Cats for collaring would preferentially be selected in the area(s)
+within the Upper Warren region anticipated to be involved in Stage 2 of
+the project -- i.e. the treatment and comparative reference areas for
+the operational-scale deployment of baits. This is to maximise
+efficiency and information return from investment (e.g. the same cats
+and collars could be subsequently used to track comparative survivorship
+of cats during operational baiting).
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Sources: farm shed strays/ferals from properties within or adjacent to
+  expansive forest areas may be easier targets, but at least some
+  individuals should be sourced from forest areas
+\item
+  Capture methods will include cage and leg holds and opportunistic
+  captures from wildlife monitoring. Catching cats is the greatest
+  challenge for this project component. Assistance and support from
+  expertise in cat trapping will be critical to its success.
+\item
+  Landholder engagement and support will be important in finding source
+  animals (i.e. an opportunity to integrate this with the community
+  elements of this project).
+\item
+  Reconnaissance using cat sightings, sign and remote sensor cameras
+  will be needed to identify areas and individuals to target for capture
+  and collaring
+\item
+  Given the small sample size it may be difficult to derive clear gender
+  differences in behaviour and movement. Consider only collaring
+  individuals of one gender (Sarah Comer pers. comm.)
+\end{itemize}
+
+GPS Collars:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  About 20 fixes per day (hourly between 1600 and 0800 hrs and at 1000,
+  1200 and 1400 hrs)
+\item
+  Approximate battery life of 150 days per collar
+\item
+  Remote download every month
+\end{itemize}
+
+\section{~}
+
+\section{Complementary approaches that could help identify when, how and
+where to bait for effective cat control for fauna conservation}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Biologically informed -- cat biology/ecology, native prey
+  biology/ecology, predator prey interactions, spatial ecology, etc e.g.
+  risk to chuditch may be reduced if the timing of baiting avoids the
+  period when young emerge from the den and start feeding themselves
+\item
+  Modelling
+\end{itemize}
+
+\section{Stage 2 - Operational deployment of
+Eradicat\textsuperscript{®}}
+
+Specific objectives: Quantify the effects of an optimised operational
+use of Eradicat\textsuperscript{®} baits (informed by stage 1) at the
+individual and population levels of i) feral cats and foxes, ii)
+potentially vulnerable non-target native species (e.g. dasyurids), and
+iii) priority native species threatened by introduced predators
+(Numbats, Woylies, etc) within the Upper Warren region.
+
+Strategy: Conduct an Eradicat\textsuperscript{®} baiting program within
+a limited area of the Upper Warren (e.g. 225-400 km\textsuperscript{2}),
+within a comparative / experimental framework, to assess the
+effectiveness on target species (cats and foxes) and effects on
+non-target species (with a focus on potentially vulnerable and priority
+beneficiaries).
+
+~
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Comparative treatments will include; 1) Eradicat\textsuperscript{®}
+  baiting treatment area, 2) Standard quarterly fox baiting area, 3)
+  Monthly fox baiting area (Perup core, since 2010), 4) An unbaited
+  (Probait and Eradicat\textsuperscript{®}) area
+\item
+  The effectiveness of the Eradicat\textsuperscript{®} baiting event
+  will be examined using a BACI design (before, after, control, impact);
+  considered the most powerful means of making this assessment
+\item
+  Responses of target and priority non-target fauna will be measured at
+  the individual and population levels because each level provides
+  important insights that the other cannot.
+\item
+  Monitoring methods before and after the Eradicat\textsuperscript{®}
+  baiting will include (Table 2); - Radio-telemetry (target, and
+  possibly vulnerable non-target species if additional funds can be
+  secured - Remote sensor cameras (all species, especially cats, foxes,
+  numbats, quenda) - Trapping (especially woylies also other native
+  mammals) - Spotlighting (especially western ringtail possums, also
+  phascogales and macropods) - Nestboxes (phascogales)
+\item
+  The monitoring program will use and build on the existing monitoring
+  infrastructure in the Upper Warren to provide best use of historical
+  data and minimise costs of monitoring during this project (Figure 2).
+  New monitoring infrastructure will include 3 nestbox grids, and a
+  trapping and spotlight transect in Talling forest block in the
+  Eradicat\textsuperscript{®} baiting area (southern Perup) (Table 3).
+\item
+  Potentially vulnerable non-target native species in the Upper Warren
+  are presented in Table 4. Wambenger (brush-tailed phascogale), bush
+  rat, chuditch and quenda are considered potentially the most
+  vulnerable mammals based on a theoretical worst-case scenario
+  assessment. All four species need to consume less than one or two
+  Eradicat\textsuperscript{®} baits to potentially receive a lethal dose
+  of 1080. Relative to their body mass all four are capable of consuming
+  their respective quantities of bait within 24 hrs (i.e. \textless{}9\%
+  of their body mass). Consumption rates of dried meat baits (DMB) of
+  \textless{}9\% body mass have been repeatedly observed being consumed
+  by dasyurids in laboratory trials (Martin et al. 2002 and references
+  within). Because the amount of bait consumed is inversely proportional
+  to the hardness of the food, it is reasonable to assume that these
+  species can eat more Eradicat\textsuperscript{®} bait (which is
+  softer) than DMBs. Most small dasyurids consume about 20-30\% of their
+  body mass each day (see Martin et al. 2002).
+\item
+  Bush rats will not be assessed as part of this study because none have
+  been detected in the Upper Warren region since 2005, having been
+  abundant in places in the 1970s (Per Christensen pers comm.) but
+  having declined since at least 1994 (Wayne et al. in review).
+\item
+  The varanid lizards (\emph{Varanus gouldii}and \emph{V. rosenbergi})
+  and some birds (e.g. Australian raven, Australia magpie, some raptors)
+  may also be potentially vulnerable (Table 4), however there is
+  currently insufficient information to more accurately quantify the
+  risks. These species will not be monitored, given the limited
+  resources available. While some traps captures of \emph{Varanus
+  rosenbergi}are expected during other planned monitoring activities it
+  is not likely that there will be sufficient data to assess population
+  changes without a greater, more targeted monitoring program.
+\item
+  The timing of the operational use of Eradicat\textsuperscript{®} will
+  be determined by Stage 1. This in turn will affect the timing of
+  monitoring before and after the baiting operation (Table 5).
+\end{itemize}
+
+~
+
+\textbf{Design and analysis}
+
+BACI design with ANOVA
+
+Response variables:
+
+Individual level -- survivorship of radio-collared (cats, ideally also
+foxes, chuditch and phascogales) or trapped animals (chuditch)
+
+Population level -- detection rate (Remote sensor camera, spotlight),
+abundance estimate (trapping) or occupancy rate (nest boxes) of each
+species
+
+~~
+
+\textbf{Figure 2.}Map of the Upper Warren region with existing
+monitoring infrastructure and indicative treatment areas for the
+comparative operational deployment of Eradicat\textsuperscript{®} baits
+
+~
+
+\textbf{Table 2.} Monitoring methods to be used for species of interest
+before and after the Stage 2 operational Eradicat\textsuperscript{®}
+baiting. 1= most appropriate, 2=reasonable method, 3 = possibly useful.
+
+~
+
+~
+
+\textbf{Individual}
+
+\textbf{Population responses}
+
+\textbf{Category}
+
+\textbf{Species}
+
+\textbf{Radio-telemetry}
+
+\textbf{RS Cameras}
+
+\textbf{Cage Trap}
+
+\textbf{Spot-light}
+
+\textbf{Nest-box}
+
+Target
+
+Cat
+
+1
+
+1
+
+-
+
+3
+
+-
+
+~
+
+Fox
+
+Ideally
+
+1
+
+-
+
+3
+
+-
+
+Vulnerable natives
+
+Wambenger
+
+Ideally
+
+3
+
+-
+
+3
+
+1
+
+~
+
+Bush rat
+
+-
+
+3
+
+1
+
+-
+
+-
+
+~
+
+Chuditch
+
+Ideally
+
+2
+
+1
+
+-
+
+-
+
+~
+
+Quenda
+
+Ideally
+
+1
+
+2
+
+3
+
+-
+
+~
+
+Varanus
+
+Ideally
+
+3
+
+1
+
+-
+
+-
+
+Priority natives
+
+Woylie
+
+-
+
+2
+
+1
+
+3
+
+-
+
+~
+
+Ngwayir
+
+-
+
+3
+
+-
+
+1
+
+-
+
+~
+
+Numbat
+
+-
+
+1
+
+-
+
+-
+
+-
+
+Other native beneficiaries
+
+e.g. Brushtail possum
+
+-
+
+2
+
+1
+
+2-3
+
+-
+
+Non-native beneficiaries
+
+e.g. rabbits
+
+-
+
+1
+
+-
+
+2-3
+
+-
+
+\textbf{~}
+
+\textbf{~}
+
+\textbf{~}
+
+\textbf{Table 3.} Monitoring infrastructure to be used for species of
+interest before and after the Stage 2 operational
+Eradicat\textsuperscript{®} baiting.
+
+~
+
+\begin{longtable}[c]{@{}lllllll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Treatment area}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Forest block}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{RS Cameras}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Cage Trap}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Spotlight}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Nest-box grid}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Nest-box transect}
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Perup Core
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Moopinup
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing - Stretch Rd
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Balban
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+New
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Std. W/S
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Warrup
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Winnejup
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Kingston
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+2 x Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Warrup East
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Eradicat\textsuperscript{®}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Boyicup
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+New
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Existing
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+Talling
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+New
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+New
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+New
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+~
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~
+
+\textbf{Table 4.}A worst case scenario theoretical assessment of the
+potentially vulnerable non-target native animals in the Southern Jarrah
+Forest based on published estimates of approximate lethal dose (ALD) for
+1080 poison and the minimum recorded adult body masses. The degree of
+vulnerability is expressed in relation to the minimum number of
+Eradicat\textsuperscript{®} and Probait baits required to consume an ALD
+(assuming 1080 is evenly distributed throughout the bait) and in
+relation to the amount of bait consumed proportionate to body mass. i.e.
+species that need to consume less than 1 or 2 baits and/or
+\textless{}20\% of their adult body mass to receive an ALD are
+considered vulnerable. No information on the Australian raven or
+Australian magpie tolerances to 1080 could be found -- the Little crow
+is presented as a surrogate.
+
+~
+
+* Source: Martin et al. (2002); \^{} Source: van Dyck and Strahan
+(2008); \textsuperscript{\#} ALD unknown, LD\textsubscript{50} = 50, 235
+and 12.8 mg 1080 kg\textsuperscript{-1} for \emph{V. gouldii,} \emph{V.
+rosenbergi}and Little crow \emph{(Corvus bennetti)} respectively, (Dept.
+of Agriculture 2002); adult body mass estimates are also rough (for
+Varanus 500g is used as an interim minimum adult body mass, for the
+Little crow 380 g is the mean adult body mass)
+
+~
+
+\begin{longtable}[c]{@{}lllllll@{}}
+\toprule\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Species}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{*Approx. Lethal Dose (mg 1080 kg\textsuperscript{-1)}}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{\^{}Adult Body mass (g)}~
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Approx min. \# of Eradicat}\textsuperscript{®}\textbf{baits (4.5
+mg 1080) for ALD}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Amount of Eradicat}\textsuperscript{®}\textbf{bait consumed to
+reach ALD proportionate to body mass}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Approx min. \# Probaits (3 mg 1080) for ALD}
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textbf{Amount of Probait consumed to reach ALD proportionate to body
+mass}
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Wambenger
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+6
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+106-212 F, 175-234 M
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+0.14
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.9\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+0.21
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+9.0\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Bush rat
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+27.6
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+40-225
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+0.25
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+8.9\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+0.37
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+41.4\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Chuditch
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+7.5
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+615-1130 F; 710-2185 M
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.03
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+2.4\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.54
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+11.3\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Little crow
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textsuperscript{\#}12.8
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+*380
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.08
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+4.1\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.62
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+19.2\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Quenda
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+14.1
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+400-1200 F, 500-1850 M
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.25
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+4.5\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.88
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+21.2\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Brown falcon
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+20
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+*400-480
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1.81
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+6.6\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+2.72
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+30.6\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Varanus
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textsuperscript{\#}50
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+\textless{}1000 F \textless{}1900 M
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+5.56
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+16.1\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+8.33
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+75.0\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Woylie
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+105.8
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+750-1500 F, 980-1850 M
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+17.63
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+34.1\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+26.45
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+158.7\%
+\end{minipage}
+\\\addlinespace
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Koomal
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+92
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+1200-3500 F, 1300-4500 M
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+24.53
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+29.6\%
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+36.80
+\end{minipage} & \begin{minipage}[t]{0.12\columnwidth}\raggedright
+138.0\%
+\end{minipage}
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+~
+
+~
+
+\textbf{Table 5.} Indicative timeline for the Southern Jarrah Forest
+component of the South West Threatened Fauna Recovery Project. Principle
+responsibility Green = Science, Blue = RFMS, Orange = Western
+Shield/RFMS
+
+~
+
+Jan-16
+
+Feb-16
+
+Mar-16
+
+Apr-16
+
+May-16
+
+Jun-16
+
+Jul-16
+
+Aug-16
+
+Sep-16
+
+Oct-16
+
+Nov-16
+
+Dec-16
+
+Jan-17
+
+Feb-17
+
+Mar-17
+
+Apr-17
+
+May-17
+
+Jun-17
+
+Jul-17
+
+Aug-17
+
+Sep-17
+
+Oct-17
+
+Nov-17
+
+Dec-17
+
+Jan-18
+
+Feb-18
+
+Mar-18
+
+Apr-18
+
+May-18
+
+Jun-18
+
+Jul-18
+
+Aug-18
+
+Sep-18
+
+Oct-18
+
+Nov-18
+
+Dec-18
+
+\textbf{Stage 1: Bait protocol optimisation}
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Pilot trial
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Site selection and set up
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Bait uptake trials
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Camera data management
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Analysis
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Cat spatial ecology
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+\textbf{Stage 2: Integrated fox and cat control}
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Eradicat bait - 1 or 2 sessions per year, 50baits/km x 300 km2 = 15,000
+baits
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+\textbf{Stage 2: Fauna Monitoring}
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Camera monitoring (cats, numbats)
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Radio-collaring cats
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Radio-collaring chuditch
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Radio-collar monitoring
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Cage Trapping (chuditch, woylie, brushtail possum, quenda)
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Spotlighting (western ringtail possums, tammar, western brush wallaby)
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Nest boxes (phascogales)
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Numbat monitoring
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+~
+
+Note: the timing of the Operation Eradicat\textsuperscript{®} baiting in
+Stage 2 is to be determined by the results of Stage 1. This in turn will
+affect the timing of the fauna monitoring before, during and after the
+baiting event
+
+Figures provided for Varanus and Koomal are for larger adults than
+observed in UW, resulting in an overestimation of the min \# baits
+required to reach ALD.
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+granted
+
+
+
+
+\subsection*{Data management}
+
+Hard copies of data will be kept on file in the Manjimup Work Centre. A
+digital copy of the data will be maintained in Fauna File. Images will
+be stored and managed in CPW Photo Warehouse.
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist &  &  & \\
+
+
+
+FTE Technical &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime &  &  & \\
+
+
+
+Overheads &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

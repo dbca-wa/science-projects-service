@@ -286,6 +286,25 @@ class Transformer:
                 "./data/modded_data\documents_studentreport.csv",
                 "./data/modded_data\documents_projectclosure.csv",
             ]
+            skip_column_files = [
+                "./data/raw_data\projects_project.csv",
+                "./data/modded_data\projects_project.csv",
+                "./data/raw_data\pythia_ararreport.csv",
+                "./data/modded_data\pythia_ararreport.csv",
+            ]
+            # research functions are in html but should be cleaned
+            columns_to_skip = [
+                "title",            # projects_projects
+                "comments",         # projects_projects, projects_projectmembership
+                "tagline",          # projects_projects
+                "dm",               # pythia_ararreport
+                "pub",              # pythia_ararreport
+                "research_intro",   # pythia_ararreport
+                "student_intro",    # pythia_ararreport
+                "sds_intro",        # pythia_ararreport
+
+            ]
+
             for file in self.tqdm(
                 batch_files,
                 unit="file",
@@ -303,12 +322,24 @@ class Transformer:
                 file_start_time = time.time()
 
                 df = self.file_handler.read_csv_and_prepare_df(file)
-                # self.df = df
-                with warnings.catch_warnings():
-                    warnings.filterwarnings(
-                        "ignore", category=MarkupResemblesLocatorWarning
+                if file in skip_column_files:
+                    print(
+                        f"{self.misc.bcolors.WARNING}==============================================================\n\FILE IN SKIP COLUMN FILES {file}{self.misc.bcolors.ENDC}"
                     )
-                    df = df.applymap(remove_html_and_newlines)
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(
+                            "ignore", category=MarkupResemblesLocatorWarning
+                        )
+                        # df = df.applymap(remove_html_and_newlines)
+                        df.loc[:, ~df.columns.isin(columns_to_skip)] = df.loc[:, ~df.columns.isin(columns_to_skip)].applymap(remove_html_and_newlines)
+
+                else:
+                    # self.df = df
+                    with warnings.catch_warnings():
+                        warnings.filterwarnings(
+                            "ignore", category=MarkupResemblesLocatorWarning
+                        )
+                        df = df.applymap(remove_html_and_newlines)
 
                 selected_file, _ = self.file_handler.save_df_as_csv(
                     df=df,

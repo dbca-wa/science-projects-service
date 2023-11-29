@@ -1,0 +1,658 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Concept Plan SP 2015-022}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Concept Plan SP 2015-022
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/conceptplan/1518/}{Concept Plan SP 2015-022}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Tue, 6 Oct 2020 12:44:09 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Concept Plan SP 2015-022
+}
+\title{Recovery of Gilbert's potoroo \emph{Potorous gilbertii}
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Tony Friend
+\\
+\textbf{Data Custodian} & Tony Friend
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Oct. 6, 2020, 12:44 p.m.}
+\begin{tabu} {X X}
+& Pending project plan approval
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Oct. 6, 2020, 12:44 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+\section*{Recovery of Gilbert's potoroo \emph{Potorous gilbertii}
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Animal Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+
+
+\subsection*{Aims}
+
+To carry out research projects to support the objectives listed in the
+current Gilbert's potoroo recovery plan:
+
+\begin{itemize}
+\tightlist
+\item
+  To ensure existing populations of Gilbert's potoroo are returned to
+  and maintained at sustainable levels and that genetic diversity is
+  maximised.
+\item
+  To increase the number of populations and individuals of Gilbert's
+  potoroo.
+\end{itemize}
+
+To achieve these aims, recommendations for management are required and
+in some cases, management actions will be undertaken or led by research
+personnel.~ The main areas of research will be:
+
+\begin{itemize}
+\tightlist
+\item
+  Evaluation of the importance of predation by carpet pythons in the
+  Waychinicup NP enclosure in regulating potoroo numbers. This aspect is
+  largely complete, and a paper is in preparation.
+\item
+  If python predation~is significant, evaluate methods for reducing
+  python predation at this site, for implementation.~This research
+  aspect is covered by a separate SPP and is being led by Dr David
+  Pearson with input from Albany-based SCD and FRSD staff.
+\item
+  Evaluate potential translocation sites, including Middle Island in the
+  Recherche Archipelago and a mainland site, including resource
+  availability and predation risk.
+\item
+  Implement a translocation to at least one of these sites.
+\item
+  Undertake a survey of the genetic variability of Gilbert's potoroo
+  across all populations and develop a population management strategy.
+\item
+  Publication of 20 + years of research and monitoring data to ensure
+  appropriate management into the future.
+\end{itemize}
+
+~
+
+~
+
+
+
+
+\subsection*{Expected outcome}
+
+The expected outcome of this project will be a series of
+recommendations, based on published information for management of
+Gilbert's potoroo to achieve the greater security of the species.
+Ideally, management of the populations will achieve population stability
+and the highest genetic variability possible given the low number of
+animals.~ This will require a greater understanding of the current
+status of populations and the ecological requirements of the species at
+its various sites.
+
+~Management Implications
+
+The recommendations arising from this project will include management
+actions necessary to increase the likelihood that this species will
+persist. These are expected to include continued and enhanced control of
+foxes and feral cats at all existing and new mainland population sites
+as well as fire management at all sites to protect long-unburnt habitat
+areas. Action to reduce predation by carpet pythons may also be
+recommended. Management of potoroo population genetics will involve
+movement of animals between the isolated population sites. Some or all
+of these actions will involve District and Regional staff.
+
+
+
+
+\subsection*{Strategic context}
+
+This project will further the aims of and operate within the context of
+the following plans and documents:
+
+\begin{itemize}
+\tightlist
+\item
+  Department of Parks and Wildlife Gilbert's Potoroo Recovery Plan
+  (revised plan currently under review)
+\item
+  Department of Parks and Wildlife Strategic Direction 2014-2017 (DPaW
+  2014a)
+\item
+  Department of Parks and Wildlife Corporate Policy Statement No. 35
+  Conserving threatened species and ecological communities (DPaW 2015a)
+\item
+  Department of Parks and Wildlife Corporate Policy Statement No. 12
+  Management of pest animals (DPaW 2015c)
+\item
+  Department of Parks and Wildlife Corporate Policy Statement No. 19
+  Fire management (DPaW 2015d)
+\item
+  Department of Parks and Wildlife Corporate Policy Statement No. 88
+  Prescribed burning (DPaW 2016a)
+\item
+  Department of Parks and Wildlife Corporate Guidelines No. 35 Listing
+  and recovery of threatened species and ecological communities (DPaW
+  2015b)
+\item
+  Department of Parks and Wildlife Corporate Guidelines No. 36
+  Recovering threatened species through translocations and captive
+  breeding (DPaW 2015f)
+\item
+  Two Peoples Bay Nature Reserve Management Plan (CALM 1995a)
+\item
+  Esperance and Recherche Parks and Reserves Management Plan 84 (DPaW
+  2016b)
+\item
+  Albany Coast Draft Management Plan (DPaW 2016c)
+\item
+  South Coast Regional Fire Management Plan 2009-2014 (DEC 2009)
+\item
+  South Coast Threatened Birds Recovery Plan (DPaW 2014f)
+\item
+  Quokka Recovery Plan (DEC 2013b)
+\item
+  Western Ringtail Possum Recovery Plan (DPaW 2014d)
+\item
+  Threatened Species and Ecological Communities Strategic Management
+  Plan, South Coast Region, WA (Gilfillan \emph{et al.} 2009)
+\item
+  Western Shield Fauna Recovery Program Interim Strategic Plan 2009/10
+  -- 2012/13 (DEC 2008)
+\item
+  Threat abatement plan for predation by European red fox (DEWHA 2008)
+\item
+  Threat abatement plan for predation by feral cats (Commonwealth of
+  Australia 2015)
+\item
+  Survey guidelines for Australia's threatened mammals (DSEWPaC 2011)
+\item
+  Threatened Species Strategy (Commonwealth of Australia 2016
+\end{itemize}
+
+
+
+
+\subsection*{Expected collaborations}
+
+Existing collaborations with Parks and Wildlife Albany District and
+South Coast Region staff are vital for the successful management and
+recovery of Gilbert's potoroo. This involves working closely with
+management staff, particularly on predator control, fire management and
+management of infrastructure such as the captive holding facility at Two
+Peoples Bay and the Waychinicup NP enclosure.
+
+Collaborations with university academics and students from ECU, Murdoch
+University and UWA have already produced valuable information on the
+biology and ecology of Gilbert's potoroo and it is expected that such
+collaborations will continue and increase. In particular, students at
+the UWA Albany campus are ideally situated to be involved in such
+projects.
+
+Funding collaboration, most importantly with South Coast NRM and local
+community group the Gilbert's Potoroo Action Group (GPAG) will continue
+and will involve close cooperation with these groups to foster and grow
+support for potoroo recovery. GPAG has been awarded a grant of \$250,000
+over two years to support the investigation of potential~translocation
+sites and an initial translocation.
+
+
+\subsection*{Proposed period of the project}
+Oct. 8, 2015 -- June 30, 2019
+
+
+
+\subsection*{Staff time allocation }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Role & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Scientist & 0.4 & 0.4 & 0.4\\
+
+
+
+Technical & 1.5 & 1.5 & 1.5\\
+
+
+
+Volunteer & 0.2 & 0.2 & 0.2\\
+
+
+
+Collaborator & 0.1 & 0.1 & 0.1\\
+
+
+\hline
+\end{longtabu}
+
+
+
+\subsection*{Indicative operating budget }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Consolidated Funds (DPaW) & 20,000 & 20,000 & 20,000\\
+
+
+
+External Funding & 100,500 & 100,500 & 50,000\\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

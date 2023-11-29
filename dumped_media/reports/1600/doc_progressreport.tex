@@ -1,0 +1,316 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2014-005 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1600/}{Progress Report SP 2014-005
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Mon, 11 Jul 2016 12:53:39 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2014-005
+}
+\title{Access and human use at Penguin Island and related implications for
+management of Marine Park assets and visitor risk
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & George Shedrawi
+\\
+\textbf{Data Custodian} & George Shedrawi
+\\
+\textbf{Site Custodian} & George Shedrawi
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 11, 2016, 12:53 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 11, 2016, 12:53 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Access and human use at Penguin Island and related implications for
+management of Marine Park assets and visitor risk
+}
+
+G Shedrawi, A Kendrick, M Rule
+
+
+\section*{Context}
+Penguin Island is part of the Shoalwater Islands Marine Park and is the
+most northern significant breeding location for little
+penguins,~\emph{Eudyptula minor,} in Wester Australia. The presence of
+migrating and resident seabirds and the unspoilt beaches makes Penguin
+Island an important seabird breeding colony and an attractive
+destination for residents and tourists, who generally access the island
+by ferry. A number of visitors choose to wade or swim to the island and
+Parks and Wildlife managers have identified this activity as a
+significant risk to visitor safety. Historically, such methods of
+crossing have resulted in near drownings that required Department staff
+to rescue people in the water and more recently, a drowning incident.
+Parks and Wildlife are continuing to implement a range of management
+strategies to mitigate this risk including recommendations from the
+Coroners working group. This project has been established at the request
+from Swan Coastal District to develop a better understanding of visitor
+crossings to Penguin Island by visitors, thus providing managers with
+relevant information for the design of mitigation strategies and
+actions.~
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Determine social and environmental factors that characterise periods
+  of high use of the sand bar crossing.
+\item
+  Provide information to assist in the development and implementation of
+  new and existing mitigation strategies that minimises visitor risk.
+\item
+  Establish a system for recording beach arrivals of nesting little
+  penguins, and high risk crossings by visitors to Penguin Island.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Installed cameras and a web-based application that enabled Parks and
+  Wildlife staff~to view near real-time video footage of people crossing
+  the sandbar spit between Mersey Point and Penguin Island. This system
+  includes the automated conversion, upload and corporate storage of
+  video footage of both little penguin beach arrivals and visitor
+  sandbar crossings.
+\item
+  Data collected during 2014-15 were analysed to determine the
+  proportion of Penguin Island visitors using the sandbar as an access
+  route instead of the ferry service. This identified peak periods and
+  environmental conditions when visitors used the sandbar as an access
+  point to Penguin Island.
+\item
+  Data and preliminary findings collected during 2014-15 were summarised
+  and presented to Swan Coastal District and the Coroner's working
+  group.~
+\item
+  A Department-hosted web application was implemented that enabled
+  staff~and community volunteers to analyse infrared recordings~of
+  little penguin beach arrivals.
+\end{itemize}
+
+
+
+\section*{Management implications}
+The monitoring tool provides managers with information to assist the
+development of visitor risk mitigation strategies aimed at
+decreasing~high risk crossings to Penguin Island. The preliminary
+information provided to managers indicates that management intervention
+strategies such as sandbar closures and signage may lower the
+proportion~of visitors using~the sandbar to access Penguin Island and
+indicates the relative value of patrols~by Surf Life Saving Association
+life guards.~
+
+Marine park managers now have an improved understanding of the numbers
+of little penguins landing on two major beaches during the breeding
+season which can be used to document long-term trends in abundance. This
+information is used to adapt on-ground management and to support
+reporting and community education.
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Compile a final report on finding related to visitor use of the
+  Penguin Island sandbar.
+\item
+  Improve the camera~system's utility as a monitoring tool by increasing
+  the resolution of~imagery.
+\item
+  Research~further options to promote community engagement with little
+  penguin monitoring.
+\item
+  Integrate this technology and methods into the Department's long-term
+  marine monitoring program for little penguins
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

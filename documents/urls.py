@@ -21,6 +21,10 @@ urlpatterns = [
         "projectplans/endorsements/<int:pk>",
         views.EndorsementDetail.as_view(),
     ),
+    path(
+        "project_plans/<int:pk>/seek_endorsement",
+        views.SeekEndorsement.as_view(),
+    ),
     path("progressreports", views.ProgressReports.as_view()),
     path("progressreports/<int:pk>", views.ProgressReportDetail.as_view()),
     path(

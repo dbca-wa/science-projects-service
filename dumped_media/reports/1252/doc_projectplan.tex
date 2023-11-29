@@ -1,0 +1,508 @@
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+\usepackage[colorlinks=true,pdftitle=doc\_projectplan.pdf,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+
+
+
+%%% Custom headers/footers (fancyhdr package)
+\fancypagestyle{plain}{
+\fancyhf{}
+\setlength\headheight{40pt}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+
+
+    \fancyhead[L]{ \href{http://sdis.dpaw.wa.gov.au/documents/projectplan/1252/download/tex/}{} \newline }
+\fancyhead[R]{ \hfill\href{http://www.dpaw.wa.gov.au}{Department of Parks and Wildlife}\newline\href{http://sdis.dpaw.wa.gov.au}{Pythia}}
+
+
+
+
+\fancyfoot[L]{ \leftmark\newline\textbf{Last Modified}\textit{ }\quad\textbf{Printed}\textit{ Nov. 21, 2014, 9:31 a.m. } }
+\fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} } % Pagenumbering
+
+
+}
+\pagestyle{plain}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+\begin{document}
+
+\setcounter{secnumdepth}{-1}
+
+
+\begin{titlepage}
+\begin{center}
+% Upper part of the page
+\begin{minipage}[t]{0.28\textwidth}
+\begin{flushleft}
+\href{http://www.dpaw.wa.gov.au}{\includegraphics[scale=0.6]{/var/www/sdis_8271/staticfiles/img/logo-dpaw.png}}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}[b]{0.7\textwidth}
+\begin{flushright}
+    \href{http://sdis.dpaw.wa.gov.au/documents/projectplan/1252/download/tex/}{}) \\
+\end{flushright}
+\end{minipage}
+\HRule \\[0.4cm]
+\vfill
+\textsc{\Huge Science project 2014-1 Understanding the changing fire environment of south-west Western Australia \newline }
+\vfill
+\textsc{\Huge project plan}
+
+\vfill\vfill\vfill\vfill
+title and summary
+
+\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill
+
+\textbf{Version created on} Nov. 21, 2014, 9:31 a.m.
+\vfill
+\textbf{Last Modified on}  by 
+\vfill\vfill
+\textbf{Report Status}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Status & Last Updated \\
+\hline
+\textbf{Planning - } \\
+\hline
+\end{tabu}
+\vfill
+\textbf{Science Project Overview}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Part & Checklist Last Updated \\
+\hline
+\textbf{Part A - Summary \& Approval} & bla \\
+\hline
+\end{tabu}
+
+\end{center}
+\end{titlepage}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage
+
+
+
+
+
+
+
+\section{Related Science Projects}
+
+
+
+2006_003 Forestcheck: Integrated site-based monitoring of the effects of timber harvesting and silviculture in the jarrah forest
+
+
+2010_011 Fire regimes and impacts in transitional woodlands and shrublands
+
+
+2012_036 Fire behavior and fuel dynamics in coastal shrublands
+
+
+
+
+
+
+\section{Background}
+
+
+
+Fire environment is the resultant effect of factors that influence the ignition, behaviour and extent of fires in a landscape. These factors include climate and weather, topography, vegetation and fuel, and ignition. The fire environment provides a setting within which a range of fire regimes, defined by the frequency, season and intensity of burning are enacted in response to a combination of chance events and human intervention (McCaw and Hanstrum 2003; O'Donnell et al. 2011; Sullivan et al. 2012).
+
+
+The climate of south-west Western Australia is becoming drier and warmer, and reduced winter rainfall is making the landscape drier (Indian Ocean Climate Initiative 2012). During the past decade these trends have reinforced, and in some years the fire season has extended into traditional winter months. Examination of DPaW fire report data indicates that during the past decade the incidence of bushfires ignited by lightning has also increased markedly in some parts of the south-west (McCaw and Read 2012). Land use, socio-economic and organizational factors have led to more widespread occurrence of old fuels (>20 years), increasing the potential for high severity fires that may have adverse impacts on ecosystem services and the community (McCaw 2013).
+
+
+Much of the science linking interactions between climate, fire weather and fire behaviour was established in the 1960s and 1970s, but new advances in understanding and in computer modeling capability provide the scope to better understand the interactions of weather and fire behaviour (Mills and McCaw 2010; Matthews et al. 2012; Peace et al. 2012). Coupled fire-atmosphere models have the ability to capture feedback loops between a fire and the atmosphere, enabling better understanding of how a fire may modify the environment in which it is burning. This is of particular importance during large-scale, high intensity bushfires. Application of physically based models provides enhanced scope for predicting how changes in regional scale changes in atmospheric circulation processes may influence more localized fire weather phenomena including convective activity, lightning and entrainment of dry air from mid levels of the atmosphere.
+
+
+
+
+
+
+\section{Aims}
+
+
+
+This project will synthesize and integrate a range of information relating to climate, fire occurrence and the impact of changing fire regimes on ecosystem services. Drawing on fire data held by DPaW, and on work undertaken by organizations with expertise in climate analysis and modeling the project aims to:
+
+
+\begin{itemize}
+
+  \item provide an objective basis to review and revise management guidelines based on past research and experience during wetter climate phases,
+
+  \item provide a contextual setting for targeted investigations of ecosystem responses to fire and climate.
+
+\end{itemize}
+
+
+
+
+
+
+\section{Expected outcome}
+
+
+
+This project addresses the two actions from the Science and Conservation Division Strategic Plan for Biodiversity Conservation Research:
+Action 2.15 - Continue with long-term fire research in south-west ecosystems as a basis for developing ecologically appropriate fire management in a global biodiversity hotspot.
+Action 2.16 - Develop an understanding of the influence of climate change on fire regimes and ecosystem response in south-west ecosystems as a basis for developing response options.
+
+
+The project will result in improved understanding, leading to more effective management response to key drivers of fire regimes in south-west Western Australia including
+
+
+\begin{itemize}
+
+  \item a drying climate characterized by short winters and declining soil moisture, streamflow and groundwater levels
+
+  \item increased incidence of bushfires ignited by lightning
+
+  \item more widespread occurrence of old fuels (>20 years) prone to high severity fires
+
+  \item more widespread occurrence of ecosystems modified by mining
+
+\end{itemize}
+
+
+
+
+
+
+\section{Knowledge transfer}
+
+
+
+The primary users of knowledge generated by this project will be DPaW Regional Services and Fire Management Division, including policy makers, fire planners, and fire operations personnel. Personnel in other Western Australian fire management agencies also stand to benefit from knowledge generated by this project. The project is also expected to provide important contextual information for policy settings relating to nature conservation and ecosystem services in fire prone landscapes of south-west WA.
+
+
+Knowledge generated by the project will be communicated in a variety of ways including conventional scientific publications and reports, information sheets and standard operating procedures. Opportunities to utilize advanced computer simulation models and high resolution graphical interfaces will also be investigated where appropriate. Key finding will be incorporated into training programs delivered to DPaW fire management personnel.
+
+
+
+
+
+
+\section{Tasks and Milestones}
+
+
+
+\begin{itemize}
+
+  \item December 2013 - Manuscript on modeling daily bushfire occurrence in relation to weather and fuel moisture variables for Swan, South West and Warren Regions accepted for publication
+
+  \item March 2014 - Manuscript reporting trends in lightning fire ignition for the Warren Region between 1977 and 2013, and relationships with vegetation type and fuel age
+
+  \item March 2014 - Scoping document prepared to guide collaborative study of lightning fire activity in relation to seasonal climate indicators for south-west WA (with Andrew Dowdy, CAWCR)
+
+  \item June 2014 - Manuscript reporting a study of using the WRF-fire coupled fire atmosphere model to investigate unexpected blow-up fire behaviour during the Layman block prescribed burn in October 2012
+
+  \item December 2014 - Trends in fire danger and fuel dryness indices compiled for representative locations in southwest WA, and summarized in a progress report
+
+  \item June 2015 - Complete a review of current guidelines for prescribed fire taking account of improved knowledge of trends and changes in seasonal conditions
+
+  \item June 2016 - Journal publications completed and knowledge incorporated into updated guidelines and training packages
+
+\end{itemize}
+
+
+
+
+
+
+\section{References}
+
+
+
+Indian Ocean Climate Initiative (2012). Western Australia's Weather and Climate: A Synthesis of Indian Ocean Climate Initiative Stage 3 research. CSIRO and BoM, Australia.
+
+
+Matthews, S., Sullivan, A.L., Watson, P. and Williams, R.J. (2012). Climate change, fuel and fire behaviour in a eucalypt forest. Global Change Biology 18, 3212-3223
+
+
+McCaw, L. and Hanstrum, B. (2003). Fire environment of Mediterranean south-west Western Australia. In: Fire in ecosystems of south-west Western Australia: Impacts and management. Pp 87- 106. Eds. I. Abbott and N. Burrows. Backhuys Publishers, Leiden, The Netherlands.
+
+
+McCaw, W. L. (2013). Managing forest fuels using prescribed fire - a perspective from southern Australia. Forest Ecology and Management 294, 217-224. doi: 10.1016/j.foreco.2012.09.012
+
+
+McCaw, L. And Read, M. (2012). Lightning fire ignitions in the Warren region of south-west Western Australia: 1977-2012. Paper presented at 12th conference of Australasian Fire and Emergency Service Authorities Council and the Bushfire Cooperative Research Centre, Perth, August 2012.
+
+
+Mills, G. A. and McCaw, L. (2010). Atmospheric stability environments and fire weather in Australia - extending the Haines Index. Centre for Australian Weather and Climate Research Technical Report No. 20.
+
+
+O' Donnell, A. J., Boer, M. M., McCaw, W.L., and Grierson, P.F. (2011). Climatic anomalies drive ldfire occurrence and extent in semi-arid shrublands and woodlands of southwest Australia. Ecosphere 2(11),Article 127.
+
+
+Peace, M. McCaw, L., Mills, G. (2012). Meteorological dynamics in a fire environment: a case study of the Layman prescribed burn in Western Australia. Australian Meteorological and Oceanographic Journal 62, 127-142.
+
+
+
+
+
+
+
+\section{Methodology}
+
+
+
+Daily human-caused bushfire occurrence (collaboration with CSIRO Bushfire Dynamics and    Applications)
+
+
+Data from bushfire incidents in south west Western Australia will be used to develop models that  predict the day to day variation in the number of human-caused bushfires within six DPaW  management areas.  Fire incident data will be compiled with weather variables, binary classifications   of day types (e.g. school days) and counts of the number of fires that occurred over recent days.  Models will be developed using negative binomial regression with a dataset covering three years and evaluated using data from an independent year. A common model form that includes variables relating  to fuel moisture content, the number of recent human-caused bushfires, work day (binary classification separating weekends and public holidays from other days) and rainfall will be applied to all areas.
+
+
+Trends in the occurrence of lightning caused bushfires in south-west WA (collaboration with Bureau of Meteorology)
+
+
+Fire reports from 1977 to 2012 have been collated for the Warren Region and the adjoining Kirup section of Blackwood District, an area that encompasses >1 million hectares of public land comprised  of tall open forest, open forest, woodland and coastal shrubland. Reports provide details of the     location (to a precision of ± 160 m), date and time of lightning-caused bushfires attended by the DPaW and its predecessor agencies. Data more than 300 lightning-caused bushfires will be used to examine  the annual pattern and duration of lightning fire activity, and year to year variation in the frequency of  lightning ignition. Spatial pattern of fire occurrence will be examined in relation to vegetation structural  types and time since last fire using GIS intersection. The Bureau of Meteorology are developing a set  of indicators of lightning-fire occurrence for different regions throughout Australia, and will use DPaW  fire occurrence observations to verify these indicators for south-west WA. These indicators will include a number of physically-based properties derived from meso-scale resolution numerical weather     models. These models can be run retrospectively to generate indices back to the 1970s, and can also  be run in a predictive capacity to investigate the potential influences of changes in regional and global  patterns of circulation that may arise from rising global temperatures and atmospheric greenhouse gas  concentrations.
+
+
+Simulating the behaviour of bushfires using a coupled fire atmosphere model (collaboration with University of Adelaide and Bureau of Meteorology)
+
+
+This project will explore the capabilities and applications of the Weather Research and Forecasting (WRF) model by examining case studies of bushfires, including the 2010 Layman prescribed burn in  Blackwood District. A detailed case study has been prepared documenting the circumstances and behaviour of this burn, and the associated weather factors including atmospheric stability, sea-breeze  convergence and entrainment of dry air from aloft. The WRF model is being run with and without  feedback between the fire and the atmosphere to resolve differences in fire activity and atmospheric properties including wind speed and direction, and convective activity. The WRFmodel is being programmed and run by PhD student Mika Peace using the `Tizard' supercomputer at the South  Australian Information Technology Centre. Runs are compared using high resolution graphical output.
+
+
+
+
+
+
+\section{Biometrician's Endorsement}
+
+
+
+granted
+
+
+
+
+
+
+
+\section{No. specimens}
+
+
+
+
+
+\section{Herbarium Curator's Endorsement}
+
+
+
+not required
+
+
+
+
+
+
+\section{Animal Ethics Committee's Endorsement}
+
+
+
+not required
+
+
+
+
+
+
+\section{Data management}
+
+
+
+The project will utilize data from the DPaW corporate fire report database managed by Fire Management Services Branch.
+
+
+Lachlan McCaw at the Manjimup Research Centre holds bushfire case study information in hard copy and on T:\532-Forest \& Tree Crops Group\Shared Data\Lachies data\Fire\Forest fires
+
+
+
+
+
+
+\section{Data Manager's Endorsement}
+
+
+
+None
+
+
+
+
+
+
+\section{Operating Budget}
+
+
+
+Year 1 (\()
+
+
+Year 2 (\))
+
+
+Year 3 (\()
+
+
+FTEs - Scientist
+
+
+0.3
+
+
+0.3
+
+
+0.3
+
+
+FTEs - Technical
+
+
+0.1
+
+
+0.1
+
+
+0.1
+
+
+Equipment
+
+
+3000
+
+
+3000
+
+
+3000
+
+
+Vehicle
+
+
+1500
+
+
+1500
+
+
+1500
+
+
+Travel
+
+
+1000
+
+
+1000
+
+
+Other
+
+
+TOTAL
+
+
+4500
+
+
+5500
+
+
+5500
+
+
+External Funds
+
+
+Year 1 (\))
+
+
+Year 2 (\()
+
+
+Year 3 (\))
+
+
+Salaries/Wages/Overtime
+
+
+Overheads
+
+
+Equipment
+
+
+Vehicle
+
+
+Travel
+
+
+Other
+
+
+TOTAL
+
+The controlled version of this document is on the DPaW web. Previously printed versions of this document may not be current. This document was last amended in November 2013 and can be located at the following URL address: \href{http://intranet/science/Documents/Forms/Staff%20Guidelines.aspx}{http://intranet/science/Documents/Forms/Staff\%20Guidelines.aspx}
+
+
+
+
+
+
+
+\clearpage
+
+
+
+\end{document}

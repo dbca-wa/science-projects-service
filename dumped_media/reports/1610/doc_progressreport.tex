@@ -1,0 +1,315 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2013-002 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1610/}{Progress Report SP 2013-002
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Mon, 11 Jul 2016 13:12:05 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2013-002
+}
+\title{Understanding movements and identifying important habitats of sea
+turtles in Western Australia
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Scott Whiting
+\\
+\textbf{Data Custodian} & 
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 11, 2016, 1:12 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 11, 2016, 1:12 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Understanding movements and identifying important habitats of sea
+turtles in Western Australia
+}
+
+S Whiting
+
+
+\section*{Context}
+This project uses~satellite telemetry to track turtles that are released
+to the wild with minimal and extensive rehabilitation. In addition,
+turtles are~tracked to identify connectivity between different habitats
+in their life stages. Commonly turtles are tracked from nesting beaches
+to identify internesting habitat, migration routes adn resident foraging
+grounds.~The tracking results identify the geographic range and
+preferred habitats and provide insight into the viability and
+survivorship of healthy and rehabilitated turtles in the wild. The
+identification of preferred habitat allows~pressures to be identified
+and prioritised for different~size classes. As tracking results will be
+broadcast live on the internet (updated daily via seaturtle.org) there
+is a direct link~between Parks and Wildlife science activities and the
+community. The genetic information (derived from samples collected
+routinely across a range of projects) will provide another layer of
+information that helps to describe the spatial range of turtles Western
+Australia
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Determine the distribution and movement of sea turtles, particularly
+  juveniles;
+\item
+  Investigate how components of sea turtle biology (including genetics)
+  influence turtle distribution (including preferred sites), movement
+  and foraging ranges;
+\item
+  Investigate how environmental drivers, such as oceanographic factors,
+  influence turtle distribution (including preferred sites), movement
+  and foraging ranges; and
+\item
+  Investigate the viability and survivorship of rehabilitated turtles
+\item
+  Investigate connnectivity of turtles between habitats with their life
+  stages (commonly between nesting beaches ~and foraging grounds).
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Flatback turtles were tracked from four Western Australia nesting
+  locations provided data on migration routes and the locations of
+  internesting habitats and foraging grounds.
+\item
+  Loggerhead turtles were tracked from two sites.~ One loggerhead turtle
+  travelled from its nesting beach at the Muiron Islands in Western
+  Australia to the Torres Strait, a distance of 3400 km.
+\item
+  Hawksbill turtles were tracked from~one site.
+\item
+  One rehabilitated olive ridley turtle was tracked after 20 weeks in
+  care.
+\item
+  Tracking data from all the turtles can be viewed at
+  \href{http://www.seaturtle.org}{www.seaturtle.org}.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Understanding spatial use by turtles is essential for management. The
+  current studies~have collected data that will enable calculations of
+  time spent inside and outside marine reserves, the identification of
+  high use migration corridors and the locations of important foraging
+  areas ad interesting habitats.
+\item
+  This study has already identified new key habitats used by the
+  Northwest Shelf flatback turtle stock. These habitats include foraging
+  areas in the southern Pilbara, inshore internesting areas near Onslow
+  and the confirmation of foraging areas in the north Kimberley.
+\item
+  The movement of loggerhead turtles from WA to the Northern Territory
+  and Queensland has cross jurisdictional implications for the
+  broadscale management of this migratory species and highlights the
+  need for collaboration with other States and Territories.
+\end{itemize}
+
+~
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  This project will continue to track turtles ~to understand the spatial
+  context of habitat use and determine if there are areas that overlap
+  extensively with human pressures.~
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

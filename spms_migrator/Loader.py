@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+import re
 import subprocess
 import time
 import traceback
@@ -15,7 +16,16 @@ import random
 import string
 import urllib3
 import json
-
+import os
+from django.core.files import File
+from django.core.files.uploadedfile import SimpleUploadedFile
+from psycopg2 import Binary
+from django.core.files.images import ImageFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.core.files.storage import default_storage
+# from ..config.settings 
+from django.conf import settings
+import psycopg2
 
 class Loader:
     def __init__(
@@ -35,8 +45,8 @@ class Loader:
         self.pd = pd
         self.psycopg2 = psycopg2
         self.misc = misc
-        self.django_project_path = "C:\\Users\\JaridPrince\\Documents\\GitHub\\SPMS"
-        self.migrator_path = "C:\\Users\\JaridPrince\\Documents\\GitHub\\spms_migrator"
+        self.django_project_path = "C:\\Users\\JaridPrince\\Documents\\GitHub\\service_spms"
+        self.migrator_path = f"{self.django_project_path}\\spms_migrator"
         self.parent_directory = parent_directory
         self.file_handler = file_handler
         self.db_source = ""
@@ -72,6 +82,12 @@ class Loader:
         ]
 
     # GETTERS =====================================================================================
+
+    def spms_upload_image_file(self, file_string, static=False):
+        if file_string is not None:
+            print(file_string)
+
+        return None
 
     def spms_set_media_file(self, file_string, static=False):
         if file_string is not None:
@@ -990,6 +1006,22 @@ class Loader:
                                         f"Permission denied: {file_path} - [WinError 5] Access is denied"
                                     )
                     print(f"Removed files in {migrations_path}")
+                elif dir_name == "__pycache__":
+                    migrations_path = self.os.path.join(root, dir_name)
+                    for file_name in self.os.listdir(migrations_path):
+                        file_path = self.os.path.join(
+                            migrations_path, file_name
+                        )
+                        try:
+                            self.os.remove(file_path)
+                            print(f"Removed file: {file_path}")
+                            removed_items.append(file_path)
+                        except PermissionError:
+                            self.misc.nli(
+                                f"Permission denied: {file_path} - [WinError 5] Access is denied"
+                            )
+                    print(f"Removed files in {migrations_path}")
+
 
         self.misc.nls("Removed theses files:")
         for item in removed_items:
@@ -1007,11 +1039,24 @@ class Loader:
             f"{self.misc.bcolors.WARNING}Attempting migration...{self.misc.bcolors.ENDC}"
         )
         try:
+            # Ensure DB clean
+            # self.misc.nls(
+            #     f"{self.misc.bcolors.OKGREEN}CLEANING!{self.misc.bcolors.ENDC}"
+            # )
+            # clean_command = "py manage.py migrate spms zero"
+            # subprocess.run(clean_command, shell=True)
+
             # Run the makemigrations command
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}MAKING MIGRATIONS!{self.misc.bcolors.ENDC}"
+            )
             makemigrations_command = "py manage.py makemigrations"
             subprocess.run(makemigrations_command, shell=True)
 
             # Run the migrate command
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}MIGRATING!{self.misc.bcolors.ENDC}"
+            )            
             migrate_command = "py manage.py migrate"
             subprocess.run(migrate_command, shell=True)
         except Exception as e:
@@ -1030,19 +1075,19 @@ class Loader:
         # Load environment variables from .env file
         print(f"{self.misc.bcolors.WARNING}Loading Env...{self.misc.bcolors.ENDC}")
         self.load_dotenv()
+        # print(self.os.getenv("ADDITIONAL_URL"))
+        # # Read the password from the environment variables
+        # password = self.os.getenv("UAT_PASSWORD")
 
-        # Read the password from the environment variables
-        password = self.os.getenv("UAT_PASSWORD")
-
-        # Set the PGPASSWORD environment variable to avoid prompts for password
-        self.os.environ["PGPASSWORD"] = password
+        # # Set the PGPASSWORD environment variable to avoid prompts for password
+        # self.os.environ["PGPASSWORD"] = password
 
         # Run the dropdb command
         print(
             f"{self.misc.bcolors.WARNING}Running drop command...{self.misc.bcolors.ENDC}"
         )
         try:
-            dropdb_command = f"dropdb --if-exists --username={self.os.getenv('UAT_USERNAME')} --no-password {self.os.getenv('UAT_DB_NAME')}"
+            dropdb_command = f"dropdb --if-exists --username={self.os.getenv('PGUSER')} --no-password {self.os.getenv('DBNAME')}"
             subprocess.run(dropdb_command, shell=True)
         except Exception as e:
             self.misc.nli(
@@ -1057,7 +1102,7 @@ class Loader:
         # Run the createdb command
         print("Running create command")
         try:
-            createdb_command = f"createdb --username={self.os.getenv('UAT_USERNAME')} --no-password {self.os.getenv('UAT_DB_NAME')}"
+            createdb_command = f"createdb --username={self.os.getenv('PGUSER')} --no-password {self.os.getenv('DBNAME')}"
             subprocess.run(createdb_command, shell=True)
         except Exception as e:
             self.misc.nli(
@@ -1106,6 +1151,9 @@ class Loader:
 
         # Configure Django settings
         settings.configure()
+        settings.MEDIA_URL = "/files/"
+        settings.MEDIA_ROOT = os.path.join(self.django_project_path, "files")
+
 
         print(
             f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
@@ -1127,8 +1175,8 @@ class Loader:
                 BEGIN;
                 INSERT INTO users_user (
                     id, username, email, first_name, last_name, password,
-                    is_superuser, is_staff, is_active, date_joined
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    is_superuser, is_biometrician, is_aec, is_herbarium_curator, is_staff, is_active, date_joined
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
                 COMMIT;
             """
 
@@ -1144,6 +1192,9 @@ class Loader:
                     hashed_password,
                     True,
                     True,
+                    True,
+                    True, 
+                    True, 
                     True,
                     current_datetime,
                 ),
@@ -1187,6 +1238,7 @@ class Loader:
 
         # Create the User Avatar based on the env image
         user_image_id = self.spms_create_user_profile_image(
+            image_file='profiles/1693448033243.jpg',
             connection=connection,
             cursor=cursor,
             image_link=env_user_image,
@@ -1314,7 +1366,7 @@ class Loader:
         # return image_id
 
     def spms_create_user_profile_image(
-        self, connection, cursor, image_link, user_id, current_datetime
+        self, connection, cursor, image_link, user_id, current_datetime, image_file
     ):
         self.misc.nls(
             f"{self.misc.bcolors.WARNING}Attempting to create UserAvatar with image link...{self.misc.bcolors.ENDC}"
@@ -1324,19 +1376,27 @@ class Loader:
             sql = """
                 BEGIN;
                 INSERT INTO medias_useravatar (
-                    created_at, updated_at, old_file, file, user_id
-                ) VALUES (%s, %s, %s, %s, %s);
+                    created_at, updated_at, file, user_id
+                ) VALUES (%s, %s, %s, %s);
                 COMMIT;
             """
+# old_file, %s
+            image_file_directory = os.path.join(self.django_project_path, 'dumped_media', image_file)
+            print(image_file_directory)
+            save_location=os.path.join(self.django_project_path, 'files', 'user_avatars')
+            saved_file = self.create_local_image(original_image_path=image_file_directory, folder_to_save_to=save_location)
 
+           
             # Execute the query with the user data
+            print(user_id)
             cursor.execute(
                 sql,
                 (
                     current_datetime,
                     current_datetime,
-                    image_link,
-                    None,
+                    saved_file,
+                    # image_link,
+                    # None,
                     user_id,
                 ),
             )
@@ -1366,49 +1426,116 @@ class Loader:
         self.misc.nls(
             f"{self.misc.bcolors.WARNING}Attempting to create Image for DBCA with env image link...{self.misc.bcolors.ENDC}"
         )
-        try:
-            # Construct the SQL query
-            sql = """
-                BEGIN;
-                INSERT INTO medias_agencyimage (
-                    created_at, updated_at, old_file, file, agency_id
-                ) VALUES (%s, %s, %s, %s, %s);
-                COMMIT;
-            """
-
-            # Execute the query with the user data
-            cursor.execute(
-                sql,
-                (
-                    current_datetime,
-                    current_datetime,
-                    image_link,
-                    None,
-                    dbca_id,
-                ),
+        # 
+        file_path = os.path.join(self.django_project_path, 'dbca.jpg')
+        print(file_path)
+        # Read the file content
+        with open(file_path, 'rb') as file:
+            # Create an InMemoryUploadedFile
+            uploaded_file = InMemoryUploadedFile(
+                file,
+                None,
+                os.path.basename(file_path),
+                'image/jpeg',  # Adjust the content type based on your file type
+                len(file.read()),  # Pass the file content length
+                None
             )
 
-        except Exception as e:
-            self.misc.nli(
-                f"{self.misc.bcolors.FAIL}Error creating image for DBCA: {str(e)}{self.misc.bcolors.ENDC}"
+            # Load the settings
+            print(
+                f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
             )
-            # Rollback the transaction
-            connection.rollback()
-
-        else:
-            self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}DBCA Image Created!{self.misc.bcolors.ENDC}"
+            # Set the DJANGO_SETTINGS_MODULE environment variable
+            self.os.environ.setdefault(
+                "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
             )
-        finally:
-            connection.commit()
 
-        agency_image_id = self.spms_get_agency_image(
-            connection=connection, cursor=cursor, agency_id=dbca_id
-        )
-        return agency_image_id
+            print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+
+            # Configure Django settings
+            # settings.configure()
+
+
+            # Save the file to the default storage
+            saved_file = default_storage.save(f'agencies/{uploaded_file.name}', uploaded_file)
+
+
+            try:
+                # Construct the SQL query
+                sql = """
+                    BEGIN;
+                    INSERT INTO medias_agencyimage (
+                        created_at, updated_at, file, agency_id
+                    ) VALUES (%s, %s, %s, %s);
+                    COMMIT;
+                """
+
+                # Execute the query with the user data
+                cursor.execute(
+                    sql,
+                    (
+                        current_datetime,
+                        current_datetime,
+                        saved_file,
+                        dbca_id,
+                    ),
+                )
+
+
+            except Exception as e:
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating image for DBCA: {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}DBCA Image Created!{self.misc.bcolors.ENDC}"
+                )
+            finally:
+                connection.commit()
+
+            agency_image_id = self.spms_get_agency_image(
+                connection=connection, cursor=cursor, agency_id=dbca_id
+            )
+            return agency_image_id
+
+
+    def create_local_image(self, original_image_path, folder_to_save_to):
+        with open(original_image_path, 'rb') as file:
+            # Create an InMemoryUploadedFile
+            uploaded_file = InMemoryUploadedFile(
+                file,
+                None,
+                os.path.basename(original_image_path),
+                'image/jpeg',  # Adjust the content type based on your file type
+                len(file.read()),  # Pass the file content length
+                None
+            )
+
+            # Load the settings
+            print(
+                f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
+            )
+            # Set the DJANGO_SETTINGS_MODULE environment variable
+            self.os.environ.setdefault(
+                "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+            )
+
+            print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+
+            # Configure Django settings
+            # settings.configure()
+
+
+            # Save the file to the default storage
+            saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
+            return saved_file
+
 
     def spms_create_project_image(
-        self, connection, cursor, image_link, current_datetime, project_id, uploader
+        self, image_file, connection, cursor, image_link, current_datetime, project_id, uploader
     ):
         self.misc.nls(
             f"{self.misc.bcolors.WARNING}Attempting to create Image for Project with image link...{self.misc.bcolors.ENDC}"
@@ -1418,10 +1545,16 @@ class Loader:
             sql = """
                 BEGIN;
                 INSERT INTO medias_projectphoto (
-                    created_at, updated_at, old_file, file, project_id, uploader_id
-                ) VALUES (%s, %s, %s, %s, %s, %s);
+                    created_at, updated_at, file, project_id, uploader_id
+                ) VALUES (%s, %s, %s, %s, %s);
                 COMMIT;
             """
+
+            image_file_directory = os.path.join(self.django_project_path, 'dumped_media', image_file)
+            print(image_file_directory)
+            save_location=os.path.join(self.django_project_path, 'files', 'projects')
+            saved_file = self.create_local_image(original_image_path=image_file_directory, folder_to_save_to=save_location)
+
 
             # Execute the query with the user data
             cursor.execute(
@@ -1429,8 +1562,9 @@ class Loader:
                 (
                     current_datetime,
                     current_datetime,
-                    image_link,
-                    None,
+                    saved_file,
+                    # image_link,
+                    # None,
                     project_id,
                     uploader,
                 ),
@@ -1747,13 +1881,47 @@ class Loader:
 
         # pass
 
+    def spms_clear_files(self):
+        folder_path = os.path.join(self.django_project_path, 'files')
+        dump_path_arar = os.path.join(self.django_project_path, 'dumped_media', 'ararreports')
+        dump_path_docs = os.path.join(self.django_project_path, 'dumped_media', 'documents')
+
+        try:
+            # Walk through all directories and files in the specified folder
+            for root, dirs, files in os.walk(folder_path):
+                # Delete all files in the current directory
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    os.remove(file_path)
+        except Exception as e:
+            print(f"Error clearing files: {e}")
+        else:
+            print("All files in subdirectories deleted successfully.")
+
+        try:
+            self.clean_files(dump_path_docs)
+        except Exception as e:
+            print(f'Error removing dupes for {dump_path_docs}: {e}')
+        else:
+            print(f"All dupes in {dump_path_docs} deleted successfully.")
+
+        try:
+            self.clean_files(dump_path_arar)
+        except Exception as e:
+            print(f'Error removing dupes for {dump_path_arar}: {e}')
+        else:
+            print(f"All dupes in {dump_path_arar} deleted successfully.")
+
+
+
     def spms_run_all(self):
+        self.spms_clear_files()
         self.spms_recreate_db()  # Resets DB and creates superuser with user profile/image
         self.spms_set_encoding_to_utf8()
         self.spms_create_dbca_agency()  # Creates DBCA Agency
         self.spms_create_dbca_branches()  # Creates DBCA branches and their addresses
         self.spms_create_dbca_business_areas()  # Create Business Areas of DBCA Agency
-        # TODO: Create cost centers (no data present but a number)?
+        # # TODO: Create cost centers (no data present but a number)?
         self.spms_create_super_user_secondary_entries()  # Creates SU profile, contact, and work tables
         self.spms_create_users()  # populate users
 
@@ -1763,19 +1931,20 @@ class Loader:
         self.spms_create_dbca_departmental_services()  # populate departmental services (with users)
         self.spms_create_quotes()  # Creates quotes from unique_quotes.txt file
         self.spms_create_locations()
-        # TODO: Remove "All" entries for areas
+        # # TODO: Remove "All" entries for areas
         self.spms_create_projects()
         self.spms_remove_empty_business_areas()  # Removes BAs with no projects and saves it to txt
 
         self.spms_project_members_setter()  # Set the project team
+        # (NOTE: duplicates are skipped, the first instance of user is taken into account only per project)
         self.spms_set_project_leaders()  # Set leaders if none
 
         self.spms_project_areas_setter()  # Sets which areas the project belongs to
         self.spms_create_annual_reports()
         self.spms_create_project_documents()  # Creates the concept, progress/stu report, project plan, closure And related tasks
-        # input("Create comments?")
-        self.spms_create_document_comments()
-        self.spms_create_superuser_todos()
+        # # input("Create comments?")
+        # self.spms_create_document_comments()
+        # self.spms_create_superuser_todos()
 
         # # Majority of media photo uploads
         # self.spms_replace_photo_with_cf_file(from_table="agencyimage")
@@ -1929,8 +2098,18 @@ class Loader:
         sql = """
             BEGIN;
             INSERT INTO users_user (
-                is_active, username, password, last_login, is_superuser, is_staff, date_joined, first_name, last_name, email, old_pk
-            ) VALUES (%s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s);
+                is_active, 
+                username, 
+                password, 
+                last_login, 
+                is_superuser, 
+                is_staff, 
+                is_herbarium_curator,
+                is_biometrician, 
+                is_aec,
+                date_joined, 
+                first_name, last_name, email, old_pk
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
 
@@ -2017,9 +2196,9 @@ class Loader:
                             user["last_login"],
                             is_superuser_value,
                             is_staff_value,
-                            # Handles external and staff merging,
-                            # also sets users where is_staff is true, but no email to external.
-                            # also sets users where end of email is wa.gov.au to their prior is_staff value
+                            False, #is_herbarium_curator,
+                            False, # is_biometrician, 
+                            False, # is_aec,
                             user["date_joined"],
                             user["first_name"],
                             user["last_name"],
@@ -2027,7 +2206,7 @@ class Loader:
                             user["id"],  # old_pk
                         ),
                     )
-
+                  
                 except Exception as e:
                     self.misc.nli(
                         f"{self.misc.bcolors.FAIL}Error creating User ({user['username']}): {str(e)}{self.misc.bcolors.ENDC}"
@@ -2054,7 +2233,13 @@ class Loader:
 
                 finally:
                     connection.commit()
-                    # print("created user")
+                    new_user_id = self.spms_get_user_by_old_id(
+                        old_id=user["id"],
+                        cursor=cursor,
+                        connection=connection,
+                    )
+                    
+                    print("created user")
 
                 # Create Affiliations if they don't exist
                 if not self.pd.isna(user["affiliation"]):
@@ -2078,10 +2263,11 @@ class Loader:
                         f'https://scienceprojects.dbca.wa.gov.au/media/{user["image"]}'
                     )
                     image_id = self.spms_create_user_profile_image(
+                        image_file=user['image'],
                         connection=connection,
                         cursor=cursor,
                         image_link=image_string,
-                        user_id=user_id,
+                        user_id=new_user_id,
                         current_datetime=current_datetime,
                     )
 
@@ -2438,20 +2624,20 @@ class Loader:
 
     def spms_recreate_db(self):
         print(
-            f"{self.misc.bcolors.WARNING}Recreating DB FunctionStarting...{self.misc.bcolors.ENDC}"
+            f"{self.misc.bcolors.WARNING}Recreating DB Function Starting...{self.misc.bcolors.ENDC}"
         )
-
-        # Removing migration files
-        self.misc.nls(
-            f"{self.misc.bcolors.OKBLUE}Removing Migration Files...{self.misc.bcolors.ENDC}"
-        )
-        self.spms_clean_migrations()
 
         # Dropping and Recreating DB
         self.misc.nls(
             f"{self.misc.bcolors.OKBLUE}Recreating DB...{self.misc.bcolors.ENDC}"
         )
         self.spms_drop_and_create()
+
+        # Removing migration files
+        self.misc.nls(
+            f"{self.misc.bcolors.OKBLUE}Removing Migration Files...{self.misc.bcolors.ENDC}"
+        )
+        self.spms_clean_migrations()
 
         # Running Migrations
         self.misc.nls(
@@ -2869,7 +3055,7 @@ class Loader:
             ) VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s,%s,%s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
-
+# old_id, %s, 
         # Create an entry for each branch in the csv
         for index, business_area in ba_columns.iterrows():
             print(
@@ -3011,31 +3197,39 @@ class Loader:
                     ba_id = self.spms_get_ba_by_old_program_id(
                         connection=connection, cursor=cursor, old_id=business_area["id"]
                     )
-                    image_link = (
-                        self.spms_set_media_file(business_area["image"])
-                        if not self.pd.isna(business_area["image"])
-                        else None
-                    )
+                    # image_link = (
+                    #     self.spms_set_media_file(business_area["image"])
+                    #     if not self.pd.isna(business_area["image"])
+                    #     else None
+                    # )
 
-                    ba_image_sql = """
-                    BEGIN;
-                    INSERT INTO medias_businessareaphoto (
-                        created_at, updated_at, old_file, file, business_area_id, uploader_id
-                    ) VALUES (%s, %s, %s, %s, %s, %s);
-                    COMMIT;
-                    """
-
-                    cursor.execute(
-                        ba_image_sql,
-                        (
-                            current_datetime,
-                            current_datetime,
-                            image_link,
-                            None,
-                            ba_id,
-                            superuser_id,
-                        ),
-                    )
+                    # In the dumped_media folder
+                    if not self.pd.isna(business_area["image"]):
+                        image_file_directory = os.path.join(self.django_project_path, 'dumped_media', business_area["image"])
+                        print(image_file_directory)
+                        save_location=os.path.join(self.django_project_path, 'files', 'business_areas')
+                        saved_file = self.create_local_image(original_image_path=image_file_directory, folder_to_save_to=save_location)
+                        
+                        ba_image_sql = """
+                        BEGIN;
+                        INSERT INTO medias_businessareaphoto (
+                            created_at, updated_at, file, business_area_id, uploader_id
+                        ) VALUES (%s, %s, %s, %s, %s);
+                        COMMIT;
+                        """
+    # , old_file %s, 
+                        cursor.execute(
+                            ba_image_sql,
+                            (
+                                current_datetime,
+                                current_datetime,
+                                saved_file,
+                                # image_link,
+                                # None,
+                                ba_id,
+                                superuser_id,
+                            ),
+                        )
                 except Exception as e:
                     self.misc.nli(
                         f"{self.misc.bcolors.FAIL}Failed to create Business Area Image! {e}{self.misc.bcolors.ENDC}"
@@ -4136,6 +4330,7 @@ class Loader:
                     connection=connection, cursor=cursor, old_id=project["id"]
                 )
                 image_id = self.spms_create_project_image(
+                    image_file=project['image'],
                     current_datetime=current_datetime,
                     connection=connection,
                     cursor=cursor,
@@ -4489,8 +4684,18 @@ class Loader:
                         else member["comments"],
                     ),
                 )
+            except psycopg2.IntegrityError as e:
+                error_message = str(e)
+                if 'duplicate key value violates unique constraint' in error_message:
+                    print(f"Duplicate key violation: {error_message}")
+                    connection.rollback()
+                    continue
+                else:
+                    raise e
+
             except Exception as e:
                 print(old_id)
+
                 print(current_datetime)
                 print(current_datetime)
                 print(new_proj_id)
@@ -4511,16 +4716,16 @@ class Loader:
                 traceback_str = traceback.format_exc()
                 print(traceback_str)
 
-                # Rollback the transaction
                 connection.rollback()
-
+             
             else:
                 self.misc.nls(
                     f"{self.misc.bcolors.OKGREEN} Project Member (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
                 )
-
-            finally:
                 connection.commit()
+
+            # finally:
+            #     connection.commit()
                 # connection.close()
                 # cursor.close()
 
@@ -5393,6 +5598,7 @@ class Loader:
             BEGIN;
             INSERT INTO documents_conceptplan (
                 document_id, 
+                project_id,
                 background, 
                 aims,
                 outcome, 
@@ -5400,7 +5606,7 @@ class Loader:
                 strategic_context, 
                 staff_time_allocation, 
                 budget            
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
 
@@ -5415,8 +5621,12 @@ class Loader:
                 updated_at,
                 project_id, 
                 status, 
-                kind
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                kind,
+                pdf_generation_in_progress,
+                project_lead_approval_granted,
+                directorate_approval_granted,
+                business_area_lead_approval_granted
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
         #                 pdf
@@ -5459,9 +5669,15 @@ class Loader:
                 connection=connection,
             )
 
-            kind = "concept"
-            # pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
+            pdf_generation_in_progress = False
+            project_lead_approval_granted = True if (status != "new") else False # set all non-news to approved
+            directorate_approval_granted = True if status == "approved" else False
+            business_area_lead_approval_granted = True if (directorate_approval_granted) else False
 
+
+            kind = "concept"
+            pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
+            print(pdf)
             try:
                 # Start a transaction
                 cursor = connection.cursor()
@@ -5476,6 +5692,10 @@ class Loader:
                         new_proj_id,
                         status,
                         kind,
+                        pdf_generation_in_progress,
+                        project_lead_approval_granted,
+                        directorate_approval_granted,
+                        business_area_lead_approval_granted,
                         # pdf,
                     ),
                 )
@@ -5559,6 +5779,7 @@ class Loader:
                     concept_plan_sql,
                     (
                         new_document_id,  # document_id,
+                        new_proj_id,
                         background,
                         aims,  # summary
                         outcome,
@@ -5568,6 +5789,8 @@ class Loader:
                         budget,
                     ),
                 )
+
+
 
             except Exception as e:
                 print(new_document_id)
@@ -5603,6 +5826,1249 @@ class Loader:
                 doc_status=status,
                 doc_type="Concept Plan",
             )
+
+            if pdf != None:
+                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                print(file_directory)
+                with open(file_directory, 'rb') as file:
+                    # Create an InMemoryUploadedFile
+                    uploaded_file = InMemoryUploadedFile(
+                        file,
+                        None,
+                        os.path.basename(file_directory),
+                        'application/pdf',  # Adjust the content type based on your file type
+                        len(file.read()),  # Pass the file content length
+                        None
+                    )
+
+                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+
+                    try:
+                        self.create_project_document_pdf(
+                            connection=connection,
+                            cursor=cursor,
+                            related_document_id=new_proj_id,
+                            related_project_id=new_document_id,
+                            data=saved_file,
+                        )
+                    except Exception as e:
+                        print(e)
+                        continue
+
+
+
+
+    def spms_project_plan_setter(
+        self,
+        dataframe,
+        cursor,
+        connection,
+        current_datetime,
+        set_new_status,
+    ):
+        # Construct SQL for base document
+        base_sql = """
+            BEGIN;
+            INSERT INTO documents_projectdocument (
+                old_id,    
+                creator_id,
+                modifier_id,     
+                created_at, 
+                updated_at,
+                project_id, 
+                status, 
+                kind,
+                pdf_generation_in_progress,
+                project_lead_approval_granted,
+                directorate_approval_granted,
+                business_area_lead_approval_granted
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            COMMIT;
+        """
+        #                 pdf
+
+        # Execute sql per row
+        for index, project_plan in dataframe.iterrows():
+            print(
+                f"{self.misc.bcolors.WARNING}Creating Project Plan Base({project_plan['id']})...{self.misc.bcolors.ENDC}"
+            )
+
+            # Get new values related to each base document entry
+            old_id = int(project_plan["id"])
+            created_at = project_plan["created"]
+            updated_at = (
+                project_plan["created"]
+                if not self.pd.isna(project_plan["created"])
+                and self.pd.isna(project_plan["modified"])
+                else project_plan["modified"]
+                if not self.pd.isna(project_plan["modified"])
+                else current_datetime
+            )
+            status = set_new_status(
+                old_status=project_plan["status"],
+                created=created_at,
+                updated=updated_at,
+            )
+            creator = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=project_plan["creator_id"],
+            )
+            modifier = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=project_plan["modifier_id"],
+            )
+            new_proj_id = self.spms_get_project_by_old_id(
+                old_id=project_plan["project_id"],
+                cursor=cursor,
+                connection=connection,
+            )
+            kind = "projectplan"
+            pdf = None if self.pd.isna(project_plan["pdf"]) else project_plan["pdf"]
+            print(pdf)
+
+            
+            pdf_generation_in_progress = False
+            project_lead_approval_granted = True if (status != "new") else False # set all non-news to approved
+            directorate_approval_granted = True if status == "approved" else False
+            business_area_lead_approval_granted = True if (directorate_approval_granted) else False
+
+
+            try:
+                # Start a transaction
+                cursor = connection.cursor()
+                cursor.execute(
+                    base_sql,
+                    (
+                        old_id,  # old_id,
+                        creator,
+                        modifier,
+                        created_at,  # created
+                        updated_at,  # modified
+                        new_proj_id,
+                        status,
+                        kind,
+                        pdf_generation_in_progress,
+                        project_lead_approval_granted,
+                        directorate_approval_granted,
+                        business_area_lead_approval_granted,
+                        # pdf,
+                    ),
+                )
+            except Exception as e:
+                print(old_id)
+                print(created_at)
+                print(updated_at)
+                print(new_proj_id)
+                print(status)
+                print(kind)
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Project Plan Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Project Plan Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+            # Create the project plan details that correspond with document
+            project_plan_sql = """
+                BEGIN;
+                INSERT INTO documents_projectplan (
+                    document_id, 
+                    project_id,
+                    background, 
+                    aims,
+                    outcome, 
+                    knowledge_transfer,
+                    project_tasks,
+                    listed_references,
+                    methodology,
+                    operating_budget,
+                    operating_budget_external,
+                    related_projects
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                COMMIT;
+            """
+        #            involves_plants,
+                    # involves_animals,
+
+            try:
+                print(
+                    f"{self.misc.bcolors.WARNING}Creating Project Plan Details({old_id})...{self.misc.bcolors.ENDC}"
+                )
+
+                # Get new values related to each concept plan details entry
+
+                new_document_id = self.spms_get_document_id_by_old_id(
+                    cursor=cursor,
+                    connection=connection,
+                    old_id=old_id,
+                )
+
+                background = (
+                    None
+                    if self.pd.isna(project_plan["background"])
+                    else project_plan["background"]
+                )
+
+                aims = (
+                    None if self.pd.isna(project_plan["aims"]) else project_plan["aims"]
+                )
+                outcome = (
+                    None
+                    if self.pd.isna(project_plan["outcome"])
+                    else project_plan["outcome"]
+                )
+                knowledge_transfer = (
+                    None
+                    if self.pd.isna(project_plan["knowledge_transfer"])
+                    else project_plan["knowledge_transfer"]
+                )
+                project_tasks = (
+                    None
+                    if self.pd.isna(project_plan["project_tasks"])
+                    else project_plan["project_tasks"]
+                )
+                listed_references = (
+                    None
+                    if self.pd.isna(project_plan["references"])
+                    else project_plan["references"]
+                )
+                methodology = (
+                    None
+                    if self.pd.isna(project_plan["methodology"])
+                    else project_plan["methodology"]
+                )
+
+                operating_budget = (
+                    None
+                    if self.pd.isna(project_plan["operating_budget"])
+                    else project_plan["operating_budget"]
+                )
+
+                operating_budget_external = (
+                    None
+                    if self.pd.isna(project_plan["operating_budget_external"])
+                    else project_plan["operating_budget_external"]
+                )
+
+                related_projects = (
+                    None
+                    if self.pd.isna(project_plan["related_projects"])
+                    else project_plan["related_projects"]
+                )
+                cursor.execute(
+                    project_plan_sql,
+                    (
+                        new_document_id,
+                        new_proj_id,
+                        background,
+                        aims,
+                        outcome,
+                        knowledge_transfer,
+                        project_tasks,
+                        listed_references,  # renamed as references is a reserved word that causes errors
+                        methodology,
+                        operating_budget,
+                        operating_budget_external,
+                        related_projects,
+                    ),
+                )
+
+            except Exception as e:
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Project Plan Details (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                print(
+                    new_document_id,
+                    new_proj_id,
+                    background,
+                    aims,
+                    outcome,
+                    knowledge_transfer,
+                    project_tasks,
+                    listed_references,  # renamed as references is a reserved word that causes errors
+                    methodology,
+                    # involves_plants,
+                    # involves_animals,
+                    operating_budget,
+                    operating_budget_external,
+                    related_projects,
+                )
+            #  document_id, 
+            #         project_id,
+            #         background, 
+            #         aims,
+            #         outcome, 
+            #         knowledge_transfer,
+            #         project_tasks,
+            #         listed_references,
+            #         methodology,
+            #         operating_budget,
+            #         operating_budget_external,
+            #         related_projects
+
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN} Project Plan Details (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+            endorsements_sql = """
+                BEGIN;
+                INSERT INTO documents_endorsement (
+                    project_plan_id, 
+                    bm_endorsement_required, 
+                    bm_endorsement_provided,
+                    hc_endorsement_required,
+                    hc_endorsement_provided,
+                    ae_endorsement_required, 
+                    ae_endorsement_provided,
+                    data_management,
+                    no_specimens
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+                COMMIT;
+            """
+
+            # Endorsement
+
+            try:
+                print(
+                    f"{self.misc.bcolors.WARNING}Creating Endorsements for Project Plan...{self.misc.bcolors.ENDC}"
+                )
+
+                project_plan_detail_id = self.spms_get_project_plan_details_by_new_id(
+                    new_id=new_document_id,
+                    cursor=cursor,
+                    connection=connection,
+                )
+                # involves_plants = (
+                #     False
+                #     if self.pd.isna(project_plan["involves_plants"])
+                #     else project_plan["involves_plants"]
+                # )
+
+                # involves_animals = (
+                #     False
+                #     if self.pd.isna(project_plan["involves_animals"])
+                #     else project_plan["involves_animals"]
+                # )
+                bm_endorsement_required = (
+                    False
+                    if (self.pd.isna(project_plan["bm_endorsement"])
+                    or project_plan["bm_endorsement"] == "not required")
+                    else True
+                )
+                bm_endorsement_provided = (
+                    True
+                    if (project_plan["bm_endorsement"] == "granted")
+                    else False
+                )
+                hc_endorsement_required = (
+                    False
+                    if (self.pd.isna(project_plan["hc_endorsement"])
+                    or project_plan["hc_endorsement"] == "not required")
+                    else True
+                )
+                hc_endorsement_provided = (
+                    True
+                    if (project_plan["hc_endorsement"] == "granted")
+                    else False
+                )
+                ae_endorsement_required = (
+                    False
+                    if (self.pd.isna(project_plan["ae_endorsement"])
+                    or project_plan["ae_endorsement"] == "not required")
+                    else True
+                )
+                ae_endorsement_provided = (
+                    True
+                    if (project_plan["ae_endorsement"] == "granted")
+                    else False
+                )
+
+                data_management = (
+                    None
+                    if self.pd.isna(project_plan["data_management"])
+                    else project_plan["data_management"]
+                )
+
+                no_specimens = (
+                    None
+                    if self.pd.isna(project_plan["no_specimens"])
+                    else project_plan["no_specimens"]
+                )
+
+                cursor.execute(
+                    endorsements_sql,
+                    (
+                        project_plan_detail_id,
+                        new_proj_id,
+                        bm_endorsement_required,
+                        bm_endorsement_provided,
+                        hc_endorsement_required,
+                        hc_endorsement_provided,
+                        ae_endorsement_required, 
+                        ae_endorsement_provided,
+                        data_management,
+                        no_specimens,
+                    ),
+                )
+                                    
+
+            except Exception as e:
+                print(
+                    project_plan_detail_id,
+                    bm_endorsement_required,
+                    bm_endorsement_provided,
+                    hc_endorsement_required,
+                    hc_endorsement_provided,
+                    ae_endorsement_required, 
+                    ae_endorsement_provided,
+                    data_management,
+                    no_specimens,
+                )
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Endorsements ({project_plan_detail_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN} Endorsements ({project_plan_detail_id})Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+            self.spms_create_tasks_for_document(
+                connection=connection,
+                cursor=cursor,
+                document_id=new_document_id,
+                doc_status=status,
+                doc_type="Project Plan",
+            )
+
+            if pdf != None:
+                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                print(file_directory)
+                with open(file_directory, 'rb') as file:
+                    # Create an InMemoryUploadedFile
+                    uploaded_file = InMemoryUploadedFile(
+                        file,
+                        None,
+                        os.path.basename(file_directory),
+                        'application/pdf',  # Adjust the content type based on your file type
+                        len(file.read()),  # Pass the file content length
+                        None
+                    )
+
+                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    try:
+                        self.create_project_document_pdf(
+                            connection=connection,
+                            cursor=cursor,
+                            related_document_id=new_proj_id,
+                            related_project_id=new_document_id,
+                            data=saved_file,
+                        )
+                    except Exception as e:
+                        print(e)
+                        continue
+
+
+
+
+    def spms_progress_report_setter(
+        self, dataframe, cursor, connection, current_datetime, set_new_status
+    ):
+        # Construct SQL for base document
+        base_sql = """
+            BEGIN;
+            INSERT INTO documents_projectdocument (
+                old_id,    
+                creator_id,
+                modifier_id,     
+                created_at, 
+                updated_at,
+                project_id, 
+                status, 
+                kind,
+                pdf_generation_in_progress,
+                directorate_approval_granted,
+                project_lead_approval_granted,
+                business_area_lead_approval_granted
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            COMMIT;
+        """
+        #                 pdf
+
+        # Execute sql per row
+        for index, progress_report in dataframe.iterrows():
+            print(
+                f"{self.misc.bcolors.WARNING}Creating Progress Report Base({progress_report['id']})...{self.misc.bcolors.ENDC}"
+            )
+
+            # Get new values related to each base document entry
+            old_id = int(progress_report["id"])
+            created_at = progress_report["created"]
+            updated_at = (
+                progress_report["created"]
+                if not self.pd.isna(progress_report["created"])
+                and self.pd.isna(progress_report["modified"])
+                else progress_report["modified"]
+                if not self.pd.isna(progress_report["modified"])
+                else current_datetime
+            )
+            status = set_new_status(
+                old_status=progress_report["status"],
+                created=created_at,
+                updated=updated_at,
+            )
+            creator = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=progress_report["creator_id"],
+            )
+            modifier = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=progress_report["modifier_id"],
+            )
+            new_proj_id = self.spms_get_project_by_old_id(
+                old_id=progress_report["project_id"],
+                cursor=cursor,
+                connection=connection,
+            )
+            # status = progress_report["status"]
+            kind = "progressreport"
+            pdf = None if self.pd.isna(progress_report["pdf"]) else progress_report["pdf"]
+            print(pdf)
+            
+            pdf_generation_in_progress = False
+            project_lead_approval_granted = True if (status != "new") else False # set all non-news to approved
+            directorate_approval_granted = True if status == "approved" else False
+            business_area_lead_approval_granted = True if (directorate_approval_granted) else False
+
+            try:
+                # Start a transaction
+                cursor = connection.cursor()
+                cursor.execute(
+                    base_sql,
+                    (
+                        old_id,  # old_id,
+                        creator,
+                        modifier,
+                        created_at,  # created
+                        updated_at,  # modified
+                        new_proj_id,
+                        status,
+                        kind,
+                        pdf_generation_in_progress,
+                        project_lead_approval_granted,
+                        directorate_approval_granted,
+                        business_area_lead_approval_granted,
+                        # pdf,
+                    ),
+                )
+            except Exception as e:
+                print(old_id)
+                print(created_at)
+                print(updated_at)
+                print(new_proj_id)
+                print(status)
+                print(kind)
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Progress Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Progress Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+            # Construct the SQL query for progressreports
+
+            progress_report_sql = """
+                BEGIN;
+                INSERT INTO documents_progressreport (
+                    document_id, 
+                    project_id,
+                    report_id, 
+                    year, 
+                    is_final_report,
+                    context, 
+                    aims, 
+                    progress, 
+                    implications, 
+                    future        
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                COMMIT;
+            """
+
+            try:
+                new_document_id = self.spms_get_document_id_by_old_id(
+                    cursor=cursor,
+                    connection=connection,
+                    old_id=old_id,
+                )
+                report_id = (
+                    None
+                    if self.pd.isna(progress_report["report_id"])
+                    else self.spms_calculate_new_report_id(
+                        doc=progress_report, old_report_id=progress_report["report_id"]
+                    )
+                )
+                year = (
+                    None
+                    if self.pd.isna(progress_report["year"])
+                    else progress_report["year"]
+                )
+                is_final_report = (
+                    None
+                    if self.pd.isna(progress_report["is_final_report"])
+                    else progress_report["is_final_report"]
+                )
+                context = (
+                    None
+                    if self.pd.isna(progress_report["context"])
+                    else progress_report["context"]
+                )
+                aims = (
+                    None
+                    if self.pd.isna(progress_report["aims"])
+                    else progress_report["aims"]
+                )
+                progress = (
+                    None
+                    if self.pd.isna(progress_report["progress"])
+                    else progress_report["progress"]
+                )
+                implications = (
+                    None
+                    if self.pd.isna(progress_report["implications"])
+                    else progress_report["implications"]
+                )
+                future = (
+                    None
+                    if self.pd.isna(progress_report["future"])
+                    else progress_report["future"]
+                )
+
+                # Start a transaction
+                # cursor = connection.cursor()
+                cursor.execute(
+                    progress_report_sql,
+                    (
+                        new_document_id,
+                        new_proj_id,
+                        report_id,
+                        year,
+                        is_final_report,
+                        context,
+                        aims,
+                        progress,
+                        implications,
+                        future,
+                        # pdf,
+                    ),
+                )
+            except Exception as e:
+                print(
+                    new_document_id,
+                    report_id,
+                    year,
+                    is_final_report,
+                    context,
+                    aims,
+                    progress,
+                    implications,
+                    future,
+                    # pdf,
+                ),
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Progress Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Progress Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+
+
+            self.spms_create_tasks_for_document(
+                connection=connection,
+                cursor=cursor,
+                document_id=new_document_id,
+                doc_status=status,
+                doc_type="Progress Report",
+            )
+
+            if pdf != None:
+                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                print(file_directory)
+                with open(file_directory, 'rb') as file:
+                    # Create an InMemoryUploadedFile
+                    uploaded_file = InMemoryUploadedFile(
+                        file,
+                        None,
+                        os.path.basename(file_directory),
+                        'application/pdf',  # Adjust the content type based on your file type
+                        len(file.read()),  # Pass the file content length
+                        None
+                    )
+
+                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    try:
+                        self.create_project_document_pdf(
+                            connection=connection,
+                            cursor=cursor,
+                            related_document_id=new_proj_id,
+                            related_project_id=new_document_id,
+                            data=saved_file,
+                        )
+                    except Exception as e:
+                        print(e)
+                        continue
+
+
+    def spms_student_report_setter(
+        self, dataframe, cursor, connection, current_datetime, set_new_status
+    ):
+        # Construct SQL for base document
+        base_sql = """
+            BEGIN;
+            INSERT INTO documents_projectdocument (
+                old_id,    
+                creator_id,
+                modifier_id,     
+                created_at, 
+                updated_at,
+                project_id, 
+                status, 
+                kind,
+                pdf_generation_in_progress,
+                directorate_approval_granted,
+                project_lead_approval_granted,
+                business_area_lead_approval_granted
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            COMMIT;
+        """
+        #                 pdf
+
+        # Execute sql per row
+        for index, student_report in dataframe.iterrows():
+            print(
+                f"{self.misc.bcolors.WARNING}Creating Student Report Base({student_report['id']})...{self.misc.bcolors.ENDC}"
+            )
+
+            # Get new values related to each base document entry
+            old_id = int(student_report["id"])
+            created_at = student_report["created"]
+            updated_at = (
+                student_report["created"]
+                if not self.pd.isna(student_report["created"])
+                and self.pd.isna(student_report["modified"])
+                else student_report["modified"]
+                if not self.pd.isna(student_report["modified"])
+                else current_datetime
+            )
+            status = set_new_status(
+                old_status=student_report["status"],
+                created=created_at,
+                updated=updated_at,
+            )
+            creator = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=student_report["creator_id"],
+            )
+            modifier = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=student_report["modifier_id"],
+            )
+            new_proj_id = self.spms_get_project_by_old_id(
+                old_id=student_report["project_id"],
+                cursor=cursor,
+                connection=connection,
+            )
+            # status = student_report["status"]
+            kind = "studentreport"
+            pdf = None if self.pd.isna(student_report["pdf"]) else student_report["pdf"]
+            print(pdf)
+            
+            pdf_generation_in_progress = False
+            project_lead_approval_granted = True if (status != "new") else False # set all non-news to approved
+            directorate_approval_granted = True if status == "approved" else False
+            business_area_lead_approval_granted = True if (directorate_approval_granted) else False
+
+            try:
+                # Start a transaction
+                cursor = connection.cursor()
+                cursor.execute(
+                    base_sql,
+                    (
+                        old_id,  # old_id,
+                        creator,
+                        modifier,
+                        created_at,  # created
+                        updated_at,  # modified
+                        new_proj_id,
+                        status,
+                        kind,
+                        pdf_generation_in_progress,
+                        project_lead_approval_granted,
+                        directorate_approval_granted,
+                        business_area_lead_approval_granted,
+                        # pdf,
+                    ),
+                )
+            except Exception as e:
+                print(old_id)
+                print(created_at)
+                print(updated_at)
+                print(new_proj_id)
+                print(status)
+                print(kind)
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Studebt Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Student Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+            # Construct the SQL query for studentreports
+            student_report_sql = """
+                BEGIN;
+                INSERT INTO documents_studentreport (
+                    document_id, 
+                    project_id, 
+                    report_id, 
+                    progress_report,
+                    year         
+                ) VALUES (%s, %s, %s, %s, %s);
+                COMMIT;
+            """
+
+            try:
+                document_id = self.spms_get_document_id_by_old_id(
+                    cursor=cursor, connection=connection, old_id=student_report["id"]
+                )
+                report_id = (
+                    None
+                    if self.pd.isna(student_report["report_id"])
+                    else self.spms_calculate_new_report_id(
+                        doc=student_report, old_report_id=student_report["report_id"]
+                    )
+                )
+                reported_info = (
+                    None
+                    if self.pd.isna(student_report["progress_report"])
+                    else student_report["progress_report"]
+                )
+                year = (
+                    None
+                    if self.pd.isna(student_report["year"])
+                    else student_report["year"]
+                )
+
+                if report_id is None:
+                    report_id = self.spms_get_new_report_id_by_year(
+                        connection=connection, cursor=cursor, year=year
+                    )
+
+                # Start a transaction
+                # cursor = connection.cursor()
+                cursor.execute(
+                    student_report_sql,
+                    (
+                        document_id,
+                        new_proj_id,
+                        report_id,
+                        reported_info,
+                        year,
+                    ),
+                )
+            except Exception as e:
+                print(
+                    document_id,
+                    report_id,
+                    reported_info,
+                    year,
+                )
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Student Report Detail (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Student Report Detail (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+
+
+            self.spms_create_tasks_for_document(
+                connection=connection,
+                cursor=cursor,
+                document_id=document_id,
+                doc_status=status,
+                doc_type="Student Report",
+            )
+
+            if pdf != None:
+                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                print(file_directory)
+                with open(file_directory, 'rb') as file:
+                    # Create an InMemoryUploadedFile
+                    uploaded_file = InMemoryUploadedFile(
+                        file,
+                        None,
+                        os.path.basename(file_directory),
+                        'application/pdf',  # Adjust the content type based on your file type
+                        len(file.read()),  # Pass the file content length
+                        None
+                    )
+
+                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    try:
+                        self.create_project_document_pdf(
+                            connection=connection,
+                            cursor=cursor,
+                            related_document_id=new_proj_id,
+                            related_project_id=document_id,
+                            data=saved_file,
+                        )
+                    except Exception as e:
+                        print(e)
+                        continue
+
+    def spms_project_closure_setter(
+        self, dataframe, cursor, connection, current_datetime, set_new_status
+    ):
+        # Construct SQL for base document
+        base_sql = """
+            BEGIN;
+            INSERT INTO documents_projectdocument (
+                old_id,    
+                creator_id,
+                modifier_id,     
+                created_at, 
+                updated_at,
+                project_id, 
+                status, 
+                kind,
+                pdf_generation_in_progress,
+                directorate_approval_granted,
+                project_lead_approval_granted,
+                business_area_lead_approval_granted
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            COMMIT;
+        """
+        # pdf
+
+        # Execute sql per row
+        for index, proj_closure in dataframe.iterrows():
+            print(
+                f"{self.misc.bcolors.WARNING}Creating Project Closure Base({proj_closure['id']})...{self.misc.bcolors.ENDC}"
+            )
+
+            # Get new values related to each base document entry
+            old_id = int(proj_closure["id"])
+            created_at = proj_closure["created"]
+            updated_at = (
+                proj_closure["created"]
+                if not self.pd.isna(proj_closure["created"])
+                and self.pd.isna(proj_closure["modified"])
+                else proj_closure["modified"]
+                if not self.pd.isna(proj_closure["modified"])
+                else current_datetime
+            )
+            status = set_new_status(
+                old_status=proj_closure["status"],
+                created=created_at,
+                updated=updated_at,
+            )
+            creator = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=proj_closure["creator_id"],
+            )
+            modifier = self.spms_get_user_by_old_id(
+                cursor=cursor,
+                connection=connection,
+                old_id=proj_closure["modifier_id"],
+            )
+            new_proj_id = self.spms_get_project_by_old_id(
+                old_id=proj_closure["project_id"],
+                cursor=cursor,
+                connection=connection,
+            )
+            # status = proj_closure["status"]
+            kind = "projectclosure"
+            pdf = None if self.pd.isna(proj_closure["pdf"]) else proj_closure["pdf"]
+
+            
+            pdf_generation_in_progress = False
+            project_lead_approval_granted = True if (status != "new") else False # set all non-news to approved
+            directorate_approval_granted = True if status == "approved" else False
+            business_area_lead_approval_granted = True if (directorate_approval_granted) else False
+
+            print(pdf)
+            try:
+                # Start a transaction
+                cursor = connection.cursor()
+                cursor.execute(
+                    base_sql,
+                    (
+                        old_id,  # old_id,
+                        creator,
+                        modifier,
+                        created_at,  # created
+                        updated_at,  # modified
+                        new_proj_id,
+                        status,
+                        kind,
+                        pdf_generation_in_progress,
+                        project_lead_approval_granted,
+                        directorate_approval_granted,
+                        business_area_lead_approval_granted,
+                        # pdf,
+                    ),
+                )
+            except Exception as e:
+                print(old_id)
+                print(created_at)
+                print(updated_at)
+                print(new_proj_id)
+                print(status)
+                print(kind)
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Project Closure Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Project Closure Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+
+            # Construct the SQL query for projectclosure
+            project_closure_sql = """
+                BEGIN;
+                INSERT INTO documents_projectclosure (
+                    document_id, 
+                    project_id, 
+                    intended_outcome, 
+                    reason,
+                    scientific_outputs, 
+                    knowledge_transfer,
+                    data_location,
+                    hardcopy_location, 
+                    backup_location          
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+                COMMIT;
+            """
+
+            try:
+                document_id = self.spms_get_document_id_by_old_id(
+                    cursor=cursor, connection=connection, old_id=proj_closure["id"]
+                )
+                intended_outcome = (
+                    None if self.pd.isna(proj_closure["goal"]) else proj_closure["goal"]
+                )
+                reason = (
+                    None
+                    if self.pd.isna(proj_closure["reason"])
+                    else proj_closure["reason"]
+                )
+                scientific_outputs = (
+                    None
+                    if self.pd.isna(proj_closure["scientific_outputs"])
+                    else proj_closure["scientific_outputs"]
+                )
+
+                knowledge_transfer = (
+                    None
+                    if self.pd.isna(proj_closure["knowledge_transfer"])
+                    else proj_closure["knowledge_transfer"]
+                )
+                data_location = (
+                    None
+                    if self.pd.isna(proj_closure["data_location"])
+                    else proj_closure["data_location"]
+                )
+                hardcopy_location = (
+                    None
+                    if self.pd.isna(proj_closure["hardcopy_location"])
+                    else proj_closure["hardcopy_location"]
+                )
+                backup_location = (
+                    None
+                    if self.pd.isna(proj_closure["backup_location"])
+                    else proj_closure["backup_location"]
+                )
+                # Start a transaction
+                # cursor = connection.cursor()
+
+                cursor.execute(
+                    project_closure_sql,
+                    (
+                        document_id,
+                        intended_outcome,
+                        reason,
+                        scientific_outputs,
+                        knowledge_transfer,
+                        data_location,
+                        hardcopy_location,
+                        backup_location,
+                    ),
+                )
+            except Exception as e:
+                print(
+                    document_id,
+                    new_proj_id,
+                    intended_outcome,
+                    reason,
+                    scientific_outputs,
+                    knowledge_transfer,
+                    data_location,
+                    hardcopy_location,
+                    backup_location,
+                ),
+                # print(pdf)
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error creating Project Closure Detail (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
+                )
+                # Print the complete traceback information
+                traceback_str = traceback.format_exc()
+                print(traceback_str)
+
+                # Rollback the transaction
+                connection.rollback()
+
+            else:
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Project Closure Detail (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
+                )
+
+            finally:
+                connection.commit()
+
+            self.spms_create_tasks_for_document(
+                connection=connection,
+                cursor=cursor,
+                document_id=document_id,
+                doc_status=status,
+                doc_type="Project Closure",
+            )
+
+            if pdf != None:
+                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                print(file_directory)
+                with open(file_directory, 'rb') as file:
+                    # Create an InMemoryUploadedFile
+                    uploaded_file = InMemoryUploadedFile(
+                        file,
+                        None,
+                        os.path.basename(file_directory),
+                        'application/pdf',  # Adjust the content type based on your file type
+                        len(file.read()),  # Pass the file content length
+                        None
+                    )
+
+                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+
+                    try:
+                        self.create_project_document_pdf(
+                            connection=connection,
+                            cursor=cursor,
+                            related_document_id=new_proj_id,
+                            related_project_id=document_id,
+                            data=saved_file,
+                        )
+                    except Exception as e:
+                        print(e)
+                        continue
 
     def spms_create_project_task(
         self,
@@ -6037,382 +7503,6 @@ class Loader:
 
         return users
 
-    def spms_project_plan_setter(
-        self,
-        dataframe,
-        cursor,
-        connection,
-        current_datetime,
-        set_new_status,
-    ):
-        # Construct SQL for base document
-        base_sql = """
-            BEGIN;
-            INSERT INTO documents_projectdocument (
-                old_id,    
-                creator_id,
-                modifier_id,     
-                created_at, 
-                updated_at,
-                project_id, 
-                status, 
-                kind
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-            COMMIT;
-        """
-        #                 pdf
-
-        # Execute sql per row
-        for index, project_plan in dataframe.iterrows():
-            print(
-                f"{self.misc.bcolors.WARNING}Creating Project Plan Base({project_plan['id']})...{self.misc.bcolors.ENDC}"
-            )
-
-            # Get new values related to each base document entry
-            old_id = int(project_plan["id"])
-            created_at = project_plan["created"]
-            updated_at = (
-                project_plan["created"]
-                if not self.pd.isna(project_plan["created"])
-                and self.pd.isna(project_plan["modified"])
-                else project_plan["modified"]
-                if not self.pd.isna(project_plan["modified"])
-                else current_datetime
-            )
-            status = set_new_status(
-                old_status=project_plan["status"],
-                created=created_at,
-                updated=updated_at,
-            )
-            creator = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=project_plan["creator_id"],
-            )
-            modifier = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=project_plan["modifier_id"],
-            )
-            new_proj_id = self.spms_get_project_by_old_id(
-                old_id=project_plan["project_id"],
-                cursor=cursor,
-                connection=connection,
-            )
-            kind = "projectplan"
-            # pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
-
-            try:
-                # Start a transaction
-                cursor = connection.cursor()
-                cursor.execute(
-                    base_sql,
-                    (
-                        old_id,  # old_id,
-                        creator,
-                        modifier,
-                        created_at,  # created
-                        updated_at,  # modified
-                        new_proj_id,
-                        status,
-                        kind,
-                        # pdf,
-                    ),
-                )
-            except Exception as e:
-                print(old_id)
-                print(created_at)
-                print(updated_at)
-                print(new_proj_id)
-                print(status)
-                print(kind)
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Project Plan Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Project Plan Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            # Create the project plan details that correspond with document
-            project_plan_sql = """
-                BEGIN;
-                INSERT INTO documents_projectplan (
-                    document_id, 
-                    background, 
-                    aims,
-                    outcome, 
-                    knowledge_transfer,
-                    project_tasks,
-                    listed_references,
-                    methodology,
-                    involves_plants,
-                    involves_animals,
-                    operating_budget,
-                    operating_budget_external,
-                    related_projects
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
-                COMMIT;
-            """
-
-            try:
-                print(
-                    f"{self.misc.bcolors.WARNING}Creating Project Plan Details({old_id})...{self.misc.bcolors.ENDC}"
-                )
-
-                # Get new values related to each concept plan details entry
-
-                new_document_id = self.spms_get_document_id_by_old_id(
-                    cursor=cursor,
-                    connection=connection,
-                    old_id=old_id,
-                )
-
-                background = (
-                    None
-                    if self.pd.isna(project_plan["background"])
-                    else project_plan["background"]
-                )
-
-                aims = (
-                    None if self.pd.isna(project_plan["aims"]) else project_plan["aims"]
-                )
-                outcome = (
-                    None
-                    if self.pd.isna(project_plan["outcome"])
-                    else project_plan["outcome"]
-                )
-                knowledge_transfer = (
-                    None
-                    if self.pd.isna(project_plan["knowledge_transfer"])
-                    else project_plan["knowledge_transfer"]
-                )
-                project_tasks = (
-                    None
-                    if self.pd.isna(project_plan["project_tasks"])
-                    else project_plan["project_tasks"]
-                )
-                listed_references = (
-                    None
-                    if self.pd.isna(project_plan["references"])
-                    else project_plan["references"]
-                )
-                methodology = (
-                    None
-                    if self.pd.isna(project_plan["methodology"])
-                    else project_plan["methodology"]
-                )
-
-                involves_plants = (
-                    False
-                    if self.pd.isna(project_plan["involves_plants"])
-                    else project_plan["involves_plants"]
-                )
-
-                involves_animals = (
-                    False
-                    if self.pd.isna(project_plan["involves_animals"])
-                    else project_plan["involves_animals"]
-                )
-
-                operating_budget = (
-                    None
-                    if self.pd.isna(project_plan["operating_budget"])
-                    else project_plan["operating_budget"]
-                )
-
-                operating_budget_external = (
-                    None
-                    if self.pd.isna(project_plan["operating_budget_external"])
-                    else project_plan["operating_budget_external"]
-                )
-
-                related_projects = (
-                    None
-                    if self.pd.isna(project_plan["related_projects"])
-                    else project_plan["related_projects"]
-                )
-                cursor.execute(
-                    project_plan_sql,
-                    (
-                        new_document_id,
-                        background,
-                        aims,
-                        outcome,
-                        knowledge_transfer,
-                        project_tasks,
-                        listed_references,  # renamed as references is a reserved word that causes errors
-                        methodology,
-                        involves_plants,
-                        involves_animals,
-                        operating_budget,
-                        operating_budget_external,
-                        related_projects,
-                    ),
-                )
-
-            except Exception as e:
-                print(
-                    new_document_id,
-                    background,
-                    aims,
-                    outcome,
-                    knowledge_transfer,
-                    project_tasks,
-                    listed_references,  # renamed as references is a reserved word that causes errors
-                    methodology,
-                    involves_plants,
-                    involves_animals,
-                    operating_budget,
-                    operating_budget_external,
-                    related_projects,
-                )
-
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Project Plan Details (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN} Project Plan Details (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            endorsements_sql = """
-                BEGIN;
-                INSERT INTO documents_endorsement (
-                    project_plan_id, 
-                    bm_endorsement, 
-                    hc_endorsement,
-                    ae_endorsement, 
-                    data_manager_endorsement, 
-                    data_management, 
-                    no_specimens
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s);
-                COMMIT;
-            """
-
-            # Endorsement
-
-            try:
-                print(
-                    f"{self.misc.bcolors.WARNING}Creating Endorsements for Project Plan...{self.misc.bcolors.ENDC}"
-                )
-
-                project_plan_detail_id = self.spms_get_project_plan_details_by_new_id(
-                    new_id=new_document_id,
-                    cursor=cursor,
-                    connection=connection,
-                )
-
-                bm_endorsement = (
-                    "notrequired"
-                    if self.pd.isna(project_plan["bm_endorsement"])
-                    or project_plan["bm_endorsement"] == "not required"
-                    else project_plan["bm_endorsement"]
-                )
-
-                hc_endorsement = (
-                    "notrequired"
-                    if self.pd.isna(project_plan["hc_endorsement"])
-                    or project_plan["hc_endorsement"] == "not required"
-                    else project_plan["hc_endorsement"]
-                )
-
-                ae_endorsement = (
-                    "notrequired"
-                    if self.pd.isna(project_plan["ae_endorsement"])
-                    or project_plan["ae_endorsement"] == "not required"
-                    else project_plan["ae_endorsement"]
-                )
-
-                data_manager_endorsement = (
-                    "notrequired"
-                    if self.pd.isna(project_plan["data_manager_endorsement"])
-                    or project_plan["data_manager_endorsement"] == "not required"
-                    else project_plan["data_manager_endorsement"]
-                )
-
-                data_management = (
-                    None
-                    if self.pd.isna(project_plan["data_management"])
-                    else project_plan["data_management"]
-                )
-
-                no_specimens = (
-                    None
-                    if self.pd.isna(project_plan["no_specimens"])
-                    else project_plan["no_specimens"]
-                )
-
-                cursor.execute(
-                    endorsements_sql,
-                    (
-                        project_plan_detail_id,
-                        bm_endorsement,
-                        hc_endorsement,
-                        ae_endorsement,
-                        data_manager_endorsement,
-                        data_management,
-                        no_specimens,
-                    ),
-                )
-
-            except Exception as e:
-                print(
-                    project_plan_detail_id,
-                    bm_endorsement,
-                    hc_endorsement,
-                    ae_endorsement,
-                    data_manager_endorsement,
-                    data_management,
-                    no_specimens,
-                )
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Endorsements ({project_plan_detail_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN} Endorsements ({project_plan_detail_id})Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=new_document_id,
-                doc_status=status,
-                doc_type="Project Plan",
-            )
-
     def spms_calculate_new_report_id(self, old_report_id, doc):
         report_dict = {
             1: 1,  # 2014
@@ -6431,634 +7521,6 @@ class Loader:
         print(f"Old report_id: {old_report_id} (Year: {doc['year']})")
         print(f"New report_id: {new_value} (Year: {doc['year']})")
         return new_value
-
-    def spms_progress_report_setter(
-        self, dataframe, cursor, connection, current_datetime, set_new_status
-    ):
-        # Construct SQL for base document
-        base_sql = """
-            BEGIN;
-            INSERT INTO documents_projectdocument (
-                old_id,    
-                creator_id,
-                modifier_id,     
-                created_at, 
-                updated_at,
-                project_id, 
-                status, 
-                kind
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-            COMMIT;
-        """
-        #                 pdf
-
-        # Execute sql per row
-        for index, progress_report in dataframe.iterrows():
-            print(
-                f"{self.misc.bcolors.WARNING}Creating Progress Report Base({progress_report['id']})...{self.misc.bcolors.ENDC}"
-            )
-
-            # Get new values related to each base document entry
-            old_id = int(progress_report["id"])
-            created_at = progress_report["created"]
-            updated_at = (
-                progress_report["created"]
-                if not self.pd.isna(progress_report["created"])
-                and self.pd.isna(progress_report["modified"])
-                else progress_report["modified"]
-                if not self.pd.isna(progress_report["modified"])
-                else current_datetime
-            )
-            status = set_new_status(
-                old_status=progress_report["status"],
-                created=created_at,
-                updated=updated_at,
-            )
-            creator = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=progress_report["creator_id"],
-            )
-            modifier = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=progress_report["modifier_id"],
-            )
-            new_proj_id = self.spms_get_project_by_old_id(
-                old_id=progress_report["project_id"],
-                cursor=cursor,
-                connection=connection,
-            )
-            # status = progress_report["status"]
-            kind = "progressreport"
-            # pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
-
-            try:
-                # Start a transaction
-                cursor = connection.cursor()
-                cursor.execute(
-                    base_sql,
-                    (
-                        old_id,  # old_id,
-                        creator,
-                        modifier,
-                        created_at,  # created
-                        updated_at,  # modified
-                        new_proj_id,
-                        status,
-                        kind,
-                        # pdf,
-                    ),
-                )
-            except Exception as e:
-                print(old_id)
-                print(created_at)
-                print(updated_at)
-                print(new_proj_id)
-                print(status)
-                print(kind)
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Progress Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Progress Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            # Construct the SQL query for progressreports
-
-            progress_report_sql = """
-                BEGIN;
-                INSERT INTO documents_progressreport (
-                    document_id, 
-                    report_id, 
-                    year, 
-                    is_final_report,
-                    context, 
-                    aims, 
-                    progress, 
-                    implications, 
-                    future        
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
-                COMMIT;
-            """
-
-            try:
-                new_document_id = self.spms_get_document_id_by_old_id(
-                    cursor=cursor,
-                    connection=connection,
-                    old_id=old_id,
-                )
-                report_id = (
-                    None
-                    if self.pd.isna(progress_report["report_id"])
-                    else self.spms_calculate_new_report_id(
-                        doc=progress_report, old_report_id=progress_report["report_id"]
-                    )
-                )
-                year = (
-                    None
-                    if self.pd.isna(progress_report["year"])
-                    else progress_report["year"]
-                )
-                is_final_report = (
-                    None
-                    if self.pd.isna(progress_report["is_final_report"])
-                    else progress_report["is_final_report"]
-                )
-                context = (
-                    None
-                    if self.pd.isna(progress_report["context"])
-                    else progress_report["context"]
-                )
-                aims = (
-                    None
-                    if self.pd.isna(progress_report["aims"])
-                    else progress_report["aims"]
-                )
-                progress = (
-                    None
-                    if self.pd.isna(progress_report["progress"])
-                    else progress_report["progress"]
-                )
-                implications = (
-                    None
-                    if self.pd.isna(progress_report["implications"])
-                    else progress_report["implications"]
-                )
-                future = (
-                    None
-                    if self.pd.isna(progress_report["future"])
-                    else progress_report["future"]
-                )
-
-                # Start a transaction
-                # cursor = connection.cursor()
-                cursor.execute(
-                    progress_report_sql,
-                    (
-                        new_document_id,
-                        report_id,
-                        year,
-                        is_final_report,
-                        context,
-                        aims,
-                        progress,
-                        implications,
-                        future,
-                        # pdf,
-                    ),
-                )
-            except Exception as e:
-                print(
-                    new_document_id,
-                    report_id,
-                    year,
-                    is_final_report,
-                    context,
-                    aims,
-                    progress,
-                    implications,
-                    future,
-                    # pdf,
-                ),
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Progress Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Progress Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=new_document_id,
-                doc_status=status,
-                doc_type="Progress Report",
-            )
-
-    def spms_student_report_setter(
-        self, dataframe, cursor, connection, current_datetime, set_new_status
-    ):
-        # Construct SQL for base document
-        base_sql = """
-            BEGIN;
-            INSERT INTO documents_projectdocument (
-                old_id,    
-                creator_id,
-                modifier_id,     
-                created_at, 
-                updated_at,
-                project_id, 
-                status, 
-                kind
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-            COMMIT;
-        """
-        #                 pdf
-
-        # Execute sql per row
-        for index, student_report in dataframe.iterrows():
-            print(
-                f"{self.misc.bcolors.WARNING}Creating Student Report Base({student_report['id']})...{self.misc.bcolors.ENDC}"
-            )
-
-            # Get new values related to each base document entry
-            old_id = int(student_report["id"])
-            created_at = student_report["created"]
-            updated_at = (
-                student_report["created"]
-                if not self.pd.isna(student_report["created"])
-                and self.pd.isna(student_report["modified"])
-                else student_report["modified"]
-                if not self.pd.isna(student_report["modified"])
-                else current_datetime
-            )
-            status = set_new_status(
-                old_status=student_report["status"],
-                created=created_at,
-                updated=updated_at,
-            )
-            creator = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=student_report["creator_id"],
-            )
-            modifier = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=student_report["modifier_id"],
-            )
-            new_proj_id = self.spms_get_project_by_old_id(
-                old_id=student_report["project_id"],
-                cursor=cursor,
-                connection=connection,
-            )
-            # status = student_report["status"]
-            kind = "studentreport"
-            # pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
-
-            try:
-                # Start a transaction
-                cursor = connection.cursor()
-                cursor.execute(
-                    base_sql,
-                    (
-                        old_id,  # old_id,
-                        creator,
-                        modifier,
-                        created_at,  # created
-                        updated_at,  # modified
-                        new_proj_id,
-                        status,
-                        kind,
-                        # pdf,
-                    ),
-                )
-            except Exception as e:
-                print(old_id)
-                print(created_at)
-                print(updated_at)
-                print(new_proj_id)
-                print(status)
-                print(kind)
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Studebt Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Student Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            # Construct the SQL query for studentreports
-            student_report_sql = """
-                BEGIN;
-                INSERT INTO documents_studentreport (
-                    document_id, 
-                    report_id, 
-                    progress_report,
-                    year         
-                ) VALUES (%s, %s, %s, %s);
-                COMMIT;
-            """
-
-            try:
-                document_id = self.spms_get_document_id_by_old_id(
-                    cursor=cursor, connection=connection, old_id=student_report["id"]
-                )
-                report_id = (
-                    None
-                    if self.pd.isna(student_report["report_id"])
-                    else self.spms_calculate_new_report_id(
-                        doc=student_report, old_report_id=student_report["report_id"]
-                    )
-                )
-                reported_info = (
-                    None
-                    if self.pd.isna(student_report["progress_report"])
-                    else student_report["progress_report"]
-                )
-                year = (
-                    None
-                    if self.pd.isna(student_report["year"])
-                    else student_report["year"]
-                )
-
-                if report_id is None:
-                    report_id = self.spms_get_new_report_id_by_year(
-                        connection=connection, cursor=cursor, year=year
-                    )
-
-                # Start a transaction
-                # cursor = connection.cursor()
-                cursor.execute(
-                    student_report_sql,
-                    (
-                        document_id,
-                        report_id,
-                        reported_info,
-                        year,
-                    ),
-                )
-            except Exception as e:
-                print(
-                    document_id,
-                    report_id,
-                    reported_info,
-                    year,
-                )
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Student Report Detail (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Student Report Detail (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=document_id,
-                doc_status=status,
-                doc_type="Student Report",
-            )
-
-    def spms_project_closure_setter(
-        self, dataframe, cursor, connection, current_datetime, set_new_status
-    ):
-        # Construct SQL for base document
-        base_sql = """
-            BEGIN;
-            INSERT INTO documents_projectdocument (
-                old_id,    
-                creator_id,
-                modifier_id,     
-                created_at, 
-                updated_at,
-                project_id, 
-                status, 
-                kind
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-            COMMIT;
-        """
-        # pdf
-
-        # Execute sql per row
-        for index, proj_closure in dataframe.iterrows():
-            print(
-                f"{self.misc.bcolors.WARNING}Creating Project Closure Base({proj_closure['id']})...{self.misc.bcolors.ENDC}"
-            )
-
-            # Get new values related to each base document entry
-            old_id = int(proj_closure["id"])
-            created_at = proj_closure["created"]
-            updated_at = (
-                proj_closure["created"]
-                if not self.pd.isna(proj_closure["created"])
-                and self.pd.isna(proj_closure["modified"])
-                else proj_closure["modified"]
-                if not self.pd.isna(proj_closure["modified"])
-                else current_datetime
-            )
-            status = set_new_status(
-                old_status=proj_closure["status"],
-                created=created_at,
-                updated=updated_at,
-            )
-            creator = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=proj_closure["creator_id"],
-            )
-            modifier = self.spms_get_user_by_old_id(
-                cursor=cursor,
-                connection=connection,
-                old_id=proj_closure["modifier_id"],
-            )
-            new_proj_id = self.spms_get_project_by_old_id(
-                old_id=proj_closure["project_id"],
-                cursor=cursor,
-                connection=connection,
-            )
-            # status = proj_closure["status"]
-            kind = "projectclosure"
-            # pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
-
-            try:
-                # Start a transaction
-                cursor = connection.cursor()
-                cursor.execute(
-                    base_sql,
-                    (
-                        old_id,  # old_id,
-                        creator,
-                        modifier,
-                        created_at,  # created
-                        updated_at,  # modified
-                        new_proj_id,
-                        status,
-                        kind,
-                        # pdf,
-                    ),
-                )
-            except Exception as e:
-                print(old_id)
-                print(created_at)
-                print(updated_at)
-                print(new_proj_id)
-                print(status)
-                print(kind)
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Project Closure Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Project Closure Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            # Construct the SQL query for projectclosure
-            project_closure_sql = """
-                BEGIN;
-                INSERT INTO documents_projectclosure (
-                    document_id, 
-                    intended_outcome, 
-                    reason,
-                    scientific_outputs, 
-                    knowledge_transfer,
-                    data_location,
-                    hardcopy_location, 
-                    backup_location          
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
-                COMMIT;
-            """
-
-            try:
-                document_id = self.spms_get_document_id_by_old_id(
-                    cursor=cursor, connection=connection, old_id=proj_closure["id"]
-                )
-                intended_outcome = (
-                    None if self.pd.isna(proj_closure["goal"]) else proj_closure["goal"]
-                )
-                reason = (
-                    None
-                    if self.pd.isna(proj_closure["reason"])
-                    else proj_closure["reason"]
-                )
-                scientific_outputs = (
-                    None
-                    if self.pd.isna(proj_closure["scientific_outputs"])
-                    else proj_closure["scientific_outputs"]
-                )
-
-                knowledge_transfer = (
-                    None
-                    if self.pd.isna(proj_closure["knowledge_transfer"])
-                    else proj_closure["knowledge_transfer"]
-                )
-                data_location = (
-                    None
-                    if self.pd.isna(proj_closure["data_location"])
-                    else proj_closure["data_location"]
-                )
-                hardcopy_location = (
-                    None
-                    if self.pd.isna(proj_closure["hardcopy_location"])
-                    else proj_closure["hardcopy_location"]
-                )
-                backup_location = (
-                    None
-                    if self.pd.isna(proj_closure["backup_location"])
-                    else proj_closure["backup_location"]
-                )
-                # Start a transaction
-                # cursor = connection.cursor()
-
-                cursor.execute(
-                    project_closure_sql,
-                    (
-                        document_id,
-                        intended_outcome,
-                        reason,
-                        scientific_outputs,
-                        knowledge_transfer,
-                        data_location,
-                        hardcopy_location,
-                        backup_location,
-                    ),
-                )
-            except Exception as e:
-                print(
-                    document_id,
-                    intended_outcome,
-                    reason,
-                    scientific_outputs,
-                    knowledge_transfer,
-                    data_location,
-                    hardcopy_location,
-                    backup_location,
-                ),
-                # print(pdf)
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating Project Closure Detail (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-
-                # Rollback the transaction
-                connection.rollback()
-
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}Project Closure Detail (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-                )
-
-            finally:
-                connection.commit()
-
-            self.spms_create_tasks_for_document(
-                connection=connection,
-                cursor=cursor,
-                document_id=document_id,
-                doc_status=status,
-                doc_type="Project Closure",
-            )
 
     def spms_create_document_comments(self):
         print("Setting Comments for each document")
@@ -7452,6 +7914,20 @@ class Loader:
             if isinstance(report, self.pd.Series):
                 report = self.pd.DataFrame(report).T  # Convert Series to DataFrame
 
+            # Load the settings
+            print(
+                f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
+            )
+            # Set the DJANGO_SETTINGS_MODULE environment variable
+            self.os.environ.setdefault(
+                "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+            )
+
+            print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+
+            # Configure Django settings
+            # settings.configure()
+
             for media_column in report.columns:
                 if media_column in old_media_kinds:
                     media_value = report[media_column]
@@ -7464,15 +7940,53 @@ class Loader:
                         continue
                     else:
                         new_kind_value = self.spms_assign_new_report_media_kind(kind)
-                        self.spms_create_report_media(
-                            connection=connection,
-                            cursor=cursor,
-                            data=self.spms_set_media_file(
-                                file_string=media_value.values[0], static=False
-                            ),
-                            kind=new_kind_value,
-                            related_report_id=related_report_id,
-                        )
+                        file_path = os.path.join(self.django_project_path, 'dumped_media', media_value.values[0])
+                        print(file_path)
+                        if kind != 'pdf':
+                            with open(file_path, 'rb') as file:
+                                # Create an InMemoryUploadedFile
+                                uploaded_file = InMemoryUploadedFile(
+                                    file,
+                                    None,
+                                    os.path.basename(file_path),
+                                    'image/jpeg',  # Adjust the content type based on your file type
+                                    len(file.read()),  # Pass the file content length
+                                    None
+                                )
+
+                                # Save the file to the default storage
+                                saved_file = default_storage.save(f'annual_reports/images/{uploaded_file.name}', uploaded_file)
+
+                                self.spms_create_report_media(
+                                    connection=connection,
+                                    cursor=cursor,
+                                    data=saved_file,
+                                    kind=new_kind_value,
+                                    related_report_id=related_report_id,
+                                )
+                        else:
+                            with open(file_path, 'rb') as file:
+                                # Create an InMemoryUploadedFile
+                                uploaded_file = InMemoryUploadedFile(
+                                    file,
+                                    None,
+                                    os.path.basename(file_path),
+                                    'application/pdf',  # Adjust the content type based on your file type
+                                    len(file.read()),  # Pass the file content length
+                                    None
+                                )
+
+                                # Save the file to the default storage
+                                saved_file = default_storage.save(f'annual_reports/pdfs/{uploaded_file.name}', uploaded_file)
+
+                                self.spms_create_report_pdf(
+                                    connection=connection,
+                                    cursor=cursor,
+                                    data=saved_file,
+                                    # kind=new_kind_value,
+                                    related_report_id=related_report_id,
+                                )
+
 
         cursor.close()
         # connection.close()
@@ -7507,6 +8021,158 @@ class Loader:
     #             rear_cover_page,
     #         ]
 
+    def extract_base_name_and_index(self, file_name):
+        # Use regular expression to extract base name and index from the file name
+        match = re.match(r'^(.+)_(\d+)$', file_name)
+        if match:
+            base_name, index = match.groups()
+            return base_name, int(index)
+        else:
+            # If no match, return the file name as base name and index 0
+            return file_name, 0
+
+
+    def clean_files(self, directory):
+        # Walk through the initial folder
+        for subdir, _, files in os.walk(directory):
+            # Create a dictionary to store files with the same base name
+            file_dict = {}
+
+            # Assess the files available in each subdirectory
+            for file in files:
+                # Extract the base name and index from the file name
+                base_name, index = self.extract_base_name_and_index(file)
+
+                # Check if the base name is already in the dictionary
+                if base_name in file_dict:
+                    # Compare indexes and keep the file with the highest index
+                    if index > file_dict[base_name][1]:
+                        os.remove(os.path.join(subdir, file_dict[base_name][0]))
+                        file_dict[base_name] = (file, index)
+                    else:
+                        os.remove(os.path.join(subdir, file))
+                else:
+                    # If the base name is not in the dictionary, add it
+                    file_dict[base_name] = (file, index)
+
+    def create_project_document_pdf(       
+        self, connection, cursor, related_project_id, related_document_id, data
+    ):
+        self.misc.nls(
+            f"{self.misc.bcolors.OKBLUE}Creating Project Doc PDF for DOC ID {related_document_id}...{self.misc.bcolors.ENDC}"
+        )
+
+        try:
+            project_document_pdf_sql = """
+                BEGIN;
+                INSERT INTO medias_projectdocumentpdf (
+                    created_at,
+                    updated_at,
+                    file, 
+                    document_id,
+                    project_id
+                ) VALUES ( %s, %s, %s, %s, %s);
+                COMMIT;
+            """
+
+            # old_file, %s,
+            # old_file = data
+            # kind = kind
+            # old_file, 
+            # kind, 
+
+            created_at = dt.now()
+            updated_at = dt.now()
+            file = data
+            document = related_document_id
+            project = related_project_id
+            # uploader = self.spms_get_superuser(connection, cursor)
+
+            cursor.execute(                     
+                project_document_pdf_sql,        
+                (
+                    created_at, 
+                    updated_at, 
+                    file, 
+                    document,
+                    project, 
+                ),
+            )
+
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Error Creating Project Document PDF for Doc ID {related_document_id}: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+            
+
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Project Document PDF Created!{self.misc.bcolors.ENDC}"
+            )
+            connection.commit() 
+        # finally:
+
+
+    def spms_create_report_pdf(        
+            self, connection, cursor, related_report_id, data
+    ):
+        self.misc.nls(
+            f"{self.misc.bcolors.OKBLUE}Creating Report PDF for NEW REPORT ID {related_report_id}...{self.misc.bcolors.ENDC}"
+        )
+
+        try:
+            annual_report_media_sql = """
+                BEGIN;
+                INSERT INTO medias_annualreportpdf (
+                    created_at,
+                    updated_at,
+                    file, 
+                    report_id,
+                    creator_id
+                ) VALUES ( %s, %s, %s, %s, %s);
+                COMMIT;
+
+            """
+            # old_file, %s,
+            # old_file = data
+            # kind = kind
+            # old_file, 
+            # kind, 
+
+            created_at = dt.now()
+            updated_at = dt.now()
+            file = data
+            report = related_report_id
+            uploader = self.spms_get_superuser(connection, cursor)
+
+            cursor.execute(                     
+                annual_report_media_sql,        
+                (
+                    created_at, 
+                    updated_at, 
+                    file, 
+                    report, 
+                    uploader, 
+                ),
+            )
+
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Creating Report PDF for NEW REPORT ID {related_report_id}: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Report PDF Created!{self.misc.bcolors.ENDC}"
+            )
+        finally:
+            connection.commit()
+
+
     def spms_create_report_media(
         self, connection, cursor, kind, related_report_id, data
     ):
@@ -7520,20 +8186,20 @@ class Loader:
                 INSERT INTO medias_annualreportmedia (
                     created_at,
                     updated_at,
-                    old_file,
                     file, 
                     kind,
                     report_id,
                     uploader_id
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s);
+                ) VALUES ( %s, %s, %s, %s, %s, %s);
                 COMMIT;
 
             """
+            # old_file, %s,
 
             created_at = dt.now()
             updated_at = dt.now()
-            old_file = data
-            file = None
+            # old_file = data
+            file = data
             kind = kind
             report = related_report_id
             uploader = self.spms_get_superuser(connection, cursor)
@@ -7543,7 +8209,7 @@ class Loader:
                 (
                     created_at,
                     updated_at,
-                    old_file,
+                    # old_file,
                     file,
                     kind,
                     report,
@@ -7560,7 +8226,7 @@ class Loader:
 
         else:
             self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}Superuser Created!{self.misc.bcolors.ENDC}"
+                f"{self.misc.bcolors.OKGREEN}Report Media Created!{self.misc.bcolors.ENDC}"
             )
         finally:
             connection.commit()

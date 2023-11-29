@@ -4,7 +4,7 @@ __pycache__/
 *$py.class
 
 *.dump
-*.csv
+# *.csv
 *.txt
 *.sql
 ./order_of_operations.txt

@@ -1,0 +1,305 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2011-020 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1632/}{Progress Report SP 2011-020
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Mon, 11 Jul 2016 10:19:02 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2011-020
+}
+\title{Long-term stand dynamics of regrowth forest in relation to site
+productivity and climate
+}
+\subtitle{Ecosystem Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Lachie Mccaw
+\\
+\textbf{Data Custodian} & 
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 11, 2016, 10:19 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 11, 2016, 10:19 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Long-term stand dynamics of regrowth forest in relation to site
+productivity and climate
+}
+
+L Mccaw, G Liddelow, R Mazanec
+
+
+\section*{Context}
+This project provides information to underpin the management of karri
+and jarrah regrowth stands in the immature stage of development (25-120
+years old). Regenerated stands have important values for future timber
+production, biodiversity conservation and as a store of terrestrial
+carbon. Immature karri stands regenerated following timber harvesting
+and bushfire comprise more than 50,000 hectares and represent around one
+third of the area of karri forest managed by the department. Large parts
+of the jarrah forest are also comprised predominantly of even-aged
+regrowth. There are a number of well-designed experiments that
+investigate the dynamics of naturally regenerated and planted stands
+managed at a range of stand densities. These experiments span a range of
+site productivity and climatic gradients and have been measured
+repeatedly over several decades, providing important information to
+support and improve management practices. This project addresses
+emerging issues for the next decade of forest management including
+climate change and declining groundwater levels, interactions with pests
+and pathogens, and increased recognition of the role of forests in
+maintaining global carbon cycles.
+
+
+
+\section*{Aims}
+To quantify the response of immature karri and jarrah stands to
+management practices that manipulate stand density at establishment or
+through intervention by thinning. Responses will be measured by tree and
+stand growth, tree health and other indicators as appropriate (e.g. leaf
+water potential, leaf area index).
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  The scope of this project has been broadened to include thinning
+  response of even-aged jarrah stands, with all thinning experiments now
+  covered by a single project plan.
+\item
+  The thinning experiment in 100 year old regrowth jarrah forest at
+  Inglehope block near Dwellingup was burnt by mild prescribed fire in
+  October 2015 with minimal crown scorch to codominant trees. Following
+  the burn, plot boundaries were re-marked and damaged tree tags
+  replaced in order to maintain the integrity of the experimental site
+  in the longer term.
+\item
+  Re-measurement of tree diameter and bark thickness was completed on
+  seven plots in the Inglehope experiment.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Thinning concentrates the growth potential of a site onto selected
+  trees and provides forest managers with options to manage stands for
+  particular structural characteristics that may be important for future
+  yield of wood products, wildlife habitat or resilience to disturbance.
+  Thinning is also an important tool for managing streamflow and
+  groundwater levels in forested catchments in the face of a drying
+  climate.
+\item
+  Tree mortality associated with \emph{Armillaria} root disease appears
+  to reduce in older karri stands, and small gaps created by dead trees
+  become less obvious as stands mature. Localised tree mortality can be
+  regarded as a natural process and is likely to contribute to
+  patchiness in the mature forest. However, the extent of tree mortality
+  in silviculturally managed stands should be monitored to ensure that
+  stand productivity and other forest values remain within acceptable
+  ranges.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Finalise~ re-measurement of diameter and bark thickness at the
+  Inglehope experiment (23 plots).
+\item
+  Analyse and report on trends in tree and stand growth at Ingelhope,
+  with a focus on links between climate and growth.
+\item
+  Analyse trends in the incidence and severity of \emph{Armillaria} root
+  disease at Warren block since 2000.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

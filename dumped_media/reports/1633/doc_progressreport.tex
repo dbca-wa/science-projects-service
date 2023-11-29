@@ -1,0 +1,340 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2011-019 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1633/}{Progress Report SP 2011-019
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Mon, 11 Jul 2016 10:28:38 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2011-019
+}
+\title{Management of invertebrate pests in forests of south-west Western
+Australia
+}
+\subtitle{Ecosystem Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Janet Farr
+\\
+\textbf{Data Custodian} & 
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 11, 2016, 10:28 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 11, 2016, 10:28 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Management of invertebrate pests in forests of south-west Western
+Australia
+}
+
+J Farr, A Wills
+
+
+\section*{Context}
+Within the history of forest and natural landscape management in Western
+Australia, many invertebrates are known to utilise forest biomass for
+their survival and in doing so impart some form of damage to leaves,
+shoot, roots, stems or branches. There are 10 recognised invertebrate
+species with demonstrated significant impact on tree health, vitality
+and timber quality within our natural environment. Currently the most
+prevalent insect pests of concern in native forests are \emph{Perthida
+glyphopa} (jarrah leafminer, JLM), \emph{Phoracantha acanthocera}
+(bullseye borer, formerly known as \emph{Tryphocaria acanthocera} BEB)
+and \emph{Uraba lugens} (gumleaf skeletoniser, GLS). Both JLM and GLS
+have documented population outbreak periods, and BEB incidence appears
+to be responsive to drought stress and is likely to increase. However,
+Western Australian forests and woodlands also have a history of
+developing unexpected insect outbreaks with dramatic consequences for
+the ecosystem health and vitality. The decline in mean annual rainfall
+in south-west Western Australia since the 1970s and global climate model
+predictions of a warmer and drier environment mean conditions for
+invertebrate pests will alter significantly in the next decade as our
+environment shifts toward a new climatic regime. This project addresses
+both recognised and emerging/potential invertebrate forest pests, and is
+designed to augment forest health surveillance and management
+requirements by providing knowledge on the biological aspects of forest
+health threats from invertebrates in the south-west of Western
+Australia.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Investigate aspects of pest organism biology, host requirements,
+  pathology and environmental conditions (including climatic conditions)
+  that influence populations.
+\item
+  Determine distribution of the invertebrate pests, including outbreak
+  boundaries and advancing outbreak fronts, using aerial mapping, remote
+  sensing and road surveys.
+\item
+  Measure relative abundance of invertebrate pests, including
+  quantitative population surveys and host/environmental impact studies
+  where appropriate and/or possible.
+\item
+  Utilise appropriate monitoring technologies including GIS and remote
+  sensing.
+\item
+  Liaise with land managers and the community regarding responses to
+  pest insect outbreaks.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Pheromone trapping of GLS was used to quantify the 2015/16 GLS
+  population level. Populations capable of moderate to severe
+  defoliation were present in areas around Donnelly Mill north west of
+  Manjimup.
+\item
+  A paper investigating climate effects on GLS outbreaks~ was prepared
+  and submitted to \emph{Austral Entomology} and is currently being
+  revised after referee comments.
+\item
+  A preliminary study was initiated investigating effects of understorey
+  removal by fire on pheromone trap catch. Catch data have been
+  summarized and analyzed. Dense understorey interferes with pheromone
+  trap effectiveness. Fire enhances trap catch in forest with a dense
+  understorey by removing the shrub layer. Testing for a vegetation
+  effect using a dryness index as a proxy for vegetation density showed
+  negligible impact on the historical data from long term GLS population
+  monitoring sites.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Integration of GLS population and impact data from two major outbreak
+  events indicates a strong relationship between GLS outbreak and
+  periods of below-normal rainfall at seasonal or longer timescales.
+  Further outbreaks are likely given present declining trends in
+  rainfall.
+\item
+  Pheromone trapping is effective in monitoring GLS populations and
+  could be used routinely to identify the likelihood of GLS outbreak.
+  Moth populations are a good predictor of subsequent larval populations
+  and may provide early warning of outbreak events in the context of
+  climate data.
+\item
+  Interference with pheromone based mate finding by vegetation has
+  implications for moth species richness at landscape scales because
+  pheromone based mate finding is common in moths (including other
+  eucalypt defoliators).~ Understanding drivers of moth richness may
+  allow spatial predictions of moth species richness and enhance
+  understanding of effects of global change on moth biodiversity.
+\item
+  Vegetation density and structure as well as species composition and
+  fire regimes in jarrah forest has implications for rate of spread and
+  control of potentially invasive and exotic moth species which use
+  pheromone based mate finding.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Continue pheromone trapping at long-term monitoring sites.
+\item
+  Prepare a manuscript describing fire and vegetation density effects on
+  the efficacy of GLS pheromone trap catches.
+\item
+  Investigate vegetation species composition and fire effects at
+  different trap heights using the GLS pheromone system.
+\item
+  Finalize edits and publish paper describing relationship between long
+  term GLS population and climate cycles.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

@@ -1,0 +1,1632 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Project Plan SP 2015-015}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2015-015
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/projectplan/1512/}{Project Plan SP 2015-015}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Wed, 11 Dec 2019 13:45:27 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2015-015
+}
+\title{Long-term monitoring in the area of the proposed Dampier Archipelago
+marine reserves
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Molly Moustaka
+\\
+\textbf{Data Custodian} & Molly Moustaka
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Dec. 11, 2019, 1:45 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Dec. 11, 2019, 1:45 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{not required}{ not required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Long-term monitoring in the area of the proposed Dampier Archipelago
+marine reserves
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Marine Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Molly Moustaka & 1.0\\
+
+Research Scientist & Thomas Holmes & 0.05\\
+
+Research Scientist & Shaun Wilson & 0.01\\
+
+Research Scientist & Alan Kendrick & 0.01\\
+
+Research Scientist & Kathy Murray & 0.06\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+None
+
+
+\subsection*{Proposed period of the project}
+July 15, 2014 -- June 30, 2019
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+The Dampier Archipelago is situated adjacent to Dampier (pop. 1,341) and
+Karratha (pop. 25,907), 1,650 km north of Perth in the Pilbara Nearshore
+Marine Bioregion (Figure 1). The marine and coastal environment of the
+Dampier Archipelago/Cape Preston Region has a unique combination of 42
+offshore islands, intertidal and subtidal reefs, mangroves, macroalgal
+communities and coral reefs. The area is the second most diverse region
+for hard corals in Western Australia, with coral reef habitats
+comprising 8\% (approx. 18,300 ha) of the major marine habitats,
+consisting of 229 scleractinian coral species from 57 genera (Griffith
+1998). In surveys carried out in 1998-2002 the Western Australian Museum
+recorded 736 fish species (Hutchins 2001), over 1,227 species of
+mollusc, including five regional endemics (Slack-Smith and Bryce 2004),
+438 species of crustacean (Hewitt 2004), 275 sponge species (Fromont
+1998), and 286 echinoderm species (Marsh and Morrison 2004).
+
+~
+
+Not only is there high species diversity in the area but many of the
+islands and beaches provide habitats and feeding areas for threatened
+marine fauna. A number of beaches in the area are important nesting
+sites for five species of marine turtle. There are at least 16 species
+of sea birds known to form large nesting colonies in the region. Over
+50\% of the mainland shore is lined with complex mangrove habitats,
+comprising six species, and are considered to be of international
+significance (Semeniuk and Wurm 1987). The area also contains important
+feeding and travelling grounds for marine mammals. The annual humpback
+whale migration passes through the Dampier Archipelago, and eight
+toothed whale species and four baleen whales have been documented
+utilising the area. Dugongs are also regularly sighted using the
+extensive seagrass beds within the area.
+
+~
+
+The Dampier Archipelago is rich in cultural and historical value, with
+the indigenous history of the Yaburara people extending back 20,000
+years. The area is referred to as Murujuga land and contains some of
+Australia's earliest art and cultural sites (CALM 2005).~ Other
+culturally significant areas include; quarries, middens, fish traps,
+rock shelters, ceremonial places, artefact scatters, grinding patches
+and stone arrangements.
+
+~
+
+Within the Dampier Archipelago/Cape Preston area, species and habitat
+depletion have been recorded (CALM 2005), with the area subject to
+increasing human pressures. The nearby town of Karratha has the highest
+per capita boat ownership in Australia (CALM 2005)and recreational
+fishing pressure in the archipelago waters is likely to be high. There
+are also commercial prawn, demersal finfish, and interim mackerel
+fisheries, with the area also important to Western Australia's aquarium
+fishery. There are also multiple pearl aquaculture sites, a productive
+saltworks (opened in 1972) and Dampier Port development, pipeline and
+processing facilities and shipping associated with industrial
+development.
+
+~
+
+\href{http://internal-data.dpaw.wa.gov.au/dataset/4afb0762-81ee-4d29-aa12-2728f725d85d/resource/d9b76f02-f7ed-4bcc-b653-c39533d24c8f/download/map-2.jpg}{Proposed
+MP Zoning}
+
+Figure 1 Map of the Dampier Archipelago showing locality and the three
+sections of the proposed marine protected area.~ Zoning in protected
+area; Green -- General Use, General Use and Recreation zones. Yellow --
+Conservation Zones, Red -- Sanctuary Zones.
+
+~
+
+The Dampier Archipelago/Cape Preston area was identified for
+consideration as a marine conservation reserve by the \emph{Marine Parks
+and Reserves Selection Working Group} (MPRSWG 1994), which identified
+representative and unique areas of Western Australia's marine waters for
+consideration as part of a statewide system of marine parks. Waters
+surrounding the Dampier Archipelago were reported as having significant
+conservation values, and the report highlighted the overlap of
+ecological values and high levels of human activity in the area. An
+Indicative Management Plan (IMP; CALM 2005) has been written to provide
+a framework for how the marine ecological and social values of the area
+can be protected. The IMP proposes creation of three separate marine
+protected areas; Dampier Marine Park East, Dampier Marine Park West and
+the Regnard Marine Management Area (Figure 1). In total the proposed
+protected areas cover 214,920 ha of State waters.
+
+~
+
+Woodside's Pluto liquefied natural gas (LNG) project is an approved
+operation utilising the Dampier area for processes around the extraction
+of gas, transport via a gas pipeline to an onshore processing facility,
+storage and then export via a shipping port, loading jetty and channel.
+Alongside the LNG processing and export facility, a large scale dredging
+program, removing 14 million cubic meters of sediment, has been
+occurring since 2003. The EPA approved the development on the condition
+that Woodside implement a substantive offset package. The Pluto LNG
+Offset `D' Program was initiated as a result of Ministerial Approval
+Statement 757 and included a funding agreement between Woodside Burrup
+Pty Ltd in its capacity as operator of the Pluto LNG development and the
+state of Western Australia. The agreement defines the focus of the Pluto
+LNG Offset `D' as `\emph{Research and monitoring consistent with the
+Indicative Management Plan for the Dampier Archipelago Marine Park'}.
+
+
+
+
+\subsection*{Aims}
+
+There are four main projects within the Pluto LNG Offset `D' Program.
+They are to:
+
+\begin{enumerate}
+\def\labelenumi{\roman{enumi}.}
+\tightlist
+\item
+  \emph{Review, assess and summarise historical data relevant to the
+  management of the proposed Dampier Archipelago Marine Park and Regnard
+  Marine Management Area;}
+\item
+  \emph{Determine distribution, patterns and key processes of major
+  marine communities and large marine fauna of the proposed Dampier
+  Archipelago Marine Park and Regnard Marine Management Area;}
+\item
+  \emph{Describe patterns and trends in human use in the proposed
+  Dampier Archipelago Marine Park and Regnard Marine Management Area;}
+  and
+\item
+  \emph{Establish long-term monitoring reference sites in the proposed
+  Dampier Archipelago Marine Park and Regnard Marine Management Area.}
+\end{enumerate}
+
+The focus of this SPP is on the project `iv' which required the
+implementation of monitoring within the Proposed Dampier Archipelago
+Marine Park and Regnard Marine Management Area. Monitoring will be
+consistent with the State Government's Indicative Management Plan for
+the area. The aim of project `iv' is to:
+
+~
+
+\emph{Develop and implement a monitoring, evaluation and reporting (MER)
+program of key biodiversity asset condition and their major pressures at
+key sites in the proposed Dampier Archipelago Marine Park and Regnard
+Marine Management Area}.
+
+~
+
+The project will implement an integrated, effective and efficient
+monitoring, evaluation and reporting process that allows measurement and
+evaluation of condition and pressure changes in a way that is robust but
+practical and cost effective. The objectives of this project are:
+
+\begin{itemize}
+\tightlist
+\item
+  Complete a prioritisation of ecological assets listed in the
+  indicative management plan to identify high priority assets for
+  monitoring;
+\item
+  Establish reference sites for monitoring high priority assets in the
+  Proposed Dampier Archipelago Marine Park and Regnard Marine Management
+  Area, taking into account, spatial and temporal distribution of key
+  pressures acting on assets, previous data availability, the standards
+  of the Western Australian Marine Monitoring Program and stakeholder
+  recommendations;
+\item
+  Provide quantitative evidence on the status and trends in selected
+  indicators of asset condition and the pressure/s on these assets, to
+  assist managers to make better-informed decisions within an active
+  adaptive management framework;
+\item
+  Contribute to the development of best practice monitoring techniques
+  for assets and pressures where knowledge is lacking;
+\item
+  Contribute data, as appropriate, to assist development of Parks and
+  Wildlife's strategic marine planning and conservation initiatives;
+\item
+  Assist other government departments and industry environmental
+  management programs; and
+\item
+  To establish links with indigenous owners and encourage their
+  involvement in monitoring and marine conservation.
+\end{itemize}
+
+
+
+
+\subsection*{Expected outcome}
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{A better understanding of the value, spatial extent and status
+  of the shallow tropical communities of the Dampier archipelago.}
+\end{itemize}
+
+An established monitoring program will facilitate evidence-based
+long-term adaptive management for the proposed reserves, and promote
+environmental understanding for a range of stakeholders and the
+community.
+
+\begin{itemize}
+\tightlist
+\item
+  ~\emph{Data on ecological assets will inform a baseline of natural and
+  human induced change when the marine reserves are gazetted.}
+\end{itemize}
+
+This project will produce baseline data on various key ecological assets
+and the pressures acting on them. This will inform Parks and Wildlife
+managers, the vesting authority, stakeholders and the broader community
+of the condition of the marine reserves over time.
+
+\begin{itemize}
+\tightlist
+\item
+  ~~\emph{Parks and Wildlife and the scientific community will benefit
+  from having newly developed, tested and documented indicators and
+  methods for monitoring Pilbara marine environments.}
+\end{itemize}
+
+This project will develop new marine monitoring indicators and methods
+for key ecological assets and habitats that are largely novel to
+northern WA. Development of these monitoring indicators and methods may
+also assist marine monitoring implementation and reserve management in
+the Kimberley region.
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Assistance for other government departments and Industry through
+  better understanding of the importance of, and change in, the natural
+  assets of the Dampier Region.}
+\end{itemize}
+
+The data collected by this project will be accessible in the event of an
+environmental incident, so that industry has baseline evidence of the
+condition of marine communities. Providing information to major
+industrial users of the area will create awareness of the condition and
+pressure on assets and values in the proposed marine reserve and it will
+also highlight the role of Parks and Wildlife in conservation
+management.~
+
+\begin{itemize}
+\tightlist
+\item
+  ~\emph{Foster operational collaborations with traditional owners.}
+\end{itemize}
+
+Parks and Wildlife recognizes joint management with Aboriginal people as
+a primary objective of conservation management. This project will
+nurture collaboration and information sharing through consultation with
+the Murujuga Aboriginal Corporation, whose ranger group is to be
+involved in field activities.
+
+
+
+
+\subsection*{Knowledge transfer}
+
+The most significant use of this information is for the management of
+the marine environment, both through the Parks and Wildlife planning
+department, specialist branches (e.g. science and conservation division)
+and regional operational staff. The information gained from this project
+will be used to inform planning for the proposed marine reserves (by
+Parks and Wildlife and the vesting authority), and assist ~~Parks and
+Wildlife regional staff to gain an understanding of change in ecological
+assets in relation to marine park management.
+
+~
+
+Information collected in this project will also be provided to other
+government management agencies. This work may advise the Office of the
+Environmental Protect Authority during the Environmental Impact
+Assessment and support research and monitoring carried out by Department
+of Fisheries and CSIRO. When the park is established, historical data,
+as well as data collected through this program, will be ready to feed
+directly into the MPRA (Marine Parks and Reserves Authority) reporting
+process carried out by Marine Science Program.
+
+~
+
+A copy of all major reports will be forwarded to Woodside and
+baseline/monitoring data will be made available to the oil spill
+response team in the event of an incident.
+
+~
+
+One of the aims of this work is to involve the indigenous community and
+keep them updated on the condition of the system. Researchers on this
+project will also seek advice from traditional owners throughout the
+program.
+
+~
+
+As part of this work we will communicate information on the current
+status of WA marine assets to the community. Communication outputs will
+include more `general reading' publications, e.g. Parks and Wildlife
+Landscope.
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+The specific outputs of this project are:
+
+Project Administration:
+
+\begin{itemize}
+\tightlist
+\item
+  Annual progress reports to Woodside completed by 30 September each
+  year;
+\item
+  Pluto Offset `D' `iv' final summary report completed and distributed
+  by 30 June 2019;
+\end{itemize}
+
+Project Science-Management Outputs
+
+\begin{itemize}
+\tightlist
+\item
+  Science outcomes and new knowledge will be published in peer-reviewed
+  journals;
+\item
+  Monitoring related updates sent to Pilbara District and Regional
+  managers, and Murujuga Aboriginal Corporation;
+\end{itemize}
+
+Project General Communication:
+
+\begin{itemize}
+\tightlist
+\item
+  Literature regarding the Dampier marine environment, methods for
+  monitoring assets and indicative long-term trends will be presented in
+  Parks and Wildlife publications (e.g. Landscope, brochures and social
+  media.
+\end{itemize}
+
+\textenglish[variant=american]{The major tasks and milestones for this
+project
+are~\href{http://internal-data.dpaw.wa.gov.au/dataset/4afb0762-81ee-4d29-aa12-2728f725d85d/resource/61b24cf4-4800-44a8-aa21-5f92762f51d0/download/milestones-pdf.pdf}{Milestone
+and Major Activities}}
+
+
+
+
+\subsection*{References}
+
+Babcock RC, Baird AH, Piromvaragorn S, \emph{et al} (2003)
+Identification of scleractinian coral recruits from Indo-Pacific reefs.
+Zool Stud 42:211--226.
+
+Biota Environmental Sciences (2009) Turtle monitoring at Bells Beach and
+selected rookeries of the Dampier~ Archipelago: 2008/09 Season. Rio
+Tinto
+
+CALM (2005) Indicative Management Plan for the Proposed Dampier
+Archipelago Marine Park and Cape Preston Marine Management Area.
+Department of Conservation and Land Management, Perth, W.A.
+
+Fromont J (1998) Porifera (sponges) of the Dampier Archipelago, Western
+Australia: habitats and distribution. Aquatic Fauna of the Waters of the
+Dampier Archipelago, Western Australia Report on the results of the
+Western Australia Museum/Woodside Energy Ltd partnership to explore the
+marine biodiversity of the Dampier Archipelago 2001:69--100.
+
+Griffith JK (1998) Scleractinian corals collected during 1998 from the
+Dampier Archipelago, Western Australia. Report on the results of the
+Western Australia Museum/Woodside Energy Ltd partnership to explore the
+marine biodiversity of the Dampier Archipelago 2002:101--120.
+
+~
+
+Harvey E, Fletcher D, Shortis M (2002) Estimation of reef fish length by
+divers and by stereo-video: A first comparison of the accuracy and
+precision in the field on living fish under operational conditions.
+Fisheries Research 57:255--265.
+
+~
+
+Hewitt MA (2004) Crustacea (excluding Cirripedia) of the Dampier
+Archipelago, Western Australia. Records of the Western Australian Museum
+Supplement 66:169--219.
+
+~
+
+Hutchins BJ (2001) Biodiversity of shallow reef fish assemblages in
+Western Australia using a rapid censusing technique. Records of the
+Western Australian Museum 20:247--270.
+
+~
+
+Jones DS (2004) Report on the results of the Western Australian
+Museum/Woodside Energy Ltd. partnership to explore the marine
+biodiversity of the Dampier Archipelago Western Australia 1998-2002.
+Western Australian Museum, Perth, Western Australian
+
+~
+
+MPRSWG (1994) A representative marine reserve system for Western
+Australia. Department of Conservation and Land Management, Perth, W.A.
+
+~
+
+Marsh LM, Morrison SM (2004) Echinoderms of the Dampier Archipelago,
+Western Australia. Records of the Western Australian Museum 66:293--342.
+
+~
+
+Semeniuk V, Wurm P (1987) Mangroves of the Dampier Archipelago, Western
+Australia. Journal of The Royal Society of Western Australia 69:29 --
+87.
+
+~
+
+Simpson C, Beger M, Colman J, \emph{et al} (2015) Prioritisation of
+conservation research and monitoring for Western Australian protected
+areas and threatened species. Conservation Science Western Australia
+9:227 -- 237.
+
+~
+
+Slack-Smith SM, Bryce CW (2004) A survey of the benthic molluscs of the
+Dampier Archipelago, Western Australia. Records of the Western
+Australian Museum Supplement 66:221--245.
+
+~
+
+Spiers M, Vitenbergs A, Prince R (2013) Rosemary Island hawksbill turtle
+tagging program. In: In Proceedings of the First Western Australian
+Marine Turtle Symposium, 28-29th August 2012. (eds B Prince, S Whiting,
+H Raudino \emph{et al.}) Department of Parks and Wildlife, Kensington,
+W.A.
+
+~
+
+Turner JA, Polunin VC, Field SN, Wilson SK (2015) Measuring coral
+size-frequency distribution using stereo video technology, a comparison
+with in situ measurements. Environmental Monitoring and Assessment
+187:234.
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+\textbf{Context}
+
+The Indicative Management Plan describes 14 ecological assets detailed
+in the Indicative Management Plan, which are: geomorphology, sediment
+and water quality, coral reef communities, mangrove communities,
+macroalgae and seagrass communities, subtidal soft-bottom communities,
+intertidal sand and mudflat communities, rocky shore communities,
+turtles, marine mammals, seabirds, finfishes, and invertebrates.
+
+~
+
+\textbf{Prioritisation}
+
+All assets need to be considered for monitoring, however, managers must
+prioritise assets to ensure the effective use of limited resources
+(Simpson \emph{et al.} 2015). Following the framework outlined in
+Simpson \emph{et al} (2015) a preliminary monitoring prioritisation was
+completed prior to planning this project and proceeding with field
+surveys. This involved requesting the assistance of a panel of experts,
+with experience in the Dampier region, to score the value of each asset
+and the pressure they perceive this asset to be under. Assets that were
+considered of high value and under high pressure will be the initial
+focus of monitoring. Twelve experts from government, industry and
+academia, with good knowledge of the marine environment in the Dampier
+Archipelago, were surveyed and the resultant order of asset priority is
+presented in Table 1.
+
+~
+
+Table 1 Results of monitoring prioritisation carried out by 12 experts
+with knowledge of the Dampier region. The mean values are presented with
+both upper and lower Confidence Intervals. The asset with the highest
+mean rank, and all other assets with 95\% confidence intervals that
+overlap with highest asset, were highlighted in bold as high priority
+for monitoring.
+
+~
+
+\begin{longtable}[]{@{}lllll@{}}
+\toprule
+\endhead
+\textbf{Asset} & \textbf{~ KPI? ~} & \textbf{~ Mean Score ~} & \textbf{~
+Lower 95\% CI ~} & \textbf{~ Upper 95\% CI ~}\tabularnewline
+Coral communities & Y & 181.28 & 151.42 & 211.13\tabularnewline
+Finfish & Y & 169.43 & 141.60 & 197.25\tabularnewline
+Turtles & Y & 124.66 & 95.51 & 153.80\tabularnewline
+Mangrove communities & Y & 123.26 & 91.88 & 154.64\tabularnewline
+Macroalgae and seagrass communities & N & 115.77 & 91.10 &
+140.53\tabularnewline
+Invertebrates & Y & 103.22 & 78.32 & 128.12\tabularnewline
+Marine mammals & N & 100.21 & 59.88 & 140.54\tabularnewline
+Water quality & Y & 90.54 & 60.20 & 120.88\tabularnewline
+Geomorphology & N & 84.75 & 44.34 & 125.15\tabularnewline
+Seabirds & N & 71.56 & 52.01 & 91.11\tabularnewline
+Subtidal soft-bottom communities & Y & 66.26 & 40.81 &
+91.71\tabularnewline
+Intertidal sand and mudflat communities & Y & 64.58 & 42.60 &
+86.56\tabularnewline
+Sediment quality & N & 63.56 & 40.92 & 86.20\tabularnewline
+Rocky shore communities & N & 54.75 & 41.69 & 67.81\tabularnewline
+\bottomrule
+\end{longtable}
+
+~
+
+Based on the priortisation of assets, coral communities were identified
+as having the highest mean rank, though fish communities, mangroves and
+turtles were also considered high priority and will be the focus of
+monitoring efforts. Macroalgae and seagrass, as well as invertebrates
+also ranked highly, but as a lower priority for monitoring. Monitoring
+of other assets may be undertaken opportunistically or by other
+researchers and we will endeavor to support their programs where
+appropriate.
+
+~
+
+\textbf{Site selection process}
+
+Sites are to be selected based on a combination of factors; the
+availability of historical data, site descriptions, and vicinity to
+anthropogenic pressures. Sites will be selected to maximize potential of
+recording change as a result of anthropogenic pressures, while
+minimizing the potential range of confounding factors (including natural
+pressures). Detailed site descriptions by the Western Australian Museum
+(Jones 2004) will assist with site selection. Also, pressure variables
+found within datasets, such as water quality and industrial development
+projects will be used to advise site selection.
+
+~
+
+A scoping fieldtrip is to be carried out to visit an extended number of
+potential sites for monitoring high priority assets. These will be
+identified using the above criteria and assessed for suitability.
+Wherever possible, sites will be selected where multiple assets are well
+represented. For example, at reef sites attempts will be made to monitor
+coral, finfish and invertebrate communities concurrently. By monitoring
+multiple assets at the same site, results can advise on interactions
+between communities and highlight secondary pressures.
+
+~
+
+\textbf{Indicators}
+
+WAMMP `Asset Knowledge Reviews' highlight important asset condition,
+pressure and management response (CPR) indicators and recommend methods
+for their measurement. This project will measure the condition of
+selected assets in the context of possibly interacting natural,
+anthropogenic and climate change pressures. Monitoring will use standard
+WAMMP methods, except where new indicators and methods need to be
+identified.
+
+~
+
+Table 2 Summary table of assets and condition and pressure metrics.
+Condition and pressure metrics for tropical macroalgae and seagrass
+communities have, as of yet, not been well defined
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+\endhead
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+\textbf{~ Assets}\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\textbf{~ Asset Condition Metrics}\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\textbf{~ Pressure Metrics}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Coral Communities ~\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\% live coral cover
+
+Community composition
+
+Coral recruitment\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Water temperature
+
+Predator abundance i.e. Crown of thorns starfish and corallivorous
+gastropods
+
+Physical disturbance i.e. storms and cyclones
+
+Sedimentation/Turbidity\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Finfish\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Abundance of fishery target spp
+
+Abundance of functionally important spp
+
+Community composition
+
+Community size structure\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Habitat change
+
+Fishing pressure\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Turtles\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Breeding metrics (assist current programs)
+
+Strandings/incidents\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Island visitors
+
+Boat use/ownership\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Mangrove Communities\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Spatial extent
+
+Canopy cover
+
+Tree density
+
+Foliage condition (leaf colour)
+
+Mortality\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Salinity
+
+Air Temperature
+
+Clearing\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Macroalgae \& Seagrass\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+~\% cover/density
+
+Community composition\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+~Water Temperature
+
+Physical disturbance i.e. storms and cyclones
+
+Sedimentation/Turbidity\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Invertebrates\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Abundance of fishery target spp
+
+Abundance of functionally important spp\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Habitat change
+
+Fishing pressure\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+~
+
+\textbf{High Priority Assets -- Sites and Methods}
+
+Assets identified as high priority in the prioritisation process will be
+monitored initially, with main effort focusing on establishing permanent
+sites, collecting baseline datasets and where appropriate publication of
+results.
+
+~
+
+\emph{Coral communities}
+
+Digital still imagery along fixed transects will be used to provide data
+on the live cover, composition, and diversity of coral communities. At
+each site, three replicate 50 m transects will be permanently marked
+with star pickets positioned at each end of each transect and marked for
+relocation using a GPS at the surface. To help ensure the accurate
+resampling along the transect steel marker rods will be fixed to the
+substrate every 10m. Benthic community along these transects will be
+monitored by taking 50 digital images per transect at a height of 1 m
+from the substrate. This will enable analysis of the structural benthic
+community metrics in the laboratory using a point count method, while
+providing a permanent record for potential investigation.
+
+~
+
+Coral settlement is also highlighted as an important functional metric
+for monitoring coral reef communities (coupled with the examination of
+shifts in coral size frequency). The use of coral settlement tiles can
+estimate larval supply to an area and provide a relatively simple
+estimate of recruitment potential (Babcock \emph{et al.} 2003). Crude
+assessments of juvenile coral abundance may also be gathered from
+digital images (Turner \emph{et al.} 2015).
+
+~
+
+Coral communities will be monitored every two years at a range of sites
+over the proposed marine reserves. Fifteen preliminary sites (Figure 2)
+have been selected for monitoring and attempts will be made to monitor
+other assets (fish and invertebrates) concurrently at these sites.
+
+~
+
+\href{http://internal-data.dpaw.wa.gov.au/dataset/4afb0762-81ee-4d29-aa12-2728f725d85d/resource/0e66905a-8fe6-4099-b2f8-ddb2058d03e8/download/figure-2.pdf}{Coral
+and Fish Monitoring Sites}
+
+Figure 2~\textenglish[variant=american]{Preliminary locations (red
+points) of fish, coral and invertebrate monitoring sites in the proposed
+Dampier Archipelago Marine Park and Regnard Marine Management Area. The
+location of temperature loggers are marked with blue crosses. Also
+included is a table listing site names.}
+
+~
+
+\emph{Fish}
+
+Fish communities will be monitored for changes in community abundance,
+diversity and population structure (major indicators, Table 2) using
+stereo video methods, which enables the identification of species and
+measurements of fish size (Harvey \emph{et al.} 2002).
+
+~
+
+Six independent 50 meter transects will be completed by employing Diver
+Operated Video (DOV). This provides a permanent record of the fish
+assemblage and allows analysis of the videos in the laboratory by
+experienced staff. At each site, video transects will be swum by a two
+diver team. The first person in the dive team swims the DOV unit, with
+the second person measuring the transect. The divers leave a 10 meter
+gap between each transect to maintain independence of replicates.
+Transects are swum at a rate of three-four minutes per 50m in a
+relatively straight line (following habitat and depth gradient), in a
+direction away from the sun.
+
+~
+
+The stereo-video equipment comprises two forward facing video units
+secured to an aluminium frame. A light emitting diode is positioned on a
+rod in front of the cameras so the footage can be syncronised when it is
+viewed on a computer. The video units are configured to record the fish
+from different angles. Analysis of high definition video footage is
+completed in the laboratory following the fieldtrip, allowing accurate
+identification of individuals and length measurements. Digital imagery
+is analysed using the seaGIS software `Event Measure', which allows for
+the calculation the accurate size of the fish by mathematical
+triangulation.
+
+~
+
+Fish communities will be monitored at the same 15 sites assessed for the
+benthic community surveys (Figure 2). This allows fish community data to
+be associated with benthic structure and composition information. Fish
+communities will be monitored every two years.
+
+~
+
+\emph{Turtles}
+
+Turtles have dedicated research and monitoring programs through the
+Marine Science Program. At present there is a large-scale study of the
+turtle populations in the Pilbara, being undertaken by Parks and
+Wildlife, Marine Science Program (SPP 002-2013), and this will include
+an assessment of populations in the Dampier Archipelago. There are
+presently multiple programs monitoring turtle nesting running throughout
+the Dampier Archipelago. Parks and Wildlife are working with Rio Tinto
+to monitor Hawksbill, Green and Loggerhead turtles at Rosemary Island
+(Spiers \emph{et al.} 2013). In addition Rio Tinto is also funding a
+long term turtle monitoring program at Legendre and Delambre Island
+(Biota Environmental Sciences 2009). Since this asset is well covered in
+the Dampier region, it would not be cost effective to establish another
+program, when time and funding could be spent focusing on other less
+researched assets. Therefore, this project will attempt to assist the
+current turtle monitoring work where possible through field support and
+the collection and contribution of pressure related data.
+
+~
+
+\emph{Mangroves}
+
+The extent, condition and cover of mangrove communities are the main
+indicators (Table 2) of health and these will be assessed using remote
+sensing techniques. It is a requirement that these images be
+ground-truthed, and this will allow for assessment of on ground health
+indicators including tree density and foliage condition.
+
+~
+
+Rectified and calibrated satellite imagery allows for fast, cost
+effective monitoring of mangroves over large spatial scales. This will
+be achieved using ALOS or SPOT 6 imagery, which have a pixel size of ten
+and five meters, respectively. A time series of three historical records
+will be analysed initially to develop an appropriate baseline time
+series index of vegetation trends. Images will then be purchased every
+two years of the monitoring program, to reduce cost outlay, and also
+align with the bi-annual schedule used for monitoring other assets.
+Imagery will be collected in November, when they become available. The
+major aim of this monitoring is to identify communities that are stable,
+in decline or increasing over the time period of years captured by
+quantifying change in mangrove extent and foliage cover (as a proxy for
+condition).
+
+~
+
+Ground truthing will be undertaken at predetermined points among the
+survey sites. The purpose of ground truthing is to verify data
+calculated from remote techniques, it is therefore not necessary to have
+ongoing \emph{in situ} work for the monitoring program. However, there
+are cases where re-survey may be necessary, such as after a major event
+or where difficulty exists interpreting the results of the remote study.
+
+~
+
+Ground truthing sites will be chosen according to satellite image
+characteristics. Two types of `set point photograph' will be taken at
+each point; the first will be a wide angle overview of the community as
+a whole; the second will be a series of close up photographs taken along
+the fringes of the communities, or in areas of disturbance (as these are
+the areas that are the most accessible and where change is most likely
+to occur). In the second series of photos individual trees will be
+identified and photographed from a distance of 8 meters. A surveyor's
+staff will be included in all photos taken to determine tree height and
+foliage width. Four upward facing photos will be taken, capturing the
+canopy cover and 4-6 photos of the substrate under/around the tree will
+be collected.Field notes will be collected along with the photographs
+and these will include basic measurements, including; tree height and
+trunk width, tree mortality and damage, and pneumatophore density. A
+photo of the tripod position relative to the tree will also be taken for
+future reference. Additional GPS marks will be collected for the tree
+trunk and tripod position.
+
+~
+
+A total of 10 areas have been selected for mangrove monitoring (Figure
+3) based on the availability of GIS imagery encompassing existing
+mangrove forests. The sites are distributed inside and outside of the
+proposed marine reserves and at varying proximity to development.
+
+~
+
+\href{http://internal-data.dpaw.wa.gov.au/dataset/4afb0762-81ee-4d29-aa12-2728f725d85d/resource/ea96c0ea-1409-4c6d-884a-6fc7e9b084c1/download/figure-3.pdf}{Mangrove
+Ground Truth Sites}
+
+Figure 3 Locations (blue boxes) of GIS imagery for long term monitoring
+of mangrove communities. Points for ground truthing will be selected
+within these boundaries
+
+~
+
+\textbf{Secondary Priority Assets -- Methodological Development}
+
+In order to increase the capacity of the Marine Science Program,
+attempts will be made to develop some asset monitoring programs that are
+not currently established. This work will be second priority to the
+assets identified above, and these projects will only be attempted if
+time and capacity allow.
+
+~
+
+\emph{Macroalgae and Seagrass}
+
+Indicators and methods for monitoring tropical seagrass and macroalgae
+in northern WA are yet to be identified. With the assistance of the
+WAMMP Asset Leader for seagrass and algae, this project will collaborate
+with internal and external groups to identify appropriate monitoring
+techniques. In order to develop techniques, there will be an initial
+collection of research work, drafting a literature review and trial of
+appropriate methodologies in the field. A cost-benefit analysis will
+then be undertaken to determine a method which is achievable and returns
+appropriate data. Once a Standard Operating Procedure is in place,
+appropriate sites will be selected using remote imagery, ground truthed,
+and monitoring will commence in the Dampier region.
+
+~
+
+Primary productivity, and natural variability, of benthic primary
+producers has been identified as potential area of focus for research in
+the Dampier Archipelago, and has been highlighted as a research priority
+in Pluto Offset `D' project `ii'. The work undertaken in this project,
+will compliment and extend the findings of that research.
+
+~
+
+\emph{Invertebrates}
+
+The main indicator for change in invertebrate communities is abundance
+(Table 2), particularly those targeted through human activities (e.g.
+collection of crustaceans, large clams, topshells, urchins and sea
+cucumbers), but also species which may pose a threat to other
+communities, e.g. pressure on the condition of corals from crown-of
+thorns starfish (\emph{Acanthaster planci}) and the corallivorous
+gastropod \emph{Drupella}.
+
+~
+
+Methods have been established to monitor invertebrates on coral reefs;
+however, if time allows, part of this project will include research into
+the development of monitoring techniques for an array of target
+invertebrates harvested from other habitats, such as mangroves and
+seagrass. As part of this work, research will be undertaken to identify
+priority species targeted by commercial and recreational fisheries and
+aquarium collectors in the region.
+
+~
+
+Invertebrate monitoring will be undertaken at multiple sites throughout
+the Dampier, and attempts will be made to monitor within a subset of
+different benthic communities including coral reefs, mangroves, seagrass
+and macroalgae. In some cases, and where appropriate, invertebrate
+monitoring may be carried out at complementary benthic monitoring sites.
+This co-location of assessment sites will allow for comparison between
+benthic structure and composition, to assess how invertebrate abundance
+can influence other communities, and how changes in habitat structure
+can influence invertebrate communities.
+
+~
+
+\textbf{Pressure Metrics}
+
+The Department's marine monitoring program operates within a condition,
+pressure and management response (CPR) framework to enable and
+facilitate the assessment of management effectiveness. Monitoring
+enables a better understanding of the effects of anthropogenic pressures
+on marine assets, and through subsequent targeted but adaptive
+management allows for mitigation of their impacts. Understanding
+pressures is vital to being able to respond to changes in the condition
+of assets and determining management and level of protection required.
+As part of this project, it is necessary to understand and monitor the
+major pressures on the assets that are sought to be conserved and
+managed in the proposed reserve.
+
+~
+
+Pressures to be monitored are listed in Table 2. Some of these are
+already addressed through monitoring of other or assets e.g. habitat
+loss which is a pressure on fish and invertebrate communities is
+measured through monitoring changes in cover of benthic communities. For
+other pressure metrics, data will be collected independently.
+
+~
+
+Variation in the physical condition of coastal waters can drive change
+in marine communities. Temperature is one of the most significant
+pressure parameters for ecological assets. At five coral monitoring
+sites, two temperature loggers will be deployed for the extent of the
+project, and replaced at alternating six month periods (one swapped in
+May, the other in Nov). Each logger will collect an hourly reading every
+day for 12 months. Results from these will be assessed to determine how
+many are replaced after the first year, and these in-situ recordings
+will be compared to remotely collected sea surface temperature data
+collected and modeled by NOAA.
+
+~
+
+\textbf{Data Analyses}
+
+Broad spatial and temporal patterns in asset condition will be
+investigated using univariate and multivariate analyses.~ Relationships
+between the structure of the biological communities and physical
+variables and human use will be assessed where possible. The
+relationship between condition and pressure can be analysed using a
+suite of metrics including regression and correlation techniques. The
+proposed marine reserve is extensive and encompasses diverse habitats, a
+range of pressures and varied conditions. Spatial variability must be
+considered when analysing data from this project. Given the short time
+frame of this project, it is unlikely that meaningful long-term
+comparisons will be possible. In many cases sites have been selected
+where historic sites existed, and attempts will be made to compare the
+findings from this program to historic data. However, in many cases the
+metrics measured or the techniques used may not be comparable, and other
+parameters may limit interpretation of relationships with historic data.
+~The data will be regularly tested for power and considered for trend
+analysis when the strength of the data allows for confidence in the
+results.~
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Data management}
+
+All raw data will be presented in a data report and archived on DPaW's
+Marine Science Program server and on an archived hard drive.
+
+~
+
+\emph{Hard copies of any reports resulting from the project will be held
+at the following locations:}
+
+\begin{enumerate}
+\tightlist
+\item
+  Woodside -- Pluto Program.
+\item
+  Marine Science Program, Science \& Conservation Division, Department
+  of Parks and Wildlife, 17 Dick Perry Avenue, Western Australia, 6152.
+  Ph: (08) 9334~0333.
+\item
+  Woodvale Library, Science \& Conservation Division, Department of
+  Parks and Wildlife, Ocean Reef Road, Woodvale, Western Australia,
+  6026. Ph: (08) 9405~5100 Fax: (08) 9306~1641.~
+\item
+  Archives, Woodvale Library, Science \& Conservation Division,
+  Department of Parks and Wildlife, Ocean Reef Road, Woodvale, Western
+  Australia, 6026. Ph: (08) 9405~5100 Fax: (08) 9306~1641 (CD also
+  attached).
+\item
+  Department of Parks and Wildlife: Pilbara Region, Lot 3 Mardie Rd,
+  Karratha, WA, 6714. Ph: (08) 9182 2000 Fax: (08) 9144 1118.
+\end{enumerate}
+
+\emph{Digital copies of any reports and data will be held at the
+following:}
+
+\begin{enumerate}
+\tightlist
+\item
+  ~~~~ The Science Division Server:
+\end{enumerate}
+
+T:\textbackslash529-CALMscience\textbackslash Shared
+Data\textbackslash Marine Science Program\textbackslash{}
+
+\begin{enumerate}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  ~~~~ Archived hard drive
+\item
+  ~~~~ Uploaded to the Marine Science Program data catalogue (CKAN)
+\end{enumerate}
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist &  &  & \\
+
+
+
+FTE Technical &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime & 91,014 & 99,716 & 105,381\\
+
+
+
+Overheads & 42,642 & 35,000 & 37,000\\
+
+
+
+Equipment & 9,491 & 2,500 & 2,500\\
+
+
+
+Vehicle & 17,003 & 25,100 & 15,600\\
+
+
+
+Travel & 6,092 & 8,100 & 3,300\\
+
+
+
+Other & 10,826 & 19,331 & 14,220\\
+
+
+
+Total & 173,368 & 189,747 & 178,001\\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

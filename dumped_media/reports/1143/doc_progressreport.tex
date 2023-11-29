@@ -1,0 +1,222 @@
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+\usepackage[colorlinks=true,pdftitle=doc\_progressreport.pdf,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+
+
+
+%%% Custom headers/footers (fancyhdr package)
+\fancypagestyle{plain}{
+\fancyhf{}
+\setlength\headheight{40pt}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+
+
+    \fancyhead[L]{ \href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1143/download/}{} \newline }
+\fancyhead[R]{ \hfill\href{http://www.dpaw.wa.gov.au}{Department of Parks and Wildlife}\newline\href{http://sdis.dpaw.wa.gov.au}{Pythia}}
+
+
+
+
+\fancyfoot[L]{ \leftmark\newline\textbf{Last Modified}\textit{ }\quad\textbf{Printed}\textit{ June 19, 2014, 8:39 a.m. } }
+\fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} } % Pagenumbering
+
+
+}
+\pagestyle{plain}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+\begin{document}
+
+\setcounter{secnumdepth}{-1}
+
+
+\begin{titlepage}
+\begin{center}
+% Upper part of the page
+\begin{minipage}[t]{0.28\textwidth}
+\begin{flushleft}
+\href{http://www.dpaw.wa.gov.au}{\includegraphics[scale=0.6]{/var/www/sdis_8271/staticfiles/img/logo-dpaw.png}}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}[b]{0.7\textwidth}
+\begin{flushright}
+    \href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1143/download/}{}) \\
+\end{flushright}
+\end{minipage}
+\HRule \\[0.4cm]
+\vfill
+\textsc{\Huge Science project 2013-4 Restoring natural riparian vegetation systems along the Warren and Donnelly Rivers \newline }
+\vfill
+\textsc{\Huge Progress Report}
+
+\vfill\vfill\vfill\vfill
+title and summary
+
+\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill
+
+\textbf{Version created on} June 19, 2014, 8:39 a.m.
+\vfill
+\textbf{Last Modified on}  by 
+\vfill\vfill
+\textbf{Report Status}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Status & Last Updated \\
+\hline
+\textbf{Planning - } \\
+\hline
+\end{tabu}
+\vfill
+\textbf{Science Project Overview}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Part & Checklist Last Updated \\
+\hline
+\textbf{Part A - Summary \& Approval} & bla \\
+\hline
+\end{tabu}
+
+\end{center}
+\end{titlepage}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage
+
+
+
+
+
+
+\section{Context Summary}
+
+
+
+Current practices of seed sourcing for revegetation projects focus on local seed, based on a premise of maximising adaptation to local conditions, but this may not be most appropriate under changing climatic conditions. Identification of patterns of adaptive variation will enable more informed approaches to species selection and seed sourcing to maximise establishment and persistence of plants in revegetation programs.
+
+
+This project will provide a climate change framework for revegetation of blackberry-decline sites on the Warren and Donnelly Rivers by determining the scale of adaptation to climate along the river system and determining the best seed source strategies to maximise resilience to future changes in climate in the revegetated populations.
+
+
+
+
+
+
+\section{Aims Summary}
+
+
+
+\begin{itemize}
+
+  \item Develop a climate change framework for revegetation of riparian vegetation along the Warren and Donnelly Rivers.
+
+  \item Determine seed sourcing strategies that account for climate adaptation to enable resilient restoration of riparian vegetation along the Warren River and Donnelly Rivers.
+
+  \item Test adaptation to climate through experimental plantings under operational conditions of establishment.
+
+\end{itemize}
+
+
+
+
+
+
+\section{Progress}
+
+
+
+\begin{itemize}
+
+  \item Information was compiled for species selection and suitable sampling designs, including climatic distributions and the availability of wild populations spread throughout climatic zones.
+
+  \item Initial field trips were undertaken with collaborators to assess the suitability of selected species and to identify potential collection sites.
+
+  \item Initial leaf collections of potential species were made and DNA extraction was undertaken to evaluate suitability for continued work.
+
+  \item Three study species were selected:__ Astartea \emph{leptophylla}, \emph{Callistachys lanceolata} and \emph{Taxandria linearifolia}.
+
+  \item Six species (including the above three) were selected for further climate modelling.
+
+\end{itemize}
+
+
+
+
+
+
+\section{Management implications}
+
+
+
+Changing climates requires a re-evaluation of appropriate seed sourcing strategies for revegetation and restoration of ecological function in degraded sites. Use of local seed will not provide adequate resilience to maintain ecological function under changing climates, and understanding of climate adaptation will provide a scientific basis to undertake best-practice restoration and facilitate establishment of biodiverse plantings that maximise ecological function for enhanced persistence and resilience. Development of a strategic revegetation program for the riparian areas of the Warren and Donnelly catchments will provide an integrated approach to habitat restoration that promotes improved plant community function and improves the knowledge and capacity of restoration practitioners and land managers.
+
+
+
+
+
+
+\section{Future directions}
+
+
+
+\begin{itemize}
+
+  \item Collection of leaf and seed from 12 populations across three climate zones for each of the three species along the Warren River.
+
+  \item Analysis of genetic adaptation between populations and climate zones for three species.
+
+  \item Complete climate modelling for six species.
+
+  \item Undertake experimental plantings of seed collected from populations across the climate gradient.
+
+\end{itemize}
+
+
+
+
+
+
+\clearpage
+
+
+
+\end{document}

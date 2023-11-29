@@ -7,8 +7,8 @@ from django.db.models import UniqueConstraint
 
 
 class ProjectDocumentPDF(CommonModel):
-    old_file = models.URLField(null=True, blank=True)
-    file = models.URLField(null=True, blank=True)
+    
+    file = models.FileField(upload_to="project_documents/", null=True, blank=True)
     document = models.OneToOneField(
         "documents.ProjectDocument",
         on_delete=models.CASCADE,
@@ -47,7 +47,7 @@ class AnnualReportMedia(
         STUDENTPROJECTSCHAPTER = "student_projects", "Student Projects"
         PUBLICATIONSCHAPTER = "publications", "Publications"
 
-    old_file = models.URLField(null=True, blank=True)
+    # old_file = models.URLField(null=True, blank=True)
     file = models.ImageField(upload_to="annual_reports/images/", null=True, blank=True)
     kind = models.CharField(
         max_length=140,
@@ -86,7 +86,7 @@ class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
     PDF for Report Media
     """
 
-    old_file = models.URLField(null=True, blank=True)
+    # old_file = models.URLField(null=True, blank=True)
     file = models.FileField(upload_to="annual_reports/pdfs/", null=True, blank=True)
     report = models.OneToOneField(
         "documents.AnnualReport",
@@ -107,6 +107,33 @@ class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
     class Meta:
         verbose_name = "Annual Report PDF"
         verbose_name_plural = "Annual Report PDFs"
+
+
+class AECEndorsementPDF(CommonModel):  #  The latest pdf for a given annual report
+    """
+    PDF for AEC Endorsements
+    """
+
+    file = models.FileField(upload_to="aec_endorsements/", null=True, blank=True)
+    endorsement = models.OneToOneField(
+        "documents.Endorsement",
+        on_delete=models.CASCADE,
+        related_name="aec_pdf",
+    )
+    creator = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="aec_endorsement_pdfs_uploaded",
+    )
+
+    def __str__(self) -> str:
+        return f" AEC PDF ({self.endorsement})"
+
+    class Meta:
+        verbose_name = "AEC PDF"
+        verbose_name_plural = "AEC PDFs"
 
 
 # DONE

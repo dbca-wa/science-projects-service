@@ -6,8 +6,9 @@ from django.shortcuts import render
 # from config.tasks import generate_pdf
 from projects.models import Project, ProjectMember
 
-from medias.models import AnnualReportPDF, ProjectDocumentPDF
+from medias.models import AECEndorsementPDF, AnnualReportPDF, ProjectDocumentPDF
 from medias.serializers import (
+    AECPDFCreateSerializer,
     ProjectDocumentPDFSerializer,
     TinyAnnualReportPDFSerializer,
 )
@@ -83,7 +84,7 @@ from django.db import transaction
 from django.conf import settings
 
 import subprocess
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse, QueryDict
 from docx2pdf import convert  # You can use docx2pdf to convert HTML to PDF
 
 # import pypandoc
@@ -2142,13 +2143,13 @@ class DocRecall(APIView):
                 data = {
                     "business_area_lead_approval_granted": False,
                     "modifier": req.user.pk,
-                    "status": "revising",
+                    "status": "inapproval",
                 }
         elif int(stage) == 3:
             data = {
                 "directorate_approval_granted": False,
                 "modifier": req.user.pk,
-                "status": "revising",
+                "status": "inapproval",
             }
 
         if data == "test":
@@ -2210,14 +2211,14 @@ class DocSendBack(APIView):
                     "business_area_lead_approval_granted": False,
                     "project_lead_approval_granted": False,
                     "modifier": req.user.pk,
-                    "status": "inreview",
+                    "status": "revising",
                 }
         elif int(stage) == 3:
             data = {
                 "business_area_lead_approval_granted": False,
                 "directorate_approval_granted": False,
                 "modifier": req.user.pk,
-                "status": "inreview",
+                "status": "revising",
             }
 
         if data == "test":
@@ -2268,6 +2269,94 @@ class Endorsements(APIView):
             )
         else:
             return Response(
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+class SeekEndorsement(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = ProjectPlan.objects.get(pk=pk)
+        except ProjectPlan.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        project_plan = self.go(pk)
+        endorsement = Endorsement.objects.filter(project_plan=project_plan).first()
+        print("Project Plan:\n")
+        print(project_plan)
+        print("Endorsement:\n")
+        print(endorsement)
+        print("Request:\n")
+        print(req.data)
+
+        end_ser = EndorsementSerializer(
+            endorsement,
+            data=req.data,
+            partial=True,
+        )
+
+        if end_ser.is_valid():
+            print("End ser is valid")
+            with transaction.atomic():
+                updated = end_ser.save()
+
+                # If there is a pdf file, see if once exists related to the endorsement
+                pdf_file = req.FILES.get("aec_pdf_file")
+                pdf_file_2 = req.data.get("aec_pdf_file")
+                print("pdf2", pdf_file_2)
+
+                print(pdf_file)
+                print(pdf_file_2.name)
+                print(req.FILES)
+                if pdf_file:
+                    existing_pdf = AECEndorsementPDF.objects.filter(
+                        endorsement=updated
+                    ).first()
+                    # If it does, update it
+                    if existing_pdf:
+                        print("found an entry for pdf")
+                        existing_pdf.file = pdf_file
+                        existing_pdf.save()
+                        print("updated pdf")
+                    # If it doesnt, create it
+                    else:
+                        # Create a new file
+                        # AECEndorsementPDF.objects.create(endorsement=updated, file=pdf_file, creator=req.user)
+                        new_instance_data = {
+                            "file": pdf_file,
+                            "endorsement": updated.id,  # Assuming 'endorsement' is a ForeignKey
+                            "creator": req.user.id,  # Assuming 'creator' is a ForeignKey
+                        }
+                        new_instance_serializer = AECPDFCreateSerializer(
+                            data=new_instance_data
+                        )
+
+                        if new_instance_serializer.is_valid():
+                            print("New PDF Instnace Valid")
+                            new_pdf = new_instance_serializer.save()
+                            print("Saved new pdf")
+                        else:
+                            print("New PDF Instnace INVALID")
+                            print("errors", new_instance_serializer.errors)
+                            return Response(
+                                new_instance_serializer.errors, HTTP_400_BAD_REQUEST
+                            )
+
+                updated_ser_data = EndorsementSerializer(updated).data
+
+                return Response(
+                    updated_ser_data,
+                    HTTP_202_ACCEPTED,
+                )
+        else:
+            print("End ser is NOT valid")
+            print(end_ser.errors)
+            return Response(
+                end_ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 

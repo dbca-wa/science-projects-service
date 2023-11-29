@@ -1,0 +1,148 @@
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+\usepackage[colorlinks=true,pdftitle=doc\_studentreport.pdf,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+
+
+
+%%% Custom headers/footers (fancyhdr package)
+\fancypagestyle{plain}{
+\fancyhf{}
+\setlength\headheight{40pt}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+
+
+    \fancyhead[L]{ \href{http://sdis.dpaw.wa.gov.au/documents/studentreport/1103/download/}{} \newline }
+\fancyhead[R]{ \hfill\href{http://www.dpaw.wa.gov.au}{Department of Parks and Wildlife}\newline\href{http://sdis.dpaw.wa.gov.au}{Pythia}}
+
+
+
+
+\fancyfoot[L]{ \leftmark\newline\textbf{Last Modified}\textit{ }\quad\textbf{Printed}\textit{ June 26, 2014, 9:32 a.m. } }
+\fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} } % Pagenumbering
+
+
+}
+\pagestyle{plain}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+\begin{document}
+
+\setcounter{secnumdepth}{-1}
+
+
+\begin{titlepage}
+\begin{center}
+% Upper part of the page
+\begin{minipage}[t]{0.28\textwidth}
+\begin{flushleft}
+\href{http://www.dpaw.wa.gov.au}{\includegraphics[scale=0.6]{/var/www/sdis_8271/staticfiles/img/logo-dpaw.png}}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}[b]{0.7\textwidth}
+\begin{flushright}
+    \href{http://sdis.dpaw.wa.gov.au/documents/studentreport/1103/download/}{}) \\
+\end{flushright}
+\end{minipage}
+\HRule \\[0.4cm]
+\vfill
+\textsc{\Huge Student project 2012-230 Wildlife ecology in the southern jarrah forest \newline }
+\vfill
+\textsc{\Huge student report}
+
+\vfill\vfill\vfill\vfill
+title and summary
+
+\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill
+
+\textbf{Version created on} June 26, 2014, 9:32 a.m.
+\vfill
+\textbf{Last Modified on}  by 
+\vfill\vfill
+\textbf{Report Status}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Status & Last Updated \\
+\hline
+\textbf{Planning - } \\
+\hline
+\end{tabu}
+\vfill
+\textbf{Science Project Overview}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Part & Checklist Last Updated \\
+\hline
+\textbf{Part A - Summary \& Approval} & bla \\
+\hline
+\end{tabu}
+
+\end{center}
+\end{titlepage}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage
+
+
+
+
+
+
+\section{Progress Report}
+
+
+
+This project will investigate ecological attributes of woylie and other small mammals in the jarrah forest. Specifically it aims to: i) complete a baseline survey of the small terrestrial vertebrates in Perup Nature Reserve; ii) investigate patterns of distribution and abundance of small vertebrates in the southern jarrah forest in relation to habitat; iii) calculate an estimate of woylie (\emph{Bettongia penicillata}) home-range size in and outside the newly constructed Perup Sanctuary; iv) investigate spatial patterns in the current distribution of woylies across the Upper Warren Region in relation to habitat variables; and v) investigate temporal patterns in the distribution of woylies across the Upper Warren Region over the past three decades.
+
+
+Progress to date includes the completion of radio tracking and collection of data for woylie home-range analysis; completion of baseline surveys of small vertebrates in and outside Perup Sanctuary and across habitat types; and completion of habitat surveys of Upper Warren regional monitoring trapping points for woylies. A report has also been completed on the baseline survey of small terrestrial vertebrates and the patterns of distribution and abundance in relation to habitat in the Perup Nature Reserve.
+
+
+
+
+
+
+\clearpage
+
+
+
+\end{document}

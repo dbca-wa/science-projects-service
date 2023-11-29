@@ -1,0 +1,643 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Project Plan SP 2015-017
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/projectplan/1511/}{Project Plan SP 2015-017
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Tue, 28 Feb 2017 10:55:42 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2015-017
+}
+\title{Responses of aquatic invertebrate communities to changing hydrology and
+water quality in streams and significant wetlands of the south-west
+forests of Western Australia
+}
+\subtitle{Wetlands Conservation
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Melita Pennifold
+\\
+\textbf{Data Custodian} & Melita Pennifold
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Feb. 28, 2017, 10:55 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Feb. 28, 2017, 10:55 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{not required}{ not required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Responses of aquatic invertebrate communities to changing hydrology and
+water quality in streams and significant wetlands of the south-west
+forests of Western Australia
+}
+
+
+\subsection*{Science and Conservation Division Program}
+Wetlands Conservation
+
+
+
+\subsection*{Parks and Wildlife Service}
+Service 4: Forest Management Plan Implementation
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Melita  Pennifold & 0.5\\
+
+Supervising Scientist & Adrian  Pinder & 0.1\\
+
+\end{tabu}
+
+
+
+\subsection*{Related Science Projects}
+None
+
+
+\subsection*{Proposed period of the project}
+July 1, 2014 -- June 30, 2023
+
+
+
+\section*{Relevance and Outcomes}
+
+\subsection*{Background}
+Aquatic habitats in the south-west of WA are under increasing threat
+from changes in hydrology, water quality and fire as a result of the
+drying climate and historical and current land use. At present, there is
+an inadequate understanding of the responses of aquatic communities to
+these threats to inform the management of many aquatic systems in the
+Forest Management Plan area, including the Muir-Byenup Ramsar wetlands.
+
+This project has two components. Priority will be given to component 1,
+component 2 will be dependent on funding.
+
+\emph{1) Re-surveys of aquatic invertebrates in Muir-Byenup Ramsar
+wetlands sampled in 1994 and 2004 and suites of wetlands further south
+sampled in 1993. This addresses KPI3 of the 2014-23 FMP.}
+
+The FMP area has many high value wetlands, particularly in the Warren
+region. Some of these are listed as nationally or internationally
+significant and~many are priorities in regional nature conservation
+plans. These support numerous priority flora species, priority
+ecological communities, significant waterbirds, 6 of the 8 species of
+south-west endemic fish and a very high diversity and endemicity of
+invertebrates. Threats to many of these wetlands have intensified over
+the last decade. The available biodiversity data is 10 to 20 year old
+and up to date information is required to assess responses to threats
+and inform the allocation of resources to management actions.
+
+~
+
+\emph{2) Continued monitoring of high condition streams, with a focus on
+effects of the drying climate and forest management. This addresses KPI1
+of the 2014-23 FMP.}
+
+KPI20 of the previous FMP scored 24 of 51 monitored stream sites as
+impaired. This was not clearly related to forestry activities but could,
+in part, be related to reduced rainfall. This project would see
+continued monitoring at `reference condition' streams and those that are
+already affected by reduced rainfall. A focus on these streams aligns
+with KPI1 of the current FMP which focuses on change in `currently
+healthy ecosystems' and will allow us to track condition in relation to
+the ongoing decline in rainfall combined with forest management. In a
+region with high climatic variability long-term studies are essential to
+understand ecosystem responses.
+
+
+
+\subsection*{Aims}
+\begin{itemize}
+\item
+  To address KPI3 of the 2014-2023 FMP by determining responses of fauna
+  of high value Warren region wetlands to changes in hydrology, water
+  chemistry and fire over the last 10 to 20 years.
+\item
+  To address KPI1 of the 2014-2023 FMP by monitoring the condition of
+  currently healthy streams in relation to reduced rainfall and forest
+  management practices.
+\item
+  Provide baseline data for some internationally significant wetlands,
+  e.g. Lake Muir.
+\item
+  Use the above information to report on the current conservation
+  significance of key DPaW managed wetlands and their response and
+  vulnerability to threats.
+\end{itemize}
+
+
+
+\subsection*{Expected outcome}
+1)~~~ FMP commitments met with regard to measuring and assessing change
+in condition of: 1) currently healthy (reference condition) stream
+ecosystems (KPI1); and 2) Ramsar and nationally listed wetlands (KPI3).
+Results will provide information on the effectiveness of forest
+management practices in protecting stream and wetland biodiversity.
+
+2)~~~ Warren Region conservation managers will have the information
+needed to address a priority identified in the 2009-14 Warren Region
+Nature Conservation Plan: Target 5, candidate action 1, including the
+milestones.
+
+``\emph{Analyse condition trends} {[}of 7 nationally listed wetlands{]}
+\emph{and update adaptive management targets on the basis of these
+trends}'' and
+
+``\emph{Establish and consolidate benchmark information for Broke Inlet,
+Doggerup, Marringup, Mt Soho Swamp, and Byenup to determine condition,
+identify threats and to determine interim management actions}\emph{.''}
+
+Indications from Warren Region staff are that these wetlands will be a
+priority in the new 2015-20 Regional Nature Conservation Plan.
+
+Using the above information on knowledge of the biodiversity
+trajectories of wetlands in the Muir-Byenup Ramsar system and other
+wetlands Warren Region staff will be better placed to prioritise
+conservation actions.
+
+3)~~~ DPaW will be able to report on the condition of a significant
+Ramsar site.
+
+
+
+\subsection*{Knowledge transfer}
+The main users of the knowledge gained in this project will be DPaW
+Warren Region staff and other DPaW staff working in areas which require
+them to understand and manage streams and wetlands, especially those in
+the conservation estate.
+
+Results will also be used by Forest and Ecosystems Management Division
+and the Conservation Commission to assess compliance with the FMP
+2014-2023.
+
+Project results will be disseminated by:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Reports on the aquatic invertebrates of the Muir-Byenup and South
+  Coast wetlands (KPI3 component)
+\item
+  Reports on condition of selected streams in the FMP area (KPI1
+  component)
+\item
+  Science Information Sheets and scientific publications as appropriate.
+\item
+  Presentations at workshops etc.
+\end{itemize}
+
+
+
+\subsection*{Tasks and Milestones}
+Below is a timeline for a five year project including sampling the
+Muir-Byenup Ramsar wetlands and significant wetlands along the south
+coast, plus an additional sampling of a selection of the KPI20 streams.
+Further sampling of these streams would be dependant on continued
+funding.
+
+\begin{longtable}[c]{@{}ll@{}}
+\toprule\addlinespace
+\textbf{Time} & \textbf{~Task}
+\\\addlinespace
+Spring 2014 and Summer 2015: & ~Sample Muir-Byenup wetlands
+\\\addlinespace
+Autumn 2015 to Summer 2015/16 & ~Process Muir-Byenup samples
+\\\addlinespace
+Spring 2015 to Autumn 2016 & ~Identification and vouchering of
+Muir-Byenup invertebrates
+\\\addlinespace
+Autumn/Winter 2016 & Data analysis and reporting on Muir-Byenup wetlands
+\\\addlinespace
+Spring 2016 & ~Sample KPI1 streams
+\\\addlinespace
+Spring 2016 to Summer 2016/17 & Identification of stream invertebrate
+samples from 2013 and 2016
+\\\addlinespace
+Autumn 2017 to Winter 2017 & Analysis and reporting of KPI20 and KPI1
+stream invertebrate data
+\\\addlinespace
+Spring 2017 and Summer 2017/18 & ~Sampling south coast wetlands
+previously sampled by Pierre Horwitz
+\\\addlinespace
+Autumn 2018 to Summer 2018/19 & ~Process south coast samples
+\\\addlinespace
+Spring 2018 to Autumn 2019 & ~Identification and vouchering of south
+coast invertebrates
+\\\addlinespace
+Autumn/Winter 2019 & Data analysis and reporting on south coast wetlands
+\\\addlinespace
+2019 onwards & Optional further stream sampling
+\\\addlinespace
+\bottomrule
+\end{longtable}
+
+
+
+\subsection*{References}
+Aquatic Research Laboratory. (1992) Survey of the macroinvertebrate
+fauna and water chemistry of permanent lakes of the south coast of
+Western Australia. A report for the Department of Conservation and Land
+Management. University of Western Australia The University of Western
+Australia Aquatic Research Laboratory,,Perth. 22.
+
+Davies P. \& Stewart B. (2013) Aquatic biodiversity in the Mediterranean
+climate rivers of southwestern Australia. \emph{Hydrobiologia,}
+\textbf{719,} 215-235.
+
+Edward D.H.D., Gazey P. \& Davies P.M. (1994) Invertebrate community
+structure related to physico-chemical parameters of permanent lakes of
+the south coast of Western Australia. \emph{Journal of the Royal Society
+of Western Australia,} \textbf{77,} 51-63.
+
+Edward D.H.D., Storey A.W. \& Smith M.J.B. (2000) Assessing river health
+in south-western Australia: A comparison of macroinvertebrates at family
+level with Chironomidae at species level. \emph{Verhandlungen
+Internationale Vereinigung für theoretische und angewandte Limnologie,}
+\textbf{27,} 2326-2335.
+
+Farrell C. \& Cook B. (2009) Ecological character description of the
+Muir-Byenup System Ramsar site south-west Western Australia. Centre of
+Excellence in Natural Resource Management;University of Western
+Australia Report prepared for the Department of Environment and
+Conservation.
+
+Horwitz P. (1994) Patterns of endemism in the freshwater fauna of the
+far southern peatlands and shrublands of southwestern Australia. Edith
+Cowan University,Perth.
+
+Horwitz P. (1997) Comparative endemism and richness of the aquatic
+invertebrate fauna in peatlands and shrublands of far south-western
+Australia. \emph{Memoirs of the Museum of Victoria,} \textbf{56,}
+313-321.
+
+Horwitz P. (1999) Wetlands in south-western Australia and their organic
+material - To burn or not to burn? \emph{Western Wildlife,} \textbf{3}.
+
+Horwitz P., Bradshaw D., Hopper S., Davies P., Froend R. \& Bradshaw F.
+(2008) Hydrological change escalates risk of ecosystem stress in
+Australia's threatened biodiversity hotspot. \emph{Journal of the Royal
+Society of Western Australia,} \textbf{91,} 1-11.
+
+Horwitz P., Jasinska E.J., Fairhurst E. \& Davis J.A. (1997) A review of
+knowledge on the effect of key disturbances on aquatic invertebrates and
+fish in the south-west forest region of Western Australia. Commonwealth
+and Western Australian Governments for the Western Australian Regional
+Forest Agreement,Perth.
+
+Horwitz P., Pemberton M. \& Ryder D. (1996) Catastrophic loss of organic
+carbon from a management fire in a peatland in southwestern Australia.
+In: \emph{Wetlands for the Future}.
+
+Kingsford R.T. (2011) Conservation management of rivers and wetlands
+under climate change -- a synthesis. \emph{Marine and Freshwater
+Research,} \textbf{62,} 217-222.
+
+Storey A. (1998) Assessment of the nature conservation values of the
+Byenup-Muir peat swamp system, southwestern Australia:
+physico-chemistry, aquatic macroinvertebrates and fishes.
+
+Trayler K.M., Davis J.A., Horwitz P. \& Morgan D. (1996) Aquatic Fauna
+of the Warren bioregion, south-west Western Australia: Does reservation
+guarantee preservation? \emph{Journal of the Royal Society of Western
+Australia,} \textbf{79}.
+
+Wetland Research and Management. (2005) Re-assessment of the nature
+conservation values of the Byenup-Muir peat swamp system. Draft Report
+Prepared for Department of Conservation and Land Management.
+
+
+
+\section*{Study design}
+
+\subsection*{Methodology}
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+granted
+
+
+
+\section*{Data management}
+
+\subsection*{No. specimens}
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+not required
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+not required
+
+
+
+\subsection*{Data management}
+Data will be entered into the Wetlands Conservation Program aquatic
+database.
+
+Data will also be uploaded to Naturemap where biological and
+physichemical~data will be~described in the catalogue.
+
+Specimen vouchers will be lodged with the Western Australin Museum and
+the Wetlands Conservation Program aquatic invertebrate voucher
+collection.
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 (14/15) & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist & 70000 & 50000 & 50000\\
+
+
+
+FTE Technical & 3500 & 32000 & 21000\\
+
+
+
+Equipment & 10000 & 5000 & 5000\\
+
+
+
+Vehicle & 5000 & 1000 & 5000\\
+
+
+
+Travel & 3000 & 1000 & 4000\\
+
+
+
+Other & 12500 & 11000 & 15000\\
+
+
+
+Total & 104000 & 100000 & 100000\\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime &  &  & \\
+
+
+
+Overheads &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

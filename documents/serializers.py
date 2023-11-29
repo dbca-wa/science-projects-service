@@ -12,6 +12,7 @@ from .models import (
     AnnualReport,
 )
 from medias.serializers import (
+    AECPDFSerializer,
     ProjectDocumentPDFSerializer,
     TinyAnnualReportMediaSerializer,
     AnnualReportMediaSerializer,
@@ -117,6 +118,7 @@ class TinyProjectPlanSerializer(serializers.ModelSerializer):
 
 class TinyEndorsementSerializer(serializers.ModelSerializer):
     project_plan = TinyProjectPlanSerializer(read_only=True)
+    aec_pdf = AECPDFSerializer(read_only=True)
 
     class Meta:
         model = Endorsement
@@ -126,10 +128,11 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
             "bm_endorsement_required",
             "hc_endorsement_required",
             "ae_endorsement_required",
-            # "dm_endorsement_required",
             "bm_endorsement_provided",
             "hc_endorsement_provided",
             "ae_endorsement_provided",
+            "aec_pdf",
+            # "dm_endorsement_required",
             # "dm_endorsement_provided",
         ]
 
@@ -425,6 +428,8 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
 
 
 class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
+    aec_pdf = AECPDFSerializer(read_only=True)
+
     class Meta:
         model = Endorsement
         fields = [
@@ -439,6 +444,7 @@ class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
             # "dm_endorsement_provided",
             "data_management",
             "no_specimens",
+            "aec_pdf",
         ]
 
 

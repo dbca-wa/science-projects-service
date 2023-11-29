@@ -1,0 +1,370 @@
+
+\documentclass[version=last, 
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames, 
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       % 
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} % 
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Concept Plan SP 2016-005
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{\node[#1] (#2){\parbox{#3\relax}{\begin{center}\textbf{#4}\\#5\\\footnotesize{#6}\end{center}}};}
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/conceptplan/1530/}{Concept Plan SP 2016-005
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Fri, 24 Jun 2016 11:55:00 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Concept Plan SP 2016-005
+}
+\title{Hydrological Function of Critical Ecosystems
+}
+\subtitle{Wetlands Conservation
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Jasmine Rutherford
+\\
+\textbf{Data Custodian} & Jasmine Rutherford
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of June 24, 2016, 11:55 a.m.}
+\begin{tabu} {X X}
+& Pending project plan approval
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of June 24, 2016, 11:55 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+\section*{Hydrological Function of Critical Ecosystems
+}
+
+
+\subsection*{Science and Conservation Division Program}
+Wetlands Conservation
+
+
+
+\subsection*{Parks and Wildlife Service}
+Service 2: Conserving Habitats, Species and Ecological Communities
+
+
+
+\subsection*{Background and Aims}
+Hydrology is a primary driver of wetland and riverine ecosystems and
+aquatic species distributions, acting directly on spatial and temporal
+variation in water volumes or through influences on water chemistry or
+habitat (e.g. acidification, salinisation, fire regimes, aquatic plants
+for fauna, temperature or woody debris from riparian zones). Most
+wetland conservation issues have a hydrological basis, requiring
+technical expertise to investigate the problem and advise on management.
+This project has been developed to bring short-term hydrological
+assessment studies under one umbrella project. Examples of current
+hydrological assessment projects include:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Investigations identifying the major aquifers discharging groundwater
+  and sustaining the Walyarta (Mandora Marsh) springs. This work will
+  provide a basis on which to interpret the potential impacts of water
+  resource development in the associated aquifers. (2015-2017). Funded
+  by BHP via the Kimberley Region and undertaken in collaboration with
+  researchers at The University of Western Australia.
+\end{itemize}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Assessment of key hydrological management actions within the Brixton
+  Street wetland complex. Funded by Perth Region NRM via~a grant
+  application prepared by the Swan Region.
+\end{itemize}
+
+Proposals are also in development with~the Rivers and Estuaries Division
+to map and understand nutrient fluxes into the Swan Estuary Marine Park
+and the Kimberley Region to identify and characterise different
+hydrological settings of the monsoon vine thicket TEC and develop
+effective monitoring programs.
+
+Project objectives will vary but will generally involve identifying the
+critical hydrological parameter to manage that will improve conservation
+outcomes. To accomplish this a multi-disciplinary approach is employed
+to understand how these ecosystems vary in space and time, frequently
+involving collaborations with other researchers.~ Project outputs and
+outcomes are designed to provide more informed decision making with
+respect to prioritising conservation actions and assessing environmental
+impacts of land and water use proposals.
+
+Combined. these projects fill an important role in reducing hydrological
+knowledge gaps, building an improved statewide understanding of the
+ecohydrology of threatened ecosystems and their critical hydrological
+parameters.
+
+
+
+\subsection*{Expected outcome}
+Improved ecosystem health and resilience through ability of conservation
+managers to understand local hydrological function and the critical
+parameters requiring management. This information will be used to 1)
+assess environmental impacts, 2) prioritise conservation actions, 3) set
+limits of acceptable change (LoAC) (e.g. in Ramsar wetlands) and 4)
+establish or re-evaluate baseline monitoring programs.
+
+~
+
+
+
+\subsection*{Strategic context}
+The overarching aims of this project align with Parks and Wildlife's
+Strategic Directions 2014-2017, focusing on management priorities,
+conducting best practice science to protect threatened and priority
+plant and animal species and delivering on-ground conservation outcomes.
+Projects will be designed to assist in the development of management
+plans and where plans exist will focus on addressing priorities and
+targets relevant to the hydrology.~ For Ramsar sites hydrology project
+planning will be undertaken to ensure project outcomes reduce existing
+knowledge gaps outlined in Ecological Character Descriptions (ECD) and
+deliver improved limits of acceptable change (LoAC) to guide management
+actions.
+
+
+
+\subsection*{Expected collaborations}
+Research will be designed and conducted in collaboration with Parks and
+Wildlife regional staff and scientists, in particular~ecologists from
+the Species and Communities Branch. External links with~research
+scientists~from other state and commonwealth agencies, universities and
+CSIRO will be maintained and developed further. For example, the Mandora
+Marsh work is being undertaken in collaboration with Greg Skyzpek and
+Pauline Grierson at The University of Western Australia.
+
+
+\subsection*{Proposed period of the project}
+May 23, 2016 -- May 23, 2025
+
+
+
+\subsection*{Staff time allocation }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Role & Year 1 (2015-16 & Year 2 (2016-17 & Year 3 (2017-18)\\
+\hline
+\endhead
+
+
+
+Scientist & 0.2 & 0.6 to 1.0 & 0.6 to 1.0\\
+
+
+
+Technical & 0.2 & 0.6 to 1.0 & 0.6 to 1.0\\
+
+
+
+Volunteer &  &  & \\
+
+
+
+Collaborator &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\subsection*{Indicative operating budget }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Consolidated Funds (DPaW) &  &  & \\
+
+
+
+External Funding & 60000 & 100000 & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

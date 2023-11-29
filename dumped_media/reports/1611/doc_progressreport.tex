@@ -1,0 +1,343 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2013-001 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1611/}{Progress Report SP 2013-001 (FY 2015-2016)}}
+%\chead{\href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dpaw.wa.gov.au/about-us/science-and-research}{\includegraphics[height=6mm, keepaspectratio]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Fri, 28 Jul 2017 12:06:59 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2013-001
+}
+\title{Decision support system for prioritising and implementing biosecurity on
+Western Australia's islands
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Cheryl Lohr
+\\
+\textbf{Data Custodian} & Cheryl Lohr
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 28, 2017, 12:06 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 28, 2017, 12:06 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Decision support system for prioritising and implementing biosecurity on
+Western Australia's islands
+}
+
+C Lohr, K Morris, L Gibson
+
+
+
+\section*{Context}
+
+The goal of this project is to prioritise island management actions such
+that we maximise the number of achievable conservation outcomes for
+island biodiversity in the face of threats from invasive species.
+Western Australia has over 3700 islands, many of which are essential for
+the survival of threatened species and provide critical breeding sites
+for seabirds and sea turtles. Many islands are also popular sites for
+recreation, and contain culturally significant sites. Invasive species
+are the single biggest cause of loss of native species from islands. The
+increased use of islands by the public for recreation, and oil, gas and
+mining industries, means an increased likelihood that invasive species
+will colonise pristine islands.
+
+This project will develop:
+
+\begin{enumerate}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  decision support software for day-to-day use in making accountable and
+  cost-effective decisions on the management of islands to promote the
+  persistence of native species; and
+\item
+  an island biosecurity model for prioritising biosecurity actions.
+\end{enumerate}
+
+The project will initially focus on the 600+ islands along the Pilbara
+coast.
+
+
+
+
+\section*{Aims}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Develop a single comprehensive database on Pilbara island
+  characteristics, fauna and flora values, and threats.
+\item
+  Develop an operational decision support software~for day-to-day use in
+  making accountable and cost-effective decisions about where to spend
+  limited funding on management of islands to promote the persistence of
+  native species.
+\item
+  Develop an island biosecurity model for use in prioritising
+  surveillance tasks for non-indigenous species on Pilbara islands.
+\end{itemize}
+
+
+
+
+\section*{Progress}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Version 2 of decision support software presented to Parks and Wildlife
+  staff and external researchers at dedicated symposium.~
+\item
+  Graphical user interface refined, and user manual drafted.
+\item
+  Development of island biosecurity model complete, manual being
+  drafted.
+\item
+  Pilbara island database: 99\% available historical data entered; new
+  data from Pilbara Regional staff regularly entered.
+\item
+  Species attributes database is under development.
+\item
+  Pilbara islands habitat map is being refined and validated.
+\item
+  Presentations at Island Arks Symposium III, Australasian Wildlife
+  Management Society, 27th International Congress for Conservation
+  Biology, 7th Annual Conference of the Australasian Bayesian Network
+  Society, and the~30th Association for the Advancement of Artifical
+  Intelligence Conference.
+\item
+  Journal articles, four~published, four in~review.
+\end{itemize}
+
+
+
+
+\section*{Management implications}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  The decision support software will result in more cost effective
+  management of island conservation reserves.
+\item
+  A single comprehensive and easily accessible database on Pilbara
+  island characteristics, biodiversity values and threats will
+  facilitate island planning and management.
+\item
+  A species attributes database will facilitate species management
+  across Western Australia and the identification of priorities with
+  regard to quarantine, surveillance, and biological survey on Pilbara
+  islands.
+\end{itemize}
+
+
+
+
+\section*{Future directions}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Finalise decision support tool and biosecurity model user manuals and
+  develop training courses.
+\item
+  Use habitat maps to identify gaps in island biodiversity knowledge and
+  survey history, and model native species distributions and
+  assemblages.
+\item
+  Use decision support software to draft an initial set of management
+  priorities for Pilbara Islands and identify~island surveillance
+  priorities for priority non-indigenous species.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

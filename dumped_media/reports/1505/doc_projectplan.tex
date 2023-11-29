@@ -1,0 +1,1082 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Project Plan SP 2015-016}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2015-016
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/projectplan/1505/}{Project Plan SP 2015-016}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Tue, 22 Sep 2020 11:32:30 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2015-016
+}
+\title{Improved fauna recovery in the Pilbara -- benefitting the endangered
+northern quoll through broad-scale feral cat baiting.
+}
+\subtitle{Animal Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Russell Palmer
+\\
+\textbf{Data Custodian} & Russell Palmer
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Sept. 22, 2020, 11:32 a.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Sept. 22, 2020, 11:32 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Improved fauna recovery in the Pilbara -- benefitting the endangered
+northern quoll through broad-scale feral cat baiting.
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Animal Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Russell Palmer & 1.0\\
+
+Technical Officer & Hannah Anderson & 1.0\\
+
+Technical Officer & Brooke Richards & 1.0\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+None
+
+
+\subsection*{Proposed period of the project}
+Aug. 1, 2014 -- Dec. 31, 2015
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+Since European settlement, 29 (9.2\%) of Australia's terrestrial mammal
+species have become extinct, and another 57 species (18.3\%) have
+declined significantly and are considered threatened (Woinarski \emph{et
+al.} 2014). Predation by introduced predators (particularly the European
+red fox and feral cat) has been identified as a significant factor in
+mammal declines in Australia. In the 1980-90s, predation by foxes was
+shown to be a significant threatening process for native fauna (Kinnear
+\emph{et al.} 2002, Morris \emph{et} \emph{al.} 2000). More recently,
+feral cat predation has been identified as a major issue (Fisher
+\emph{et al.} 2014, Wayne \emph{et al}. 2013) and Woinarski \emph{et
+al.} (2014) regard this as the factor now affecting the largest number
+of threatened and near threatened mammal taxa.
+
+Twelve species of terrestrial mammal have become extinct on the Pilbara
+mainland in the last 200 years, and another seven species have declined
+(McKenzie \emph{et al.} 2006). Fortunately, some of the species that
+have become extinct on the mainland still persist on offshore islands
+(Abbott and Burbidge 1995). ~A review of the conservation values,
+threats and management options for biodiversity conservation in the
+Pilbara (Carwardine \emph{et al}. 2014) identified that for terrestrial
+vertebrates of conservation significance, feral cat control would
+provide most benefits but probably had a low chance of success. However,
+without cat control it is likely that another five species of
+terrestrial vertebrate will become functionally extinct in the Pilbara
+in the next 20 years, and another 18 species will continue to decline.
+
+The northern quoll (\emph{Dasyurus hallucatus}) is one of the seven
+Pilbara medium-sized mammal species that has persisted in the Pilbara
+bioregion (McKenzie \emph{et al.} 2006). All of these species, except
+perhaps the echidna (\emph{Tachyglossus aculeatus)}, have declined to
+some extent in the Pilbara, and three, including the northern quoll, are
+listed as threatened species. ~The northern quoll was once distributed
+widely across northern Australia from the Pilbara and Kimberley across
+the Top End to southern Queensland, but as now contracted to several
+disjunct populations (Braithwaite and Griffiths 1994, Oakwood 2008). An
+alarming decrease or complete collapse in once locally abundant
+populations of northern quoll has occurred in recent years as a direct
+result of the invasion of the cane toad, \emph{Rhinella marina}
+(Woinarski \emph{et al}. 2008; Woinarski \emph{et al}. 2010). Three
+other factors have also been identified as contributing to the decline
+of northern quolls and other medium-sized mammals across northern
+Australia: changed habitats through widespread fires, predation by feral
+cats, and novel disease (Woinarski \emph{et al.} 2011). ~Due to these
+factors, the northern quoll is listed as Endangered under both the
+Commonwealth's \emph{Environment Protection and Biodiversity
+Conservation Act 1999} (EPBC Act 1999) and the Western Australian
+\emph{Wildlife Conservation Act 1950.}
+
+The \emph{Eradicat}® feral cat bait will shortly be registered for
+operational use in WA and could potentially be used in the Pilbara to
+reduce feral cat (and fox and dog) densities and improve conservation
+outcomes for northern quolls and other threatened fauna such as the
+bilby (\emph{Macrotis lagotis}) and mulgara (\emph{Dasycercus} sp.).
+~Prior to using operationally, potential non-target bait impacts have to
+be identified and resolved. As a top order native predator, the northern
+quoll is at a potential risk to poisoning after ingestion of the sausage
+baits. Based on a 1080 LD \textsubscript{50} of 7.5mg/kg (King \emph{et
+al}. 1989), an average size Pilbara northern quoll (380-580g) would only
+need to ingest approximately one cat toxic bait to be at risk. Calver
+\emph{et al.} (1989) identified that in the laboratory, the northern
+quoll was at risk from accidental poisoning from crackle baits
+containing 1080 for dingo control. However, King (1989) showed that an
+aerial dingo baiting program did not pose a hazard to free ranging
+northern quolls. A field trial using toxic cat baits and closely
+monitored northern quolls is the only certain way of assessing cat
+baiting risk to a free-ranging northern quoll population.~ Assessing the
+impact on quolls of baiting to control feral cats in the Pilbara is an
+important component in the development of a landscape scale program to
+control introduced predators and reduce the extinction risk for northern
+quolls and other medium-sized mammals in the Pilbara.
+
+
+
+
+\subsection*{Aims}
+
+a) To assess the field uptake of feral cat baits \emph{Eradicat®}by
+northern quolls \emph{Dasyurus} \emph{hallucatus}, and impact on
+survivorship.
+
+b) To develop an effective cat control strategy that will benefit the
+northern quoll and other threatened fauna in the Pilbara
+
+
+
+
+\subsection*{Expected outcome}
+
+a) An effective feral cat baiting strategy in areas of the Pilbara where
+northern quolls occur.
+
+b) Improved conservation outcomes for northern quoll and other
+threatened Pilbara fauna.
+
+
+
+
+\subsection*{Knowledge transfer}
+
+Parks and Wildlife regional staff, mining companies, consultants.
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+\endhead
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+\textbf{Tasks}
+
+\textbf{~}\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\textbf{Outputs}\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+\textbf{Timelines}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Undertake Yarraloola site reconnaissance.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Knowledge of logistics, access, and potential study sites\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+August / September 2014\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Organise and hold planning workshop.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Report on reconnaissance, record of meeting, agreement on design of bait
+uptake study -- sites, methods.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+October 2014\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Identify likely areas for the cat baiting trial -- 20,000ha cat baited
+area on Yarraloola, plus Red Hill control site (unbaited).\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Maps showing baited and unbaited sites.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+October 2014\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Prepare operational introduced predator control program.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Indicative plan prepared, may need to be adjusted following results of
+quoll cat bait uptake trial.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+October 2014, review and revise if necessary in October 2015.\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Meet with traditional owners regarding 1080 baiting risks.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Agreement from TOs for baiting program to continue.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+November 2014\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Pen trial to assess quoll ability to wear GPS radio-collars (includes
+sourcing 4 quolls from the wild for trial).\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Knowledge on whether GPS collars can be used on quolls.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+February 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Undertake 1080 baiting risk assessment, warning signs, notify neighbours
+(Pilbara Region). Obtain APVMA approval for cat bait trial (approval for
+2014 program obtained, but need to re-apply for 2015).\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Approval for cat baiting to proceed.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+March 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Trapping of Yarraloola (baited) and Red Hill (unbaited control) sites to
+assess quoll numbers, and fit VHF radio-collars. Some GPS collars may
+deployed depending on outcomes of trial in Feb and numbers of quolls
+trapped.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Sufficient quolls for radio-collaring (n= at least 20 at each site,
+approx. equal sex ratio)\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+April - May 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Select area to be cat baited at Yarraloola to ensure adequate coverage
+of sites with radio-collared quolls.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Appropriate cat baiting cell provided to Western Shield.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+First week of June 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Monitor \textbf{pre-baiting} survivorship of quolls via aerial and
+ground radio-tracking, camera array.~~~~~\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Ensure all quolls are alive before baiting.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+June/early July 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Aerial baiting undertaken.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Cat baits delivered to impact site 50 baits /
+km\textsuperscript{2}\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Early July 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Monitor \textbf{post-baiting} survivorship of quolls via aerial and
+ground radio-tracking, camera array.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Assess impact of baiting on quolls through survivorship.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Mid -- July to late August\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Monitor breeding success of quoll (sub-lethal 1080 impacts) via
+trapping.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Assess impact of baiting on quolls through breeding success (presence
+and persistence of pouch young)\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+September -- October 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Prepare report on cat baiting study for Rio Tinto.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Final report submitted to Rio Tinto\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+November 2015\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.30\columnwidth}\raggedright
+Prepare paper for publication.\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+Paper submitted to journal\strut
+\end{minipage} & \begin{minipage}[t]{0.30\columnwidth}\raggedright
+December 2015\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+
+
+
+\subsection*{References}
+
+Abbott I, Burbidge AA (1995) The occurrence of mammal species on the
+islands of Australia: a summary of existing knowledge.
+\emph{CALMScience} \textbf{1:} 259-324.
+
+Braithwaite RW, Griffiths AD (1994) Demographic variation and range
+contraction in the northern quoll \emph{Dasyurus geoffroii}
+(Marsupialia: Dasyuridae). \emph{Wildlife} \emph{Research} \textbf{21}:
+203-217.
+
+Calver MC, King DR, Bradley JS, Gardner JL, Martin G (1989) An
+assessment of the potential target specificity of 1080 predator baiting
+in Western Australia. \emph{Australian Wildlife Research}
+\textbf{16}:625-638.
+
+Carwardine J, Nicol S, van Leeuwen S, Walters B, Firn J, Reeson A,
+Martin TG, Chades I (2014). Priority threat management for Pilbara
+species of conservation significance. CSIRO Ecosystem Sciences,
+Brisbane.
+
+Fisher DO, Johnson CN, Lawes MJ, Fitz SA, McCallum H, Blomberg SP,
+VanDerWal J, Abbott B, Frank A, Legge S, Letnic M, Thomas CR, Fisher A,
+Gordon IJ, Kutt A (2014) The current decline of tropical marsupials in
+Australia; is history repeating? \emph{Global Ecology and Biogeography}
+\textbf{23}: 181-190.
+
+King DR (1989) An assessment of the hazard posed to northern quolls
+(\emph{Dasyurus hallucatus}) by aerial baiting with 1080 to control
+dingoes. \emph{Australian Wildlife Research} \textbf{16}: 569-574.
+
+King DR, Twigg LE, Gardner JL (1989a) Tolerance to sodium
+monofluoroacetate in dasyurids from Western Australia. \emph{Australian
+Wildlife Research} \textbf{6}:131-140.
+
+Kinnear JE, Sumner NR, Onus ML (2002) The red fox in Australia -- an
+exotic predator turned biocontrol agent. \emph{Biological Conservation}
+\textbf{108}: 335-359.
+
+McKenzie NL, Burbidge AA, Baynes A, Brereton R, Dickman CR, Gibson LA,
+Gordon G, Menkhorst RW, Robinson AC, Williams MR, Woinarski JCZ (2006)
+Analysis of factors implicated in the recent decline of Australia's
+mammalian fauna. \emph{Journal of Biogeography} \textbf{34}:597-611.
+
+Morris K, Johnson B, Orell P, Gaikhorst G, Wayne A, Moro D (2003)
+Recovery of the threatened chuditch \emph{Dasyurus geoffroii}: a case
+study. Chapter 30 in Predators with Pouches: the biology of carnivorous
+marsupials (eds M Jones, C Dickman, M Archer). CSIRO Publishing,
+Collingwood, Victoria.
+
+Oakwood M (2008) Northern Quoll \emph{Dasyurus hallucatus} Pp 57-59 in
+The Mammals of Australia (3\textsuperscript{rd} Ed). Ed:~ S. van Dyck
+and R. Strahan. Reed New Holland Publishers, Australia.
+
+Oakwood M, Foster P (2008). Monitoring extinction of the northern quoll.
+\emph{Australian Academy of Science Newsletter} \textbf{71}: 6.
+
+Wayne AF, Maxwell MA, Ward CG, Vellios CV, Wilson I, Wayne JC, Williams
+MR (2013) Sudden and rapid decline of the abundant marsupial
+\emph{Bettongia penicillata} in Australia. \emph{Oryx}: doi:
+10.1017/S0030605313000677.
+
+Woinarski JCZ, Oakwood M, Winter J, Burnett S, Milne D, Foster P, Myles
+H, Holmes B (2008) Surviving the toads: patterns of persistence of the
+northern quoll \emph{Dasyurus hallucatus} in Queensland. Report
+submitted to the Natural Heritage Trust Strategic Reserve Program.
+Department of Natural Resources, Environment and The Arts, Darwin.
+
+Woinarski JCZ, Armstrong M, Brennan K, Fisher A, Griffiths AD, Hill B,
+Milne DJ, Palmer C, Ward S, Watson M, Winderlich S, Young S (2010)
+Monitoring indicates rapid and severe decline of native small mammals in
+Kakadu National Park, northern Australia. \emph{Wildlife Research}
+\textbf{38}: 307-322.
+
+Woinarski JCZ, Legge S, Fitzsimons JA, Traill BJ, Burbidge AA, Fisher A,
+Firth RSC, Gordon IJ, Griffiths AD, Johnson CN, McKenzie NL, Palmer C,
+Radford I, Rankmore B, Ritchie EG, Ward S, Ziembicki M (2011) The
+disappearing mammal fauna of northern Australia: context, Cause and
+response. \emph{Conservation Letters} \textbf{4}: 192-201.
+
+Woinarski JCZ, Burbidge AA, Harrison PL (2014) The Action Plan for
+Australian Mammals 2012. CSIRO Publishing, Collingwood, Victoria.
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+\textbf{a) Study sites:} This trial will be undertaken at two sites in
+the western Pilbara region of WA. An approximately 20,000 ha site on
+Yarraloola pastoral lease (managed by Rio Tinto) will be baited with~
+\emph{Eradicat®} feral cat baits, and another site at Red Hill pastoral
+lease, 60 km south of Yarraloola, will be used as an unbaited control
+site. The actual sites will be determined in March/April 2015 taking
+into account accessibility and presence of adequate numbers of northern
+quolls.
+
+Habitat attributes will be recorded at all sites on Yarraloola and Red
+Hill where quolls are trapped using the standard habitat data sheets for
+the northern quoll Pilbara regional monitoring project (Dunlop \emph{et
+al.} 2014). These will be incorporated into the regional predictive
+habitat modeling project currently underway with Edith Cowan University.
+Fire history and other disturbances such as livestock impacts will also
+be assessed.
+
+\textbf{b) Cat baiting:} Approximately 10,000 \emph{Eradicat®} feral cat
+baits will be dropped from a twin-engine aircraft at an altitude of 500
+`(agl) and travelling at 130kts, at a density of 50 baits /
+km\textsuperscript{2} (Algar \emph{et al}. 2013).~ Each bait will
+contain 4.5 mg 1080, and the biomarker Rhodamine B. The presence of
+Rhodamine is detected in animals as a pink dye around the mouth, in the
+gastro-intestinal track, and in scats and provides evidence that a bait
+has been consumed. Baiting will be undertaken in early July when diurnal
+and nocturnal temperatures are the coolest as this factor enhances
+uptake of baits by feral cats (Note: the effectiveness of cat baiting on
+feral cats is not being assessed during this trial). The track of the
+aircraft and GPS location of each cat bait drop will be recorded, and
+overlaid on known quoll locations (from trapping and radio telemetry) to
+ensure the quolls are in close proximity to cat baits and have the
+opportunity to consume them. Note that an indicative baiting cell will
+be provided to Western Shield by end of May 2015, but that this can be
+refined until mid-June, to ensure baits are dropped in the areas where
+quolls have been trapped, and move to.
+
+\textbf{c) Northern quoll survivorship}: The impact of feral cat baiting
+on northern quolls will be assessed by comparing survivorship at the
+Yarraloola and Red Hill sites, before and after cat baiting at
+Yarraloola.(BACI design). Survivorship will be assessed by two methods
+a) survival of radio-collared individuals at each site, and b) detection
+of quolls on a camera array.
+
+The analysis of northern quoll survivorship will be undertaken using the
+Kaplan-Meier procedure, as used by Pollock \emph{et al}. (1989). The
+survivorship rate of quolls (based on radio telemetry study) in the cat
+baited area will be included in a Population Viability Analysis (PVA,
+VORTEX: Lacy \emph{et al.} 2009) to assess the longer term impact of cat
+baiting on the Yarraloola northern quoll population. Prediction of the
+risk of population extinction can be made using parameters such as
+demographic structure, mortality and survival rates, and reproductive
+rates (Brook \emph{et al}. 2000). These can be derived either from this
+study (if available), from the Pilbara regional quoll monitoring
+program, or from other quoll demographic studies e.g. Oakwood 2000). The
+risk to the quoll population will be determined by examining the
+population trends provided by the PVA. The risk would be considered
+unacceptable if the PVA identifies that the population will decline to
+extinction.
+
+\textbf{d) Northern quoll trapping and monitoring:} Quolls will be
+trapped using transects of 50 small Sheffield cage traps baited with
+peanut butter, oats and sardines. This is similar to the methodology
+used by the northern quoll regional monitoring project (Judy Dunlop).
+Traps will be covered with a hessian bag for protection of any trapped
+animal, and placed in a sheltered, shady location. Traps will be set
+along rocky breakaways where quolls are known to be (from preliminary
+surveys). Trapped quolls will be weighed, measured and sexed, and a
+small tissue sample taken from the ear for DNA analysis. At least 20
+adult quolls (380-580 g body weight) will be fitted with VHF neck
+mounted radio-transmitters fitted with mortality mode (Sitrack, 18g).
+These radio-collars will be tasked with operating only during daylight
+hours to prolong battery life for six months. A radio-transmitter
+failure rate of 10\% is anticipated and will be taken into account when
+trapping quolls. It is intended to fit radio-collars to equal numbers of
+males and females, and to have equal numbers of quolls radio-collared at
+the Yarraloola baited site and the Red Hill control site. ~Quolls will
+be re-trapped in August to remove radio-collars. Trapping will be
+repeated in September/October to assess whether breeding is occurring
+(presence and persistence of pouch young). A small number of quolls may
+be fitted with GPS collars if pen trails with these new radio-collars
+are successful. These would provide information on movements and habitat
+use of the quolls before and after cat baiting.
+
+Ground and aerial radio-tracking will be undertaken in the 4-6 week
+period prior to cat baiting and 8 week period post cat baiting to
+determine survivorship of the radio-collared quolls. If dead quolls are
+detected through the mortality signal, carcasses will be retrieved where
+possible and autopsied to determine cause of death. In particular, the
+carcasses will be examined closely for the presence of the Rhodamine B
+pink dye.
+
+Two remote cameras (Reconyx Hyperfire HC900) will be set at each of the
+trapping transects to monitor presence of quolls at Yarraloola before
+and after cat baiting. Where possible individual quolls will be
+identified using their unique spot pattern (Hohnen \emph{et al.} 2013).
+Remote cameras will also be used to monitor the uptake by quolls of
+non-toxic cat baits placed in front of cameras at the Red Hill control
+site.
+
+\textbf{References:}
+
+Algar D, Onus M, Hamilton N (2013) Feral cat control as part of
+\emph{Rangelands Restoration} at Lorna Glen (Matuwa), Western Australia:
+the first seven years. \emph{Conservation Science Western Australia}
+\textbf{8}: 367-381.
+
+Brook BW, O''Grady JJ, Chapman AP, Burgman MA, Akcakaya HR, Frankham R
+(2000) Predictive accuracy of population viability analysis in
+conservation biology. \emph{Nature} \textbf{404}: 385-387.
+
+Dunlop J, Cook A, Morris K (2014) Pilbara northern quoll project --
+surveying and monitoring \emph{Dasyurus} \emph{hallucatus} in the
+Pilbara, Western Australia. Department of Parks and Wildlife, Perth, WA.
+
+Lacy RC, Borbat M, Pollak JP (2009) VORTEX: a stochastic simulation of
+the extinction process, version 9.99. Chicago Zoological Society.
+Brookfield, USA.
+
+Oakwood M (2000). Reproduction and demography of the northern quoll
+Dasyurus hallucatus in the lowland savanna of northern Australia.
+\emph{Australian Journal of Zoology} \textbf{48}: 519-539.
+
+Pollock KH, Winterstein SR, Bunck CM, Curtis PD (1989) Survival analysis
+in telemetry studies: the staggered entry design. \emph{Journal of
+Wildlife Management} \textbf{53}: 7-15.
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+\textenglish[variant=american]{None anticipated, but any dead quolls
+recovered will be autopsied, and provide to the WA Museum if required.~
+Ear tissue will be taken from all quolls captured and lodged with the WA
+Museum.}
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+granted
+
+
+
+
+\subsection*{Data management}
+
+A MS Access data base will be developed and populated with the relevant
+spatial and morphometric capture data for the northern quolls.~
+
+Remote camera images will be cataloged and managed with an open source
+MS Access data base (Camera Base -
+\url{http://www.atrium-biodiversity.org/tools/camerabase} ) which has
+been developed specifically for camera trapping data analysis.~
+
+All data will be backed up on the Parks and Wildlife (Woodvale) server.
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist & 75,000 &  & \\
+
+
+
+FTE Technical & 15,000 &  & \\
+
+
+
+Equipment & 12,000 &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total & 102,000 &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime & 309,100 &  & \\
+
+
+
+Overheads & 18,000 &  & \\
+
+
+
+Equipment & 33,200 &  & \\
+
+
+
+Vehicle & Covered by Rio Tinto &  & \\
+
+
+
+Travel & Covered by Rio Tinto &  & \\
+
+
+
+Other:
+Fuel
+Cat baiting
+Radio tracking (DPaW)
+Travel (allowance)
+Region - liaison with neighbours & -
+12,600
+11,000
+10,200
+16,200
+20,000 &  & \\
+
+
+
+Total & 425,000 &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

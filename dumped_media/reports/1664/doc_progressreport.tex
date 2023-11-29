@@ -1,0 +1,313 @@
+
+\documentclass[version=last, 
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames, 
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       % 
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} % 
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=doc\_progressreport.pdf
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{\node[#1] (#2){\parbox{#3\relax}{\begin{center}\textbf{#4}\\#5\\\footnotesize{#6}\end{center}}};}
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1664/}{Progress Report SP 2004-003
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Thu, 2 Jun 2016 15:47:15 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2004-003
+}
+\title{Management of environmental risk in perennial land use systems
+}
+\subtitle{Ecosystem Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Margaret Byrne
+\\
+\textbf{Data Custodian} & 
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of June 2, 2016, 3:47 p.m.}
+\begin{tabu} {X X}
+& Update requested
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of June 2, 2016, 3:47 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{requiredbg}
+    \textbf{Project Team} & 
+    \textcolor{required}{ required}\\
+
+%\rowcolor{requiredbg}
+    \textbf{Program Leader} & 
+    \textcolor{required}{ required}\\
+
+%\rowcolor{requiredbg}
+    \textbf{Directorate} & 
+    \textcolor{required}{ required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Management of environmental risk in perennial land use systems
+}
+
+M Byrne, C Munday, K Bettink, J Sampson, M Millar
+
+
+\section*{Context}
+The development of perennial-based land use systems for management of
+dryland salinity and to increase the productivity of agricultural
+systems promises significant environmental and economic benefits, but
+there are also risks to existing natural biodiversity. These risks
+include the establishment of plant species in new locations where they
+may become environmental weeds and the possible gene flow from
+cultivated populations into natural populations with the potential for
+hybridisation with native species. Both of these may result in a loss of
+biodiversity from natural environments. Risk assessment systems can be
+used to inform selection and management of agriculturally useful species
+to minimise the risk to natural environments.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Develop and implement procedures for the management of environmental
+  risk in the form of assessment and management protocols to be applied
+  to all germplasm under research and development within the Future Farm
+  Industries Cooperative Research Centre (FFI CRC).
+\item
+  Disseminate information about these processes to a wide audience of
+  researchers, land managers and the community via FFI CRC publications,
+  national weed risk forums and conferences.
+\item
+  Publish weed and genetic risk assessment protocols and provide advice
+  to encourage adoption of risk assessment procedures within and outside
+  the FFI CRC.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  An information sheet on weed risk and the FFI CRC assessment protocol
+  has been completed and published on the FFI CRC website.
+\item
+  New weed risk assessments have been completed for native forage
+  species that may be used outside their natural range and these have
+  been published online on the FFI CRC website.
+\item
+  A paper describing the FFI CRC environmental risk strategy for
+  minimising the risk to the environment from agriculturally useful
+  species was presented at the 5th Victorian Weeds Conference in
+  Geelong, Victoria. The audience represented a wide range of
+  organisations engaged in the control of environmental weeds from
+  policy development to identification, monitoring and on-ground
+  control.
+\item
+  The concepts of weed and genetic risk have continued to be promoted in
+  FFI CRC publications and raised in forums with stakeholders in Western
+  Australia and nationally.
+\item
+  An environmental risk strategy and framework was developed for the FFI
+  CRC. All the components have been published, promoted and implemented.
+  Assessments and other material prepared within this project are
+  published on the Department of Parks and Wildlife website.
+\item
+  The weed risk assessment protocol, genetic risk assessment protocols,
+  species management guides and field trial guideline have been prepared
+  and published for some species promoted by the FFI CRC to inform
+  management to minimise the risk to natural environments.
+\item
+  The environmental risk strategy, framework and its components have
+  been promoted widely and a weed risk note provided for a publication
+  on tropical grasses published by the FFI CRC.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Promotion of the concepts of weed and genetic risk management both
+  within and outside the FFI CRC and the development and use of
+  appropriate assessment techniques will reduce the risk of large-scale
+  plantings of new perennial species introduced from outside Australia,
+  native species used outside their natural range or newly developed
+  cultivars becoming environmental weeds.
+\item
+  Adoption of the genetic risk assessment process will enable the risk
+  of genetic contamination and hybridisation to be assessed on a
+  site-specific basis. This will help in the development and
+  implementation of processes to manage these risks. The information may
+  also indicate where further research is needed to understand gene flow
+  in the environment. Guidelines and risk assessment will inform species
+  selection and trial and planting plans to minimise the risk of
+  agriculturally useful species to native environments during research,
+  breeding and production system development.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  The project has been completed with the end of the FFI CRC.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

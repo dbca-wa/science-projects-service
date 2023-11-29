@@ -1,0 +1,383 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    twoside, % PRINT Binding Correction
+    % oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15, % 168.00 237.60 19.80 14.00
+    toc=chapterentrywithdots % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline%,footsepline
+]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Chapter and section headings
+%\renewcommand{\raggedchapter}{\centering}
+%\addtokomafont{chapter}{\Huge\scshape} % Chapter headings in smallcaps
+%\addtokomafont{chapterentry}{\scshape} % Chapter headings in smallcaps
+%\addtokomafont{section}{\centering\Large\scshape} % Chapter headings in smallcaps
+%\addtokomafont{sectionentry}{\scshape} % Chapter headings in smallcaps
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    colorlinks=true,
+    linktoc=all,
+    linkcolor=RedFire,
+    urlcolor=ParksWildlife,
+    pdftitle=doc\_conceptplan.pdf
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{\node[#1] (#2){\parbox{#3\relax}{\begin{center}\textbf{#4}\\#5\\\footnotesize{#6}\end{center}}};}
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/conceptplan/1498/}{Concept Plan 2015-015} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ Jan. 19, 2016, 9:59 a.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+\section*{Concept Plan 2015-015}
+
+\subsection*{Project title}
+Establishing long-term monitoring in the proposed Dampier Archipelago
+marine reserves
+
+
+
+\subsection*{Science and Conservation Division Program}
+Marine Science
+
+
+
+\subsection*{Parks and Wildlife Service}
+Service 2: Conserving Habitats, Species and Ecological Communities
+
+
+
+\subsection*{Background and Aims}
+The Dampier Archipelago is situated adjacent to Karratha, 1,650 km north
+of Perth in the Pilbara Nearshore marine bioregion. The marine and
+coastal environment of the Dampier Archipelago/Cape Preston Region has a
+complex structure of islands and supports diverse intertidal and
+subtidal habitats that include rocky reefs, corals, mangroves,
+macro-algae and soft sediments. The area is subject to increasing human
+pressures, including the development and expansion of several heavy
+industries that have required port infrastructure and dredging. The
+archipelago waters also support pearling and aquaculture and commercial
+and recreational fishing. High levels of private boat ownership in
+adjacent communities suggest that visitor use of this area is high. Part
+of the archipelago waters have been identified as a proposed marine
+conservation reserve and an Indicative Management Plan was released in
+2005 outlining how the outstanding marine ecological assets and social
+values of the area can be managed and protected.
+
+\emph{~}This project will implement long-term monitoring within the
+proposed Dampier Archipelago marine reserves in a manner consistent with
+the 2005 Indicative Management Plan.~
+
+
+
+\subsection*{Expected outcome}
+This project will ensure that a prioritised, long-term monitoring
+program focused on key ecological assets and selected social values will
+be in place when the proposed Dampier Archipelago marine reserves are
+gazetted. The monitoring program will record the condition of ecological
+assets and social values and the pressures acting on them.
+
+This will:
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Provide an understanding of the baseline condition of key ecological
+  assets and selected social values of the proposed Dampier Archipelago
+  marine reserves and the pressures acting on them;
+\item
+  Identify and trial new monitoring indicators, methods and operating
+  procedures for ecological assets for which these are not currently in
+  place;
+\item
+  Develop collaborations with other Agencies, industry, academic
+  institutions and traditional owners;
+\item
+  Create awareness in the broader community of the ecological assets and
+  social values of the proposed Dampier Archipelago marine reserves, the
+  issues that affect these assets, and the role of conservation
+  management in protecting them.
+\end{itemize}
+
+
+
+\subsection*{Strategic context}
+This project aligns with the following Departmental strategic
+priorities:
+
+\emph{Department of Parks and Wildlife Strategic Directions 2014-2017.}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Focus conservation science on management priorities.
+\item
+  Ensure conservation management is based on best practice science.
+\end{itemize}
+
+\emph{Science and Conservation Division Strategic Plan 2014-2017.}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Deliver and/or support the marine monitoring program in the State's
+  marine parks and reserves.
+\item
+  Provide information and advice for effective maintenance, protection
+  and management of park biodiversity values.
+\item
+  Communicate monitoring knowledge to marine park managers.
+\item
+  Partner with Traditional Owners in development of conservation actions
+  and knowledge of Country.
+\item
+  Engage with the community and communicate the value of wildlife and
+  its conservation requirements, and the positive contribution that
+  wildlife makes to people's lives.
+\end{itemize}
+
+\emph{Indicative Management Plan for the proposed Dampier Archipelago
+Marine Park and Cape Preston Marine Management Area 2005.}
+
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Develop and progressively implement a coordinated and prioritised
+  monitoring program of key values and processes in the proposed
+  reserves.
+\end{itemize}
+
+~
+
+
+
+\subsection*{Expected collaborations}
+Collaborations will be developed with other State and Commonwealth
+Government agencies (such as AIMS, CSIRO and the Western Australian
+Museum), industry partners (such as Woodside and the Pilbara Ports
+Authority), WA universities, local stakeholder groups, regional Parks
+and Wildlife staff and Traditional Owners.
+
+
+\subsection*{Proposed period of the project}
+July 15, 2014 -- June 30, 2019
+
+\subsection*{Staff time allocation }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Role & Year 1 & Year 2 & Year 5\\
+\hline
+\endhead
+
+
+
+Scientist & 1.25 & 1.25 & 1.25\\
+
+
+
+Technical & 0.25 & 0.25 & 0.25\\
+
+
+
+Volunteer &  &  & \\
+
+
+
+Collaborator &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\subsection*{Indicative operating budget }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 5\\
+\hline
+\endhead
+
+
+
+Consolidated Funds (DPaW) &  &  & \\
+
+
+
+External Funding & $200,000 & $200,000 & $200,000\\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+\subsection*{Endorsements}
+Endorsements and approvals as of Jan. 19, 2016, 9:59 a.m.:\\
+\begin{tabu} {| X | X |}
+\hline
+
+\rowcolor{granted}
+Project Team & granted\\
+\hline
+
+\rowcolor{granted}
+Program Leader & granted\\
+\hline
+
+\rowcolor{granted}
+Directorate & granted\\
+\hline
+
+\end{tabu}
+
+
+
+
+
+\end{document}

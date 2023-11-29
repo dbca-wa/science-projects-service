@@ -15,6 +15,7 @@ from .models import (
     UserAvatar,
     AgencyImage,
     ProjectPhoto,
+    AECEndorsementPDF,
 )
 
 # from PIL import Image
@@ -80,7 +81,7 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
         model = AnnualReportPDF
         fields = [
             "pk",
-            "old_file",
+            # "old_file",
             "file",
             "report",
         ]
@@ -93,6 +94,22 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
                 "year": report.year,
             }
         return None
+
+
+class AECPDFSerializer(ModelSerializer):
+    class Meta:
+        model = AECEndorsementPDF
+        fields = "__all__"
+
+
+class AECPDFCreateSerializer(ModelSerializer):
+    class Meta:
+        model = AECEndorsementPDF
+        fields = "__all__"
+
+    def create(self, validated_data):
+        cp = AECEndorsementPDF.objects.create(**validated_data)
+        return cp
 
 
 class AnnualReportPDFCreateSerializer(ModelSerializer):

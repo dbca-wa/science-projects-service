@@ -1,0 +1,223 @@
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+\usepackage[colorlinks=true,pdftitle=doc\_progressreport.pdf,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+
+
+
+%%% Custom headers/footers (fancyhdr package)
+\fancypagestyle{plain}{
+\fancyhf{}
+\setlength\headheight{40pt}
+\renewcommand{\headrulewidth}{0.1pt}
+\renewcommand{\footrulewidth}{0.1pt}
+
+
+
+    \fancyhead[L]{ \href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1280/download/tex/}{} \newline }
+\fancyhead[R]{ \hfill\href{http://www.dpaw.wa.gov.au}{Department of Parks and Wildlife}\newline\href{http://sdis.dpaw.wa.gov.au}{Pythia}}
+
+
+
+
+\fancyfoot[L]{ \leftmark\newline\textbf{Last Modified}\textit{ }\quad\textbf{Printed}\textit{ Aug. 19, 2014, 9:45 a.m. } }
+\fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} } % Pagenumbering
+
+
+}
+\pagestyle{plain}
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+\begin{document}
+
+\setcounter{secnumdepth}{-1}
+
+
+\begin{titlepage}
+\begin{center}
+% Upper part of the page
+\begin{minipage}[t]{0.28\textwidth}
+\begin{flushleft}
+\href{http://www.dpaw.wa.gov.au}{\includegraphics[scale=0.6]{/var/www/sdis_8271/staticfiles/img/logo-dpaw.png}}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}[b]{0.7\textwidth}
+\begin{flushright}
+    \href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1280/download/tex/}{}) \\
+\end{flushright}
+\end{minipage}
+\HRule \\[0.4cm]
+\vfill
+\textsc{\Huge Science project 2014-4 Improving the understanding of West Pilbara marine habitats and associated taxa: their connectivity and recovery potential following natural and human induced disturbance \newline }
+\vfill
+\textsc{\Huge Progress Report}
+
+\vfill\vfill\vfill\vfill
+title and summary
+
+\vfill\vfill\vfill\vfill\vfill\vfill\vfill\vfill
+
+\textbf{Version created on} Aug. 19, 2014, 9:45 a.m.
+\vfill
+\textbf{Last Modified on}  by 
+\vfill\vfill
+\textbf{Report Status}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Status & Last Updated \\
+\hline
+\textbf{Planning - } \\
+\hline
+\end{tabu}
+\vfill
+\textbf{Science Project Overview}\\\,
+\begin{tabu} to \linewidth { | X[l] | X | }
+\hline
+\rowcolor{infobg}
+Part & Checklist Last Updated \\
+\hline
+\textbf{Part A - Summary \& Approval} & bla \\
+\hline
+\end{tabu}
+
+\end{center}
+\end{titlepage}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\clearpage
+
+
+
+
+
+
+\section{Context Summary}
+
+
+
+The focus of work for Wheatstone development Project B will be to add to the understanding of west Pilbara marine habitats (including coral and seagrass communities) and associated taxa, including their level of connectivity and their recovery potential should they be impacted by natural and human induced disturbance. This research aims to build on existing knowledge and integrate with current and proposed connectivity projects on habitat-forming taxa and associated taxa in the tropical north-west of Australia. Broad-scale connectivity studies of flora and fauna within and between the offshore islands of the north-west continental shelf have shown varying levels of connectivity. Previous studies have also shown limited connectivity between inshore and offshore marine communities but there have been no studies looking at connectivity and recovery potential between locations within the Pilbara region, and their connections with the broader inshore locations of Ningaloo to the south west, and the Kimberley to the north-east.
+
+
+
+
+
+
+\section{Aims Summary}
+
+
+
+\begin{itemize}
+
+  \item Determine levels of population connectivity and assess the extent and spatial scales of local adaptation.
+
+  \item Correlate genetic parameters with modeling of environmental variables to determine factors that have a significant influence on connectivity.
+
+  \item Investigate coral demographics and recruitment to understand how the environment influences the corals in the Pilbara.
+
+\end{itemize}
+
+
+
+
+
+
+\section{Progress}
+
+
+
+\begin{itemize}
+
+  \item Conducted scoping and collecting trip to Eastern central and Western region of Pilbara.
+
+  \item Deployed and collected first coral recruitment settlement tiles for temporal study of recruitment processes in Onslow region.
+
+  \item In-situ assessment of recruit corals on reefs in the Onslow region using quadrats with underwater visual census and digital photos.
+
+  \item Preliminary planning for coral recruitment study.
+
+  \item Analysis of Chevron's benthic images to understand size class frequency distribution of corals in the Onslow region.
+
+\end{itemize}
+
+
+
+
+
+
+\section{Management implications}
+
+
+
+The project will improve our understanding of how well populations of marine species are linked, providing an indication on how fast they are likley to recover following natural and anthropogenic disturbances. The focus will be on key habitat forming species that support important ecological processes. The project will also provide baseline information that can be used for monitoring abundance and diversity of marine assets realtive to environmental and human pressures.
+
+
+
+
+
+
+\section{Future directions}
+
+
+
+\begin{itemize}
+
+  \item Finalise `science project plan'.
+
+  \item Continue collecting tissue samples of organisms and processing of tissue samples for genetic analysis (connectivity study).
+
+  \item Analyse data on settlement of corals.
+
+  \item Continue analysing benthic images for coral demographics assessment and reporting.
+
+  \item Investigate differences between photo quadrats and UVC of coral recruitment in-situ.
+
+  \item Redeploy coral settlement tiles in February and May 2015 to determine settlement differentials across the period of spawning.
+
+\end{itemize}
+
+
+
+
+
+
+\clearpage
+
+
+
+\end{document}

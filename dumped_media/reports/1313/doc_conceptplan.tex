@@ -1,0 +1,222 @@
+
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage[colorlinks=true,pdftitle=doc\_conceptplan.pdf
+,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+\renewcommand{\familydefault}{\sfdefault}
+
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/conceptplan/1313/}{Concept Plan 2015-002} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ June 11, 2015, 3:24 p.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+\section*{Concept Plan 2015-002}
+
+\subsection*{Project title}
+South West Wetlands Monitoring Program (SWWMP)
+
+
+
+\subsection*{Science and Conservation Division Program}
+Wetland Conservation
+
+
+
+\subsection*{Parks and Wildlife Service}
+{[}2{]} Conserving Habitats, Species and Ecological Communities
+
+
+
+\subsection*{Background and Aims}
+None
+
+
+
+\subsection*{Expected outcome}
+None
+
+
+
+\subsection*{Strategic context}
+None
+
+
+
+\subsection*{Expected collaborations}
+None
+
+
+\subsection*{Proposed period of the project}
+June 4, 2015 -- None
+
+\subsection*{Staff time allocation }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Role & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Scientist &  &  & \\
+
+
+
+Technical &  &  & \\
+
+
+
+Volunteer &  &  & \\
+
+
+
+Collaborator &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\subsection*{Indicative operating budget }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Consolidated Funds (DPaW) &  &  & \\
+
+
+
+External Funding &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+\subsection*{Endorsements}
+Endorsements and approvals as of June 11, 2015, 3:24 p.m.:\\
+\begin{tabu} {| X | X |}
+\hline
+
+\rowcolor{granted}
+Project Team & granted\\
+\hline
+
+\rowcolor{granted}
+Program Leader & granted\\
+\hline
+
+\rowcolor{granted}
+Directorate & granted\\
+\hline
+
+\end{tabu}
+
+
+
+
+
+\end{document}

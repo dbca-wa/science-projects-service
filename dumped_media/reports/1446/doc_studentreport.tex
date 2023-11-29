@@ -1,0 +1,150 @@
+
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage[colorlinks=true,pdftitle=doc\_studentreport.pdf
+,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+\renewcommand{\familydefault}{\sfdefault}
+
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/studentreport/1446/}{Progress Report 2013-19 (FY 2014-2015)} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ June 24, 2015, 3:32 p.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+
+\section*{Progress Report}
+While much is known of the impact of trypanosomes on human and livestock
+health, trypanosomes in wildlife, although ubiquitous, have largely been
+considered to be non-pathogenic. This project aimed to investigate the
+genetic diversity and potential pathogenicity of trypanosomes naturally
+infecting Western Australian marsupials with particular emphasis on
+those parasites associated with the endangered woylie (\emph{Bettongia
+penicillata}). 554 blood samples and 250 tissue samples collected from
+50 carcasses of sick-euthanised and road-killed animals, belonging to 10
+species of marsupials, were screened for the presence of trypanosomes
+using a PCR of the 18S rDNA gene. PCR results revealed a rate of
+infection of 67\% in blood and 60\% in tissues. Inferred phylogenetic
+trees using 18S rDNA and glycosomal glyceraldehyde phosphate
+dehydrogenase (gGAPDH) sequences showed the presence of three different
+species of \emph{Trypanosoma}: \emph{Trypanosoma copemani},
+\emph{Trypanosoma vegrandis}, and \emph{Trypanosoma} sp. H25.
+\emph{Trypanosoma} infections were compared in a declining and in a
+stable population of the woylie. High rates of infection with
+\emph{Trypanosoma copemani} (96\%) were found in the declining
+population, whereas in the stable population, \emph{Trypanosoma
+vegrandis} was predominant (89\%). Mixed infections were common in
+woylies from the declining but not from the stable population.
+Histopathological findings associated with either mixed or single
+infections involving \emph{Trypanosoma copemani} showed pathological
+changes similar to those seen in \emph{Didelphis marsupialis} infected
+with the pathogenic \emph{Trypanosoma cruzi} in South America:
+myocarditis and tongue degeneration. \emph{T. copemani} was successfully
+grown in culture and for the first time it was demonstrated that this
+species has the capacity to not only colonise different tissues in the
+host but also to invade cells in vitro. This study also showed that
+commercial drugs and new compounds developed against the pathogenic
+\emph{T. cruzi} are active in vitro against \emph{T. copemani}. These
+results provide evidence for the potential role of trypanosomes in the
+decline of the woylie and contribute valuable information towards
+directing management decisions for endangered species where these
+parasites are known to be present at high prevalence levels.
+
+This research has been presented at international and national
+conferences. One paper was published in the \emph{International Journal
+for Parasitology: Parasites and Wildlife}, and three more papers are in
+process of submission.
+
+
+
+
+\clearpage
+
+
+
+\end{document}

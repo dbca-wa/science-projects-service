@@ -1,0 +1,348 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 2010-011 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1643/}{Progress Report SP 2010-011
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Tue, 13 Sep 2016 17:33:25 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 2010-011
+}
+\title{Fire regimes and impacts in transitional woodlands and shrublands
+}
+\subtitle{Ecosystem Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Colin Yates
+\\
+\textbf{Data Custodian} & 
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Sept. 13, 2016, 5:33 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Sept. 13, 2016, 5:33 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Fire regimes and impacts in transitional woodlands and shrublands
+}
+
+C Yates, C Gosper
+
+
+\section*{Context}
+The Great Western Woodlands (GWW) is an internationally significant area
+with great biological and cultural richness. This 16 million hectare
+region of south-western Australia arguably contains the world's largest
+and most intact area of contiguous temperate woodland. The GWW
+Conservation Strategy and a review conducted by a wide range of
+scientists with expertise in the region each identified inappropriate
+fire regimes as a threat to the woodlands and emphasised the need for a
+science-based fire management regime for the area. Critical gaps in the
+knowledge of fire ecology for GWW ecosystems are a major hindrance for
+ecological fire management in the region. The GWW supports eucalypt
+woodlands at very low mean annual rainfall (250-350 mm). Woodlands
+require fire to establish but are very slow growing. In recent decades a
+large part of the GWW has been burnt and concern has been expressed over
+the ecological impacts of this. Fire ecology research already undertaken
+in eastern wheatbelt nature reserves will help resolve ecological fire
+management issues for mallee and mallee-heath communities in the GWW,
+but similar information for the dominant eucalypt woodlands is urgently
+needed.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Develop a method to robustly estimate stand time since fire in gimlet
+  (\emph{Eucalyptus salubris}) woodlands that have not been burnt during
+  the period covered by remotely-sensed imagery.
+\item
+  Investigate the effects of time since fire on the assembly and
+  recovery of gimlet woodlands, including on plant and animal community
+  composition and development of ecosystem structure.
+\item
+  Measure fuel and carbon dynamics with time since fire in gimlet
+  woodland.
+\item
+  Investigate pathways to weed invasion in the GWW.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  A multi-century time since fire chronosequence of 76 plots has been
+  established in gimlet woodlands, with sampling of plant composition,
+  vegetation structure, visual fuel assessment, ants and birds.
+\item
+  Plant data from the chronosequence have been used in national-scale
+  synthesis of: (i) the spatial and vegetation type distribution of fire
+  response traits in woody plants (published in \emph{Science of the
+  Total Environment}); (ii) fire regime and environmental correlates of
+  fire response traits (in preparation); (iii) how Western Australian
+  eucalypt woodlands differ in fire ecology from eastern Australian
+  analogues (\emph{Journal of Biogeography}); and (iv) the composition,
+  biogeography, environmental correlates and ecology of Australia's
+  temperate woodlands (in review for the book \emph{Australian
+  Vegetation}).
+\item
+  Alien plant records from the GWW were used to identify environmental
+  and disturbance predictors of weed occurrence, and priority weed
+  species for preventative weed management in a climate change context
+  (published in \emph{Biodiversity and Conservation})
+\item
+  Gimlet tree size was sampled at 100 plots systematically located
+  across the GWW to estimate stand-class structure, and via linking with
+  models estimating tree age from tree size, woodland age-class
+  distribution.
+\item
+  Methodology to sample tree and shrub, woody debris and litter carbon
+  pools was tested at pilot sites.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  National-scale syntheses of temperate eucalypt woodland fire ecology
+  revealed that Western Australian woodlands are uniquely dominated by
+  taxa that are obligate seeding or recolonise after fire from unburnt
+  populations, and have vegetation dynamics driven by rare,
+  stand-replacing disturbances. These characteristics illustrative a
+  putative vulnerability to decreases in intervals between fires.
+\item
+  Post-fire succession in plant composition and structure, which in turn
+  determines successional patterns in animals, occurs over multi-century
+  timescales, demonstrating the value of avoiding fire in mature
+  woodlands to maximise future fire management options.
+\item
+  Changes in vegetation structure, cover and hazard indicate maximum
+  gimlet woodland flammability at intermediate times since fire,
+  supporting the revision of fire behaviour ratings.
+\item
+  Contemporary invasive plant spread in the GWW could be reduced via:
+  (i) targeting abandoned and current settlements for removal of
+  disjunct weed populations; (ii) minimising new settlement creation in
+  locations currently remote from towns; and (iii) closing water points
+  on conservation estate to reduce disturbance-induced weed recruitment.
+  Considering future climate tolerance in weed species prioritisation
+  results in a feasibly small selection of taxa for pre-emptive
+  regional-scale eradication or containment.
+\item
+  GWW woodlands have little grass in comparison to other temperate
+  woodlands. If perennial grass weeds (such as buffel grass) become
+  widely established, potentially facilitated by climate change,
+  substantial fire regime shifts and subsequent loss of mature woodlands
+  are plausible.
+\item
+  Knowledge generated through this project has been incorporated into
+  eucalypt woodland fire ecology training, to be delivered to Department
+  of Parks and Wildlife staff.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Refine models estimating the time since fire of long-unburnt gimlet
+  woodlands through the use of the growth ring increment data.
+\item
+  Use refined age-size models and stand structure data to generate a
+  robust age-class distribution of gimlet woodland and hence assess
+  whether recent extensive wildfires are unprecedented over the period
+  in which existing gimlet stands developed.
+\item
+  Complete measurement of carbon pools across the gimlet chronosequence
+  to determine the role of fire management in carbon sequestration.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

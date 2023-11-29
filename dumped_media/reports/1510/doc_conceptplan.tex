@@ -1,0 +1,345 @@
+
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage[colorlinks=true,pdftitle=doc\_conceptplan.pdf
+,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+\renewcommand{\familydefault}{\sfdefault}
+
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/conceptplan/1510/}{Concept Plan 2015-017} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ Sept. 21, 2015, 11:16 a.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+\section*{Concept Plan 2015-017}
+
+\subsection*{Project title}
+Responses of aquatic invertebrate communities to changing hydrology and
+water quality in streams and significant wetlands of the south-west
+forests of Western Australia.
+
+
+
+\subsection*{Science and Conservation Division Program}
+Wetland Conservation
+
+
+
+\subsection*{Parks and Wildlife Service}
+Service 4: Forest Management Plan Implementation
+
+
+
+\subsection*{Background and Aims}
+Aquatic habitats in the south-west of WA are under increasing threat
+from changes in hydrology, water quality and fire as a result of the
+drying climate and historical and current land use. At present, there is
+an inadequate understanding of the responses of aquatic communities to
+these threats to inform the management of many aquatic systems in the
+Forest Management Plan area, including the Muir-Byenup Ramsar wetlands.
+
+This project has two components:
+
+\emph{Re-surveys of aquatic invertebrates in Muir-Byenup Ramsar wetlands
+sampled in 1994 and 2004 and suites of wetlands further south sampled in
+1993. This addresses KPI3 of the 2014-23 FMP.}
+
+The FMP area has many high value wetlands, particularly in the Warren
+region. Some of these are listed as nationally or internationally
+significant and some are priorities in regional nature conservation
+plans. These support numerous priority flora species, priority
+ecological communities, significant waterbirds, 6 of the 8 species of
+south-west endemic fish and a very high diversity and endemicity of
+invertebrates. Threats to many of these wetlands have intensified over
+the last decade. The available biodiversity data is 10 to 20 year old
+and up to date information is required to assess responses to threats
+and inform the allocation of resources to management actions.
+
+\emph{Continued monitoring of high condition streams, with a focus on
+effects of the drying climate and forest management. This addresses KPI1
+of the 2014-23 FMP.}
+
+KPI20 of the previous FMP scored 24 of 51 monitored stream sites as
+impaired. This was not clearly related to forestry activities but could,
+in part, be related to reduced rainfall. This project would see
+continued monitoring at `reference condition' streams and those that
+already affected by reduced rainfall. A focus on these streams aligns
+with KPI1 of the current FMP which focuses on change in `currently
+healthy ecosystems' and will allow us to track condition in relation to
+the ongoing decline in rainfall combined with forest management. In a
+region with high climatic variability long-term studies are essential to
+understand ecosystem responses.
+
+\emph{Aims:}
+
+\begin{itemize}
+\item
+  To address KPI1 of the 2014-2023 FMP by monitoring the condition of
+  currently healthy streams in relation to reduced rainfall and forest
+  management practices.
+\item
+  To address KPI3 of the 2014-2023 FMP by determining responses of
+  faunas of high value Warren region wetlands to changes in hydrology,
+  water chemistry and fire over the last 10 to 20 years.
+\item
+  Provide baseline data for some internationally significant wetlands,
+  e.g. Lake Muir.
+\item
+  Use the above information to report on the current conservation
+  significance of key DPaW managed wetlands and their response and
+  vulnerability to threats.
+\end{itemize}
+
+
+
+\subsection*{Expected outcome}
+\begin{enumerate}
+\item
+  FMP commitments met with regard to measuring and assessing change in
+  condition of 1) currently healthy (reference condition) stream
+  ecosystems (KPI1) and 2) Ramsar and nationally listed wetlands (KPI3).
+\item
+  Warren Region conservation managers will have the information needed
+  to address a priority identified in the 2009-14 Warren Region Nature
+  Conservation Plan: Target 5, candidate action 1, including the
+  milestones:
+
+  ``\emph{Analyse condition trends} {[}of 7 nationally listed
+  wetlands{]} \emph{and update adaptive management targets on the basis
+  of these trends}'' and
+
+  ``\emph{Establish and consolidate benchmark information for Broke
+  Inlet, Doggerup, Marringup, Mt Soho Swamp, and Byenup to determine
+  condition, identify threats and to determine interim management
+  actions.''}
+\item
+  DPaW will be able to report on the condition of a significant Ramsar
+  site.
+\end{enumerate}
+
+
+
+\subsection*{Strategic context}
+\textbf{Forest Management Plan 2014-23}: Addresses Key Performance
+Indicators 1 and 3.
+
+\textbf{DPaW Strategic Directions 2014-17}
+
+\begin{itemize}
+\item
+  \textbf{Implementation of the Forest Management Plan}: Key FMP
+  requirements met.
+\item
+  \textbf{Integrated forest and ecosystem management}: Focus resources
+  on highest priority ecosystem management requirements.
+\item
+  \textbf{Integrated science and nature conservation}: Focus
+  conservation science on management priorities: Ensure conservation
+  management is based on best practice science.
+\end{itemize}
+
+\textbf{Science and Conservation Division Strategic Plan 2014-17}
+
+\begin{itemize}
+\item
+  \textbf{Integrated science and conservation}: Ensure that science
+  programs address the gaps in knowledge and reflect the applied nature
+  of advice required by the Department to deliver effective
+  conservation, protection and management of flora, fauna, ecological
+  communities and conservation reserves.
+\item
+  \textbf{Understand management options to enhance biodiversity
+  resilience in a changing climate}: Undertake research and identify
+  external science that provides a basis for informed management of
+  climate change impacts on biodiversity.
+\item
+  \textbf{Monitoring of forest ecosystems}: Undertake research and
+  monitoring to support ecologically sustainable forest management.
+\end{itemize}
+
+\textbf{Wildlife Management Service Strategic Priorities 2014-2017}:
+WM-4-A (FMP), WM-5-A+B.
+
+\textbf{Warren Region Nature Conservation Plan (2009-2014)}: Targets
+1,5,6,8.
+
+
+
+\subsection*{Expected collaborations}
+Expert taxonomists, such as Russell Shiel (University of Adelaide) and
+DPaW Regional and District staff
+
+
+\subsection*{Proposed period of the project}
+July 1, 2014 -- June 30, 2023
+
+\subsection*{Staff time allocation }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Role & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Scientist & 0.5 & 0.5 & 0.5\\
+
+
+
+Technical & 0.3 & 0.3 & 0.3\\
+
+
+
+Volunteer &  &  & \\
+
+
+
+Collaborator &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\subsection*{Indicative operating budget }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Consolidated Funds (DPaW) & 100,000 & 100,000 & 100,000\\
+
+
+
+External Funding & 0 & 0 & 0\\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+\subsection*{Endorsements}
+Endorsements and approvals as of Sept. 21, 2015, 11:16 a.m.:\\
+\begin{tabu} {| X | X |}
+\hline
+
+\rowcolor{granted}
+Project Team & granted\\
+\hline
+
+\rowcolor{granted}
+Program Leader & granted\\
+\hline
+
+\rowcolor{granted}
+Directorate & granted\\
+\hline
+
+\end{tabu}
+
+
+
+
+
+\end{document}

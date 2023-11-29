@@ -2,7 +2,7 @@ docker-compose.yml
 docker-compose.yaml
 deployment.yaml
 extracted_table_data
-*.csv
+# *.csv
 *.dump
 *.sql
 *.env

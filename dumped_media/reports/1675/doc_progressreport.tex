@@ -1,0 +1,314 @@
+
+\documentclass[version=last,
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames,
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} %
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{not reqiured}{RGB}{153,153,153}
+\definecolor{not requiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=Progress Report SP 1999-010 (FY 2015-2016)
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{
+    \node[#1] (#2){
+        \parbox{#3\relax}{
+            \begin{center}
+            \textbf{#4}\\
+            #5\\
+            \footnotesize{#6}
+            \end{center}}};}
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1675/}{Progress Report SP 1999-010
+}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Mon, 4 Jul 2016 16:31:51 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report SP 1999-010
+}
+\title{Seed biology, seedbank dynamics and collection and storage of seed of
+rare and threatened Western Australian taxa
+}
+\subtitle{Plant Science and Herbarium
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Anne Cochrane
+\\
+\textbf{Data Custodian} & Anne Cochrane
+\\
+\textbf{Site Custodian} & Anne Cochrane
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of July 4, 2016, 4:31 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of July 4, 2016, 4:31 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Seed biology, seedbank dynamics and collection and storage of seed of
+rare and threatened Western Australian taxa
+}
+
+A Cochrane, A Crawford, A Monaghan, D Coates
+
+
+\section*{Context}
+Seed conservation is a specific and targeted action to conserve
+biodiversity and entails the banking of genetic material in the form of
+seed. Seed banking provides an important opportunity for assessing and
+utilising genetic material for \emph{in situ} recovery actions, and for
+seed research. Understanding the seed biology and ecology of plant
+species is important for the conservation and management of
+conservation-significant Western Australian taxa and for developing and
+implementing recovery plans for rare and threatened flora.
+
+
+
+\section*{Aims}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Provide a cost effective and efficient interim solution to the loss of
+  plant genetic diversity by collecting and storing seed of rare and
+  threatened Western Australian plant species, and thereby provide a
+  focus for flora recovery.
+\item
+  Increase knowledge of seed biology, ecology and longevity.
+\item
+  Incorporate all information into a corporate database (WASEED) and
+  provide relevant information on seed availability, seed biology,
+  storage requirements and viability of seed of rare and threatened taxa
+  to assist the development of management prescriptions and preparation
+  of interim recovery plans and translocation plans.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  A total of 202 seed collections representing 107 species were
+  accessioned into the Threatened Flora Seed Centre in the past year, of
+  which 46 collections (29 species) were Critically Endangered.
+\item
+  283 accessions representing 216 Declared Rare Flora (DRF) collections
+  (80 species), 31 Priority species and 36 common species were banked.
+\item
+  Duplicates of 40 collections were sent to Millennium Seed Bank Kew as
+  a risk management strategy.
+\item
+  353 accessions from the \emph{Banksia} Woodland Restoration Project in
+  the~Swan Region were stored, with 171 of stored collections being
+  removed for use in direct seeding.
+\item
+  66 germination tests conducted.
+\item
+  Provision of seedlings of six Critically Endangered species for
+  translocation.
+\item
+  The seed bank now contains collections of 330 Threatened flora, 704
+  Priority flora and 810 key restoration species.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Seed conservation supports the survival of species in the wild by
+  providing the genetic material for reintroduction; seed is provided
+  for translocations of rare species and for restoration of
+  \emph{Banksia} woodland.
+\item
+  Provision of seed biology and ecology data increases the success of
+  threatened flora recovery actions, particularly through knowledge of
+  how pre-treatments may~stimulate seed germination.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Ongoing collection of seed of threatened species for long-term
+  conservation and use in re-introductions.
+\item
+  Ongoing processing and storage of collection backlog.
+\item
+  Germination testing, storage and monitoring of existing collections.
+\item
+  Ongoing research into seed biology and seed storage behaviour of
+  threatened plant taxa.
+\item
+  Continued collaboration with other Australian seed banks through the
+  Australian Seed Bank Partnership and finalise funding from the
+  Australian Seed Bank Partnership.
+\item
+  Continue collaboration with the Millennium Seed Bank Project, Royal
+  Botanic Gardens, UK.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

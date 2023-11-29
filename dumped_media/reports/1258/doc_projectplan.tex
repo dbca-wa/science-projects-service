@@ -1,0 +1,750 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Project Plan SP 2014-004}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2014-004
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/projectplan/1258/}{Project Plan SP 2014-004}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Wed, 11 Dec 2019 15:07:25 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2014-004
+}
+\title{Improving the understanding of West Pilbara marine habitats and
+associated taxa: their connectivity and recovery potential following
+natural and human induced disturbance
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Richard Evans
+\\
+\textbf{Data Custodian} & Richard Evans
+\\
+\textbf{Site Custodian} & Richard Evans
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Dec. 11, 2019, 3:07 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Dec. 11, 2019, 3:07 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{not required}{ not required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Improving the understanding of West Pilbara marine habitats and
+associated taxa: their connectivity and recovery potential following
+natural and human induced disturbance
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Marine Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Richard Evans & 0.9\\
+
+Supervising Scientist & Shaun Wilson & 0.05\\
+
+Supervising Scientist & Margaret Byrne & 0.05\\
+
+Technical Officer & Ryan Douglas & 0.25\\
+
+Research Scientist & Rachel Binks & 0.2\\
+
+Technical Officer & Bronwyn Macdonald & 0.05\\
+
+Technical Officer & Kathy Murray & 0.01\\
+
+Technical Officer & Georgina Pitt & 0.01\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+
+
+
+\subsection*{Proposed period of the project}
+Jan. 7, 2014 -- None
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+Disturbance is part of evolutionary history for many organisms,
+particularly marine organisms. The amount of connectivity between marine
+populations has important implications for metapopulation resilience to
+natural and human disturbances\^{}1,2\^{}. High connectivity within
+marine metapopulations suggests resilience to localised impacts through
+the immigration of new recruits from nearby or distant populations.
+However, an increased frequency of disturbance cycles may disrupt the
+typical connectivity regimes, resulting in altered benthic and
+associated faunal community composition\^{}3-10\^{}. Extreme warming
+events in recent years with sea surface temperatures up to 5 °C above
+long-term averages on the west coast of Australia have shown that
+benthos and associated fauna are susceptible to thermal damage from
+abnormally warm sea water\^{}11-13\^{}. These effects may be further
+exacerbated by cyclonic activity\^{}11,14\^{} and human impacts,
+including pollution, fishing, coastal development and associated
+sedimentation through dredging\^{}15\^{}. While the scale of natural
+disturbance due to climate change is still debated, one can confidently
+say that anthropogenic pressures due to extraction of natural resources
+have increased significantly over the past decade in the relatively
+untouched marine environment in north-western Australia. Environmental
+managers require information on metapopulation resilience through
+connectivity in order to design and implement appropriate management
+regimes to maintain ecological processes in the face of increasing human
+pressure coupled with forecast increase in natural disturbance. Demersal
+marine species, organisms living on or near the seafloor, are
+particularly at risk from localised human or natural disturbance as they
+are unable to flee the pressure exerted upon them. Dispersal by most
+demersal species is typically achieved through a pelagic larval stage of
+varying duration, which has the potential to link nearby and distant
+populations\^{}16\^{}. An understanding of this larval dispersal process
+was elusive until recent advances in trace-elemental fingerprinting
+(investigating the presence of geographical differentiation of natural
+isotopes or manually added isotopes in ear bones of fish or gastropod
+shells)\^{}17-19\^{} and genetic studies using hypervariable
+markers\^{}16\^{}. These techniques have shown that 1) self-recruitment
+to the natal reef is common, 2) typical dispersal is within the range of
+tens of km, and 3) minimal dispersal events over 100's of km maintain
+the observed genetic homogeneity between distant marine metapopulations.
+These findings are supported by contemporary 3-dimensional oceanographic
+modelling where dispersal kernels estimate similar modal ranges with
+episodic long tails\^{}20,21\^{}. The majority of broadscale genetic
+studies, using a range of neutral markers, also reflect the open nature
+of the marine environment where low levels of genetic structure are
+attributed to few migration barriers\^{}22\^{}. However, significant
+genetic variation has still been found in populations ranging from
+oceanic scale\^{}23\^{} to tens of km\^{}24\^{}. Environmental
+heterogeneity also exerts selection pressure that varies in space and
+time and provides opportunity for local adaptation between
+populations\^{}25,26\^{}. Population genomics is the study of
+genome-wide variation at the population level, which is not a new
+concept, but has only recently become a widely-accessible and
+cost-effective tool for studying evolutionary processes relevant to
+conservation and ecological genetics. More traditional molecular markers
+used in population genetics, such as microsatellites, provide valuable
+data but only capture putatively neutral variation from a very small
+proportion of the genome\^{}27,28\^{}. An alternative, genome-wide
+marker involves single nucleotide polymorphisms (SNPs) and their
+greatest advantage over more traditional markers is twofold; 1) SNPs are
+highly abundant across the genome providing much greater resolution of
+evolutionary processes affecting population demography and phylogenetic
+history and 2) SNPs are not restricted to neutral regions, such that
+they can be used to detect effects of selection indicative of adaptive
+variation, which is of crucial importance in the face of changing
+climates and increased anthropogenic impacts to natural
+populations\^{}27\^{}. Recent advances in next-generation sequencing
+(NGS) have facilitated the rapid discovery and genotyping of thousands
+of SNPs scattered throughout the entire genome in a cost-effective
+manner\^{}28-30\^{}. Most importantly, these techniques can be applied
+without preliminary knowledge of the genome under study and are widely
+applicable across taxa\^{}28,31\^{}. The marine environment in the
+Pilbara region has received several extreme heating events and several
+cyclones in the past few years thus decreasing benthic organisms such as
+coral (up to 84\%)\^{}11\^{}. The shallow shelf reefs of the Onslow
+region had massive reduction from 50-5\% coral cover (Chevron
+unpublished data). Recently, Gilmour et al\^{}54\^{} showed that remote
+atolls with deep refuges recovered within 12 years of a major coral
+bleaching event at Scott Reef. With few deep water refuges in the Onslow
+region, recovery potential of these reefs is dependent on the few
+remaining corals and dispersal from reefs to the west at Ningaloo and
+Muiron Islands and to the North at Barrow and the Montebello Islands. In
+addition to major coral loss due to heating, the Onslow region is
+currently under the influence of a four year dredging operation (Chevron
+Wheatstone project) which may impact on some of these coral reefs.
+Future natural and anthropogenic disturbance in this region may also
+undermine the recovery potential of these coral reefs. As such a study
+is required to a) determine the levels of genetic connectivity between
+locations in the Pilbara and investigate any genetic adaptation within
+the region to understand the ecological relevance of the connectivity,
+and b) understand the impact of recent natural stresses and conduct a
+demographic study of the recovery potential of reefs at a smaller scale
+within the Onslow region using in-situ coral settlement tiles to measure
+larval supply, in-situ recruit survival and growth, and growth and
+mortality of adults.
+
+
+
+
+\subsection*{Aims}
+
+
+
+
+
+
+\subsection*{Expected outcome}
+
+
+
+
+
+
+\subsection*{Knowledge transfer}
+
+
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+
+
+
+
+
+\subsection*{References}
+
+
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Data management}
+
+
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist &  &  & \\
+
+
+
+FTE Technical &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, OVertime &  &  & \\
+
+
+
+Overheads &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

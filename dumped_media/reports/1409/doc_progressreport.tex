@@ -1,0 +1,188 @@
+
+\documentclass[version=last, paper=a4, DIV=18, usenames, dvipsnames]{scrartcl}
+\usepackage{txfonts}
+\usepackage{pdflscape}
+\usepackage{pdfpages}
+\usepackage[english]{babel} % English language/hyphenation
+%%% Bootstrap colors
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage[colorlinks=true,pdftitle=doc\_progressreport.pdf
+,linktoc=all,linkcolor=RedFire,urlcolor=ParksWildlife]{hyperref}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{tabu}
+\setlength{\tabulinesep}{1.5mm}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{hyphenat}
+\renewcommand{\familydefault}{\sfdefault}
+
+
+
+\newcommand{\HRule}{\rule{\linewidth}{0.1pt}}
+
+\newcommand{\placetextbox}[3]{% \placetextbox{<horizontal pos>}{<vertical pos>}{<stuff>}
+  \setbox0=\hbox{#3}% Put <stuff> in a box
+  \AddToShipoutPictureFG*{% Add <stuff> to current page foreground
+    \put(\LenToUnit{#1\paperwidth},\LenToUnit{#2\paperheight}){\vtop{{\null}\makebox[0pt][c]{#3}}}%
+  }%
+}%
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and footers
+%
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \setlength\headheight{60pt} % push page content below header
+  \renewcommand{\headrulewidth}{0.1pt}
+  \renewcommand{\footrulewidth}{0.1pt}
+  
+  
+  \fancyhead[L]{ 
+    \href{http://sdis.dpaw.wa.gov.au}{
+    \includegraphics[scale=0.6]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}
+  }
+  \fancyhead[R]{ 
+      \hfill
+      \href{http://sdis.dpaw.wa.gov.au}{Science Directorate Information System} 
+      \newline 
+      \href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1409/}{Progress Report 2000-3 (FY 2014-2015)} 
+  }
+  
+  
+  
+  
+  \fancyfoot[L]{ \leftmark\newline\textbf{Printed}\textit{ June 30, 2015, 11:45 a.m. }}
+  \fancyfoot[R]{  \, \newline Page \thepage\ of \pageref{LastPage} }
+  
+  
+}
+\pagestyle{plain}
+%
+% end Headers
+%-----------------------------------------------------------------------------%
+
+\begin{document}
+
+%-----------------------------------------------------------------------------%
+% Title page
+%
+
+%
+% end title page
+%-----------------------------------------------------------------------------%
+
+
+
+
+\section*{Context Summary}
+This is a long-term experiment established in 1999 to address part of
+Ministerial Condition 12-3 attached to the \emph{Forest Management Plan
+1994-2003}. Ministerial Condition 12-3 states that the Department shall
+monitor and report on the status and effectiveness of silvicultural
+measures in the intermediate rainfall zone (900-1100 mm/yr) of the
+jarrah forest to protect water quality.
+
+
+
+\section*{Aims Summary}
+Investigate the hydrologic impacts of timber harvesting and associated
+silvicultural treatments in the intermediate rainfall zone of the jarrah
+forest.
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Monitoring of groundwater levels, streamflow, stream salinity and
+  stream turbidity continued in Yarragil 6C (treated catchment) and
+  Wuraming (control catchment).
+\item
+  Yarragil 4X (treated catchment) was not monitored during winter 2014
+  because the corroded mild-steel V-notch weir plate was being replaced
+  by a stainless steel weir plate.~
+\item
+  Monitoring of groundwater levels, streamflow, and stream salinity
+  continued in Yarragil 4L, which was thinned in the mid 1980s, to
+  examine the effect of thinning on stream water quality and quantity.
+\item
+  A paper reviewing the long-term hydrological response to thinning in
+  Yarragil 4L is in preparation.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  These catchments provide a unique long-term record of the hydrological
+  response of the jarrah forest to climate change and forest management
+  practices.
+\item
+  Monitoring in~these catchments contributes to reporting to KPI 10 for
+  the \emph{Forest Management Plan 2014-23} which relates to stream
+  condition and groundwater level within fully forested catchments.
+\item
+  Monitoring in these catchments helps inform understanding
+  of~silviculture for water production.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Continue monitoring of groundwater levels, streamflow, stream salinity
+  and turbidity and rainfall.
+\item
+  Re-measure forest density along fixed transects in Yarragil 4X and 6C
+  to determine the forest regeneration response to the timber harvest
+  and silvicultural treatments.
+\item
+  The mild-steel V-notch weir plate in Yarragil 4L is corroded and
+  should be replaced by a stainless steel plate to extend the
+  operational life of the weir for ongoing stream monitoring.
+\item
+  Re-measure tree growth in yarragil 4L to determine the long-term
+  hydrological response to thinning, and write a paper.
+\item
+  Examine the feasibility of a second thinning in Yarragil 4L, 35 years
+  after the previous thinning, with a view to informing silviculture for
+  water production.
+\end{itemize}
+
+
+
+
+\clearpage
+
+
+
+\end{document}

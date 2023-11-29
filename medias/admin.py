@@ -7,6 +7,7 @@ from .models import (
     ProjectPhoto,
     AgencyImage,
     ProjectDocumentPDF,
+    AECEndorsementPDF,
 )
 
 from django import forms
@@ -50,11 +51,24 @@ class ProjectDocumentPDFAdmin(admin.ModelAdmin):
     # ]
 
 
+@admin.register(AECEndorsementPDF)
+class AECEndorsementPDFAdmin(admin.ModelAdmin):
+    list_display = [
+        "endorsement",
+        "file",
+        "creator",
+    ]
+
+    # list_filter = [
+    #     "en",
+    # ]
+
+
 @admin.register(AnnualReportPDF)
 class AnnualReportPDFAdmin(admin.ModelAdmin):
     list_display = [
         "report",
-        "old_file",
+        # "old_file",
         "file",
         "creator",
     ]

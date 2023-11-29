@@ -27,6 +27,8 @@ whitenoise = {extras = ["brotli"], version = "^6.6.0"}
 gunicorn = "^21.2.0"
 pandas = "^2.1.1"
 pillow = "^10.1.0"
+sqlparse = "^0.4.4"
+chardet = "^5.2.0"
 
 
 [build-system]

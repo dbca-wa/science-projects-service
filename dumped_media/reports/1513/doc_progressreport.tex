@@ -1,0 +1,290 @@
+
+\documentclass[version=last, 
+    paper=a4, % paper size
+    10pt, % default font size
+    usenames,
+    dvipsnames, 
+    oneside, % ONLINE
+    headings=openany, % open chapters on odd and even pages
+    %toc=chapterentrywithdots, % Table of Contents style
+    %BCOR=7mm, % PRINT Binding Correction
+    %DIV=13, % typearea 161.54 mm x 228.46 mm, top margin 22.85 mm, inner margin 16.15 mm
+    %DIV=14, % 165.00 233.36 21.21 15.00
+    DIV=15 % 168.00 237.60 19.80 14.00
+]{scrbook}
+\usepackage{typearea}
+\usepackage[automark,headsepline,footsepline]{scrlayer-scrpage} % Headers and footers
+
+%%
+%% Fonts, encoding, spacing, indentation
+%%
+\usepackage{txfonts}
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Paragraph spacing
+%\usepackage{parskip}    % Paragraph spacing
+%\setlength{\parindent}{0em} % Don't indent paragraphs - ONLINE
+%\setlength{\parskip}{1.3 ex plus 0.5ex minus 0.3ex} % 1-1.8 ex vertical space between paragraphs - ONLINE
+
+% Spacing of headings
+%\RedeclareSectionCommand[afterskip=3pt]{section} % less space after section
+%\RedeclareSectionCommand[beforeskip=0cm]{subsection} % less space between HRule and project name
+%\RedeclareSectionCommand[afterskip=0.1\baselineskip]{subsubsection} % less space after progressreport subheadings
+
+% Table font size
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}
+
+%%
+%% Tables, columns, layout
+%%
+\usepackage{multicol}   % 2 col publications
+\usepackage{pdflscape}  % Landscape pages
+\usepackage{pdfpages}   % Include PDFs
+\usepackage{hanging}    % hanging paragraphs for publications
+%\usepackage{titletoc}   % Required for manipulating the table of contents
+\setcounter{tocdepth}{2} % TOC list down to section
+\usepackage{enumerate}  % Enumerations
+\usepackage{enumitem}   % Enumerations
+\usepackage{longtable}  % Multipage table
+\usepackage{tabu}       % 
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+
+%%
+%% Graphics, images, colours
+%%
+\usepackage{graphicx} % embedded images
+\usepackage{eso-pic} % 
+\usepackage{colortbl} % define custom named colours
+\definecolor{RedFire}{RGB}{146,25,28}
+\definecolor{ParksWildlife}{RGB}{0,85,144}
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+\definecolor{required}{HTML}{D9534F}
+\definecolor{denied}{HTML}{D9534F}
+\definecolor{granted}{HTML}{47A447}
+\definecolor{not required}{RGB}{200, 200, 200}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+%%
+%% Links, URLs
+%%
+\usepackage[
+    linktoc=all,
+    %colorlinks=false,  %PRINT
+    colorlinks=true, % ONLINE
+    linkcolor=RedFire, % ONLINE
+    urlcolor=ParksWildlife, % ONLINE
+    pdftitle=doc\_progressreport.pdf
+]{hyperref}
+
+% Black magic to linebreak URLs
+\usepackage{url}
+\makeatletter
+\g@addto@macro{\UrlBreaks}{\UrlOrds}
+\makeatother
+
+%%
+%% Custom macros
+%%
+% Thick Horizontal rule
+\newcommand{\HRule}{\vspace{8mm}\\\noindent\rule{\linewidth}{0.1pt}}
+
+% Custom Tikz node for SDS diagram
+\newcommand\mynode[6][]{\node[#1] (#2){\parbox{#3\relax}{\begin{center}\textbf{#4}\\#5\\\footnotesize{#6}\end{center}}};}
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Headers and Footers
+\automark{section}
+\ohead{\href{http://sdis.dpaw.wa.gov.au/documents/progressreport/1513/}{Progress Report 2015-17 (FY 2014-2015)}}
+\chead{\href{http://sdis.dpaw.wa.gov.au}{SDIS}} % center header ONLINE
+\ihead{\href{http://sdis.dpaw.wa.gov.au}{
+        \includegraphics[scale=0.4]{/mnt/projects/sdis/staticfiles/img/logo-dpaw.png}}}
+\ifoot{\textbf{Printed}~Thu, 21 Jan 2016 10:05:51 +0800} % inner/left footer
+\cfoot{} % center footer
+\ofoot{\pagemark} % outer/right footer
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Progress Report 2015-17 (FY 2014-2015)}
+\title{Science project 2015-17 Responses of aquatic invertebrate communities to
+changing hydrology and water quality in streams and significant wetlands
+of the south-west forests of Western Australia.
+}
+\subtitle{Wetland Conservation
+}
+\author{}
+\publishers{
+\subsection*{Endorsements and approvals as of Jan. 21, 2016, 10:05 a.m.}
+\begin{tabu} {X X}
+\hline
+
+\rowcolor{granted}
+Project Team & granted\\
+\hline
+
+\rowcolor{granted}
+Program Leader & granted\\
+\hline
+
+\rowcolor{required}
+Directorate & required\\
+\hline
+
+\end{tabu}
+
+}
+    \uppertitleback{}
+\lowertitleback{\begin{center}\textbf{Printed}~Thu, 21 Jan 2016 10:05:51 +0800\end{center}}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+\section*{Science project 2015-17 Responses of aquatic invertebrate communities to
+changing hydrology and water quality in streams and significant wetlands
+of the south-west forests of Western Australia.
+}
+
+\section*{Context}
+Aquatic habitats in the south-west of WA are under increasing threat
+from changes in hydrology, water quality and fire as a result of the
+drying climate and historical and current land use. The south west of
+Western Australia has had a significant reduction in rainfall since the
+1970s and~it is predicted that by 2050 there will be little stream
+inflow into water supply dams. At present, there is an inadequate
+understanding of the responses of aquatic communities to these threats
+to inform the management of many aquatic systems in the Forest
+Management Plan (FMP) area, including the Muir-Byenup Ramsar wetlands.~
+
+This project has two components: 1) Re-surveys of aquatic invertebrates
+in Muir-Byenup Ramsar wetlands sampled in 1994 and 2004 and suites of
+wetlands further south sampled in 1993 addressing KPI3 of the 2014-23
+FMP and, 2) Continued monitoring of high condition streams, with a focus
+on effects of the drying climate and forest management, addressing KPI1
+of the 2014-23 FMP.
+
+~
+
+
+
+\section*{Aims}
+\begin{itemize}
+\item
+  To address KPI1 of the 2014-2023 FMP by monitoring the condition of
+  currently healthy streams in relation to reduced rainfall and forest
+  management practices.
+\item
+  To address KPI3 of the 2014-2023 FMP by determining responses of
+  faunas of high value Warren region wetlands to changes in hydrology,
+  water chemistry and fire over the last 10 to 20 years.
+\item
+  Provide baseline data for some internationally significant wetlands,
+  e.g. Lake Muir.
+\item
+  Use the above information to report on the current conservation
+  significance of key DPaW managed wetlands and their response and
+  vulnerability to threats.
+\end{itemize}
+
+
+
+\section*{Progress}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  A journal article is being prepared in collaboration with scientists
+  from CSIRO in Canberra: ``Whole of landscape modelling of
+  compositional turnover in aquatic macro-invertebrates informs
+  conservation gap analysis: an example from south-west Western
+  Australia.''
+\item
+  Conducted spring 2014 and summer 2015 sampling of aquatic
+  invertebrates in Muir-Byenup Ramsar wetlands.
+\item
+  Commenced processing Muir-Byenup invertebrate samples.
+\end{itemize}
+
+
+
+\section*{Management implications}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Re-surveying the Muir-Byenup Ramsar~and other high value wetlands will
+  provide the region with knowledge of how these wetlands have responded
+  to threats over the last 20 years. This, in conjunction with results
+  from the peat wetlands project (SPP2014-24), will help the Warren
+  Region to make decisions about protecting remaining high conservation
+  value wetlands versus taking remedial action at those where condition
+  is declining.
+\item
+  Forest Management Plan commitments will be met with regard to
+  measuring and assessing change in condition of 1) currently healthy
+  (reference condition) stream ecosystems (KPI1) and 2) Ramsar and
+  nationally listed wetlands (KPI3). Results of these will inform future
+  forest management practices.
+\end{itemize}
+
+
+
+\section*{Future directions}
+\begin{itemize}
+\itemsep1pt\parskip0pt\parsep0pt
+\item
+  Identify Muir-Byenup invertebrates collected~in 2014/2015.
+\item
+  Publish report with summaries of 10 year trends (2005 to 2015) for all
+  stream monitoring sites.
+\item
+  Re-sample streams in 2016, with a focus on those considered to be in
+  reference condition or in minimally disturbed catchments, to provide
+  long-term data on the response of aquatic invertebrate communities to
+  declining rainfall and forest management.
+\item
+  Continue to up date fire and logging history for catchment areas.
+\item
+  Publish further papers examining impacts of declining rainfall and
+  forest management practices on macroinvertebrate diversity in forest
+  streams.
+\item
+  Re-survey nationally important Warren Region wetlands previously
+  sampled by Horwtiz in 1997 (e.g. Owingup, Lake Jasper, Doggerup,
+  Marringup, Mt.Soho Swamp) and identified as priorities in the Warren
+  Region Nature Conservation Plan.
+\end{itemize}
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
+

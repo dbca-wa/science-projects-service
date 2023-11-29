@@ -1,0 +1,978 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Project Plan SP 2016-015}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2016-015
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/projectplan/1776/}{Project Plan SP 2016-015}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Tue, 16 Jun 2020 09:56:53 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2016-015
+}
+\title{Is restoration working? An ecological genetic assessment
+}
+\subtitle{Plant Science and Herbarium
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Dave Coates
+\\
+\textbf{Data Custodian} & Melissa Millar
+\\
+\textbf{Site Custodian} & 
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of June 16, 2020, 9:56 a.m.}
+\begin{tabu} {X X}
+& Update requested
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of June 16, 2020, 9:56 a.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{not required}{ not required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Is restoration working? An ecological genetic assessment
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Plant Science and Herbarium
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 7: Research and Conservation Partnerships
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Dave Coates & 0.1\\
+
+Supervising Scientist & Margaret Byrne & 0.1\\
+
+Research Scientist & Melissa Millar & 0.9\\
+
+Research Scientist & Siegfried Krauss & 0.0\\
+
+Research Scientist & Janet Anthony & 0.0\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+
+
+
+\subsection*{Proposed period of the project}
+June 1, 2016 -- July 1, 2019
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+Although a young field, the science of restoration ecology is rapidly
+growing and being incorporated into natural resource recovery and
+management strategies at a range of scales worldwide {[}1{]}. These
+restoration activities represent significant investment with a global
+market estimated at \$100 trillion annually {[}2{]}. The recognition of
+poorly defined success criteria and a lack of long term monitoring have
+highlighted the need for the development of post implementation
+empirical evaluations of the quality of ecological restoration
+activities {[}3, 4{]}. Most recently, the field has focused attention on
+the joint roles that ecological and genetic processes play in ensuring
+plant populations are self-sustaining, functional and possess the
+adaptive evolutionary potential that provides resilience to changing
+environments and persistence in both the short and long term {[}5-8{]}.
+Recognition of how traits affecting reproductive functionality including
+flowering, fruiting, seed production and seed viability, along with
+pollinator services, plant mating systems, and patterns of pollen
+mediated gene dispersal work in concert to shape population demography
+and levels of genetic diversity is now widespread {[}9, 10{]}. This
+recognition has led to the hypothesis that the most ecologically and
+genetically viable restored populations will be those where reproductive
+outputs, plant pollinator interactions, levels of genetic diversity,
+mating systems and patterns of pollen dispersal most closely mimic those
+found in natural or undisturbed remnant vegetation. These populations
+may be more likely to persist in the long term and contribute to
+effective ecosystem function through integration into the broader
+landscape. The recent development of theory pertaining to biodiversity
+on old, climatically buffered, infertile landscapes (OCBILs) adds an
+extra series of predictions that may yield a more refined understanding
+of how plant populations function and evolve in OCBILS compared to those
+on young, often disturbed more fertile landscapes (YODFELs). This body
+of theory has novel implications for the conduct and outcomes of
+restoration ecology {[}11{]} yet to be tested in large scale restoration
+programs.
+
+Gondwana Link Ltd are leading an ambitious conservation and restoration
+initiative that aims to restore native vegetation, providing habitat
+connectivity and integrated ecosystem function at a regional scale
+{[}12{]}. The project is the largest environmental restoration project
+ever tackled in Australia and operates across the south west of Western
+Australia from the wet forests in the west to the dry woodland systems
+bordering the Nullarbor Plain to the east. There are a number of focus
+sites within this greater landscape and early restoration activities
+have been conducted within the `Fitz-Stirlings'; a 70 km section of
+fragmented mallee and woodland remnant vegetation located between the
+Fitzgerald River National Park and the Stirling Range National Park
+{[}13{]}. Three restoration sites within the Fitz-Stirlings provide
+ideal experimental locations at which to assess the success of current,
+state of the art, restoration activities in terms of ecological and
+genetic viability.
+
+\textbf{\emph{This project aims to}} improve the adaptive management of
+already established restoration sites and the planning of future
+restoration activities by addressing a significant knowledge gap in the
+field of restoration ecology; that of how well ecological and genetic
+viability of restored plant populations is secured with different
+establishment regimes. Additionally, we envisage the Gondwana Link sites
+allowing us to assess the significance of considering landscape age and
+fertility (OCBIL theory) in restoration plantings. The project will be
+conducted at Gondwana Link restoration sites located within the
+Fitz-Stirling region of Western Australia. However, the outcomes will be
+of relevance to and will inform broader restoration initiatives in many
+other landscapes within Australia.
+
+
+
+
+\subsection*{Aims}
+
+Specifically, the project aims to assess restoration success through a
+comparison of ecological (reproductive output, pollinator diversity and
+behaviour) and genetic (genetic diversity, mating system, pollen
+dispersal) function within restored populations in relation to that
+within positive target references of the surrounding undisturbed remnant
+vegetation.
+
+The project envisages achieving these goals by obtaining measures of~
+genetic diversity and mating system parameters for six target species,
+present at up to three restoration sites established with differing seed
+and seedling establishment regimes, for differing lengths of time and
+with different degrees of consideration of landscape age and fertility.
+These measures will be compared with populations of the same target
+species in surrounding undisturbed, remnant native vegetation that will
+act as positive target reference sites. For two proteaceous species more
+intensive genotyping of individuals and progeny arrays will allow
+detailed assessment of pollen dispersal.
+
+\hypertarget{objective-1-evaluate-levels-of-genetic-diversity}{%
+\subsubsection{Objective 1: Evaluate levels of genetic
+diversity}\label{objective-1-evaluate-levels-of-genetic-diversity}}
+
+For each of the six target species, at each of the restoration sites at
+which they occur and in three remnant reference sites, 20 individuals
+will be sampled. This will include the 10 mother plants utilised in
+Objective 4. DNA will be extracted from all samples and all individuals
+will be assessed for genetic variation at 12 SSR markers developed for
+these species.
+
+\hypertarget{objective-2-evaluate-mating-system-parameters}{%
+\subsubsection{Objective 2: Evaluate mating system
+parameters}\label{objective-2-evaluate-mating-system-parameters}}
+
+For each of the six target species, at each of the restoration sites at
+which they occur and in three remnant reference sites, 10 individual
+mother plants will be chosen and sampled and seed collected from each.
+DNA will be extracted from all samples and all mother plants will be
+genotyped at 6 SSR loci. 20 progeny from each mother plant will be
+genotyped. Mother and progeny data sets will be analysed.
+
+\hypertarget{objective-3-evaluate-patterns-of-pollen-mediated-gene-dispersal-in-proteaceous-nodes}{%
+\subsubsection{Objective 3: Evaluate patterns of pollen mediated gene
+dispersal in Proteaceous
+nodes}\label{objective-3-evaluate-patterns-of-pollen-mediated-gene-dispersal-in-proteaceous-nodes}}
+
+For each of two Proteaceous target species~ a number of clumps of plants
+will be selected and all individuals within that clump will be sampled
+as potential father plants (these will be inclusive of some individuals
+sampled for Objective 1). Up to 200 progeny per species will be
+collected from sampled mother plants. DNA will be extracted from all
+samples and potential fathers and progeny genotyped with 12 SSR loci.
+The spatial position of all mother and potential father individuals will
+be recorded via GPS. Paternity of all progeny with known mothers will be
+analysed.
+
+
+
+
+\subsection*{Expected outcome}
+
+This project is significant in addressing a central problem for large
+scale restoration activities; that of assessing the capability of
+restoration populations to maintain ecological and genetic processes
+that mimic those of natural remnant vegetation. This is essential for
+maximising population demographic and genetic health and for the long
+term resilience, persistence and integration of restored populations in
+the broader landscape. However, there is a large degree of uncertainty
+as to the long term effectiveness of restoration programs {[}1, 3{]}.
+The outcomes of this project will provide practical recommendations on
+how the ecological and genetic viability of restored populations may be
+affected by different establishment regimes. The outcomes will provide a
+strong basis for cost effective investment of resources in achieving
+successful restoration through adaptive management of restored sites and
+for future restoration activities. The project is innovative in
+employing an integrated evolutionary approach to the field of
+restoration ecology, contributing to newly emergent theoretical
+guidelines for the assessment of restoration success as well as in
+couching research in the broad theoretical context of OCBIL theory which
+may prove to have important implications for the conduct and outcomes of
+restoration ecology in the Australian landscape.Research outcomes will
+identify strategies to develop resilient natural woodland ecosystems
+that can thrive in environments that are already altered and likely to
+experience significant ongoing changes.~
+
+
+
+
+\subsection*{Knowledge transfer}
+
+This project will involve collaboration between The University of
+Western Australia (UWA), particularly The Centre for Excellence in
+Natural Resource Management (CENRM), Albany, the Botanic Gardens and
+Parks Authority (BGPA), Perth, and DPAW. The management team have a
+strong publication record and publish widely in international peer
+reviewed journals spanning the fields of ecology, population genetics,
+restoration ecology, evolutionary biology, molecular ecology and
+conservation biology. Results of this project will be communicated via
+publications in peer-reviewed academic journals. Key objectives of the
+project will be achieved with synthesis of results in a final report
+that will be distributed to community groups and industry involved in
+ecological restoration. A public seminar and workshop will cement this
+communication strategy.~
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+\textbf{Task}
+
+\textbf{Year 1}
+
+\textbf{Year 2}
+
+\textbf{Year 3}
+
+Field sampling for genetic diversity and mating system
+
+~+
+
++
+
+~
+
+~
+
+~
+
+~
+
+Field sampling for pollen dispersal
+
+~
+
+~
+
++
+
+~
+
+~
+
+~
+
+Microsatellite genotyping
+
+~
+
+~+
+
++
+
++
+
+~
+
+~
+
+Data analysis
+
+~
+
+~+
+
++
+
++
+
++
+
+~
+
+Identification of factors in restoration success
+
+~
+
+~
+
+~+
+
++
+
++
+
+~
+
+Preparation of reports, peer reviewed manuscripts.
+
+~
+
+~
+
+~
+
+~
+
+~+
+
++
+
+
+
+
+\subsection*{References}
+
+1. Wortley, L, J Hero \& M Howes, Restoration Ecology, 2013. 21(5): p.
+537-543.
+
+2. Cunningham, S. 2008: McGraw Hill.
+
+3. Suding, K, Annual Review of Ecology, Evolution and Systematics, 2011.
+42: p. 465-487.
+
+4. Miller, J \& R Hobbs, Restoration Ecology, 2007. 15: p. 382-390.
+
+5. Monks, L, DJ Coates, T Bell, et al., J. Macschinski and K. Haskins,
+Editors. 2012, Island press: Washinton.
+
+6. SERI,~ 2 ed. 2005, Washington, D.C.: Society for Ecological
+Restoration.
+
+7. McKay, JK, CE Christian, S Harrison, et al., Restoration Ecology,
+2005. 13(3): p. 432-440.
+
+8. Broadhurst, L, A Lowe, DJ Coates, et al., Evolutionary Applications,
+2008. 1: p. 587-597.
+
+9. Kettenring, K, K Mercer, C Reinhart Adams, et al., Journal of Applied
+Ecology, 2014. 51: p. 339-348.
+
+10. Hufford, KM \& SJ Mazer, Trends in Ecology \& Evolution, 2003.
+18(3): p. 147-155.
+
+11. Hopper, SD, Plant and Soil, 2009. 322(1-2): p. 49-86.
+
+12. Bradby, K, J. Fitzsimons, I. Pulsford, and G. Wescott, Editors.
+2013, CSIRO Publishing: Melbourne, Vic. p. 25-35.
+
+13. Jonson, J, Ecological Management and Restoration, 2010. 11(1): p.
+16-26.
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+\hypertarget{objective-1-evaluate-levels-of-genetic-diversity}{%
+\subsubsection{Objective 1: Evaluate levels of genetic
+diversity}\label{objective-1-evaluate-levels-of-genetic-diversity}}
+
+For each of the six target species, at each of the restoration sites at
+which they occur and in three remnant reference sites, 20 individuals
+will be sampled. This will include the 10 mother plants utilised in
+Objective 4. DNA will be extracted from all samples and all individuals
+will be assessed for variation at 12 SSR markers developed for these
+species using the microsatellite enriched next generation sequencing
+services of the Australian Genome Research Facility (AGRF), Adelaide.
+Genotyping will be conducted using the services of Murdoch University,
+Perth. Screening and analysis will involve commonly used software
+Genemapper (Applied Biosystems), GenALEex {[}42{]} and Genepop {[}43{]}.
+Genetic diversity parameters including the number of alleles, the number
+of private alleles, the mean number of alleles per locus (\emph{A}), the
+number of effective alleles (\emph{N}\textsubscript{e}), the proportion
+of polymorphic loci (\emph{P}), expected heterozygosity
+(\emph{H}\textsubscript{e}), observed (\emph{H}\textsubscript{o})
+heterozygosity and the fixation index (F) will be assessed for each
+sampled `population' within sites using the GenAlEx program.
+
+\hypertarget{objective-2-evaluate-mating-system-parameters}{%
+\subsubsection{Objective 2: Evaluate mating system
+parameters}\label{objective-2-evaluate-mating-system-parameters}}
+
+For each of the six target species, at each of the restoration sites at
+which they occur and in three remnant reference sites, 10 individual
+mother plants will be chosen and sampled and seed collected from each.
+DNA will be extracted from all samples and all mother plants will be
+genotyped at 6 SSR loci. 20 progeny from each mother plant will be
+genotyped. Mother and progeny data sets will be analysed using the MLTR
+{[}44{]} software in order to obtain estimates of mating system
+parameters including, the multilocus outcrossing rate
+(t\textsubscript{m}), single locus outcrossing rate
+(t\textsubscript{s}), the apparent level of selfing due to biparental
+inbreeding (t\textsubscript{m} - t\textsubscript{s}), the correlation of
+selfing among maternal plants (\emph{r}\textsubscript{s}) and the multi
+locus correlated paternity (\emph{r}p\textsubscript{m}).
+
+\hypertarget{objective-3-evaluate-patterns-of-pollen-mediated-gene-dispersal-in-proteaceous-nodes}{%
+\subsubsection{Objective 3: Evaluate patterns of pollen mediated gene
+dispersal in Proteaceous
+nodes}\label{objective-3-evaluate-patterns-of-pollen-mediated-gene-dispersal-in-proteaceous-nodes}}
+
+For each of the two Proteaceous target species, a number of clumps of
+plants will be selected and all individuals within that clump will be
+sampled as potential father plants (these will be inclusive of some
+individuals sampled for Objective 1). Up to 200 progeny per species will
+be collected from sampled mother plants. DNA will be extracted from all
+samples and potential fathers and progeny genotyped with 12 SSR loci.
+The spatial position of all mother and potential father individuals will
+be recorded via GPS. Paternity of all progeny with known mothers will be
+analysed using the NEWPATXL {[}45{]} and the CERVUS {[}46{]} software.
+Paternity of progeny will be assigned and the spatial distances of
+pollen dispersal for a given progeny calculated as that between the
+known mother and the most likely potential father.
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+Six.
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+granted
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Data management}
+
+Raw data sets including microsatellite DNA genotyping data sets will be
+deposited at publicly available archiving sites such as the Dryad
+Digital Repository and UWA Research Data Online.
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist &  &  & \\
+
+
+
+FTE Technical &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime & 135 489 & 152 272 & 103 214\\
+
+
+
+Overheads &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle & 15600 & 5 200 & 5 200\\
+
+
+
+Travel & 4 000 & 7 200 & \\
+
+
+
+Other & 112 730 & 2000 & \\
+
+
+
+Total & 265 319 & 152 272 & 103 214\\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%

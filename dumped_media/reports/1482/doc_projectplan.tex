@@ -1,0 +1,1176 @@
+
+\documentclass[version=last,
+    paper=a4,                               % paper size
+    10pt,                                   % default font size
+    dvipsnames,
+    % twoside,                                % PRINT Binding Correction
+    oneside,                              % ONLINE
+    headings=openany,                       % open chapters on odd and even pages
+    open=any,
+    BCOR=7mm,                               % PRINT Binding Correction
+    %DIV=13,    % typearea 161.54mm x 228.46mm, top 22.85mm, inner 16.15mm
+    %DIV=14,    % 165.00 233.36 21.21 15.00
+    DIV=15,     % 168.00 237.60 19.80 14.00
+    % toc=chapterentrywithdots              % Table of Contents style
+]{scrbook}
+\usepackage{typearea}
+
+
+%------------------------------------------------------------------------------%
+% Headers and footers
+%------------------------------------------------------------------------------%
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+% \ihead{\href{http://sdis.dbca.wa.gov.au}{\textbf{Project Plan SP 2014-021}}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+% \ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+% \includegraphics[height=8mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+
+% Footer (inner, center, outer)
+% \ifoot{\RaggedRight\leftmark}                       % Chapter
+% \cfoot{\RaggedLeft\rightmark}                       % Section
+% \ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+%------------------------------------------------------------------------------%
+% Fonts, encoding
+%------------------------------------------------------------------------------%
+%\usepackage{avant}             % Use the Avantgarde font for headings
+\usepackage{txfonts}
+\usepackage{mathptmx}
+\usepackage{gensymb}            % provides \textdegree
+\renewcommand{\familydefault}{\sfdefault} % Default to Sans Serif font
+\usepackage{microtype}          % Slightly tweak font spacing for aesthetics
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}  % Allow letters with accents
+\usepackage[utf8]{luainputenc}  % Allow letters with accents
+\usepackage[T1]{fontenc}        % Use 8-bit encoding that has 256 glyphs
+\usepackage{textcomp}
+\usepackage[explicit]{titlesec}           % Customise of titles
+%\DeclareUnicodeCharacter{0080}{\textregistered}
+\DeclareUnicodeCharacter{00B0}{\textdegree}
+
+%------------------------------------------------------------------------------%
+% Tables, columns, layout
+%------------------------------------------------------------------------------%
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtabu}{\footnotesize}{}{}  % Table font size
+\usepackage{booktabs}           % Required for nicer horizontal rules in tables
+\usepackage{multicol}           % 2 col publications
+\usepackage{pdflscape}          % Landscape pages
+\usepackage{pdfpages}           % Include PDFs
+\usepackage{hanging}            % hanging paragraphs for publications
+%\usepackage{titletoc}          % Manipulate the table of contents
+\setcounter{tocdepth}{2}        % TOC list down to section
+\usepackage{enumerate}          % Enumerations
+\usepackage{enumitem}           % Enumerations
+\usepackage{longtable}          % Multipage table
+\usepackage{tabu}               %
+\setlength{\tabulinesep}{1.5mm} % Consistent vertical spacing in tabu
+\newcommand{\HRule}{\vspace{8mm}\noindent\rule{\linewidth}{0.1pt}}
+\usepackage[export]{adjustbox}  % minipage, image frame
+
+
+%------------------------------------------------------------------------------%
+% Graphics, images, colours
+%------------------------------------------------------------------------------%
+\usepackage{graphicx} % embedded images
+\usepackage{wrapfig}  % wrap figures in text
+\usepackage{caption}  % allow unnumbered captions
+\usepackage{eso-pic} % Required for specifying an image background in the title page
+\usepackage{colortbl} % define custom named colours
+\usepackage{xstring} % Conditionals
+\usepackage{transparent} % Allow transparent images
+
+\definecolor{RedFire}{RGB}{146,25,28}
+% Following PICA branding guidelines
+% https://dpaw.sharepoint.com/Divisions/pica/Documents/Branding%20guidelines.pdf
+\definecolor{dpawblue}{RGB}{35,97,146}          % Pantone 647
+\definecolor{dpaworange}{RGB}{237,139,0}        % Pantone 144
+\definecolor{dpawgreen}{RGB}{116,170,80}        % Pantone 7489
+\definecolor{dpawred}{RGB}{124,46,44}           % Paul's suggestion
+
+% bootstrap colours
+\definecolor{successbg}{RGB}{223,240,216}
+\definecolor{errorbg}{RGB}{242,222,222}
+\definecolor{warningbg}{RGB}{252,248,227}
+\definecolor{infobg}{RGB}{217,237,247}
+\definecolor{muted}{RGB}{153,153,153}
+\definecolor{success}{RGB}{70,136,71}
+\definecolor{error}{RGB}{185,74,72}
+\definecolor{warning}{RGB}{192,152,83}
+\definecolor{info}{RGB}{58,135,173}
+
+% SDIS approval colours
+\definecolor{required}{RGB}{192,152,83}
+\definecolor{requiredbg}{RGB}{252,248,227}
+\definecolor{denied}{RGB}{185,74,72}
+\definecolor{deniedbg}{RGB}{242,222,222}
+\definecolor{granted}{RGB}{70,136,71}
+\definecolor{grantedbg}{RGB}{223,240,216}
+\definecolor{notrequired}{RGB}{153,153,153}
+\definecolor{notrequiredbg}{RGB}{255,255,255}
+
+\usepackage{tikz} % Drawing
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees}
+
+
+%------------------------------------------------------------------------------%
+% Hyperlinks
+%------------------------------------------------------------------------------%
+\usepackage[open=true]{bookmark}
+\usepackage{nameref}
+\usepackage{ifxetex,ifluatex}
+\ifxetex
+  \usepackage[
+    setpagesize=false,        % page size defined by xetex
+    unicode=false,            % unicode breaks when used with xetex
+    xetex]{hyperref}
+\else
+  \usepackage[unicode=true]{hyperref}
+\fi
+
+\hypersetup{
+  backref=true,
+  pagebackref=true,
+  hyperindex=true,
+  breaklinks=true,
+  urlcolor=dpawblue,
+  bookmarks=true,
+  bookmarksopen=false,
+  pdfauthor={Biodiversity and Conservation Science, Department of Biodiversity, Conservation and Attractions, WA},
+  pdftitle=Project Plan SP 2014-021
+,
+  colorlinks=true,
+  linkcolor=dpawblue,
+  pdfborder={0 0 0}}
+
+\urlstyle{same}                         % don't use monospace font for urlstyle
+
+
+%------------------------------------------------------------------------------%
+% Black magic to linebreak URLs
+%------------------------------------------------------------------------------%
+\usepackage{url}
+\makeatletter\g@addto@macro{\UrlBreaks}{\UrlOrds}\makeatother
+\Urlmuskip=0mu plus 1mu
+
+
+%------------------------------------------------------------------------------%
+% Fix latex errors
+%------------------------------------------------------------------------------%
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% copy-pasted HTML <span> in SDIS fields becomes \text{} in tex source
+\providecommand{\text}{}
+
+
+%------------------------------------------------------------------------------%
+% Custom Tikz node for SDS diagram
+%------------------------------------------------------------------------------%
+\newcommand\mynode[6][]{
+  \node[#1] (#2){
+    \parbox{#3\relax}{
+      \begin{center}
+      \textbf{#4}\\
+      #5\\
+      \footnotesize{#6}
+      \end{center}
+    }};}
+
+
+%------------------------------------------------------------------------------%
+% Custom no-pagebreaks-environment
+%------------------------------------------------------------------------------%
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg\vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup\prevdepth=\tpd}
+
+
+%------------------------------------------------------------------------------%
+% Remove the header from odd empty pages at the end of chapters
+%------------------------------------------------------------------------------%
+\makeatletter
+\renewcommand{\cleardoublepage}{
+\clearpage\ifodd\c@page\else
+\hbox{}
+\vspace*{\fill}
+\thispagestyle{empty}
+\newpage
+\fi}
+
+
+%----------------------------------------------------------------------------------------
+%  Page flow control
+%----------------------------------------------------------------------------------------
+%\widowpenalty=10000
+%\clubpenalty=10000
+%\vbadness=1200
+%\hbadness=11000
+
+
+%----------------------------------------------------------------------------------------
+%   CHAPTER HEADINGS
+%----------------------------------------------------------------------------------------
+\newcommand{\thechapterimage}{}
+\newcommand{\chapterimage}[1]{\renewcommand{\thechapterimage}{#1}}
+
+% Numbered chapters with mini tableofcontents
+\def\thechapter{\arabic{chapter}}
+\def\@makechapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\startcontents
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+\includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+%------------------------------------------------------------------------------%
+% Small contents box in the chapter heading
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm, % Mini TOC box width
+%  -3.5cm % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1}                   % Mini TOC level depth
+%    }
+% }
+%};
+%------------------------------------------------------------------------------%
+% Chapter heading
+\draw[anchor=west] (5cm,-9cm) node [
+rounded corners=20pt,
+fill=dpawblue!10!white,
+text opacity=1,
+draw=dpawblue,
+draw opacity=1,
+line width=1.5pt,
+fill opacity=.2,
+inner sep=12pt]{
+    \huge\sffamily\bfseries\textcolor{black}{
+      \thechapter. #1\strut\makebox[22cm]{}
+    }
+};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}                            % Push text below chapter image
+\fi
+\fi}
+
+%------------------------------------------------------------------------------%
+% Unnumbered chapters without mini tableofcontents
+%------------------------------------------------------------------------------%
+\def\@makeschapterhead#1{
+%\thispagestyle{plain}
+{\centering \normalfont\sffamily
+\ifnum \c@secnumdepth >\m@ne
+\if@mainmatter
+\begin{tikzpicture}[remember picture,overlay]
+\node at (current page.north west)
+{\begin{tikzpicture}[remember picture,overlay]
+\node[anchor=north west,inner sep=0pt] at (0,0) {
+  \includegraphics[width=\paperwidth,height=0.5\paperwidth]{\thechapterimage}};
+% Mini TOC background box
+%\fill[color=dpawblue!10!white,opacity=.2] (1cm,0) rectangle (
+%  3.5cm,                                       % Mini TOC box width
+%  -3.5cm                                       % Mini TOC box height
+%);
+% Mini TOC text content
+%\node[anchor=north west] at (1.1cm,.35cm) {
+%  \parbox[t][8cm][t]{6.5cm}{
+%    \huge\bfseries\flushleft
+%    \printcontents{l}{1}{
+%    \setcounter{tocdepth}{1} % Mini TOC level depth
+%    }
+%}
+%};
+\draw[anchor=west] (5cm,-9cm) node [rounded corners=20pt,
+  fill=dpawblue!10!white,fill opacity=.6,inner sep=12pt,text opacity=1,
+  draw=dpawblue,draw opacity=1,line width=1.5pt]{
+  \huge\sffamily\bfseries\textcolor{black}{#1\strut\makebox[22cm]{}}};
+\end{tikzpicture}};
+\end{tikzpicture}}
+\par\vspace*{240\p@}
+\fi
+\fi
+}
+\makeatother
+
+
+
+\usepackage[automark,headsepline,footsepline,plainfootsepline]{scrlayer-scrpage}
+\automark*[section]{}
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\sffamily} % Don't italicise
+\renewcommand{\chaptermark}[1]{\markleft{#1}{}}     % Chapter: suppress numbering
+\renewcommand{\sectionmark}[1]{\markright{#1}{}}    % Section: suppress numbering
+
+% Header (inner, center, outer)
+\ihead{\href{http://sdis.dbca.wa.gov.au/documents/projectplan/1482/}{Project Plan SP 2014-021}}
+%\chead{\href{http://sdis.dbca.wa.gov.au}{Science Directorate Information System}}
+\ohead{\href{https://www.dbca.wa.gov.au/science/10-biodiversity-and-conservation-science}{
+\includegraphics[height=6mm, keepaspectratio]{/usr/src/app/staticfiles/img/logo-dbca-bcs.jpg}}}
+% Footer (inner, center, outer)
+\ifoot{\textbf{Printed}~Fri, 6 Dec 2019 14:17:32 +0800} % inner/left footer
+\cfoot{}
+\ofoot[\bfseries\thepage]{\bfseries\thepage}        % Page number (also [plain])
+
+
+\pagestyle{scrheadings}
+\setkomafont{pageheadfoot}{\normalfont}
+
+%-----------------------------------------------------------------------------%
+\begin{document}
+\raggedbottom
+
+%-----------------------------------------------------------------------------%
+% Title page
+\subject{Project Plan SP 2014-021
+}
+\title{Habitat use, distribution and abundance of coastal dolphin species in
+the Pilbara
+}
+\subtitle{Marine Science
+}
+\author{}
+\publishers{\small
+    \subsection*{Project Core Team}
+\begin{tabu} {X X}
+\textbf{Supervising Scientist} & Holly Raudino
+\\
+\textbf{Data Custodian} & Holly Raudino
+\\
+\textbf{Site Custodian} & Holly Raudino
+\\
+\end{tabu}
+
+
+    \subsection*{Project status as of Dec. 6, 2019, 2:17 p.m.}
+\begin{tabu} {X X}
+& Approved and active
+\\
+\end{tabu}
+
+    
+\subsection*{Document endorsements and approvals as of Dec. 6, 2019, 2:17 p.m.}
+\begin{tabu} {X X}
+
+%\rowcolor{grantedbg}
+    \textbf{Project Team} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Program Leader} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Directorate} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{grantedbg}
+    \textbf{Biometrician} & 
+    \textcolor{granted}{ granted}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Herbarium Curator} & 
+    \textcolor{not required}{ not required}\\
+
+%\rowcolor{not requiredbg}
+    \textbf{Animal Ethics Committee} & 
+    \textcolor{not required}{ not required}\\
+
+\end{tabu}
+
+
+
+}
+\uppertitleback{}
+\lowertitleback{}
+\date{}
+
+%-----------------------------------------------------------------------------%
+% Front matter
+\frontmatter
+\maketitle
+%-----------------------------------------------------------------------------%
+% Main matter
+\mainmatter
+
+
+
+\section*{Habitat use, distribution and abundance of coastal dolphin species in
+the Pilbara
+}
+
+
+
+\subsection*{Biodiversity and Conservation Science Program}
+
+Marine Science
+
+
+
+
+\subsection*{Departmental Service}
+
+Service 6: Conserving Habitats, Species and Communities
+
+
+\subsection*{Project Staff}
+\begin{tabu} {X X X}
+%\rowcolor{infobg}
+\textbf{Role} & \textbf{Person} & \textbf{Time allocation (FTE)}\\
+
+Supervising Scientist & Kelly Waples & 0.25\\
+
+Research Scientist & Holly Raudino & 1.0\\
+
+Technical Officer & Corrine Douglas & 0.25\\
+
+Technical Officer & Ryan Douglas & 0.25\\
+
+\end{tabu}
+
+
+
+
+\subsection*{Related Science Projects}
+
+None
+
+
+\subsection*{Proposed period of the project}
+July 1, 2014 -- June 30, 2018
+
+
+
+\section*{Relevance and Outcomes}
+
+
+\subsection*{Background}
+
+Although little is known about population size, distribution and
+residency patterns, it is well accepted that Australian snubfin
+(\emph{Orcaella} \emph{heinsohni}) and Australian humpback dolphin
+(\emph{Sousa sahulensis}) inhabit Australia's tropical north-western
+coastal waters (Allen\emph{, et al.} 2012). Indo-Pacific humpback
+dolphins occur across Australia's entire northwest coast including
+resident populations at Ningaloo Marine Park and most likely the Dampier
+Archipelago as well as further north into the Kimberley.~ The snubfin
+dolphin is endemic to northern Australia with identified resident
+populations in the Kimberley, Northern Territory and Queensland
+(Brown\emph{, et al.} 2014; Brown\emph{, et al.} 2014). While this
+species has been sighted occasionally in the Pilbara, their presence and
+use of this area is yet to be determined, however the Pilbara is likely
+to represent the southern extreme of their range (Allen\emph{, et al.}
+2012).
+
+~
+
+Limited surveys have been conducted targeting coastal dolphins in the
+Pilbara; exceptions include a dedicated study of humpback dolphins in
+Ningaloo Marine Park and Exmouth Gulf (Brown\emph{, et al.} 2012) and
+opportunistic surveys and anecdotal sightings throughout the region
+(Allen\emph{, et al.} 2012). Aerial surveys that were targeting humpback
+whales sighted dolphins but were unable to differentiate between species
+due to the high altitude flown (1000 ft) (Jenner \& Jenner 2004; Jenner
+\& Jenner 2010). Although the presence of several coastal dolphin
+species is expected in nearshore waters (humpback, snubfin and
+bottlenose dolphins) (Hanf 2014) the residency, degree of use and
+habitat characteristics of these species are unknown in the Pilbara.
+
+~
+
+Human pressures and impacts on these species are increasing, in
+particular in the Pilbara through activities associated with the rapid
+expansion of resources sector, including oil and gas exploration and
+production, coastal infrastructure development and shipping. This is
+often a key factor that proponents are required to address to secure
+environmental approvals at the State and Commonwealth levels. However,
+as noted above, the knowledge base on these species across their range
+is very poor. In addition, there are no agreed best practice protocols
+or standards for survey design and data collection on these species that
+allow for comparison to be made between studies and study sites. ~A
+better understanding of these species and their use of tPilbara coastal
+waters is needed to provide good temporal and regional context for
+assessing and managing impacts and to reduce uncertainty in the
+approvals process. As such, the draft \emph{Strategic Research
+Priorities for Marine Mammal Conservation and Management in Western
+Australia 2014} recognised both snubfin and humpback dolphins as high
+priority species for fundamental research.
+
+
+
+
+\subsection*{Aims}
+
+This research is being conducted to develop a baseline understanding of
+key aspects of the ecology of dolphins in coastal Pilbara waters. The
+specific aims are to:
+
+\begin{itemize}
+\tightlist
+\item
+  ~~~~~~~~ Determine habitat use, distribution, abundance, residency,
+  and movement patterns of dolphins in coastal Pilbara waters;
+\item
+  ~~~~~~~~ Identify the characteristics of habitats used by coastal
+  dolphins, such as water depth, benthic substrate, timing and seasonal
+  variation; and
+\item
+  ~~~~~~~~ Determine the trophic niche of dolphins in the Pilbara by
+  identifying ~the prey species they consume.
+\end{itemize}
+
+
+
+
+\subsection*{Expected outcome}
+
+This research will enable a better understanding of coastal dolphin
+species at a regional and national scale including distribution,
+abundance, habitat use, movement and connectivity. The main outcomes and
+benefits will be:
+
+\begin{itemize}
+\tightlist
+\item
+  ~~~~~~~~ Distribution and abundance including high density areas and
+  spatial and temporal patterns of coastal dolphins will be identified
+  and mapped across the Pilbara to allow managers to assess conflicts
+  with potential pressures;
+\item
+  ~~~~~~~~ Key habitat will be identified which can be used to assess
+  potential overlap with pressures such as habitat loss from coastal
+  development and displacement from industrial development leading to
+  better informed decision making during Environmental Impact Assessment
+  processes;
+\item
+  ~~~~~~~~ Populations will be defined for coastal dolphin species
+  (humpback, bottlenose and snubfin, where applicable) which will allow
+  managers to assess the relative conservation significance of different
+  populations or species in relation to pressures or factors like
+  restricted distributions;
+\item
+  ~~~~~~~~ Baseline data will inform ongoing regional monitoring and
+  management and for comparison with other regions;
+\item
+  ~~~~~~~~ A state-wide database will be implemented modelled on the
+  Northern Territory database `DolFIN' to archive and manage survey and
+  photo-Identification data which will improve information management,
+  compatibility and information sharing between jurisdictions
+\item
+  ~~~~~~~~ Data on population abundance and distribution of humpback and
+  snubfin dolphins in the Pilbara will allow a more comprehensive
+  assessment of their conservation status at a State and National level.
+\end{itemize}
+
+
+
+
+\subsection*{Knowledge transfer}
+
+At a state level the Department of Parks and Wildlife and the Office of
+Environmental Protection Authority (OEPA) will be the main user of this
+knowledge. ~The Environmental Management Branch within Parks and
+Wildlife and the OEPA currently have limited information on which to
+assess Environmental Impact Assessments (EIA) on these dolphin species
+in the Pilbara. This information will be used in EIA processes to
+evaluate and mitigate potential impacts on coastal dolphins by informing
+the appropriateness of proposed developments in relation to critical
+habitat identified through this project. The presence of coastal dolphin
+species and the vulnerability of these populations to coastal
+development will be more apparent from this study.~ Industry (Port
+Authorities, Oil and Gas companies) will be interested in methodology,
+e.g. protocols and standard operating procedures for dolphin surveys and
+the resulting baseline data to inform future proposals and EIA related
+documents.
+
+~
+
+In addition, the findings and information ~will be used by Parks and
+Wildlife Marine Science Program to manage marine mammals in the Pilbara
+and across the state using this baseline information and protocols to
+establish long term monitoring. Data will be relevant to marine
+conservation planning through marine protected area planning and through
+conservation status assessment. ~
+
+~
+
+When announcing the 2011 Finalised Priority Assessment List of
+Threatened Species under the EPBC Act, the Federal Minister for
+Sustainability, Environment, Water, Population and Communities, Mr Burke
+said he had received advice that there was currently not enough
+information to properly assess the snubfin dolphin however he was
+``hopeful that we will be able to collect enough information to do a
+proper assessment before long''. This project will gather information on
+the population status of the snubfin dolphin in the Pilbara region, WA
+and this information can be used towards the overall assessment of the
+conservation status of this species.
+
+
+
+
+\subsection*{Tasks and Milestones}
+
+~
+
+\begin{longtable}[]{@{}ll@{}}
+\toprule
+\endhead
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+\textbf{Milestone}\strut
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+\textbf{Completion Time}\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+\emph{Project Planning}
+
+~~~ Submission of Science Concept Plan
+
+~~~ Submission of Science Project Plan\strut
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+~
+
+Jul 2014
+
+Aug 2014\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+\emph{Field Work}
+
+Pilot field trip to test survey and sampling design (Southern Pilbara)
+
+Boat surveys in southern Pilbara sampling dolphins
+
+~
+
+Pilot field trip to test survey and sampling design (Northern Pilbara)
+
+Boat surveys in northern Pilbara sampling dolphins
+
+~
+
+Aerial surveys in southern and northern Pilbara
+
+~\strut
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+~
+
+Oct 2014
+
+Mar, Jun/July, Oct 2015
+
+Mar, Jun/Jul, Oct 2016
+
+~
+
+Apr and Nov 2015
+
+Apr and Nov 2016
+
+~\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+\emph{Data processing and Statistical Analysis}
+
+Pilot run of habitat model
+
+Photo-identification and distribution analysis
+
+Occupancy and habitat modeling analysis\strut
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+~
+
+Nov 2014
+
+Dec of each year 2014-1016\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.47\columnwidth}\raggedright
+\emph{Reports (outputs)}
+
+Metadata report for each field trip (summary statistics of sample sizes)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+~ Progress reports
+
+~ Final reports\strut
+\end{minipage} & \begin{minipage}[t]{0.47\columnwidth}\raggedright
+~
+
+Within 3 months of trip completion
+
+Annually Sep.
+
+Jun 2017\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+~
+
+
+
+
+\subsection*{References}
+
+\textbf{Allen, S. J., Cagnazzi, D. D., Hodgson, A. J., Loneragan, N. R.
+\& Bejder, L.} (2012) Tropical inshore dolphins of north-western
+Australia: Unknown populations in a rapidly changing region.
+\emph{Pacific Conservation Biology} 18: 56-63
+
+\textbf{Bacher, K., Allen, S., Lindholm, A. K., Bejder, L. \& Krutzen,
+M.} (2010) Genes or Culture: Are Mitochondrial Genes Associated with
+Tool Use in Bottlenose Dolphins (\emph{Tursiops} sp.)? \emph{Behavioural
+genetics} 40: 706-714
+
+\textbf{Bilgmann, K., Griffiths, O. J., Allen, S. J. \& Moller, L. M.}
+(2006) A biopsy pole system for bow-riding dolphins: sampling success,
+behavioral responses, and test for sampling bias. \emph{Marine Mammal
+Science} 23: 218--225
+
+\textbf{Brown, A., Bejder, L., Cagnazzi, D., Parra, G. \& Allen, S.}
+(2012) The North West Cape, Western Australia: A Potential Hotspot for
+Indo-Pacific Humpback Dolphins \emph{Sousa chinensis}? \emph{Pacific
+Conservation Biology} 18: 240-246
+
+\textbf{Brown, A. M., Bejder, L., Pollock, K. H. \& Allen, S. J.} (2014)
+Abundance of coastal dolphins in Roebuck Bay, Western Australia
+\emph{Report to WWF-Australia,} 25
+
+\textbf{Brown, A. M., Kopps, A. M., Allen, S. J., Bejder, L.,
+Littleford-Colquhoun, B., Parra, G. J., Cagnazzi, D., Thiele, D.,
+Palmer, C. \& Frère, C. H.} (2014) Population Differentiation and
+Hybridisation of Australian Snubfin (\emph{Orcaella heinsohni}) and
+Indo-Pacific Humpback (\emph{Sousa chinensis}) Dolphins in North-Western
+Australia. \emph{PLoS ONE} 9: e101427
+
+\textbf{Fernandez, R., Garcıa-Tiscar, S., Santos, M. B., Lopez, A.,
+Martınez-Cedeira, J. A., Newton, J. \& Pierce, G. J.} (2011) Stable
+isotope analysis in two sympatric populations of bottlenose dolphins
+Tursiops truncatus: evidence of resource partitioning? \emph{Marine
+Biology} 158: 1043--1055
+
+\textbf{Frère, C. H., Krzyszczyk, E., Patterson, E. M., Hunter, S. \&
+Ginsburg, A.} (2010) Thar she blows! A novel method for DNA collection
+from cetacean blow. \emph{Plosone} 5: e12299
+
+\textbf{Gibbs, S. E., Harcourt, R. G. \& Kemper, C. M.} (2011) Niche
+differentiation of bottlenose dolphin species in South Australia
+revealed by stable isotopes and stomach contents. \emph{Wildlife
+Research} 34: 261-270
+
+\textbf{Groom, C. J. \& Coughran, D. K.} (2012) Three decades of
+cetacean strandings in Western Australia: 1981 to 2010. \emph{Journal of
+the Royal Society of Western Australia} 95: 63-76
+
+\textbf{Jenner, K. C. \& Jenner, M. N.} (2010) A Description of
+Megafauna Distribution and Abundance in the SW Pilbara Using Aerial and
+Acoustic Surveys -- Final Report \emph{Centre for Whale Research} 54
+
+\textbf{Krützen, M., Barré, L. M., Möller, L. M., Heithaus, M. R.,
+Simms, C. \& Sherwin, W. B.} (2002) A biopsy system for small cetaceans:
+darting success and wound healing in \emph{Tursiops} spp. \emph{Marine
+Mammal Science} 18: 863-878
+
+\textbf{Nicholson, K., Bejder, L., Allen, S. J., Kruetzen, M. \&
+Pollock, K. H.} (2012) Abundance, survival and temporary emigration of
+bottlenose dolphins (\emph{Tursiops} sp.) off Useless Loop in the
+western gulf of Shark Bay, Western Australia. \emph{Marine and
+Freshwater Research} 63: 1059-1068
+
+\textbf{Owen, K., Charlton-Robb, K. \& Thompson, R.} (2011) Resolving
+the Trophic Relations of Cryptic Species: An Example Using Stable
+Isotope Analysis of Dolphin Teeth. \emph{PLoS ONE} 6: 1-10
+
+\textbf{Smith, H. C., Pollock, K., Waples, K., Bradley, S. \& Bejder,
+L.} (2013) Use of the Robust Design to Estimate Seasonal Abundance and
+Demographic Parameters of a Coastal Bottlenose Dolphin (\emph{Tursiops
+aduncus}) Population. \emph{PLoS ONE} 8: e76574
+
+\textbf{Tyne, J. A., Pollock, K. H., Johnston, D. W. \& Bejder, L.}
+(2014) Abundance and Survival Rates of the Hawai'i Island Associated
+Spinner Dolphin (Stenella longirostris) Stock. \emph{PLoS ONE} 9: e86132
+
+~
+
+
+
+\section*{Study design}
+
+
+\subsection*{Methodology}
+
+\textbf{Field sampling}
+
+A combination of distance sampling techniques (through aerial and boat
+surveys) and mark-recapture (through boat surveys) will be used to
+investigate dolphin density, distribution and abundance.
+
+~
+
+\emph{Boat surveys}
+
+Sampling will take place three times a year for a two week period,
+subject to weather (March, June/July, October in 2014-2016). Surveys
+will be conducted along pre-determined line transects from a small 5m
+centre console RIB (or equivalent) research vessel driven at a speed of
+8 to 12 kn with two observers and one boat driver present during each
+survey. Line transects will be designed to run perpendicular to the
+mainland coastline where possible to account for the water depth
+gradient and distance from coast.
+
+~
+
+\emph{~}
+
+\emph{Transect design}
+
+The study area will be divided into multiple zones for the purpose of
+the boat based surveys. The initial four zones have been selected based
+on known densities of dolphins and/or suspected presence based on
+habitat. Other potential zones include Exmouth Gulf and Cape Preston.
+
+Zone 1- transects will extend offshore a maximum of 3nm from the
+mainland coastline and extend alongshore 20 kilometres north and south
+of Onslow township.
+
+Zone 2- transects will be centred around Thevenard Island and radiate
+from the island to 2 nautical miles and between Thevenard Island and the
+mainland (\textasciitilde12km).
+
+Zone 3- transects will centre around Dampier Port and the Dampier
+archipelago within state waters (3nm)
+
+Zone 4- transects will centre around Balla Balla and extend alongshore
+extending offshore to state waters (3nm)
+
+A sampling design of transects will be prepared for each zone that will
+allow for that zone to be surveyed by boat within a single day (weather
+permitting) to avoid re-sighting dolphins as they move through the study
+area.The overall survey route will be divided into smaller transects of
+at least 10 kilometres in length. The 10 kilometre transects will be
+completed in a random order and repeated at least 6 times over two
+years.
+
+\emph{~}
+
+\emph{~}
+
+\emph{~}
+
+\emph{Sighting data}
+
+When a dolphin is sighted the following data will be recorded; species,
+distance and angle between the vessel and the dolphin, and dolphin group
+size. The position of the vessel on the transect will also be recorded
+before the vessel departs the transect line. Once this initial
+information is recorded, the vessel will approach the dolphin group to
+within 50 m to capture additional data such as photo-identification of
+individual dolphins, age and group composition and predominant behaviour
+(feeding, foraging, travelling, resting or socialising). ~When foraging
+or feeding is recorded as the predominant behaviour, the species of prey
+wil be recorded whenever possible.~
+
+~
+
+The duration of sightings of dolphin groups will be short where possible
+(5 minutes minimum to determine predominant behaviour and photograph all
+individuals) to maximise the search effort along the transect line and
+ensure completion of each transect during suitable weather (Beaufort
+scale \textless3). At the completion of each sighting the transect line
+will be re-joined where it was departed (marked by the GPS waypoint).
+
+~
+
+\emph{Aerial surveys}
+
+The study area will be divided into two zones for the purpose of aerial
+surveys
+
+Zone 1 -- will be the area surveyed and demarked in the dugong research
+plan extending south of Onslow and offshore to Barrow Island.
+
+Zone 2- will be the area north of the area already surveyed north of
+Onslow, Barrow Island and encompassing the Dampier Archipelago.
+
+~
+
+Aerial surveys will be conducted by a fixed high-wing aircraft flying a
+pre-determined survey route of line transects. The aircraft will follow
+transect lines at a low altitude (500 ft) and a speed of 80km/hr. There
+will be two dedicated observers; one on each side of the aircraft and a
+survey leader collating the data. The two observers and the survey
+leader will communicate via aviation headsets and the survey leader will
+record the data being called by the observers. For each dolphin group
+sighted the species, number of individuals visible, position in the
+transect and number of calves will be recorded. For the purpose of
+species identification and confirming group size, the group will be
+circled, counted and then the transect line resumed.
+
+\emph{Tissue Sample Collection -- connectivity and trophic niche
+assessment}
+
+Tissue samples will be collected using remote biopsy techniques; either
+a modified air rifle with darts (Krützen\emph{, et al.} 2002) or a pole
+puncture system for bow-riding individuals (Bilgmann\emph{, et al.}
+2006). These samples will be collected during vessel based surveys,
+though these surveys will be conducted separate to the line transect
+surveys described above. Approximately 20 samples per sample site across
+the Pilbara region will be the target sample size (maximum total samples
+approximately 100). Approximately 20 samples already exist from the
+North West Cape and Dampier Archipelago for humpback dolphins Tissue
+samples will be sub-sampled for the purpose of stable isotope and
+genetic analysis and stored appropriately following Western Australian
+Museum protocols. External researchers will be engaged to collect
+samples and the laboratory analysis will be outsourced for this aspect
+of the project.
+
+~
+
+~
+
+\textbf{Analysis}
+
+\emph{~}
+
+\emph{Photo identification - processing and archiving}
+
+Photo identification images will be collected in the field. A protocol
+will be followed of collecting at least one image for both sides of the
+dorsal fin for each individual dolphin regardless of degree of marking
+or familiarity. The images will then be graded using standard protocols.
+The images will be graded in relation to: 1) quality (angle, focus and
+the ratio of fin to frame) and 2) distinctiveness (how marked the
+individual is from not marked to severely marked). Survey data will be
+entered and managed in a relational database (DolFIN) with survey images
+matched to the photo-identification catalogue and linked to the relevant
+survey information. This database will be used to generate the capture
+histories and distribution data that will then be analysed statistically
+using software such as MARK, DISTANCE and Arc GIS.
+
+\emph{~}
+
+\emph{Distribution and abundance estimation}
+
+Mark-recapture methods will be applied to the photo-identification data
+that will be stored and processed in the DolFIN database. Capture
+histories will be generated for individual dolphins and abundance will
+be modeled using either POPAN or the Robust Design in program MARK
+23/07/2014(Nicholson\emph{, et al.} 2012; Smith\emph{, et al.} 2013;
+Tyne\emph{, et al.} 2014). Parameters such as apparent survival and
+temporary emigration will be estimated. Abundance and distribution may
+also be calculated using the program DISTANCE for comparative purposes
+if time permits.
+
+~
+
+\emph{Habitat modelling}
+
+Dolphin sightings from two platforms (aerial and boat) will be analysed
+in ArcGIS and incorporated into a broadscale habitat model per species
+with variables such as distance from coast, benthic habitat, SST, water
+depth, slope and behaviour to investigate which environmental variables
+best explain dolphin distribution across the Pilbara study area. This
+analysis will build on preliminary analysis by Hanf 2014 (Murdoch
+University masters project) that modelled dolphin sighting data
+collected during 2012 dugong aerial surveys for Chevron using MAXENT
+modelling (presence-only) software. A pilot project of incorporating
+Department of Parks and Wildlife benthic habitat data will be
+incorporated into this model in October 2014 to see if benthic habitat
+type is an important predictor in dolphin distribution. Boat sighting
+data will be incorporated into the habitat model to improve the species
+representation (this may be biased due to dugongs being the focal
+species of the aerial surveys) and to validate the habitat model.
+Potentially other habitat models may be used including Generalised
+Linear Models if the presence-only models in MAXENT are deemed to be of
+limited value in identifying habitat characteristics important to these
+dolphin species in this area and if the model has limited overall
+predictive ability of dolphin distribution across the region.
+
+~
+
+\emph{Connectivity}
+
+Genetic analyses will follow methodology by Brown \emph{et al.} 2014 and
+will likely include mitochondrial DNA (mtDNA) and microsatellite loci
+with PCR conditions as described in Bacher \emph{et al.} 2010 and Frère
+\emph{et al.} 2010. Several measures of population differentiation will
+likely be calculated from several sample sites across the Pilbara
+region. Statistical software such as STRUCTURE, FLOCK and BOTTLENECK may
+be used for to examine the differentiation patterns between populations
+and to test whether there has been a recent bottleneck (Brown\emph{, et
+al.} 2014). This component of the project will likely be contracted to
+Murdoch University Cetacean Research Unit.
+
+~
+
+\emph{Trophic Niche/diet}
+
+If carcasses are recovered during stranding events, stomach contents
+will be analysed for hard parts (fish otoliths and cephalopod beaks) and
+teeth for stable isotope signatures but it is expected that strandings
+and recovery of carcasses in the Pilbara region will be uncommon (Groom
+\& Coughran 2012).~ Analysis of the carbon and nitrogen signatures of
+the tissue samples or teeth compared will indicate whether dolphins are
+feeding in brackish water, coastally or further offshore
+(Fernandez\emph{, et al.} 2011; Gibbs\emph{, et al.} 2011; Owen\emph{,
+et al.} 2011).
+
+
+
+
+\subsection*{Biometrician's Endorsement}
+
+granted
+
+
+
+\section*{Data management}
+
+
+\subsection*{No. specimens}
+
+
+
+
+
+
+\subsection*{Herbarium Curator's Endorsement}
+
+not required
+
+
+
+
+\subsection*{Animal Ethics Committee's Endorsement}
+
+required
+
+
+
+
+\subsection*{Data management}
+
+The survey data, including photo identification images will be stored in
+DolFIN database, a purpose built database maintained on a secure server.
+
+~
+
+Tissue samples will be lodged with the Western Australian Museum
+
+
+
+
+\section*{Budget}
+
+\section*{Consolidated Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+FTE Scientist &  &  & \\
+
+
+
+FTE Technical &  &  & \\
+
+
+
+Equipment &  &  & \\
+
+
+
+Vehicle &  &  & \\
+
+
+
+Travel &  &  & \\
+
+
+
+Other &  &  & \\
+
+
+
+Total &  &  & \\
+
+
+\hline
+\end{longtabu}
+
+
+
+\section*{External Funds }
+
+
+
+\begin{longtabu} to \linewidth { |  X | X | X | X | }
+\hline
+\rowcolor{infobg}
+Source & Year 1 & Year 2 & Year 3\\
+\hline
+\endhead
+
+
+
+Salaries, Wages, Overtime & $87,940 & $89,535 & $89,535\\
+
+
+
+Overheads & $26,868 & $27,356 & $27,356\\
+
+
+
+Equipment & $13,130 &  & \\
+
+
+
+Vehicle & $15,000 & $15,000 & $15,000\\
+
+
+
+Travel & $5,500 & $5,500 & $5,500\\
+
+
+
+Other & $105,340 & $105,340 & $105,340\\
+
+
+
+Total & $253,778 & $242,731 & $242,731\\
+
+
+\hline
+\end{longtabu}
+
+
+
+
+
+%-----------------------------------------------------------------------------%
+% Back matter
+%\backmatter
+\end{document}
+%-----------------------------------------------------------------------------%
