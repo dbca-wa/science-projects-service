@@ -2730,7 +2730,8 @@ class Loader:
             cursor, connection = self.spms_establish_dest_db_connection_and_return_cursor_conn()
 
             # Disable foreign key checks
-            cursor.execute("SET session_replication_role = 'replica';")
+            # NO PERMISSIONS
+            # cursor.execute("SET session_replication_role = 'replica';")
 
             # Get a list of all tables in the public schema
             cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
@@ -2743,7 +2744,8 @@ class Loader:
                 cursor.execute(drop_table_query)
 
             # Enable foreign key checks
-            cursor.execute("SET session_replication_role = 'origin';")
+            # NO PERMISSIONS
+            # cursor.execute("SET session_replication_role = 'origin';")
 
             # Commit the changes
             connection.commit()
