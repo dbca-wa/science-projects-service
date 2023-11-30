@@ -1592,35 +1592,57 @@ class Loader:
 
 
     def create_local_image(self, original_image_path, folder_to_save_to):
-        with open(original_image_path, 'rb') as file:
-            # Create an InMemoryUploadedFile
-            uploaded_file = InMemoryUploadedFile(
-                file,
-                None,
-                os.path.basename(original_image_path),
-                'image/jpeg',  # Adjust the content type based on your file type
-                len(file.read()),  # Pass the file content length
-                None
-            )
+        try:
+            with open(original_image_path, 'rb') as file:
+                # Create an InMemoryUploadedFile
+                uploaded_file = InMemoryUploadedFile(
+                    file,
+                    None,
+                    os.path.basename(original_image_path),
+                    'image/jpeg',  # Adjust the content type based on your file type
+                    len(file.read()),  # Pass the file content length
+                    None
+                )
+        except FileNotFoundError as fe:
+            try:
+                print(f'File not Found, stage 1: {fe}')
+                # If the original file is not found, try with a capitalized file name
+                root, ext = os.path.splitext(original_image_path)
+                capitalized_path = f"{root.upper()}{ext.upper()}"
+                with open(capitalized_path, 'rb') as file:
+                    uploaded_file = InMemoryUploadedFile(
+                        file,
+                        None,
+                        os.path.basename(capitalized_path),
+                        'image/jpeg',
+                        len(file.read()),
+                        None
+                    )
+            except FileNotFoundError as fe2:
+                print(f'File not Found, stage 2: {fe2}')
 
-            # Load the settings
-            print(
-                f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
-            )
-            # Set the DJANGO_SETTINGS_MODULE environment variable
-            self.os.environ.setdefault(
-                "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
-            )
+                # If both attempts fail, raise an error
+                raise FileNotFoundError(f"File not found: {original_image_path} or {capitalized_path}")
 
-            print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+            
+        # Load the settings
+        print(
+            f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
+        )
+        # Set the DJANGO_SETTINGS_MODULE environment variable
+        self.os.environ.setdefault(
+            "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+        )
 
-            # Configure Django settings
-            # settings.configure()
+        print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+
+        # Configure Django settings
+        # settings.configure()
 
 
-            # Save the file to the default storage
-            saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
-            return saved_file
+        # Save the file to the default storage
+        saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
+        return saved_file
 
 
     def spms_create_project_image(
