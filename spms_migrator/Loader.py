@@ -16,6 +16,8 @@ import string
 import urllib3
 import json
 import os
+from psycopg2 import sql
+
 # from django.core.files import File
 # from django.core.files.uploadedfile import SimpleUploadedFile
 # from psycopg2 import Binary
@@ -707,7 +709,7 @@ class Loader:
             print(f"{self.misc.bcolors.WARNING}Loading .env...{self.misc.bcolors.ENDC}")
             self.load_dotenv()
 
-            superuser_username = self.os.getenv("SPMS_SUPERUSER_USERNAME")
+            superuser_username = self.os.getenv("SPMS_SUPERUSER_USERNAME", 'jarid.prince@dbca.wa.gov.au')
 
             # Execute the query with the user name
             cursor.execute(sql, (superuser_username,))
@@ -1199,6 +1201,8 @@ class Loader:
                 f"{self.misc.bcolors.OKGREEN}DB Created successfully{self.misc.bcolors.ENDC}"
             )
 
+        
+
     def spms_create_super_user(self, auto=True):
         # Establishing connection:
         (
@@ -1311,11 +1315,11 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for profile...{self.misc.bcolors.ENDC}"
         )
-        env_about = self.os.getenv("SPMS_SUPERUSER_ABOUT")
+        env_about = self.os.getenv("SPMS_SUPERUSER_ABOUT", 'Web Developer')
         env_role = self.os.getenv("SPMS_SUPERUSER_ROLE")
-        env_expertise = self.os.getenv("SPMS_SUPERUSER_EXPERTISE")
-        env_title = self.os.getenv("SPMS_SUPERUSER_TITLE")
-        env_mid_init = self.os.getenv("SPMS_SUPERUSER_MIDDLE_INITIALS")
+        env_expertise = self.os.getenv("SPMS_SUPERUSER_EXPERTISE",'Making this site')
+        env_title = self.os.getenv("SPMS_SUPERUSER_TITLE", 'mr')
+        env_mid_init = self.os.getenv("SPMS_SUPERUSER_MIDDLE_INITIALS", 'M.')
         env_cv = self.os.getenv(
             "SPMS_SUPERUSER_CURRICULUM_VITAE"
         )  # UNUSED FOR THIS PURPOSE, WILL BE A RELATIONAL LINK TO A FILES MODEL
@@ -1681,7 +1685,7 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for super user contact...{self.misc.bcolors.ENDC}"
         )
-        email = self.os.getenv("SPMS_SUPERUSER_CONTACT_EMAIL")
+        email = self.os.getenv("SPMS_SUPERUSER_CONTACT_EMAIL", 'jarid.prince@dbca.wa.gov.au')
         phone = self.os.getenv("SPMS_SUPERUSER_PHONE")
         alt_phone = self.os.getenv("SPMS_SUPERUSER_ALT_PHONE")
         fax = self.os.getenv("SPMS_SUPERUSER_FAX")
@@ -1742,8 +1746,8 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for super user work...{self.misc.bcolors.ENDC}"
         )
-        branch_name = self.os.getenv("SPMS_SUPERUSER_BRANCH_NAME")
-        ba_name = self.os.getenv("SPMS_SUPERUSER_BUSINESS_AREA_NAME")
+        branch_name = self.os.getenv("SPMS_SUPERUSER_BRANCH_NAME", 'Kensington')
+        ba_name = self.os.getenv("SPMS_SUPERUSER_BUSINESS_AREA_NAME", 'Ecoinformatics')
 
         # Get the DBCA Agency ID
         dbca_id = self.spms_get_dbca_agency(connection=connection, cursor=cursor)
@@ -2711,8 +2715,54 @@ class Loader:
             )
         else:
             self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}Database cleaned successfully{self.misc.bcolors.ENDC}"
+                f"{self.misc.bcolors.OKGREEN}Flush ran successfully{self.misc.bcolors.ENDC}"
             )
+        self.spms_drop_all_tables_in_db()
+
+
+
+    def spms_drop_all_tables_in_db(self):
+        try:
+            print(
+                f"{self.misc.bcolors.OKBLUE}Dropping every table...{self.misc.bcolors.ENDC}"
+            )
+            # Establish a database connection
+            cursor, connection = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+
+            # Disable foreign key checks
+            cursor.execute("SET session_replication_role = 'replica';")
+
+            # Get a list of all tables in the public schema
+            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
+            tables = cursor.fetchall()
+
+            # Drop each table
+            for table in tables:
+                table_name = table[0]
+                drop_table_query = sql.SQL("DROP TABLE IF EXISTS {} CASCADE;").format(sql.Identifier(table_name))
+                cursor.execute(drop_table_query)
+
+            # Enable foreign key checks
+            cursor.execute("SET session_replication_role = 'origin';")
+
+            # Commit the changes
+            connection.commit()
+
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Could not drop all tables: {str(e)}{self.misc.bcolors.ENDC}",
+            )
+            # Rollback the transaction
+            connection.rollback()
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Tables dropped successfully{self.misc.bcolors.ENDC}"
+            )
+        finally:
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+    
 
     def spms_recreate_db(self):
         print(
