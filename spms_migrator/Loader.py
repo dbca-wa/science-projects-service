@@ -1603,6 +1603,20 @@ class Loader:
                     len(file.read()),  # Pass the file content length
                     None
                 )
+                # Load the settings
+                print(
+                    f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
+                )
+                # Set the DJANGO_SETTINGS_MODULE environment variable
+                self.os.environ.setdefault(
+                    "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+                )
+
+                print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+
+                # Save the file to the default storage
+                saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
+                return saved_file
         except FileNotFoundError as fe:
             try:
                 print(f'File not Found, stage 1: {fe}')
@@ -1618,31 +1632,26 @@ class Loader:
                         len(file.read()),
                         None
                     )
+                                        # Load the settings
+                    print(
+                        f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
+                    )
+                    # Set the DJANGO_SETTINGS_MODULE environment variable
+                    self.os.environ.setdefault(
+                        "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+                    )
+
+                    print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
+
+                    # Save the file to the default storage
+                    saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
+                    return saved_file
             except FileNotFoundError as fe2:
                 print(f'File not Found, stage 2: {fe2}')
-
                 # If both attempts fail, raise an error
                 raise FileNotFoundError(f"File not found: {original_image_path} or {capitalized_path}")
 
-            
-        # Load the settings
-        print(
-            f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
-        )
-        # Set the DJANGO_SETTINGS_MODULE environment variable
-        self.os.environ.setdefault(
-            "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
-        )
-
-        print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
-
-        # Configure Django settings
-        # settings.configure()
-
-
-        # Save the file to the default storage
-        saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
-        return saved_file
+        
 
 
     def spms_create_project_image(
