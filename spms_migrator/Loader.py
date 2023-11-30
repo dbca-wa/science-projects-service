@@ -1622,7 +1622,7 @@ class Loader:
                 print(f'File not Found, stage 1: {fe}')
                 # If the original file is not found, try with a capitalized file name
                 root, ext = os.path.splitext(original_image_path)
-                capitalized_path = os.path.join(root, ext.upper)
+                capitalized_path = os.path.join(root, ext.upper())
                 with open(capitalized_path, 'rb') as file:
                     uploaded_file = InMemoryUploadedFile(
                         file,
