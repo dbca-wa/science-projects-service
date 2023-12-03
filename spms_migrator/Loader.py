@@ -4405,6 +4405,33 @@ class Loader:
         cursor.close()
         # connection.close()
 
+    def spms_get_business_area_of_project_lead(self, project_lead_id, cursor, connection):
+        try:
+            # Use a SQL SELECT query to retrieve the business_area_id based on project_lead_id
+            query = "SELECT business_area_id FROM users_userwork WHERE user_id = %s"
+            cursor.execute(query, (project_lead_id,))
+            
+            # Fetch the result
+            result = cursor.fetchone()
+
+            if result:
+                # If the result is not empty, return the business_area_id
+                return result[0]
+            else:
+                # If no result is found, you may choose to return a default value or raise an exception
+                # You can modify this part based on your requirements
+                return None  # or raise an exception indicating no result found
+
+        except Exception as e:
+            # Handle exceptions (e.g., database connection issues, SQL errors)
+            print(f"Error in spms_get_business_area_of_project_lead: {e}")
+            return None  # or raise an exception
+
+        finally:
+            # Make sure to commit the changes and close the cursor
+            connection.commit()
+            cursor.close()
+
     def spms_project_setter(
         self, type, dataframe, cursor, connection, current_datetime, superuser_id
     ):
@@ -4441,9 +4468,8 @@ class Loader:
 
             print(f"Getting id of business area belong to project {proj_title}")
             if self.pd.isna(project["program_id"]):
-                business_area_id = (
-                    1  # If for some reason the ba is null, setting it to 1.
-                )
+                project_lead_id = self.spms_get_user_by_old_id(connection=connection, cursor=cursor, old_id=project['creator_id'])
+                business_area_id = self.spms_get_business_area_of_project_lead(connection=connection, cursor=cursor, project_lead_id=project_lead_id)
             else:
                 business_area_id = self.spms_get_ba_by_old_program_id(
                     cursor=cursor, connection=connection, old_id=project["program_id"]
@@ -4519,6 +4545,11 @@ class Loader:
             self.misc.nls(
                 f"{self.misc.bcolors.WARNING}Setting Additional Project details...{self.misc.bcolors.ENDC}"
             )
+
+
+
+
+
             self.spms_project_details_setter(
                 connection=connection,
                 cursor=cursor,
@@ -5231,7 +5262,7 @@ class Loader:
                 connection=connection,
             )
             new_data_custodian_id = (
-                None
+                new_creator_id
                 if self.pd.isna(df_project["data_custodian_id"])
                 else self.spms_get_user_by_old_id(
                     old_id=df_project["data_custodian_id"],
@@ -5262,6 +5293,11 @@ class Loader:
                 if self.pd.isna(df_project["output_program_id"])
                 else int(df_project["output_program_id"])
             )
+
+            if new_research_function_id == None:
+                rfs_dir = os.path.join(self.django_project_path, 'ProjectsWithNoRFs.txt')
+                with open(rfs_dir, 'a') as empty_rfs_file:
+                    empty_rfs_file.write(f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}')
 
             # Start a transaction
             cursor = connection.cursor()
@@ -7112,9 +7148,14 @@ class Loader:
 
             
             pdf_generation_in_progress = False
-            project_lead_approval_granted = True if (status != "new") else False # set all non-news to approved
             directorate_approval_granted = True if status == "approved" else False
-            business_area_lead_approval_granted = True if (directorate_approval_granted) else False
+            business_area_lead_approval_granted = True if (directorate_approval_granted == True or status == "inapproval") else False
+            project_lead_approval_granted = True if (
+                status == "inreview" or
+                business_area_lead_approval_granted == True or 
+                directorate_approval_granted == True
+            ) else False # set all non-news to approved
+
 
             print(pdf)
             try:
