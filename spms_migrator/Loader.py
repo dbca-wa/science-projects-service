@@ -7151,7 +7151,7 @@ class Loader:
             directorate_approval_granted = True if status == "approved" else False
             business_area_lead_approval_granted = True if (directorate_approval_granted == True or status == "inapproval") else False
             project_lead_approval_granted = True if (
-                status == "inreview" or
+                status == "inreview" or status == "revising" or
                 business_area_lead_approval_granted == True or 
                 directorate_approval_granted == True
             ) else False # set all non-news to approved
