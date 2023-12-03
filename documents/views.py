@@ -1110,7 +1110,7 @@ class ProjectDocuments(APIView):
                         try:
                             with transaction.atomic():
                                 closure = closure_serializer.save()
-                                closure.document.project.status = outcome
+                                closure.document.project.status = 'closure_requested'
                                 print("saving project")
                                 closure.document.project.save()
                                 print("project saved")
@@ -2029,10 +2029,39 @@ class RepoenProject(APIView):
                 return Response(status=HTTP_204_NO_CONTENT)
             except Exception as e:
                 print(e)
+                print("error here")
                 return Response(f"{e}", status=HTTP_400_BAD_REQUEST)
 
 
 # ENDORSEMENTS & APPROVALS ==========================================================
+
+class DocReopenProject(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        print(user, stage, document_pk)
+        if not stage and not document_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        project = document.project
+        project.status = "updating"
+        project.save()
+        closure = ProjectClosure.objects.get(document=document)
+        closure.delete()
+        document.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
+
 
 
 class DocApproval(APIView):
@@ -2089,6 +2118,17 @@ class DocApproval(APIView):
                 u_document.project.status = Project.StatusChoices.ACTIVE
                 u_document.project.save()
                 print(u_document.project.status)
+            if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
+                print('closing project')
+                # find the closure matching
+                closure_doc = ProjectClosure.objects.get(document=u_document)
+                outcome = closure_doc.intended_outcome
+                if outcome == "forcecompleted":
+                    outcome = "completed"
+                print(outcome)
+                u_document.project.status = outcome
+                u_document.project.save()
+                print('project closed')
             else:
                 # if u_document.kind == "progressreport" or u_document.kind == "studentreport":
                 #     if (stage == 2 or stage == '2'):
@@ -2168,6 +2208,10 @@ class DocRecall(APIView):
                 u_document.project.status = Project.StatusChoices.PENDING
                 u_document.project.save()
                 print(u_document.project.status)
+            elif u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
+                print('recalling approval and reopening')
+                u_document.project.status = Project.StatusChoices.CLOSUREREQ
+                u_document.project.save()
             else:
                 print("nope")
                 print(u_document.kind)

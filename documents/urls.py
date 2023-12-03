@@ -64,6 +64,7 @@ urlpatterns = [
     path("endorsements", views.ProjectDocuments.as_view()),
     # Actions (PROGRESS REPORT)
     path("actions/approve", views.DocApproval.as_view()),
+    path("actions/reopen", views.DocReopenProject.as_view()),
     path("actions/recall", views.DocRecall.as_view()),
     path("actions/send_back", views.DocSendBack.as_view()),
 ]
