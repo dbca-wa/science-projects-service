@@ -510,6 +510,8 @@ class StudentReport(models.Model):
         unique_together = ("report", "project")
 
 
+
+
 # Done
 class ProjectClosure(models.Model):
     """

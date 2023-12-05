@@ -14,6 +14,46 @@ class TaskTypeChoices(models.TextChoices):
     ASSIGNED = "assigned", "Assigned"
 
 
+class FeedbackChoices(models.TextChoices):
+    FEEDBACK = "feedback", "Feedback"
+    REQUEST = "request", "Feature Request"
+
+class FeedbackStatusChoices(models.TextChoices):
+    NEW = "new", "New"                          # Not yet logged
+    LOGGED = "logged", "Logged"                 # Logged as an issue on gh
+    INPROGRESS = "inprogress", "In Progress"    # Working on
+    FIXED = "fixed", "Fixed"                    # Implemented
+    # Feedback that is not addressed should be deleted.
+
+class UserFeedback(CommonModel):
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="feedback",
+    )
+    kind = models.CharField(
+        max_length=20,
+        choices=FeedbackChoices.choices,
+        default=FeedbackChoices.FEEDBACK,
+    )
+    text = models.TextField(
+        null=True,
+        blank=True,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=FeedbackStatusChoices.choices,
+        default=FeedbackStatusChoices.NEW,
+    )
+
+    def __str__(self) -> str:
+        return f"{self.user} | {self.text}"
+
+    class Meta:
+        verbose_name = "Feedback"
+        verbose_name_plural = "User Feedback"
+
+
 class DocumentActionChoices(models.TextChoices):
     # 1. Creates an AssignedTodo (Revise) for Author/s (project members besides reviewer)
     # State: NEW/UNDER_REVISION

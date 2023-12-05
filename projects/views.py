@@ -251,6 +251,81 @@ class MyProjects(APIView):
 class Projects(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+
+    def determine_db_kind(self, provided):
+        if provided.startswith("CF"):
+            return "core_function"
+        elif provided.startswith("STP"):
+            return "student"
+        elif provided.startswith("SP"):
+            return "science"
+        elif provided.startswith("EXT"):
+            return "external"
+        else:
+            return None
+
+    def parse_search_term(self, search_term):
+        kind = None
+        year = None
+        number = None
+
+        # Split the search term into parts using '-'
+        parts = search_term.split('-')
+        print(len(parts))
+
+        # Check if there are at least three parts
+        if len(parts) == 3:
+            print('len is 3 parts')
+            db_kind = self.determine_db_kind(parts[0])
+            kind = db_kind
+            year = parts[1]
+            number = parts[2]
+
+            try:
+                year_as_int = int(year)
+            except Exception as e:
+                print("ERROR: ", e)
+                projects = Project.objects.filter(kind=kind).all()
+                return projects
+
+            print(year, len(year))
+            if len(year) == 4:
+                print('checking kind and year')
+                projects = Project.objects.filter(kind=kind, year=year_as_int).all()
+                try:
+                    print("Trying to validate third part as number")
+                    number_as_int = int(number)
+                except Exception as e:
+                    print("ERROR: ", e)
+                    return projects
+                else:
+                    number_filter = Q(number__icontains=number_as_int)
+                    projects = projects.filter(number_filter)
+                    return projects
+            else:
+                projects = Project.objects.filter(kind=kind, year=year).all()
+                return projects
+            
+        elif len(parts) == 2:
+            print('len is 2 parts')
+            year = parts[1]
+            db_kind = self.determine_db_kind(parts[0])
+            kind = db_kind
+            print(year, len(year))
+            try:
+                year_as_int = int(year)
+            except Exception as e:
+                print("ERROR: ", e)
+                projects = Project.objects.filter(kind=kind).all()
+                return projects
+            if len(year) == 4:
+                print('checking kind and year')
+                projects = Project.objects.filter(kind=kind, year=year_as_int).all()
+            else:
+                projects = Project.objects.filter(kind=kind).all()
+            return projects
+
+
     def get(self, request):
         try:
             page = int(request.query_params.get("page", 1))
@@ -262,14 +337,84 @@ class Projects(APIView):
         start = (page - 1) * page_size
         end = start + page_size
 
-        search_term = request.GET.get("searchTerm")
-
         # Get the values of the checkboxes
         only_active = bool(request.GET.get("only_active", False))
         only_inactive = bool(request.GET.get("only_inactive", False))
-
         ba_slug = request.GET.get("businessarea", "All")
-        projects = Project.objects.all()
+
+        # Get the search term
+        search_term = request.GET.get("searchTerm")
+        # Handle search by project id string
+        if search_term and (search_term.startswith("CF-") or search_term.startswith("SP-") or search_term.startswith("STP-") or search_term.startswith("EXT-")):
+            print("SEARCHING FOR A KEY")
+            projects = self.parse_search_term(search_term=search_term)
+
+            # if ba_slug != "All":
+            #     projects = projects.filter(business_area__slug=ba_slug)
+
+            # status_slug = request.GET.get("projectstatus", "All")
+            # if status_slug != "All":
+            #     projects = projects.filter(status=status_slug)
+
+            # kind_slug = request.GET.get("projectkind", "All")
+            # if kind_slug != "All":
+            #     projects = projects.filter(kind=kind_slug)
+
+            # # Interaction logic between checkboxes
+            # if only_active:
+            #     only_inactive = False
+            # elif only_inactive:
+            #     only_active = False
+
+            # if only_active:
+            #     projects = projects.filter(status__in=Project.ACTIVE_ONLY)
+            # elif only_inactive:
+            #     projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
+
+            # total_projects = projects.count()
+            # total_pages = ceil(total_projects / page_size)
+
+            # serialized_projects = ProjectSerializer(
+            #     projects[start:end],
+            #     many=True,
+            #     context={
+            #         "request": request,
+            #         "projects": projects[start:end],
+            #     },
+            # )
+
+            # response_data = {
+            #     "projects": serialized_projects.data,
+            #     "total_results": total_projects,
+            #     "total_pages": total_pages,
+            # }
+
+            # return Response(response_data, status=HTTP_200_OK)
+
+            # def return_slug_kind(kind):
+            #     if kind == "corefunction":
+            #         return "CF"
+            #     elif kind == "student":
+            #         return "STP"
+            #     elif kind == "science":
+            #         return "SP"
+            #     else:
+            #         return "EXT"
+            # CF, SP, STP, EXT
+            # year, number
+
+        # Ordinary filtering
+        else:
+            projects = Project.objects.all()
+
+
+            if search_term:
+                projects = projects.filter(
+                    Q(title__icontains=search_term)
+                    | Q(description__icontains=search_term)
+                    | Q(tagline__icontains=search_term)
+                    | Q(keywords__icontains=search_term)
+                )
 
         if ba_slug != "All":
             projects = projects.filter(business_area__slug=ba_slug)
@@ -282,25 +427,22 @@ class Projects(APIView):
         if kind_slug != "All":
             projects = projects.filter(kind=kind_slug)
 
+        year_filter = request.GET.get("year", "All")
+        if year_filter != "All":
+            projects = projects.filter(year=year_filter)
+
         # Interaction logic between checkboxes
         if only_active:
             only_inactive = False
         elif only_inactive:
             only_active = False
 
-        if search_term:
-            projects = projects.filter(
-                Q(title__icontains=search_term)
-                | Q(description__icontains=search_term)
-                | Q(tagline__icontains=search_term)
-                | Q(keywords__icontains=search_term)
-            )
-
         # Filter projects based on checkbox values
         if only_active:
             projects = projects.filter(status__in=Project.ACTIVE_ONLY)
         elif only_inactive:
             projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
+
 
         total_projects = projects.count()
         total_pages = ceil(total_projects / page_size)
@@ -321,6 +463,7 @@ class Projects(APIView):
         }
 
         return Response(response_data, status=HTTP_200_OK)
+
 
     def handle_project_image(self, image):
         print(f"Image is", image)

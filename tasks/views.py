@@ -15,8 +15,8 @@ from rest_framework.exceptions import (
     PermissionDenied,
 )
 from django.db import transaction
-from .models import Task
-from .serializers import TaskSerializer, TinyTaskSerializer
+from .models import Task, UserFeedback
+from .serializers import TaskSerializer, TinyTaskSerializer, UserFeedbackSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
@@ -27,7 +27,7 @@ class Tasks(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
-        tasks = Tasks.objects.all()
+        tasks = Task.objects.all()
         ser = TinyTaskSerializer(
             tasks,
             many=True,
@@ -52,6 +52,86 @@ class Tasks(APIView):
         else:
             return Response(
                 HTTP_400_BAD_REQUEST,
+            )
+
+class Feedbacks(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        feedbacks = UserFeedback.objects.all()
+        ser = UserFeedbackSerializer(
+            feedbacks,
+            many=True,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        # print(req.data)
+        ser = UserFeedbackSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            feedback = ser.save()
+            return Response(
+                UserFeedbackSerializer(feedback).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            return Response(
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+class FeedbackDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = UserFeedback.objects.get(pk=pk)
+        except UserFeedback.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        feedback = self.go(pk)
+        ser = UserFeedbackSerializer(
+            feedback,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        feedback = self.go(pk)
+        feedback.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        # print(req.data)
+        feedback = self.go(pk)
+        ser = UserFeedbackSerializer(
+            feedback,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            updated_feedback = ser.save()
+            return Response(
+                UserFeedbackSerializer(updated_feedback).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
             )
 
 

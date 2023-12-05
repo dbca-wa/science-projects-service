@@ -6,6 +6,8 @@ def trigger_error(request):
 
 urlpatterns = [
     path("", views.Tasks.as_view()),
+    path("feedback", views.Feedbacks.as_view()),
+    path("feedback/<int:pk>", views.FeedbackDetail.as_view()),
     path("<int:pk>", views.TaskDetail.as_view()),
     path("mine", views.MyTasks.as_view()),
     path('sentry-debug/', trigger_error),

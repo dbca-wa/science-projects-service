@@ -277,13 +277,25 @@ class Users(APIView):
             only_external = False
 
         if search_term:
+            # Check if there is a space in the search term (fn + ln)
+            search_parts = search_term.split(" ", 1)
             # Apply filtering based on the search term
-            users = User.objects.filter(
-                Q(first_name__icontains=search_term)
-                | Q(last_name__icontains=search_term)
-                | Q(email__icontains=search_term)
-                | Q(username__icontains=search_term)
-            )
+            if len(search_parts) == 2:
+                first_name, last_name = search_parts
+                users = User.objects.filter(
+                    Q(first_name__icontains=first_name) & Q(last_name__icontains=last_name)
+                    | Q(email__icontains=search_term)
+                    | Q(username__icontains=search_term)
+                )
+            else:
+                # If the search term cannot be split, continue with the existing logic
+                users = User.objects.filter(
+                    Q(first_name__icontains=search_term)
+                    | Q(last_name__icontains=search_term)
+                    | Q(email__icontains=search_term)
+                    | Q(username__icontains=search_term)
+                )
+
         else:
             users = User.objects.all()
 
