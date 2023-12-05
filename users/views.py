@@ -263,6 +263,7 @@ class Users(APIView):
         end = start + page_size
 
         search_term = request.GET.get("searchTerm")
+        business_area = request.GET.get("businessArea")
 
         # Get the values of the checkboxes
         only_superuser = bool(request.GET.get("only_superuser", False))
@@ -274,7 +275,7 @@ class Users(APIView):
             only_staff = False
             only_superuser = False
         elif only_staff or only_superuser:
-            only_external = False
+            only_external = False            
 
         if search_term:
             # Check if there is a space in the search term (fn + ln)
@@ -287,6 +288,7 @@ class Users(APIView):
                     | Q(email__icontains=search_term)
                     | Q(username__icontains=search_term)
                 )
+          
             else:
                 # If the search term cannot be split, continue with the existing logic
                 users = User.objects.filter(
@@ -306,6 +308,11 @@ class Users(APIView):
             users = users.filter(is_staff=True)
         elif only_superuser:
             users = users.filter(is_superuser=True)
+
+        if business_area != "All":
+            # print(business_area)
+            users = users.filter(work__business_area__name=business_area).all()
+            
 
         # Sort users alphabetically based on email
         users = users.order_by("email")

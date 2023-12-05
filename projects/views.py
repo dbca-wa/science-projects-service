@@ -248,6 +248,22 @@ class MyProjects(APIView):
         )
 
 
+class ProjectYears(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+                # Get all unique years from the Project model
+        unique_years = Project.objects.values_list('year', flat=True).distinct()
+
+        # Convert the queryset to a list
+        year_list = list(unique_years)
+
+        return Response(
+            year_list,
+            status=HTTP_200_OK,
+        )
+
+
 class Projects(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 

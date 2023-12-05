@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path("promote", views.PromoteToLeader.as_view()),
     path("", views.Projects.as_view()),
+    path("listofyears", views.ProjectYears.as_view()),
     path("<int:pk>", views.ProjectDetails.as_view()),
     path("<int:pk>/team", views.MembersForProject.as_view()),
     path("<int:pk>/areas", views.AreasForProject.as_view()),
