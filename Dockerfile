@@ -63,7 +63,7 @@ RUN poetry config virtualenvs.create false
 # RUN echo -e "3.12" | poetry init
 RUN poetry init
 # Necessary to fix pandas/numpy installation issues on 3.12 with poetry
-RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.9"/' pyproject.toml
+RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
 
 # Base
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
