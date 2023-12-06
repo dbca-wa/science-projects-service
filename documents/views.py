@@ -1250,21 +1250,115 @@ class ProjectDocuments(APIView):
             )
 
 
-class ProjectDocsPendingApproval(APIView):
+# class ProjectDocsPendingApproval(APIView):
+#     permission_classes = [IsAuthenticatedOrReadOnly]
+
+#     def get(self, req):
+#         all_docs_pending_approval = ProjectDocument.objects.filter(
+#             status=ProjectDocument.StatusChoices.INAPPROVAL,
+#             business_area_lead_approval_granted=True,
+#         ).all()
+#         ser = TinyProjectDocumentSerializer(
+#             all_docs_pending_approval,
+#             many=True,
+#             context={"request": req},
+#         )
+#         return Response(
+#             ser.data,
+#             status=HTTP_200_OK,
+#         )
+
+class EndorsementsPendingMyAction(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
-        all_docs_pending_approval = ProjectDocument.objects.filter(
-            status=ProjectDocument.StatusChoices.INAPPROVAL,
-            business_area_lead_approval_granted=True,
-        ).all()
-        ser = TinyProjectDocumentSerializer(
-            all_docs_pending_approval,
-            many=True,
-            context={"request": req},
+        is_bio = req.user.is_biometrician
+        is_hc = req.user.is_herbarium_curator
+        is_aec = req.user.is_aec
+        is_superuser = req.user.is_superuser
+
+
+        documents = []
+        aec_input_required = []
+        bm_input_required = []
+        hc_input_required = []
+
+
+  
+        if is_bio or is_superuser or is_aec or is_hc:
+            active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
+
+            for project in active_projects:
+                project_docs = ProjectDocument.objects.filter(
+                    project=project,
+                    kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
+                ).all()
+                for doc in project_docs:
+                    # find the related project plan
+                    project_plan = ProjectPlan.objects.filter(document=doc).first()
+                    endorsements = Endorsement.objects.get(project_plan=project_plan)
+                    if (
+                        (is_bio or is_superuser)
+                        and (endorsements.bm_endorsement_required)
+                        and not (endorsements.bm_endorsement_provided)
+                    ):
+                        # print("Doc found where bio required, but not yet granted")
+                        # print(doc)
+                        documents.append(doc)
+                        bm_input_required.append(doc)
+                    if (
+                        (is_aec or is_superuser)
+                        and (endorsements.ae_endorsement_required)
+                        and not (endorsements.ae_endorsement_provided)
+                    ):
+                        # print("Doc found where aec required, but not yet granted")
+
+                        # print(doc)
+                        documents.append(doc)
+                        aec_input_required.append(doc)
+                    if (
+                        (is_hc or is_superuser)
+                        and (endorsements.hc_endorsement_required)
+                        and not (endorsements.hc_endorsement_provided)
+                    ):
+                        # print("Doc found where hc required, but not yet granted")
+                        # print(doc)
+                        documents.append(doc)
+                        hc_input_required.append(doc)
+
+        # print(is_bio, is_hc, is_aec, is_superuser)
+
+   
+        filtered_aec_input_required = list(
+            {doc.id: doc for doc in aec_input_required}.values()
         )
+        filtered_bm_input_required = list(
+            {doc.id: doc for doc in bm_input_required}.values()
+        )
+        filtered_hc_input_required = list(
+            {doc.id: doc for doc in hc_input_required}.values()
+        )
+
+        data = {
+            "aec": TinyProjectDocumentSerializer(
+                filtered_aec_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "bm": TinyProjectDocumentSerializer(
+                filtered_bm_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "hc": TinyProjectDocumentSerializer(
+                filtered_hc_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+        }
+
         return Response(
-            ser.data,
+            data,
             status=HTTP_200_OK,
         )
 
@@ -1277,9 +1371,6 @@ class ProjectDocsPendingMyAction(APIView):
         pm_bl_input_required = []
         ba_input_required = []
         directorate_input_required = []
-        aec_input_required = []
-        bm_input_required = []
-        hc_input_required = []
 
         user_work = UserWork.objects.get(user=req.user.pk)
 
@@ -1340,63 +1431,7 @@ class ProjectDocsPendingMyAction(APIView):
                     documents.append(doc)
                     pm_bl_input_required.append(doc)
 
-        is_bio = req.user.is_biometrician
-        is_hc = req.user.is_herbarium_curator
-        is_aec = req.user.is_aec
-        is_superuser = req.user.is_superuser
 
-        # 2) if user is bio, get all progress/student reports requiring that endorsement, but not marked as
-        # actually endorsed
-        if is_bio or is_superuser or is_aec or is_hc:
-            active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
-
-            for project in active_projects:
-                project_docs = ProjectDocument.objects.filter(
-                    project=project,
-                    kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
-                ).all()
-                for doc in project_docs:
-                    # find the related project plan
-                    project_plan = ProjectPlan.objects.filter(document=doc).first()
-                    endorsements = Endorsement.objects.get(project_plan=project_plan)
-                    if (
-                        (is_bio or is_superuser)
-                        and (endorsements.bm_endorsement_required)
-                        and not (endorsements.bm_endorsement_provided)
-                    ):
-                        print("Doc found where bio required, but not yet granted")
-                        print(doc)
-                        documents.append(doc)
-                        bm_input_required.append(doc)
-                    if (
-                        (is_aec or is_superuser)
-                        and (endorsements.ae_endorsement_required)
-                        and not (endorsements.ae_endorsement_provided)
-                    ):
-                        print("Doc found where aec required, but not yet granted")
-
-                        print(doc)
-                        documents.append(doc)
-                        aec_input_required.append(doc)
-                    if (
-                        (is_hc or is_superuser)
-                        and (endorsements.hc_endorsement_required)
-                        and not (endorsements.hc_endorsement_provided)
-                    ):
-                        print("Doc found where hc required, but not yet granted")
-                        print(doc)
-                        documents.append(doc)
-                        hc_input_required.append(doc)
-
-        print(is_bio, is_hc, is_aec, is_superuser)
-
-        # TODO: Instead return a set of arrays which have been filtered
-        # pm_bl_input_required
-        # ba_input_required
-        # directorate_input_required
-        # aec_input_required
-        # bm_input_required
-        # hc_input_required
 
         filtered_documents = list({doc.id: doc for doc in documents}.values())
         filtered_pm_bl_input_required = list(
@@ -1408,15 +1443,7 @@ class ProjectDocsPendingMyAction(APIView):
         filtered_directorate_input_required = list(
             {doc.id: doc for doc in directorate_input_required}.values()
         )
-        filtered_aec_input_required = list(
-            {doc.id: doc for doc in aec_input_required}.values()
-        )
-        filtered_bm_input_required = list(
-            {doc.id: doc for doc in bm_input_required}.values()
-        )
-        filtered_hc_input_required = list(
-            {doc.id: doc for doc in hc_input_required}.values()
-        )
+  
         ser = TinyProjectDocumentSerializer(
             filtered_documents,
             many=True,
@@ -1437,21 +1464,6 @@ class ProjectDocsPendingMyAction(APIView):
             ).data,
             "directorate": TinyProjectDocumentSerializer(
                 filtered_directorate_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "aec": TinyProjectDocumentSerializer(
-                filtered_aec_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "bm": TinyProjectDocumentSerializer(
-                filtered_bm_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "hc": TinyProjectDocumentSerializer(
-                filtered_hc_input_required,
                 many=True,
                 context={"request": req},
             ).data,
@@ -2350,11 +2362,11 @@ class SeekEndorsement(APIView):
 
                 # If there is a pdf file, see if once exists related to the endorsement
                 pdf_file = req.FILES.get("aec_pdf_file")
-                pdf_file_2 = req.data.get("aec_pdf_file")
-                print("pdf2", pdf_file_2)
+                # pdf_file_2 = req.data.get("aec_pdf_file")
+                # print("pdf2", pdf_file_2)
 
                 print(pdf_file)
-                print(pdf_file_2.name)
+                # print(pdf_file_2.name)
                 print(req.FILES)
                 if pdf_file:
                     existing_pdf = AECEndorsementPDF.objects.filter(

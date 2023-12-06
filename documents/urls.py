@@ -4,11 +4,14 @@ from . import views
 urlpatterns = [
     # REST framework
     path("projectdocuments", views.ProjectDocuments.as_view()),
-    path(
-        "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
-    ),
+    # path(
+    #     "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
+    # ),
     path(
         "projectdocuments/pendingmyaction", views.ProjectDocsPendingMyAction.as_view()
+    ),
+        path(
+        "endorsements/pendingmyaction", views.EndorsementsPendingMyAction.as_view()
     ),
     # path("projectdocuments/pendingapproval/reports", views.ReportDocsPendingApproval.as_view()),
     path("projectdocuments/<int:pk>", views.ProjectDocumentDetail.as_view()),
