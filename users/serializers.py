@@ -47,6 +47,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "last_name",
             "username",
             "email",
+            "is_active",
             "is_superuser",
             "is_biometrician",
             "is_aec",

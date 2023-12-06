@@ -372,6 +372,28 @@ class Users(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+class ToggleUserActive(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+        return obj
+
+
+    def post(self, req, pk):
+        user = self.go(pk)
+        user.is_active = not user.is_active
+        updated = user.save()
+
+        ser = UserSerializer(updated).data
+        return Response(
+            ser,
+            HTTP_202_ACCEPTED,
+        )
+
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]

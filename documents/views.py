@@ -1362,80 +1362,213 @@ class EndorsementsPendingMyAction(APIView):
             status=HTTP_200_OK,
         )
 
+class ProjectDocsPendingMyActionStageOne(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-class ProjectDocsPendingMyAction(APIView):
+    def get(self, req):
+        member_input_required = []
+        pl_input_required = []
+        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+
+        # Lead Filtering
+        all_leader_memberships = []
+        all_memberships = []
+        for project in active_projects:
+            membership = ProjectMember.objects.filter(project=project, user=req.user)
+            if membership.exists():
+                all_memberships.append(membership.first())
+                lead_membership = membership.filter(is_leader=True)
+                if lead_membership.exists():
+                    all_leader_memberships.append(lead_membership.first())
+        if len(all_memberships) >= 1:
+            for membershipp in all_memberships:
+                related_project = membershipp.project
+                if related_project in active_projects:
+                    if membershipp in all_leader_memberships:
+                        # Handle lead membership
+                        project_docs_without_lead_approval = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        for doc in project_docs_without_lead_approval:
+                            pl_input_required.append(doc)
+                    else:
+                        # Handle ordinary membership
+                        project_docs_requiring_member_input = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        for doc in project_docs_requiring_member_input:
+                            member_input_required.append(doc)
+
+  
+
+
+        filtered_pm_input_required = list(
+            {doc.id: doc for doc in member_input_required}.values()
+        )
+        filtered_pl_input_required = list(
+            {doc.id: doc for doc in pl_input_required}.values()
+        )
+
+  
+        data = {
+            "team": TinyProjectDocumentSerializer(
+                filtered_pm_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "lead": TinyProjectDocumentSerializer(
+                filtered_pl_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+        }
+
+        return Response(
+            data,
+            status=HTTP_200_OK,
+        )
+
+
+class ProjectDocsPendingMyActionStageTwo(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        ba_input_required = []
+
+        user_work = UserWork.objects.get(user=req.user.pk)
+        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+
+        # Business Area Lead Task Filtering
+        for project in active_projects:
+            if project.business_area != None:
+                ba_id = project.business_area.leader.id
+                if ba_id == req.user.id:
+                    is_business_area_lead = True
+                else:
+                    is_business_area_lead = False
+                if is_business_area_lead == True:
+                    projects_docs = (
+                        ProjectDocument.objects.filter(project=project)
+                        .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        .all()
+                    )
+                    for doc in projects_docs:
+                        if (doc.project_lead_approval_granted == True) and (
+                            doc.business_area_lead_approval_granted == False
+                        ):
+                            ba_input_required.append(doc)
+            else:
+                with open('activeProjectsWithoutBAs.txt', 'w+') as file:
+                    file.write(f"{project.pk} | {project.title}\n")
+
+        filtered_ba_input_required = list(
+            {doc.id: doc for doc in ba_input_required}.values()
+        )
+
+
+        data = {
+            "ba": TinyProjectDocumentSerializer(
+                filtered_ba_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+        }
+
+        return Response(
+            data,
+            status=HTTP_200_OK,
+        )
+
+
+class ProjectDocsPendingMyActionStageThree(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
         documents = []
-        pm_bl_input_required = []
+        member_input_required = []
+        pl_input_required = []
         ba_input_required = []
         directorate_input_required = []
 
         user_work = UserWork.objects.get(user=req.user.pk)
+        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
 
-        # Directorate flagging
+        # Business Area Lead Task Filtering
+        for project in active_projects:
+            # print(project)
+            # print(project.business_area)
+            if project.business_area != None:
+                ba_id = project.business_area.leader.id
+                if ba_id == req.user.id:
+                    is_business_area_lead = True
+                else:
+                    is_business_area_lead = False
+                if is_business_area_lead == True:
+                    projects_docs = (
+                        ProjectDocument.objects.filter(project=project)
+                        .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        .all()
+                    )
+                    for doc in projects_docs:
+                        if (doc.project_lead_approval_granted == True) and (
+                            doc.business_area_lead_approval_granted == False
+                        ):
+                            documents.append(doc)
+                            ba_input_required.append(doc)
+            else:
+                with open('activeProjectsWithoutBAs.txt', 'w+') as file:
+                    file.write(f"{project.pk} | {project.title}\n")
+
+ 
+        # Directorate Filtering
         is_directorate = user_work.business_area.name == "Directorate"
         if is_directorate:
-            active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
-
             for project in active_projects:
-                project_docs = (
+                projects_docs = (
                     ProjectDocument.objects.filter(project=project)
                     .exclude(status=ProjectDocument.StatusChoices.APPROVED)
                     .all()
                 )
-                for doc in project_docs:
+                for doc in projects_docs:
                     if (doc.business_area_lead_approval_granted == True) and (
                         doc.directorate_approval_granted == False
                     ):
                         documents.append(doc)
                         directorate_input_required.append(doc)
 
-        # Business Area Lead Flagging
-        is_business_area_lead = user_work.business_area.leader == req.user
-        if is_business_area_lead:
-            active_projects_in_ba = (
-                Project.objects.filter(business_area=user_work.business_area)
-                .exclude(status=Project.CLOSED_ONLY)
-                .all()
-            )
 
-            for project in active_projects_in_ba:
-                project_docs = (
-                    ProjectDocument.objects.filter(project=project)
-                    .exclude(status=ProjectDocument.StatusChoices.APPROVED)
-                    .all()
-                )
-                for doc in project_docs:
-                    if (doc.project_lead_approval_granted == True) and (
-                        doc.business_area_lead_approval_granted == False
-                    ):
-                        documents.append(doc)
-                        ba_input_required.append(doc)
+        # Lead Filtering
+        all_leader_memberships = []
+        all_memberships = []
+        for project in active_projects:
+            membership = ProjectMember.objects.filter(project=project, user=req.user)
+            if membership.exists():
+                all_memberships.append(membership.first())
+                lead_membership = membership.filter(is_leader=True)
+                if lead_membership.exists():
+                    all_leader_memberships.append(lead_membership.first())
+        if len(all_memberships) >= 1:
+            for membershipp in all_memberships:
+                related_project = membershipp.project
+                if related_project in active_projects:
+                    if membershipp in all_leader_memberships:
+                        # Handle lead membership
+                        project_docs_without_lead_approval = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        for doc in project_docs_without_lead_approval:
+                            documents.append(doc)
+                            pl_input_required.append(doc)
+                    else:
+                        # Handle ordinary membership
+                        project_docs_requiring_member_input = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        for doc in project_docs_requiring_member_input:
+                            documents.append(doc)
+                            member_input_required.append(doc)
 
-        # Project Lead / Team Member Flagging
-        # projects_where_leader = ProjectMember.objects.filter(is_leader=True, user=req.user).all()
-        all_proj_pks_where_member = []
-        project_membership = ProjectMember.objects.filter(user=req.user).all()
-        for proj in project_membership:
-            all_proj_pks_where_member.append(proj.project)
-        for project in all_proj_pks_where_member:
-            project_docs = (
-                ProjectDocument.objects.filter(project=project)
-                .exclude(status=ProjectDocument.StatusChoices.APPROVED)
-                .all()
-            )
-            for doc in project_docs:
-                if doc.project_lead_approval_granted == False:
-                    documents.append(doc)
-                    pm_bl_input_required.append(doc)
-
+  
 
 
         filtered_documents = list({doc.id: doc for doc in documents}.values())
-        filtered_pm_bl_input_required = list(
-            {doc.id: doc for doc in pm_bl_input_required}.values()
+        filtered_pm_input_required = list(
+            {doc.id: doc for doc in member_input_required}.values()
+        )
+        filtered_pl_input_required = list(
+            {doc.id: doc for doc in pl_input_required}.values()
         )
         filtered_ba_input_required = list(
             {doc.id: doc for doc in ba_input_required}.values()
@@ -1453,7 +1586,149 @@ class ProjectDocsPendingMyAction(APIView):
         data = {
             "all": ser.data,
             "team": TinyProjectDocumentSerializer(
-                filtered_pm_bl_input_required,
+                filtered_pm_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "lead": TinyProjectDocumentSerializer(
+                filtered_pl_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "ba": TinyProjectDocumentSerializer(
+                filtered_ba_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "directorate": TinyProjectDocumentSerializer(
+                filtered_directorate_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+        }
+
+        return Response(
+            data,
+            status=HTTP_200_OK,
+        )
+
+
+class ProjectDocsPendingMyActionAllStages(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        documents = []
+        member_input_required = []
+        pl_input_required = []
+        ba_input_required = []
+        directorate_input_required = []
+
+        user_work = UserWork.objects.get(user=req.user.pk)
+        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+
+        # Business Area Lead Task Filtering
+        for project in active_projects:
+            # print(project)
+            # print(project.business_area)
+            if project.business_area != None:
+                ba_id = project.business_area.leader.id
+                if ba_id == req.user.id:
+                    is_business_area_lead = True
+                else:
+                    is_business_area_lead = False
+                if is_business_area_lead == True:
+                    projects_docs = (
+                        ProjectDocument.objects.filter(project=project)
+                        .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        .all()
+                    )
+                    for doc in projects_docs:
+                        if (doc.project_lead_approval_granted == True) and (
+                            doc.business_area_lead_approval_granted == False
+                        ):
+                            documents.append(doc)
+                            ba_input_required.append(doc)
+            else:
+                with open('activeProjectsWithoutBAs.txt', 'w+') as file:
+                    file.write(f"{project.pk} | {project.title}\n")
+
+ 
+        # Directorate Filtering
+        is_directorate = user_work.business_area.name == "Directorate"
+        if is_directorate:
+            for project in active_projects:
+                projects_docs = (
+                    ProjectDocument.objects.filter(project=project)
+                    .exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                    .all()
+                )
+                for doc in projects_docs:
+                    if (doc.business_area_lead_approval_granted == True) and (
+                        doc.directorate_approval_granted == False
+                    ):
+                        documents.append(doc)
+                        directorate_input_required.append(doc)
+
+
+        # Lead Filtering
+        all_leader_memberships = []
+        all_memberships = []
+        for project in active_projects:
+            membership = ProjectMember.objects.filter(project=project, user=req.user)
+            if membership.exists():
+                all_memberships.append(membership.first())
+                lead_membership = membership.filter(is_leader=True)
+                if lead_membership.exists():
+                    all_leader_memberships.append(lead_membership.first())
+        if len(all_memberships) >= 1:
+            for membershipp in all_memberships:
+                related_project = membershipp.project
+                if related_project in active_projects:
+                    if membershipp in all_leader_memberships:
+                        # Handle lead membership
+                        project_docs_without_lead_approval = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        for doc in project_docs_without_lead_approval:
+                            documents.append(doc)
+                            pl_input_required.append(doc)
+                    else:
+                        # Handle ordinary membership
+                        project_docs_requiring_member_input = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        for doc in project_docs_requiring_member_input:
+                            documents.append(doc)
+                            member_input_required.append(doc)
+
+  
+
+
+        filtered_documents = list({doc.id: doc for doc in documents}.values())
+        filtered_pm_input_required = list(
+            {doc.id: doc for doc in member_input_required}.values()
+        )
+        filtered_pl_input_required = list(
+            {doc.id: doc for doc in pl_input_required}.values()
+        )
+        filtered_ba_input_required = list(
+            {doc.id: doc for doc in ba_input_required}.values()
+        )
+        filtered_directorate_input_required = list(
+            {doc.id: doc for doc in directorate_input_required}.values()
+        )
+  
+        ser = TinyProjectDocumentSerializer(
+            filtered_documents,
+            many=True,
+            context={"request": req},
+        )
+
+        data = {
+            "all": ser.data,
+            "team": TinyProjectDocumentSerializer(
+                filtered_pm_input_required,
+                many=True,
+                context={"request": req},
+            ).data,
+            "lead": TinyProjectDocumentSerializer(
+                filtered_pl_input_required,
                 many=True,
                 context={"request": req},
             ).data,

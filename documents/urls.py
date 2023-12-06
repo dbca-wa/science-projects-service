@@ -8,7 +8,16 @@ urlpatterns = [
     #     "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
     # ),
     path(
-        "projectdocuments/pendingmyaction", views.ProjectDocsPendingMyAction.as_view()
+        "projectdocuments/pendingmyaction", views.ProjectDocsPendingMyActionAllStages.as_view()
+    ),
+        path(
+        "projectdocuments/pendingmyaction/stage1", views.ProjectDocsPendingMyActionStageOne.as_view()
+    ),
+        path(
+        "projectdocuments/pendingmyaction/stage2", views.ProjectDocsPendingMyActionStageTwo.as_view()
+    ),
+        path(
+        "projectdocuments/pendingmyaction/stage3", views.ProjectDocsPendingMyActionStageThree.as_view()
     ),
         path(
         "endorsements/pendingmyaction", views.EndorsementsPendingMyAction.as_view()
