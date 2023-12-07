@@ -206,7 +206,9 @@ class ProjectArea(CommonModel):
         related_name="area",
         on_delete=models.CASCADE,
     )
-    areas = ArrayField(models.PositiveIntegerField(), default=list)
+    # areas = ArrayField(models.PositiveIntegerField(), default=list)
+    areas = ArrayField(models.PositiveIntegerField(), default=list, blank=True)
+
 
     def __str__(self) -> str:
         return f"{self.project} - {', '.join(str(area) for area in self.areas)}"

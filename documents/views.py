@@ -1454,8 +1454,18 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
                         ):
                             ba_input_required.append(doc)
             else:
-                with open('activeProjectsWithoutBAs.txt', 'w+') as file:
-                    file.write(f"{project.pk} | {project.title}\n")
+                filename = 'activeProjectsWithoutBAs.txt'
+
+                # Read existing content from the file
+                with open(filename, 'r') as file:
+                    existing_content = file.read()
+                # Check if the content already exists
+                if f"{project.pk} | {project.title}\n" not in existing_content:
+                    # Append to the file
+                    with open(filename, 'a') as file:
+                        file.write(f"{project.pk} | {project.title}\n")
+                else:
+                    print("Content already exists in the file.")
 
         filtered_ba_input_required = list(
             {doc.id: doc for doc in ba_input_required}.values()
@@ -1512,10 +1522,18 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                             documents.append(doc)
                             ba_input_required.append(doc)
             else:
-                with open('activeProjectsWithoutBAs.txt', 'w+') as file:
-                    file.write(f"{project.pk} | {project.title}\n")
+                filename = 'activeProjectsWithoutBAs.txt'
 
- 
+                # Read existing content from the file
+                with open(filename, 'r') as file:
+                    existing_content = file.read()
+                # Check if the content already exists
+                if f"{project.pk} | {project.title}\n" not in existing_content:
+                    # Append to the file
+                    with open(filename, 'a') as file:
+                        file.write(f"{project.pk} | {project.title}\n")
+                else:
+                    print("Content already exists in the file.")
         # Directorate Filtering
         is_directorate = user_work.business_area.name == "Directorate"
         if is_directorate:
@@ -1649,9 +1667,18 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                             documents.append(doc)
                             ba_input_required.append(doc)
             else:
-                with open('activeProjectsWithoutBAs.txt', 'w+') as file:
-                    file.write(f"{project.pk} | {project.title}\n")
+                filename = 'activeProjectsWithoutBAs.txt'
 
+                # Read existing content from the file
+                with open(filename, 'r') as file:
+                    existing_content = file.read()
+                # Check if the content already exists
+                if f"{project.pk} | {project.title}\n" not in existing_content:
+                    # Append to the file
+                    with open(filename, 'a') as file:
+                        file.write(f"{project.pk} | {project.title}\n")
+                else:
+                    print("Content already exists in the file.")
  
         # Directorate Filtering
         is_directorate = user_work.business_area.name == "Directorate"

@@ -2117,9 +2117,23 @@ class Loader:
             )
 
             # Save the names of removed business areas to a text file
-            with open("RemovedBusinessAreas.txt", "w") as file:
-                for name in removed_business_areas:
-                    file.write(name + "\n")
+            
+            # with open("RemovedBusinessAreas.txt", "w") as file:
+            #     for name in removed_business_areas:
+            #         file.write(name + "\n")
+            filename = 'RemovedBusinessAreas.txt'
+            bas_dir = os.path.join(self.django_project_path, filename)
+            # Read existing content from the file
+            with open(bas_dir, 'r') as file:
+                existing_content = file.read()
+            # Check if the content already exists
+            for name in removed_business_areas:
+                if f'{name}\n' not in existing_content:
+                    # Append to the file
+                    with open(bas_dir, 'a') as file:
+                        file.write(f'{name}\n')
+                else:
+                    print("already present in ba removal file")
 
         except Exception as e:
             connection.rollback()
@@ -4457,6 +4471,9 @@ class Loader:
             COMMIT;
         """
 
+        remote_sensing_ba = self.spms_get_ba_by_old_program_id(connection=connection, cursor=cursor, old_id=19)
+
+
         for index, project in dataframe.iterrows():
             proj_title = self.spms_check_if_project_with_name_exists(
                 cursor=cursor, name=project["title"]
@@ -4475,7 +4492,13 @@ class Loader:
                     cursor=cursor, connection=connection, old_id=project["program_id"]
                 )
 
+
             start_date = project["start_date"] if not self.pd.isna(project["start_date"]) else project["created"]
+
+            if project["status"] == "closure requested":
+                new_status = "closure_requested"
+            else:
+                new_status = project["status"]
             try:
                 # Start a transaction
                 cursor = connection.cursor()
@@ -4486,7 +4509,7 @@ class Loader:
                         project["created"],  # created at
                         project["modified"],  # updated at
                         type,  # kind
-                        project["status"],
+                        new_status,
                         project["year"],
                         project["number"],
                         proj_title,
@@ -4505,7 +4528,7 @@ class Loader:
                         if not self.pd.isna(project["end_date"])
                         else start_date,
                         # else None,
-                        business_area_id,
+                        remote_sensing_ba if str(project['year']) == '2022' and str(project['number']) == '18' else business_area_id, #address a project without ba set
                         # image_id,
                     ),
                 )
@@ -5231,6 +5254,7 @@ class Loader:
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
+                # service_id,
 
         # area list and superivsing scientist list removed
 
@@ -5288,6 +5312,17 @@ class Loader:
                     connection=connection,
                 )
             )
+
+            # new_service_id = (
+            #     None 
+            #     if self.pd.isna(df_project["service_id"])
+            #     else self.spms_get_service_by_old_id(
+            #         old_id=df_project["service_id"],
+            #         cursor=cursor,
+            #         connection=connection,
+            #     )
+            # )
+
             old_output_program_id = (
                 None
                 if self.pd.isna(df_project["output_program_id"])
@@ -5295,9 +5330,19 @@ class Loader:
             )
 
             if new_research_function_id == None:
-                rfs_dir = os.path.join(self.django_project_path, 'ProjectsWithNoRFs.txt')
-                with open(rfs_dir, 'a') as empty_rfs_file:
-                    empty_rfs_file.write(f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}')
+                filename = 'ProjectsWithNoRFs.txt'
+                rfs_dir = os.path.join(self.django_project_path, filename)
+                # Read existing content from the file
+                with open(rfs_dir, 'r') as file:
+                    existing_content = file.read()
+                # Check if the content already exists
+                if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
+                    # Append to the file
+                    with open(rfs_dir, 'a') as file:
+                        file.write(f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n')
+                else:
+                    print("Content already exists in the file.")
+                
 
             # Start a transaction
             cursor = connection.cursor()
@@ -5313,6 +5358,7 @@ class Loader:
                     new_data_custodian_id,
                     new_site_custodian_id,
                     new_research_function_id,  # description
+                    # new_service_id,
                     old_output_program_id,
                 ),
             )

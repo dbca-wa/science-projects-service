@@ -2015,7 +2015,7 @@ class AreasForProject(APIView):
 
     def go(self, pk):
         try:
-            obj = ProjectArea.objects.filter(project_id=pk).all()
+            obj = ProjectArea.objects.filter(project_id=pk).first()
         except ProjectArea.DoesNotExist:
             raise NotFound
         return obj
@@ -2030,6 +2030,32 @@ class AreasForProject(APIView):
             ser.data,
             status=HTTP_200_OK,
         )
+    
+    def put(self, req, pk):
+        project_areas = self.go(pk)
+        area_data = req.data.get('areas')
+        print(f'Areas: {area_data}')
+        data = {
+            'areas': area_data
+        }
+
+        ser = ProjectAreaSerializer(
+            project_areas,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            uprojarea = ser.save()
+            return Response(
+                ProjectAreaSerializer(uprojarea).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            print(ser.errors)
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 # HELPER =================================================================================================
