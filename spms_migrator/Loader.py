@@ -659,10 +659,21 @@ class Loader:
             connection.rollback()
             return None
         else:
+         
+            try:
+                decoded_first_name = first_name.decode('utf-8')
+                decoded_last_name = last_name.decode('utf-8')
+            except UnicodeDecodeError as decode_error:
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error decoding user data: {str(decode_error)}{self.misc.bcolors.ENDC}"
+                )
+                return None
+
             self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}User retrieved ({first_name} {last_name})!{self.misc.bcolors.ENDC}"
+                f"{self.misc.bcolors.OKGREEN}User retrieved ({decoded_first_name} {decoded_last_name})!{self.misc.bcolors.ENDC}"
             )
-            return f'{first_name} {last_name}'
+            return f'{decoded_first_name} {decoded_last_name}'
+
 
 
     def spms_get_user_by_old_id(self, connection, cursor, old_id):
@@ -5389,7 +5400,7 @@ class Loader:
                     # Get the project title
                     # project_title = self.spms_get_project_title_by_
                     # Append to the file
-                    with open(rfs_dir, 'a') as file:
+                    with open(rfs_dir, 'a', encoding="utf-8") as file:
                         file.write(
                             f'{lead_name}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
                         )
