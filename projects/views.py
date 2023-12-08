@@ -288,11 +288,13 @@ class Projects(APIView):
         # Split the search term into parts using '-'
         parts = search_term.split('-')
         print(len(parts))
+        print(parts)
+        print(parts[0].upper())
 
         # Check if there are at least three parts
         if len(parts) == 3:
             print('len is 3 parts')
-            db_kind = self.determine_db_kind(parts[0])
+            db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
             year = parts[1]
             number = parts[2]
@@ -325,7 +327,7 @@ class Projects(APIView):
         elif len(parts) == 2:
             print('len is 2 parts')
             year = parts[1]
-            db_kind = self.determine_db_kind(parts[0])
+            db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
             print(year, len(year))
             try:
@@ -361,7 +363,12 @@ class Projects(APIView):
         # Get the search term
         search_term = request.GET.get("searchTerm")
         # Handle search by project id string
-        if search_term and (search_term.startswith("CF-") or search_term.startswith("SP-") or search_term.startswith("STP-") or search_term.startswith("EXT-")):
+        if search_term and (
+            search_term.lower().startswith("cf-") or 
+            search_term.lower().startswith("sp-") or 
+            search_term.lower().startswith("stp-") or 
+            search_term.lower().startswith("ext-")
+        ):
             print("SEARCHING FOR A KEY")
             projects = self.parse_search_term(search_term=search_term)
 

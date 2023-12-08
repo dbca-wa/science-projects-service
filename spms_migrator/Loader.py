@@ -660,19 +660,10 @@ class Loader:
             return None
         else:
          
-            try:
-                decoded_first_name = first_name.decode('utf-8')
-                decoded_last_name = last_name.decode('utf-8')
-            except UnicodeDecodeError as decode_error:
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error decoding user data: {str(decode_error)}{self.misc.bcolors.ENDC}"
-                )
-                return None
-
             self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}User retrieved ({decoded_first_name} {decoded_last_name})!{self.misc.bcolors.ENDC}"
+                f"{self.misc.bcolors.OKGREEN}User retrieved ({first_name} {last_name})!{self.misc.bcolors.ENDC}"
             )
-            return f'{decoded_first_name} {decoded_last_name}'
+            return f'{first_name} {last_name}'
 
 
 
@@ -5378,34 +5369,35 @@ class Loader:
                 else int(df_project["output_program_id"])
             )
 
-            # if new_research_function_id == None:
-            #     filename = 'ProjectsWithNoRFs.txt'
-            #     rfs_dir = os.path.join(self.django_project_path, filename)
-            #     if not os.path.exists(rfs_dir):
-            #         with open(rfs_dir, 'w') as file:
-            #             pass  
-            #     # Read existing content from the file
-            #     with open(rfs_dir, 'r') as file:
-            #         existing_content = file.read()
-            #     # Check if the content already exists
-            #     if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
+            if new_research_function_id == None:
+                filename = 'ProjectsWithNoRFs.txt'
+                rfs_dir = os.path.join(self.django_project_path, filename)
+                if not os.path.exists(rfs_dir):
+                    with open(rfs_dir, 'w') as file:
+                        pass  
+                # Read existing content from the file
+                with open(rfs_dir, 'r', encoding="utf-8") as file:
+                    existing_content = file.read()
+                # Check if the content already exists
+                if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
                     
-            #         # Get the project lead nasme
-            #         lead_name = self.spms_get_user_name_old_id(
-            #             connection=connection,
-            #             cursor=cursor,
-            #             old_id=df_project['project_owner_id']
-            #         )
-            #         title = df_project['title']
-            #         # Get the project title
-            #         # project_title = self.spms_get_project_title_by_
-            #         # Append to the file
-            #         with open(rfs_dir, 'a', encoding="utf-8") as file:
-            #             file.write(
-            #                 f'{lead_name}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
-            #             )
-            #     else:
-            #         print("Content already exists in the file.")
+                    # Get the project lead nasme
+                    lead_name = self.spms_get_user_name_old_id(
+                        connection=connection,
+                        cursor=cursor,
+                        old_id=df_project['project_owner_id']
+                    )
+                    title = df_project['title']
+                    status = df_project['status']
+                    # Get the project title
+                    # project_title = self.spms_get_project_title_by_
+                    # Append to the file
+                    with open(rfs_dir, 'a', encoding="utf-8") as file:
+                        file.write(
+                            f'{lead_name}\n{status}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
+                        )
+                else:
+                    print("Content already exists in the file.")
                 
 
             # Start a transaction
