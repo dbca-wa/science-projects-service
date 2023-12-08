@@ -5378,34 +5378,34 @@ class Loader:
                 else int(df_project["output_program_id"])
             )
 
-            if new_research_function_id == None:
-                filename = 'ProjectsWithNoRFs.txt'
-                rfs_dir = os.path.join(self.django_project_path, filename)
-                if not os.path.exists(rfs_dir):
-                    with open(rfs_dir, 'w') as file:
-                        pass  
-                # Read existing content from the file
-                with open(rfs_dir, 'r') as file:
-                    existing_content = file.read()
-                # Check if the content already exists
-                if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
+            # if new_research_function_id == None:
+            #     filename = 'ProjectsWithNoRFs.txt'
+            #     rfs_dir = os.path.join(self.django_project_path, filename)
+            #     if not os.path.exists(rfs_dir):
+            #         with open(rfs_dir, 'w') as file:
+            #             pass  
+            #     # Read existing content from the file
+            #     with open(rfs_dir, 'r') as file:
+            #         existing_content = file.read()
+            #     # Check if the content already exists
+            #     if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
                     
-                    # Get the project lead nasme
-                    lead_name = self.spms_get_user_name_old_id(
-                        connection=connection,
-                        cursor=cursor,
-                        old_id=df_project['project_owner_id']
-                    )
-                    title = df_project['title']
-                    # Get the project title
-                    # project_title = self.spms_get_project_title_by_
-                    # Append to the file
-                    with open(rfs_dir, 'a', encoding="utf-8") as file:
-                        file.write(
-                            f'{lead_name}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
-                        )
-                else:
-                    print("Content already exists in the file.")
+            #         # Get the project lead nasme
+            #         lead_name = self.spms_get_user_name_old_id(
+            #             connection=connection,
+            #             cursor=cursor,
+            #             old_id=df_project['project_owner_id']
+            #         )
+            #         title = df_project['title']
+            #         # Get the project title
+            #         # project_title = self.spms_get_project_title_by_
+            #         # Append to the file
+            #         with open(rfs_dir, 'a', encoding="utf-8") as file:
+            #             file.write(
+            #                 f'{lead_name}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
+            #             )
+            #     else:
+            #         print("Content already exists in the file.")
                 
 
             # Start a transaction
