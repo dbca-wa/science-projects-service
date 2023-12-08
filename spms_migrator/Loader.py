@@ -627,6 +627,44 @@ class Loader:
     def spms_get_division_by_old_id(self, connection, cursor, old_id):
         pass
 
+
+    def spms_get_user_name_old_id(self, connection, cursor, old_id):
+        # print(old_id)
+        print(f"trying for old id: {old_id}")
+        if old_id == 101073 or old_id == "101073":
+            return old_id
+        try:
+            cursor = connection.cursor()
+
+            # Construct the SQL query
+            sql = """
+                SELECT first_name, last_name FROM users_user WHERE old_pk = %s
+            """
+
+            old_id = int(old_id)
+
+            # Execute the query with the user name
+            cursor.execute(sql, (old_id,))
+
+            # Fetch the result
+            result = cursor.fetchone()
+
+            if result:
+                first_name, last_name = result  
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Error retrieving user: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+            return None
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}User retrieved ({first_name} {last_name})!{self.misc.bcolors.ENDC}"
+            )
+            return f'{first_name} {last_name}'
+
+
     def spms_get_user_by_old_id(self, connection, cursor, old_id):
         # print(old_id)
         print(f"trying for old id: {old_id}")
@@ -5332,14 +5370,29 @@ class Loader:
             if new_research_function_id == None:
                 filename = 'ProjectsWithNoRFs.txt'
                 rfs_dir = os.path.join(self.django_project_path, filename)
+                if not os.path.exists(rfs_dir):
+                    with open(rfs_dir, 'w') as file:
+                        pass  
                 # Read existing content from the file
                 with open(rfs_dir, 'r') as file:
                     existing_content = file.read()
                 # Check if the content already exists
                 if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
+                    
+                    # Get the project lead nasme
+                    lead_name = self.spms_get_user_name_old_id(
+                        connection=connection,
+                        cursor=cursor,
+                        old_id=df_project['project_owner_id']
+                    )
+                    title = df_project['title']
+                    # Get the project title
+                    # project_title = self.spms_get_project_title_by_
                     # Append to the file
                     with open(rfs_dir, 'a') as file:
-                        file.write(f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n')
+                        file.write(
+                            f'{lead_name}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
+                        )
                 else:
                     print("Content already exists in the file.")
                 

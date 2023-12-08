@@ -1,185 +1,740 @@
+Rory McAuley
+<p>Test</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/20
+
+Kerry Trayler
+<p>Incident investigations, response and advice</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/26
+
+Shane Kearney
+<p>Rottnest Terrestrial Conservation Action Planning</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/31
+
+Paul Gioia
+<p>Species database management software (Max) </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/45
+
+Ralph Martin
+<p>Astronomical outreach and education </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/49
+
+Ralph Martin
+<p>Astronomical information services </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/50
+
+Adrian Wayne
+<p>Murdoch University - Paul Webala - Bat project </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/51
+
+Arie Verveer
+<p>Supernova search </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/61
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 8, Kurnalpi- Kalgoorlie study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/63
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 2, Widgiemooltha-Zanthus study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/64
+
+Neil Gibson
+<p>Floristic surveys of the banded iron formation and greenstone ranges of the Yilgarn </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/75
+
+Lachie Mccaw
+<p>Bushfire Cooperative Research Centre Project 1.4: Improved methods for the assessment and prediction of grassland curing </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/77
+
+Roy Wittkuhn
+<p>Bushfire Cooperative Research Centre (CRC) Project B1.1: Managing fires in forested landscapes in south-west Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/78
+
+Stephen van Leeuwen
+<p>Flora and vegetation of the greenstone ranges of the Yilgarn Craton: Credo Station </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/82
+
+Lachie Mccaw
+<p>Resilience of Tuart Woodland to weed invasion following fire </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/83
+
+Ian Dumbrell
+<p>Can fire-induced changes in forest leaf area and forest floor litter, affect soil water movement into karst systems of the Leeuwin-Naturaliste ridge? </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/97
+
+Neil Gibson
+<p>Floristic survey of the Darling Scarp </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/98
+
+Rachel Meissner
+<p>Northern Goldfields Calcrete Survey: Phase 1 </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/100
+
+Brad Durrant
+<p>Short-range endemism of ground-dwelling invertebrates in the central Pilbara </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/105
+
+Stephen van Leeuwen
+<p>Flora and vegetation survey of the Carina exploration lease area. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/107
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 9, Norseman- Balladonia study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/109
+
+Ian Dumbrell
+<p>Early rotation nutrition and silviculture of Pinus pinaster on ex-farmland </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/111
+
+Tony Start
+<p>Integrated overview of values, uses and modifying processes in the Ord River's riparian zone </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/115
+
+Ian Abbott
+<p>The effects of logging and fire Edge effects habitat trees on birds of the jarrah forest. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/121
+
+Adrian Pinder
+<p>Baselining Project (Wetlands Component) </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/122
+
+Andrew Williams
+<p>Monitoring gravitational microlenses </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/123
+
+Andrew Williams
+<p>Imaging and CCD photometry of transient and variable sources </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/125
+
+Adrian Wayne
+<p>Effects of timber harvesting on terrestrial vertebrates in medium-rainfall jarrah forest </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/131
+
+Kim Whitford
+<p>The effect of suppressed stands on Jarrah pole thinning </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/132
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 12, Barlee-Menzies study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/135
+
+Florian Mayer
+<p>Eucalyptus globulus Tree Breeding - Strategy and breeding population development - Seed orchard development </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/137
+
+Florian Mayer
+<p>Karri breeding and seed production </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/138
+
+Kim Whitford
+<p>Characteristics of hollow-bearing jarrah (<em>Eucalyptus marginata</em>) and marri (<em>Corymbia calophylla</em>) trees and coarse woody debris (CWD), their use by selected species of fauna, and the effect of logging-and-burning of jarrah forest on them </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/139
+
+Florian Mayer
+<p>Oil Eucalypts as a Multi-purpose Tree Crop for the Wheatbelt. Externally Funded </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/141
+
+Lachie Mccaw
+<p>Aspects of dieback behaviour relevant to the formulation of jarrah silviculture guidelines </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/147
+
+Jim Lane
+<p>Management of the Vasse-Wonnerup wetlands </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/150
+
+Colin Crane
+<p>Comparison of plant canker pathogen impact and climatic variables in Proteaceae on the south coast of Western Australia and evaluation of selected fungicides as a management tool for canker control in the declared rare flora <em>Banksia verticillata _and _Lambertia orbifolia</em>. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/156
+
+Ian Dumbrell
+<p>Monitoring impacts of surface sand mining on water relations of critically endangered plant communities. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/161
+
+Norm McKenzie
+<p>Fauna of unflooded saline wetland floors </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/165
+
+Lachie Mccaw
+<p>Regeneration success measures and monitoring methods for sustainable forest management, criteria 2.1.g </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/166
+
+Kim Whitford
+<p>Scientific MPA </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/181
+
+Ian Dumbrell
+<p>Growth, nutrition and water use of mid-rotation Pinus pinaster in the medium rainfall zone. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/188
+
+Angus Hopkins
+<p>An interim framework for developing a CAR reserve system for Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/192
+
+Ian Dumbrell
+<p>Comparative use of mineral fertilisers and biosolids on the growth and nutrition of pines on the coastal sand plain. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/193
+
+Angus Hopkins
+<p>Identifying land with high nature conservation values in the Gascoyne Murchison strategy area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/194
+
+Lachie Mccaw
+<p>Forest growth assessment lines - Rock Cairns </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/197
+
+Kim Whitford
+<p>Coarse woody debris; habitat, carbon store and dynamics </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/198
+
+Adrian Pinder
+<p>Oligochaete taxonomy </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/201
+
+Adrian Pinder
+<p>State Salinity Strategy wetland monitoring </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/203
+
+Ralph Martin
+<p>Astrometry of minor planets, comets and targets of opportunity </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/206
+
+Ralph Martin
+<p>Imaging and spectrophotometry of comets </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/207
+
+Paul Van Heurck
+<p>The impact of wildfire in old growth forest of the Walpole-Nornalup National Park on short-range endemic invertebrates and their forest floor communities </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/208
+
+Arie Verveer
+<p>Variable star observations </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/209
+
+Kerry Trayler
+<p>Stock enhancement of western school prawn: evaluation recruitment limitation, environment and release strategies</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/215
+
+Lachie Mccaw
+<p>Long-term monitoring of impact of timber harvesting on bird populations in south-west forests </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/219
+
+Mike Stukely
+<p>Selection screening and field testing of jarrah resistant to Phytophthora cinnamomi. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/221
+
+Neil Burrows
+<p>Wind speed profiles for predicting fire danger and fire behaviour in south-west forests. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/223
+
+Neil Burrows
+<p>Monitoring long-term effects of various fire regimes on species richness and composition of southern jarrah forest understorey </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/224
+
+Allan Wills
+<p>Control of jarrah leafminer: selective retention of jarrah leafminer resistant trees and ground coppice in a demonstration forest plot </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/225
+
+Lachie Mccaw
+<p>Jarrah establishment in southern forests </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/226
+
+Kerry Trayler
+<p>Explaining foreshore vegetation die-off</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/228
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 4, Lake Johnston- Hyden study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/231
+
+Joe Kinal
+<p>Yarragil catchment monitoring </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/232
+
+Joe Kinal
+<p>Umbacks catchment monitoring </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/233
+
+Kim Whitford
+<p>Growth rate of pile sized Jarrah in even-aged forrest at various stockings </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/234
+
+Kim Whitford
+<p>Virgin Jarrah Stand </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/235
+
+Kim Whitford
+<p>Inglehope Jarah thinnning trial </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/236
+
+Andrew Knight
+<p>Priority social science research needs to support DBCA Corporate Strategic Directions</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/273
+
+Kerry Trayler
+<p>Investigating fish community assemblages as an index of estuarine condition 2012-17</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/279
+
+Kerry Trayler
+<p>Algal blooms:&nbsp;investigations and control</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/280
+
+Kerry Trayler
+<p>Instrumentation and observation package for improving model frameworks</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/283
+
+Kerry Trayler
+<p>Model frameworks for estuarine reporting</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/285
+
+Kerry Trayler
+<p>Investigating habitat values of seagrass, macroalgae and wrack in the Swan Canning Riverpark</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/287
+
+Kerry Trayler
+<p>Dolphin health - toxicogenomics and pathology investigations</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/288
+
+Colin Yates
+<p>Collaborative research on biodiversity and climate change in megadiverse ecosystems </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/318
+
+Kim Whitford
+<p>Silvicultural research trials to underpin management of the northern jarrah forest for multiple values </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/321
+
+Paul Gioia
+<p>Baselining the Avon NRM Region - Terrestrial </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/336
+
+Florian Mayer
+<p>Post-fire recovery of fauna on the Swan Coastal Plain </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/339
+
+Allan Wills
+<p>Monitoring the northern extent of jarrah leafminer outbreak </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/344
+
+Colin Yates
+<p>Fire, fragmentation, weeds and the conservation of plant diversity in Wheatbelt nature reserves </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/347
+
+Adrian Pinder
+<p>Investigating relationships between aquatic invertebrates and habitat characteristics as a contribution to determining ecological water requirements in Pilbara river pools </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/348
+
+Angus Hopkins
+<p>Land-use and vegetation mapping: Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/363
+
+Adrian Pinder
+<p>A survey of the biodiversity of groundwater habitats of the Pilbara IBRA Bioregion </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/366
+
+Tony Start
+<p>Mistletoes and their fire ecology in Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/371
+
+Arie Verveer
+<p>Astronomical evaluation of sites in Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/372
+
+Neil Burrows
+<p>Demography of Australian Boab (<em>Adansonia gregorii</em>) stands in relation to fire and grazing </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/374
+
+Richard Robinson
+<p><em>Armillaria</em> spread in karri </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/377
+
+Lachie Mccaw
+<p>Project Vesta — prediction of high intensity fire behaviour in dry eucalypt forest </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/379
+
+Richard Robinson
+<p>To compare chemical and biological methods for the control of <em>Armillaria</em> in regrowth karri </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/382
+
+Mike Stukely
+<p>Dieback-resistant jarrah establishment in operational forest rehabilitation sites </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/383
+
+Florian Mayer
+<p>Genetic variation in quantitative trials of exotic and endemic plantation and rehabilitation species. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/385
+
+Lachie Mccaw
+<p>Espacement effects on the development and form of regrowth karri stands </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/386
+
+Lachie Mccaw
+<p>Increasing productivity of karri regrowth stands by thinning and fertilising </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/387
+
+Janet Farr
+<p>Quantitative population monitoring of Gum-leaf Skeletoniser <em>Uraba lugens</em> and impact assessment on Jarrah crowns. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/388
+
+Kim Whitford
+<p>Effect of stand density and fertilising on seed-fall. Exp B. Establishment of jarrah (<em>Eucalyptus marginata</em>) in shelterwood areas and on dieback 'graveyard' sites </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/389
+
+Lachie Mccaw
+<p>Fire-induced mosaics in semi-arid shrublands and woodlands </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/390
+
+Greg Keighery
+<p>Floristic survey of the remnant heaths and woodlands of the Swan Coastal Plain </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/393
+
+Norm McKenzie
+<p>Ecomorphological clues to community structure; bat echolocation studies </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/394
+
+Adrian Wayne
+<p>Effects of timber harvesting on terrestrial vertebrates in medium rainfall jarrah forest. </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/396
+
+Joe Kinal
+<p>Hydrology Research: Catchment Monitoring </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/398
+
+Lachie Mccaw
+<p>Forest Products Commission Tree breeding ex-Trevor Butcher </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/399
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 3, Jackson- Kalgoorlie study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/400
+
+Stephen van Leeuwen
+<p>The biological survey of the eastern goldfields of Western Australia. Part 11, Boorabbin- Southern Cross study area </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/401
+
+Margaret Byrne
+<p>The genetics, essential oil composition and factors controlling the biosynthesis of sesquiterpenes in Western Australian sandalwood </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/403
+
+Adrian Wayne
+<p>Modelling species interactions and other environmental factors in the Upper Warren</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/415
+
+Kerry Trayler
+<p>Identification of controls on the metabolism of the Swan Canning Estuary using numerical modelling and high-frequency data</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/416
+
+Carl Gosper
+<p>Fire regime responses of biological soil crusts in eucalypt woodlands of south-west Australia</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/428
+
+Lachie Mccaw
+<p>Fire weather</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/430
+
+Dave Coates
+<p>Evaluation of Gondwana link restoration projects with reference to mycorrhizal communities in remnant and revegetated land</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/442
+
+Adrian Pinder
+<p>Taxonomy of the salt lake gastropod, <em>Coxiella</em>: how useful are empty shells as a source of taxonomic information?</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/449
+
+Margaret Byrne
+<p>Vegetation responses to Noongar land management practices in old and young landscapes</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/470
+
+Jordan Goetze
+<p>A cost benefit analysis for the collection of reef fish density data with a micro remote operated vehicle versus SCUBA divers.</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/471
+
+Scott Whiting
+<p>The health status of marine turtles in northern and western Australia</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/478
+
+Jordan Goetze
+<p>Cyclone impact or natural variation? Assessment of damage on coral and fish in Kubulau District, Fiji by cyclone Winston</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/496
+
+Ian Radford
+<p>Kimberley remote sensing vegetation structure </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/533
+
+Kerry Trayler
+<p>Evaluating the population genetics, recruitment limitations and release strategies of western school prawns during a restocking program in the Swan-Canning Estuary</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/554
+
+Jordan Goetze
+<p>Integrated study of shallow and deep-sea fish communities status and their main stressors in a highly dynamic Galapagos seascape</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/577
+
+Stephen van Leeuwen
+<p>Regional variability in salmon gum communities in the Great Western Woodlands </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/601
+
+Dave Coates
+<p>Mating systems, reproductive output and progeny fitness of translocated plant populations compared to wild populations</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/623
+
+Dave Coates
+<p>Factors affecting the success of threatened flora translocations</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/624
+
+Richard Robinson
+<p>Fungi causing decay in coppiced bluegum stumps </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/637
+
+Kim Whitford
+<p>Ecosystem carbon dynamics in bauxite mining in jarrah (<em>Eucalyptus marginata</em>) forests in south-western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/640
+
+Adrian Pinder
+<p>Nutrient movement and its impact on aquatic invertebrates as a food source for waterbirds between different wetland suites within the Lake Warden wetland system</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/654
+
+Adrian Pinder
+<p>Breeding systems and phylogeography of selected saline lake invertebrates </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/655
+
+Adrian Wayne
+<p>Wildlife ecology in the southern jarrah forest</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/659
+
+Ian Abbott
+<p>The compositional, structural, and functional succession of beetle communities in habitat mosaics created by three different fire regimes in the southern forests of Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/668
+
+Mark Cowan
+<p>Susceptibility of frogs to declining rainfall in a biodiversity hotspot</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/671
+
+Lesley Gibson
+<p>Kimberley islands biological survey - Indigenous liaison and participation </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/672
+
+Mark Cowan
+<p>Assessing the vulnerability of honey possums to climate change and habitat disturbances in south-western Australia</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/673
+
+Arie Verveer
+<p>Variable star observations </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/678
+
+Paul Gioia
+<p><em>NatureMap</em>: data sharing and joint custodianship</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/682
+
+Arie Verveer
+<p>Astronomy education </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/683
+
+Margaret Byrne
+<p>Management of weed and genetic risk in perennial landuse systems</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/686
+
+Stephen van Leeuwen
+<p>Sponsorship of the 'Research directions for Pilbara leaf-nose bat' workshop </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/689
+
+Stephen van Leeuwen
+<p>Western Australian black spot biological survey campaign</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/693
+
+Stephen van Leeuwen
+<p>Pilbara groundwater dependant ecosystem study</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/694
+
+Jim Lane
+<p>Fish and invertebrates of the Vasse-Wonnerup Ramsar site</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/709
+
+Adrian Pinder
+<p>Building the climate resilience of arid zone freshwater biota: identifying and prioritising processes and scales for management </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/711
+
+Arie Verveer
+<p>Imaging and spectrophotometry of comets </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/714
+
+Jim Lane
+<p>Fish populations and invasive species of the Vasse-Wonnerup Ramsar site</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/715
+
+Jim Lane
+<p>Macrophytes, macroalgae, phytoplankton and macroinvertebrates of Vasse-Wonnerup </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/716
+
+Stephen van Leeuwen
+<p>Great Victoria Desert Biodiversity Trust: Bioregional plan and Sandhill dunnart survey guidelines</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/718
+
+Stephen van Leeuwen
+<p>Throssell Coordinating Group</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/745
+
+Stephen van Leeuwen
+<p>Vegetation map reconciliation and compilation for the Hamersley and Fortescue subregions in the Pilbara</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/746
+
+Adrian Pinder
+<h3 class="box-story__title">Pro&shy;ject LIFE&shy;PLAN &ndash; A Plan&shy;et&shy;ary In&shy;vent&shy;ory of Life</h3>
 https://scienceprojects-test.dbca.wa.gov.au/projects/761
+
+Jordan Goetze
+<p>Global FinPrint</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/785
+
+Carl Gosper
+<p>Using plant functional traits to predict ecosystem vulnerability to changing fire regimes </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/793
+
+Katherine Zdunic
+<p>Wildlife corridor mapping</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/801
+
+Neil Gibson
+<p>Bush Blitz: ex-Credo Station survey </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/818
+
+Stephen van Leeuwen
+<p>Age structure of <em>Callitris</em> in the Carnarvon Range </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/827
+
+Stephen van Leeuwen
+<p>Species distribution modelling in the Pilbara </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/828
+
+Stephen van Leeuwen
+<p>Great Western Woodland vegetation map reconciliation project </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/829
+
+Stephen van Leeuwen
+<p>Fortescue Catchment Project - Biodiversity assets and landscape-scale management of the Fortescue River catchment</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/831
+
+Stephen van Leeuwen
+<p>A review of subterranean fauna assessment in Western Australia </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/833
+
+Stephen van Leeuwen
+<p>Cost-effective conservation decisions to mitigate threats to Pilbara biodiversity </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/835
+
+Stephen van Leeuwen
+<p>Biodiversity modelling for BHP Billiton Iron Ore's Strategic Environmental Assessment in the Pilbara </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/838
+
+Stephen van Leeuwen
+<p>Biological survey of the Birriliburru Indigenous Protected Areas</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/841
+
+Mike Lyons
+<p>Floristic survey of the Fortescue Marsh</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/852
+
+Stephen van Leeuwen
+<p>Strategic weed risk assessment and implementation plan for the Chichester and Fortescue subregions of the Pilbara</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/858
+
+Benjamin Anderson
+<p>Phylogenomics of the Western Australian flora</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/861
+
+Arie Verveer
+<p>Internet telescope </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/867
+
+Stephen van Leeuwen
+<p>AusPlots Rangelands 2016 Western Australian Campaign</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/873
+
+Claire Ross
+<p>Advancing observations and predictions of WA marine heatwaves</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/878
+
+Arie Verveer
+<p>Imaging and CCD photometry of transient objects </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/886
+
+Adrian Pinder
+<p>Lifeplan: A global inventory of life</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/890
+
+Eric Bunn
+<p>Advanced cryobanking for recalcitrant-seeded Australian rainforest plants</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/905
+
+Arie Verveer
+<p>Monitoring gravitational microlenses </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/915
+
+Nadine Guthrie
+<p>Pilbara Biological Survey: ant identifications </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/920
+
+Margaret Byrne
+<p>Restoring natural riparian vegetation systems previously infested by blackberry along the Warren and Donnelly Rivers</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/945
+
+Paul Gioia
+<p>AEKOS: ecoinformatics facility and development of ecological databases and portals</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/949
+
+Adrian Pinder
+<p>Pilbara biological survey</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/952
+
+Lesley Gibson
+<p>Kimberley island biodiversity asset identification </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/953
+
+Paul Van Heurck
+<p>The impact of wildfire on invertebrate communities in old growth forests </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/955
+
+Lachie Mccaw
+<p>Understanding the health effects of landscape burning and biomass smoke in Australian towns and cities </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/957
+
+Bruce Ward
+<p>Fire ecology of hummock grasslands </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/958
+
+Arie Verveer
+<p>Hands-On Universe: internet telescope </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/959
+
+Richard Robinson
+<p>Molecular assessment of morphological species of <em>Cortinarius</em> (Fungi) as used in field surveys by analysis of the ITS barcode region </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/961
+
+Stephen van Leeuwen
+<p>Fire-mulga study: post-burn monitoring and tussock grassland survey of the Hamersley Range</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/963
+
+Lesley Gibson
+<p>Kimberley islands biodiversity asset identification - Phase 1 (incl. indigenous liaison and participation) </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/967
+
+Adrian Pinder
+<p>A risk assessment and decision framework for managing groundwater dependent ecosystems with declining water levels </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/968
+
+Adrian Pinder
+<p>Pilbara biological survey biodiversity GDM modelling/gap analysis: terrestrial fauna and wetland flora and fauna </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/972
+
+Neil Burrows
+<p>Western Desert fire project </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/974
+
+Lachie Mccaw
+<p>Bushfire occurrence and fire growth modelling</p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/976
+
+Lesley Gibson
+<p>Kimberley islands biodiversity asset identification </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/979
+
+Mark Cowan
+<p>Bush Blitz: Cane River Conservation Park survey </p>
 https://scienceprojects-test.dbca.wa.gov.au/projects/982
+
