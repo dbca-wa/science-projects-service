@@ -1535,7 +1535,10 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                 else:
                     print("Content already exists in the file.")
         # Directorate Filtering
-        is_directorate = user_work.business_area.name == "Directorate"
+        if user_work.business_area is not None:
+            is_directorate = user_work.business_area.name == "Directorate"
+        else:
+            is_directorate = False
         if is_directorate:
             for project in active_projects:
                 projects_docs = (
@@ -1681,7 +1684,10 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                     print("Content already exists in the file.")
  
         # Directorate Filtering
-        is_directorate = user_work.business_area.name == "Directorate"
+        if user_work.business_area is not None:
+            is_directorate = user_work.business_area.name == "Directorate"
+        else:
+            is_directorate = False
         if is_directorate:
             for project in active_projects:
                 projects_docs = (
