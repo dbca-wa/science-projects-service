@@ -837,14 +837,133 @@ class Projects(APIView):
                                 "strategic_context": req.data.get("strategic_context")
                                 if req.data.get("strategic_context") is not None
                                 else "<p></p>",
-                                "staff_time_allocation": req.data.get(
-                                    "staff_time_allocation"
-                                )
-                                if req.data.get("staff_time_allocation") is not None
-                                else "<p></p>",
-                                "budget": req.data.get("budget")
-                                if req.data.get("budget") is not None
-                                else "<p></p>",
+                                "staff_time_allocation": req.data.get("staff_time_allocation")
+                                    if req.data.get("staff_time_allocation") is not None
+                                    else '<table class="table-light">\
+                                        <colgroup>\
+                                            <col>\
+                                            <col>\
+                                            <col>\
+                                            <col>\
+                                        </colgroup>\
+                                        <tbody>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Role</span>\
+                                                </p>\
+                                            </th>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Year 1</span>\
+                                                </p>\
+                                            </th>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Year 2</span>\
+                                                </p>\
+                                            </th>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Year 3</span>\
+                                                </p>\
+                                            </th>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Scientist</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Technical</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Volunteer</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Collaborator</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                        </tbody>\
+                                        </table>',
+                            "budget": req.data.get("budget")
+                            if req.data.get("budget") is not None
+                            else '<table class="table-light"><colgroup>\
+                                <col>\
+                                <col>\
+                                <col>\
+                                <col>\
+                            </colgroup>\
+                            <tbody>\
+                                <tr>\
+                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                    <p class="editor-p-light" dir="ltr">\
+                                    <span style="white-space: pre-wrap;">Source</span>\
+                                    </p>\
+                                </th>\
+                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                    <p class="editor-p-light" dir="ltr">\
+                                    <span style="white-space: pre-wrap;">Year 1</span>\
+                                    </p>\
+                                </th>\
+                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                    <p class="editor-p-light" dir="ltr">\
+                                    <span style="white-space: pre-wrap;">Year 2</span>\
+                                    </p>\
+                                </th>\
+                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                    <p class="editor-p-light" dir="ltr">\
+                                    <span style="white-space: pre-wrap;">Year 3</span>\
+                                    </p>\
+                                </th>\
+                                </tr>\
+                                <tr>\
+                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                    <p class="editor-p-light" dir="ltr">\
+                                    <span style="white-space: pre-wrap;">Consolidated Funds (DBCA)</span>\
+                                    </p>\
+                                </th>\
+                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                </tr>\
+                                <tr>\
+                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                    <p class="editor-p-light" dir="ltr">\
+                                    <span style="white-space: pre-wrap;">External Funding</span>\
+                                    </p>\
+                                </th>\
+                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                </tr>\
+                            </tbody>\
+                            </table>',
                             }
 
                             concept_plan_serializer = ConceptPlanCreateSerializer(
