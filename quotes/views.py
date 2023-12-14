@@ -123,8 +123,11 @@ class QuoteRandom(APIView):
             raise NotFound
 
     def get(self, req):
-        count = Quote.objects.count()
-        quote = self.go(pk=random.randint(0, count))
+        # count = Quote.objects.count()
+        # quote = self.go(pk=random.randint(0, count))
+        
+        # Faster means of getting a random quote
+        quote = Quote.objects.order_by('?').first()
         ser = QuoteDetailSerializer(quote, context={"request": req})
         return Response(
             ser.data,
