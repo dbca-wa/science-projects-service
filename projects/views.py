@@ -1228,6 +1228,7 @@ class ProjectDetails(APIView):
         keywords = req.data.get("keywords")
         locations_str = req.data.get("locations")
         if locations_str:
+            print(f'LOCATIONS: {locations_str}')
             locations = locations_str
 
 
@@ -1291,7 +1292,9 @@ class ProjectDetails(APIView):
             if value is not None and (not isinstance(value, list) or value)
         }
 
-        if locations_str:
+        if locations and locations != '[]':
+            # print('Length is bigger than one\n')
+            print(locations)
             updated_proj_area_data = {
                 key: value
                 for key, value in {
@@ -1300,7 +1303,9 @@ class ProjectDetails(APIView):
                 if value is not None and (not isinstance(value, list) or value)
             }
         else:
-            updated_proj_area_data = {}
+            # print('Length is less than one\n')
+            updated_proj_area_data = {"areas": []}
+            print(updated_proj_area_data)
 
         updated_proj_image_data = {
             key: value
