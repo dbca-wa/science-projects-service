@@ -1229,7 +1229,7 @@ class ProjectDetails(APIView):
         locations_str = req.data.get("locations")
         if locations_str:
             print(f'LOCATIONS: {locations_str}')
-            locations = locations_str
+            # locations = locations_str
 
 
         # start_date = req.data.get('startDate')
@@ -1292,20 +1292,31 @@ class ProjectDetails(APIView):
             if value is not None and (not isinstance(value, list) or value)
         }
 
-        if locations and locations != '[]':
+        if locations_str and locations_str != '[]':
             # print('Length is bigger than one\n')
-            print(locations)
+            print(locations_str)
             updated_proj_area_data = {
                 key: value
                 for key, value in {
-                    "areas": json.loads(locations),
+                    "areas": json.loads(locations_str),
                 }.items()
                 if value is not None and (not isinstance(value, list) or value)
             }
         else:
+            # print(updated_proj_area_data)
             # print('Length is less than one\n')
-            updated_proj_area_data = {"areas": []}
-            print(updated_proj_area_data)
+
+            # check if there is a project plan matching project
+            projplan = ProjectPlan.objects.filter(project=pk).first()
+
+            # if there is, if the document has project lead approval,
+            # it cant be set to empty, do not update
+            if projplan and projplan.document.project_lead_approval_granted:
+                updated_proj_area_data = {}
+
+            else:
+                # Otherwise, set empty
+                updated_proj_area_data = {"areas": []}
 
         updated_proj_image_data = {
             key: value
