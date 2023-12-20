@@ -551,12 +551,44 @@ class Projects(APIView):
         departmental_service = data.get("departmentalService")
         data_custodian = data.get("dataCustodian")
         supervising_scientist = data.get("supervisingScientist")
-        dates = data.getlist("dates")
+        # dates = data.getlist("dates")
 
         # Convert dates to 'YYYY-MM-DD' format
-        start_date_str, end_date_str = dates
-        start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
-        end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        # start_date_str, end_date_str = dates
+        # start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        # end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+
+        # start_date_str = data.get('startDate')
+        # end_date_str = data.get('endDate')
+        # start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        # end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+
+        start_date_str = data.get('startDate')
+        end_date_str = data.get('endDate')
+        # Check if start_date_str is not None and not empty
+        if start_date_str:
+            start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        else:
+            start_date = None
+
+        # Check if end_date_str is not None and not empty
+        if end_date_str:
+            end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        else:
+            end_date = None
+
+
+        # dates = req.data.get("dates")
+        # if dates is not None:
+        #     if isinstance(dates, list):
+        #         start_date = dt.fromisoformat(dates[0]).date()
+        #         end_date = dt.fromisoformat(dates[-1]).date()
+        #     else:
+        #         start_date = end_date = dt.fromisoformat(dates).date()
+        # else:
+        #     start_date = end_date = None
+
+
 
         # Individual values (location)
         location_data_list = data.getlist("locations")
@@ -1198,15 +1230,37 @@ class ProjectDetails(APIView):
         if locations_str:
             locations = locations_str
 
-        dates = req.data.get("dates")
-        if dates is not None:
-            if isinstance(dates, list):
-                start_date = dt.fromisoformat(dates[0]).date()
-                end_date = dt.fromisoformat(dates[-1]).date()
-            else:
-                start_date = end_date = dt.fromisoformat(dates).date()
+
+        # start_date = req.data.get('startDate')
+        # end_date = req.data.get('endDate')
+        # start_date = dt.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        # end_date = dt.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+
+
+        start_date_str = req.data.get('startDate')
+        end_date_str = req.data.get('endDate')
+        # Check if start_date_str is not None and not empty
+        if start_date_str:
+            start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
         else:
-            start_date = end_date = None
+            start_date = None
+
+        # Check if end_date_str is not None and not empty
+        if end_date_str:
+            end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
+        else:
+            end_date = None
+
+
+        # dates = req.data.get("dates")
+        # if dates is not None:
+        #     if isinstance(dates, list):
+        #         start_date = dt.fromisoformat(dates[0]).date()
+        #         end_date = dt.fromisoformat(dates[-1]).date()
+        #     else:
+        #         start_date = end_date = dt.fromisoformat(dates).date()
+        # else:
+        #     start_date = end_date = None
 
         service = req.data.get("service")
         research_function = req.data.get("research_function")
