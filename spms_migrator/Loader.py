@@ -1,11 +1,13 @@
 from datetime import datetime as dt
 from pathlib import Path
 import subprocess
+
 # import time
 import traceback
 from django.conf import settings
 import requests
 from django.contrib.auth.hashers import make_password
+
 # from selenium import webdriver
 # from selenium.webdriver.common.by import By
 # from selenium.webdriver.support.ui import WebDriverWait
@@ -24,22 +26,33 @@ from psycopg2 import sql
 # from django.core.files.images import ImageFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files.storage import default_storage
-# from ..config.settings 
+
+# from ..config.settings
 from django.conf import settings
 import psycopg2
 
+
 def determine_project_folder():
+    print("DETERMINING PROJECT FOLDER")
     env = environ.Env()
     BASE_DIR = Path(__file__).resolve().parent.parent
     environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
     print("basedir:", BASE_DIR)
     debugmode = env("DJANGO_DEBUG")
-    print('debug:', debugmode)
+    print("debug:", debugmode)
+    user = os.getlogin()
     if debugmode == "True":
-        return os.path.join("C:\\Users\\JaridPrince\\Documents\\GitHub\\service_spms")
+        if user == "JaridPrince":
+            return os.path.join(f"C:\\Users\\{user}\\Documents\\GitHub\\service_spms")
+        else:
+            return os.path.join(
+                f"C:\\Users\\{user}\\Documents\\GitHub\\science-projects-service"
+            )
+
     else:
         return os.path.join("/usr/src/app/backend")
-        
+
+
 class Loader:
     def __init__(
         self,
@@ -53,6 +66,7 @@ class Loader:
         parent_directory,
     ):
         self.os = os
+        self.user = os.getlogin()
         self.load_dotenv = load_dotenv
         self.tqdm = tqdm
         self.pd = pd
@@ -96,8 +110,6 @@ class Loader:
         ]
 
     # GETTERS =====================================================================================
-
-
 
     def spms_upload_image_file(self, file_string, static=False):
         if file_string is not None:
@@ -186,7 +198,6 @@ class Loader:
                 f"{self.misc.bcolors.OKGREEN}PDF retrieved ({pdf_id})!{self.misc.bcolors.ENDC}"
             )
             return True
-
 
     def spms_get_new_report_id_by_year(self, connection, cursor, year):
         try:
@@ -627,7 +638,6 @@ class Loader:
     def spms_get_division_by_old_id(self, connection, cursor, old_id):
         pass
 
-
     def spms_get_user_name_old_id(self, connection, cursor, old_id):
         # print(old_id)
         print(f"trying for old id: {old_id}")
@@ -650,7 +660,7 @@ class Loader:
             result = cursor.fetchone()
 
             if result:
-                first_name, last_name = result  
+                first_name, last_name = result
         except Exception as e:
             self.misc.nli(
                 f"{self.misc.bcolors.FAIL}Error retrieving user: {str(e)}{self.misc.bcolors.ENDC}"
@@ -659,13 +669,10 @@ class Loader:
             connection.rollback()
             return None
         else:
-         
             self.misc.nls(
                 f"{self.misc.bcolors.OKGREEN}User retrieved ({first_name} {last_name})!{self.misc.bcolors.ENDC}"
             )
-            return f'{first_name} {last_name}'
-
-
+            return f"{first_name} {last_name}"
 
     def spms_get_user_by_old_id(self, connection, cursor, old_id):
         # print(old_id)
@@ -749,7 +756,9 @@ class Loader:
             print(f"{self.misc.bcolors.WARNING}Loading .env...{self.misc.bcolors.ENDC}")
             self.load_dotenv()
 
-            superuser_username = self.os.getenv("SPMS_SUPERUSER_USERNAME", 'jarid.prince@dbca.wa.gov.au')
+            superuser_username = self.os.getenv(
+                "SPMS_SUPERUSER_USERNAME", "jarid.prince@dbca.wa.gov.au"
+            )
 
             # Execute the query with the user name
             cursor.execute(sql, (superuser_username,))
@@ -993,16 +1002,21 @@ class Loader:
             environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
             print("basedir:", BASE_DIR)
             debugmode = env("DJANGO_DEBUG")
-            print('debug:', debugmode)
-            print('connecting to', env("SPMS_DESTINATION_HOST") if debugmode == "True" else env("PRODUCTION_HOST"))
-            if debugmode == "True" or debugmode == True: 
+            print("debug:", debugmode)
+            print(
+                "connecting to",
+                env("SPMS_DESTINATION_HOST")
+                if debugmode == "True"
+                else env("PRODUCTION_HOST"),
+            )
+            if debugmode == "True" or debugmode == True:
                 connection = self.psycopg2.connect(
                     host=env("SPMS_DESTINATION_HOST"),
                     port=env("SPMS_DESTINATION_PORT"),
                     database=env("SPMS_DESTINATION_DB"),
                     user=env("SPMS_DESTINATION_USER"),
                     password=env("SPMS_DESTINATION_PASSWORD"),
-                )            
+                )
             else:
                 connection = self.psycopg2.connect(
                     host=env("PRODUCTION_HOST"),
@@ -1010,7 +1024,7 @@ class Loader:
                     database=env("PRODUCTION_DB_NAME"),
                     user=env("PRODUCTION_USERNAME"),
                     password=env("PRODUCTION_PASSWORD"),
-                )    
+                )
 
             # Create a cursor object to execute SQL queries
             print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
@@ -1127,18 +1141,20 @@ class Loader:
                                 else:
                                     try:
                                         subprocess.run(["rm", file_path])
-                                        print(f"Removed file using rm command: {file_path}")
-                                        removed_items.append(file_path)   
+                                        print(
+                                            f"Removed file using rm command: {file_path}"
+                                        )
+                                        removed_items.append(file_path)
                                     except Exception as e:
-                                        print(f"Error removing file {file_path} with rm command: {e}")
+                                        print(
+                                            f"Error removing file {file_path} with rm command: {e}"
+                                        )
 
                     print(f"Removed files in {migrations_path}")
                 elif dir_name == "__pycache__":
                     migrations_path = self.os.path.join(root, dir_name)
                     for file_name in self.os.listdir(migrations_path):
-                        file_path = self.os.path.join(
-                            migrations_path, file_name
-                        )
+                        file_path = self.os.path.join(migrations_path, file_name)
                         try:
                             self.os.remove(file_path)
                             print(f"Removed file: {file_path}")
@@ -1148,7 +1164,6 @@ class Loader:
                                 f"Permission denied: {file_path} - [WinError 5] Access is denied"
                             )
                     print(f"Removed files in {migrations_path}")
-     
 
         self.misc.nls("Removed theses files:")
         for item in removed_items:
@@ -1183,7 +1198,7 @@ class Loader:
             # Run the migrate command
             self.misc.nls(
                 f"{self.misc.bcolors.OKGREEN}MIGRATING!{self.misc.bcolors.ENDC}"
-            )            
+            )
             migrate_command = "python manage.py migrate"
             subprocess.run(migrate_command, shell=True)
         except Exception as e:
@@ -1241,8 +1256,6 @@ class Loader:
                 f"{self.misc.bcolors.OKGREEN}DB Created successfully{self.misc.bcolors.ENDC}"
             )
 
-        
-
     def spms_create_super_user(self, auto=True):
         # Establishing connection:
         (
@@ -1283,7 +1296,6 @@ class Loader:
         settings.MEDIA_URL = "/files/"
         settings.MEDIA_ROOT = os.path.join(self.django_project_path, "files")
 
-
         print(
             f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
         )
@@ -1322,8 +1334,8 @@ class Loader:
                     True,
                     True,
                     True,
-                    True, 
-                    True, 
+                    True,
+                    True,
                     True,
                     current_datetime,
                 ),
@@ -1355,11 +1367,11 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for profile...{self.misc.bcolors.ENDC}"
         )
-        env_about = self.os.getenv("SPMS_SUPERUSER_ABOUT", 'Web Developer')
+        env_about = self.os.getenv("SPMS_SUPERUSER_ABOUT", "Web Developer")
         env_role = self.os.getenv("SPMS_SUPERUSER_ROLE")
-        env_expertise = self.os.getenv("SPMS_SUPERUSER_EXPERTISE",'Making this site')
-        env_title = self.os.getenv("SPMS_SUPERUSER_TITLE", 'mr')
-        env_mid_init = self.os.getenv("SPMS_SUPERUSER_MIDDLE_INITIALS", 'M.')
+        env_expertise = self.os.getenv("SPMS_SUPERUSER_EXPERTISE", "Making this site")
+        env_title = self.os.getenv("SPMS_SUPERUSER_TITLE", "mr")
+        env_mid_init = self.os.getenv("SPMS_SUPERUSER_MIDDLE_INITIALS", "M.")
         env_cv = self.os.getenv(
             "SPMS_SUPERUSER_CURRICULUM_VITAE"
         )  # UNUSED FOR THIS PURPOSE, WILL BE A RELATIONAL LINK TO A FILES MODEL
@@ -1367,7 +1379,7 @@ class Loader:
 
         # Create the User Avatar based on the env image
         user_image_id = self.spms_create_user_profile_image(
-            image_file='profiles/1693448033243.jpg',
+            image_file="profiles/1693448033243.jpg",
             connection=connection,
             cursor=cursor,
             image_link=env_user_image,
@@ -1509,13 +1521,19 @@ class Loader:
                 ) VALUES (%s, %s, %s, %s);
                 COMMIT;
             """
-# old_file, %s
-            image_file_directory = os.path.join(self.django_project_path, 'dumped_media', image_file)
+            # old_file, %s
+            image_file_directory = os.path.join(
+                self.django_project_path, "dumped_media", image_file
+            )
             print(image_file_directory)
-            save_location=os.path.join(self.django_project_path, 'files', 'user_avatars')
-            saved_file = self.create_local_image(original_image_path=image_file_directory, folder_to_save_to=save_location)
+            save_location = os.path.join(
+                self.django_project_path, "files", "user_avatars"
+            )
+            saved_file = self.create_local_image(
+                original_image_path=image_file_directory,
+                folder_to_save_to=save_location,
+            )
 
-           
             # Execute the query with the user data
             print(user_id)
             cursor.execute(
@@ -1555,19 +1573,19 @@ class Loader:
         self.misc.nls(
             f"{self.misc.bcolors.WARNING}Attempting to create Image for DBCA with env image link...{self.misc.bcolors.ENDC}"
         )
-        # 
-        file_path = os.path.join(self.django_project_path, 'dbca.jpg')
+        #
+        file_path = os.path.join(self.django_project_path, "dbca.jpg")
         print(file_path)
         # Read the file content
-        with open(file_path, 'rb') as file:
+        with open(file_path, "rb") as file:
             # Create an InMemoryUploadedFile
             uploaded_file = InMemoryUploadedFile(
                 file,
                 None,
                 os.path.basename(file_path),
-                'image/jpeg',  # Adjust the content type based on your file type
+                "image/jpeg",  # Adjust the content type based on your file type
                 len(file.read()),  # Pass the file content length
-                None
+                None,
             )
 
             # Load the settings
@@ -1584,10 +1602,10 @@ class Loader:
             # Configure Django settings
             # settings.configure()
 
-
             # Save the file to the default storage
-            saved_file = default_storage.save(f'agencies/{uploaded_file.name}', uploaded_file)
-
+            saved_file = default_storage.save(
+                f"agencies/{uploaded_file.name}", uploaded_file
+            )
 
             try:
                 # Construct the SQL query
@@ -1610,7 +1628,6 @@ class Loader:
                     ),
                 )
 
-
             except Exception as e:
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating image for DBCA: {str(e)}{self.misc.bcolors.ENDC}"
@@ -1630,72 +1647,83 @@ class Loader:
             )
             return agency_image_id
 
-
     def create_local_image(self, original_image_path, folder_to_save_to):
         try:
-            with open(original_image_path, 'rb') as file:
+            with open(original_image_path, "rb") as file:
                 # Create an InMemoryUploadedFile
                 uploaded_file = InMemoryUploadedFile(
                     file,
                     None,
                     os.path.basename(original_image_path),
-                    'image/jpeg',  # Adjust the content type based on your file type
+                    "image/jpeg",  # Adjust the content type based on your file type
                     len(file.read()),  # Pass the file content length
-                    None
+                    None,
                 )
-                    # Load the settings
+                # Load the settings
                 print(
                     f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
                 )
                 # Set the DJANGO_SETTINGS_MODULE environment variable
                 self.os.environ.setdefault(
-                    "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+                    "DJANGO_SETTINGS_MODULE",
+                    f"{self.django_project_path}.config.settings",
                 )
 
                 print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
 
                 # Save the file to the default storage
-                saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
+                saved_file = default_storage.save(
+                    f"{folder_to_save_to}/{uploaded_file.name}", uploaded_file
+                )
                 return saved_file
         except FileNotFoundError as fe:
             try:
-                print(f'File not Found, stage 1: {fe}')
+                print(f"File not Found, stage 1: {fe}")
                 # If the original file is not found, try with a capitalized file extension (for linux)
                 root, ext = os.path.splitext(original_image_path)
-                capitalized_path = f'{root}{ext.upper()}'
-                with open(capitalized_path, 'rb') as file:
+                capitalized_path = f"{root}{ext.upper()}"
+                with open(capitalized_path, "rb") as file:
                     uploaded_file = InMemoryUploadedFile(
                         file,
                         None,
                         os.path.basename(capitalized_path),
-                        'image/jpeg',
+                        "image/jpeg",
                         len(file.read()),
-                        None
+                        None,
                     )
-                                        # Load the settings
+                    # Load the settings
                     print(
                         f"{self.misc.bcolors.WARNING}Setting the DJANGO_SETTINGS_MODULE...{self.misc.bcolors.ENDC}"
                     )
                     # Set the DJANGO_SETTINGS_MODULE environment variable
                     self.os.environ.setdefault(
-                        "DJANGO_SETTINGS_MODULE", f"{self.django_project_path}.config.settings"
+                        "DJANGO_SETTINGS_MODULE",
+                        f"{self.django_project_path}.config.settings",
                     )
 
                     print(self.os.getenv("DJANGO_SETTINGS_MODULE"))
 
                     # Save the file to the default storage
-                    saved_file = default_storage.save(f'{folder_to_save_to}/{uploaded_file.name}', uploaded_file)
+                    saved_file = default_storage.save(
+                        f"{folder_to_save_to}/{uploaded_file.name}", uploaded_file
+                    )
                     return saved_file
             except FileNotFoundError as fe2:
-                print(f'File not Found, stage 2: {fe2}')
+                print(f"File not Found, stage 2: {fe2}")
                 # If both attempts fail, raise an error
-                raise FileNotFoundError(f"File not found: {original_image_path} or {capitalized_path}")
-
-        
-
+                raise FileNotFoundError(
+                    f"File not found: {original_image_path} or {capitalized_path}"
+                )
 
     def spms_create_project_image(
-        self, image_file, connection, cursor, image_link, current_datetime, project_id, uploader
+        self,
+        image_file,
+        connection,
+        cursor,
+        image_link,
+        current_datetime,
+        project_id,
+        uploader,
     ):
         self.misc.nls(
             f"{self.misc.bcolors.WARNING}Attempting to create Image for Project with image link...{self.misc.bcolors.ENDC}"
@@ -1710,11 +1738,15 @@ class Loader:
                 COMMIT;
             """
 
-            image_file_directory = os.path.join(self.django_project_path, 'dumped_media', image_file)
+            image_file_directory = os.path.join(
+                self.django_project_path, "dumped_media", image_file
+            )
             print(image_file_directory)
-            save_location=os.path.join(self.django_project_path, 'files', 'projects')
-            saved_file = self.create_local_image(original_image_path=image_file_directory, folder_to_save_to=save_location)
-
+            save_location = os.path.join(self.django_project_path, "files", "projects")
+            saved_file = self.create_local_image(
+                original_image_path=image_file_directory,
+                folder_to_save_to=save_location,
+            )
 
             # Execute the query with the user data
             cursor.execute(
@@ -1756,7 +1788,9 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for super user contact...{self.misc.bcolors.ENDC}"
         )
-        email = self.os.getenv("SPMS_SUPERUSER_CONTACT_EMAIL", 'jarid.prince@dbca.wa.gov.au')
+        email = self.os.getenv(
+            "SPMS_SUPERUSER_CONTACT_EMAIL", "jarid.prince@dbca.wa.gov.au"
+        )
         phone = self.os.getenv("SPMS_SUPERUSER_PHONE")
         alt_phone = self.os.getenv("SPMS_SUPERUSER_ALT_PHONE")
         fax = self.os.getenv("SPMS_SUPERUSER_FAX")
@@ -1817,8 +1851,8 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for super user work...{self.misc.bcolors.ENDC}"
         )
-        branch_name = self.os.getenv("SPMS_SUPERUSER_BRANCH_NAME", 'Kensington')
-        ba_name = self.os.getenv("SPMS_SUPERUSER_BUSINESS_AREA_NAME", 'Ecoinformatics')
+        branch_name = self.os.getenv("SPMS_SUPERUSER_BRANCH_NAME", "Kensington")
+        ba_name = self.os.getenv("SPMS_SUPERUSER_BUSINESS_AREA_NAME", "Ecoinformatics")
 
         # Get the DBCA Agency ID
         dbca_id = self.spms_get_dbca_agency(connection=connection, cursor=cursor)
@@ -2042,9 +2076,13 @@ class Loader:
         # pass
 
     def spms_clear_files(self):
-        folder_path = os.path.join(self.django_project_path, 'files')
-        dump_path_arar = os.path.join(self.django_project_path, 'dumped_media', 'ararreports')
-        dump_path_docs = os.path.join(self.django_project_path, 'dumped_media', 'documents')
+        folder_path = os.path.join(self.django_project_path, "files")
+        dump_path_arar = os.path.join(
+            self.django_project_path, "dumped_media", "ararreports"
+        )
+        dump_path_docs = os.path.join(
+            self.django_project_path, "dumped_media", "documents"
+        )
 
         try:
             # Walk through all directories and files in the specified folder
@@ -2057,7 +2095,6 @@ class Loader:
             print(f"Error clearing files: {e}")
         else:
             print("All files in subdirectories deleted successfully.")
-
 
     def spms_run_all(self):
         self.spms_clear_files()
@@ -2157,21 +2194,21 @@ class Loader:
             )
 
             # Save the names of removed business areas to a text file
-            
+
             # with open("RemovedBusinessAreas.txt", "w") as file:
             #     for name in removed_business_areas:
             #         file.write(name + "\n")
-            filename = 'RemovedBusinessAreas.txt'
+            filename = "RemovedBusinessAreas.txt"
             bas_dir = os.path.join(self.django_project_path, filename)
             # Read existing content from the file
-            with open(bas_dir, 'r') as file:
+            with open(bas_dir, "r") as file:
                 existing_content = file.read()
             # Check if the content already exists
             for name in removed_business_areas:
-                if f'{name}\n' not in existing_content:
+                if f"{name}\n" not in existing_content:
                     # Append to the file
-                    with open(bas_dir, 'a') as file:
-                        file.write(f'{name}\n')
+                    with open(bas_dir, "a") as file:
+                        file.write(f"{name}\n")
                 else:
                     print("already present in ba removal file")
 
@@ -2355,9 +2392,9 @@ class Loader:
                             user["last_login"],
                             is_superuser_value,
                             is_staff_value,
-                            False, #is_herbarium_curator,
-                            False, # is_biometrician, 
-                            False, # is_aec,
+                            False,  # is_herbarium_curator,
+                            False,  # is_biometrician,
+                            False,  # is_aec,
                             user["date_joined"],
                             user["first_name"],
                             user["last_name"],
@@ -2365,7 +2402,7 @@ class Loader:
                             user["id"],  # old_pk
                         ),
                     )
-                  
+
                 except Exception as e:
                     self.misc.nli(
                         f"{self.misc.bcolors.FAIL}Error creating User ({user['username']}): {str(e)}{self.misc.bcolors.ENDC}"
@@ -2397,7 +2434,7 @@ class Loader:
                         cursor=cursor,
                         connection=connection,
                     )
-                    
+
                     print("created user")
 
                 # Create Affiliations if they don't exist
@@ -2422,7 +2459,7 @@ class Loader:
                         f'https://scienceprojects.dbca.wa.gov.au/media/{user["image"]}'
                     )
                     image_id = self.spms_create_user_profile_image(
-                        image_file=user['image'],
+                        image_file=user["image"],
                         connection=connection,
                         cursor=cursor,
                         image_link=image_string,
@@ -2780,7 +2817,7 @@ class Loader:
                 cursor.close()
             if connection is not None:
                 connection.close()
-    
+
     def spms_clean_database(self):
         # Load environment variables from .env file
         print(f"{self.misc.bcolors.WARNING}Loading Env...{self.misc.bcolors.ENDC}")
@@ -2791,10 +2828,11 @@ class Loader:
             f"{self.misc.bcolors.WARNING}Running sqlflush command...{self.misc.bcolors.ENDC}"
         )
         try:
+            print("User is", os.getlogin())
             flush_command = f"python manage.py flush --noinput"
             subprocess.run(flush_command, shell=True, cwd=self.django_project_path)
         except Exception as e:
-            print('project path', self.django_project_path)
+            print("project path", self.django_project_path)
             self.misc.nli(
                 f"{self.misc.bcolors.FAIL}Could not run flush command: {e}{self.misc.bcolors.ENDC}",
             )
@@ -2804,28 +2842,33 @@ class Loader:
             )
         self.spms_drop_all_tables_in_db()
 
-
-
     def spms_drop_all_tables_in_db(self):
         try:
             print(
                 f"{self.misc.bcolors.OKBLUE}Dropping every table...{self.misc.bcolors.ENDC}"
             )
             # Establish a database connection
-            cursor, connection = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+            (
+                cursor,
+                connection,
+            ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
 
             # Disable foreign key checks
             # NO PERMISSIONS
             # cursor.execute("SET session_replication_role = 'replica';")
 
             # Get a list of all tables in the public schema
-            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
+            cursor.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+            )
             tables = cursor.fetchall()
 
             # Drop each table
             for table in tables:
                 table_name = table[0]
-                drop_table_query = sql.SQL("DROP TABLE IF EXISTS {} CASCADE;").format(sql.Identifier(table_name))
+                drop_table_query = sql.SQL("DROP TABLE IF EXISTS {} CASCADE;").format(
+                    sql.Identifier(table_name)
+                )
                 cursor.execute(drop_table_query)
 
             # Enable foreign key checks
@@ -2849,7 +2892,6 @@ class Loader:
             # Close the cursor and connection
             cursor.close()
             connection.close()
-    
 
     def spms_recreate_db(self):
         print(
@@ -3285,7 +3327,7 @@ class Loader:
             ) VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s,%s,%s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
-# old_id, %s, 
+        # old_id, %s,
         # Create an entry for each branch in the csv
         for index, business_area in ba_columns.iterrows():
             print(
@@ -3435,11 +3477,20 @@ class Loader:
 
                     # In the dumped_media folder
                     if not self.pd.isna(business_area["image"]):
-                        image_file_directory = os.path.join(self.django_project_path, 'dumped_media', business_area["image"])
+                        image_file_directory = os.path.join(
+                            self.django_project_path,
+                            "dumped_media",
+                            business_area["image"],
+                        )
                         print(image_file_directory)
-                        save_location=os.path.join(self.django_project_path, 'files', 'business_areas')
-                        saved_file = self.create_local_image(original_image_path=image_file_directory, folder_to_save_to=save_location)
-                        
+                        save_location = os.path.join(
+                            self.django_project_path, "files", "business_areas"
+                        )
+                        saved_file = self.create_local_image(
+                            original_image_path=image_file_directory,
+                            folder_to_save_to=save_location,
+                        )
+
                         ba_image_sql = """
                         BEGIN;
                         INSERT INTO medias_businessareaphoto (
@@ -3447,7 +3498,7 @@ class Loader:
                         ) VALUES (%s, %s, %s, %s, %s);
                         COMMIT;
                         """
-    # , old_file %s, 
+                        # , old_file %s,
                         cursor.execute(
                             ba_image_sql,
                             (
@@ -4459,12 +4510,14 @@ class Loader:
         cursor.close()
         # connection.close()
 
-    def spms_get_business_area_of_project_lead(self, project_lead_id, cursor, connection):
+    def spms_get_business_area_of_project_lead(
+        self, project_lead_id, cursor, connection
+    ):
         try:
             # Use a SQL SELECT query to retrieve the business_area_id based on project_lead_id
             query = "SELECT business_area_id FROM users_userwork WHERE user_id = %s"
             cursor.execute(query, (project_lead_id,))
-            
+
             # Fetch the result
             result = cursor.fetchone()
 
@@ -4511,8 +4564,9 @@ class Loader:
             COMMIT;
         """
 
-        remote_sensing_ba = self.spms_get_ba_by_old_program_id(connection=connection, cursor=cursor, old_id=19)
-
+        remote_sensing_ba = self.spms_get_ba_by_old_program_id(
+            connection=connection, cursor=cursor, old_id=19
+        )
 
         for index, project in dataframe.iterrows():
             proj_title = self.spms_check_if_project_with_name_exists(
@@ -4525,15 +4579,24 @@ class Loader:
 
             print(f"Getting id of business area belong to project {proj_title}")
             if self.pd.isna(project["program_id"]):
-                project_lead_id = self.spms_get_user_by_old_id(connection=connection, cursor=cursor, old_id=project['creator_id'])
-                business_area_id = self.spms_get_business_area_of_project_lead(connection=connection, cursor=cursor, project_lead_id=project_lead_id)
+                project_lead_id = self.spms_get_user_by_old_id(
+                    connection=connection, cursor=cursor, old_id=project["creator_id"]
+                )
+                business_area_id = self.spms_get_business_area_of_project_lead(
+                    connection=connection,
+                    cursor=cursor,
+                    project_lead_id=project_lead_id,
+                )
             else:
                 business_area_id = self.spms_get_ba_by_old_program_id(
                     cursor=cursor, connection=connection, old_id=project["program_id"]
                 )
 
-
-            start_date = project["start_date"] if not self.pd.isna(project["start_date"]) else project["created"]
+            start_date = (
+                project["start_date"]
+                if not self.pd.isna(project["start_date"])
+                else project["created"]
+            )
 
             if project["status"] == "closure requested":
                 new_status = "closure_requested"
@@ -4568,7 +4631,10 @@ class Loader:
                         if not self.pd.isna(project["end_date"])
                         else start_date,
                         # else None,
-                        remote_sensing_ba if str(project['year']) == '2022' and str(project['number']) == '18' else business_area_id, #address a project without ba set
+                        remote_sensing_ba
+                        if str(project["year"]) == "2022"
+                        and str(project["number"]) == "18"
+                        else business_area_id,  # address a project without ba set
                         # image_id,
                     ),
                 )
@@ -4596,7 +4662,7 @@ class Loader:
                     connection=connection, cursor=cursor, old_id=project["id"]
                 )
                 image_id = self.spms_create_project_image(
-                    image_file=project['image'],
+                    image_file=project["image"],
                     current_datetime=current_datetime,
                     connection=connection,
                     cursor=cursor,
@@ -4608,10 +4674,6 @@ class Loader:
             self.misc.nls(
                 f"{self.misc.bcolors.WARNING}Setting Additional Project details...{self.misc.bcolors.ENDC}"
             )
-
-
-
-
 
             self.spms_project_details_setter(
                 connection=connection,
@@ -4957,7 +5019,7 @@ class Loader:
                 )
             except psycopg2.IntegrityError as e:
                 error_message = str(e)
-                if 'duplicate key value violates unique constraint' in error_message:
+                if "duplicate key value violates unique constraint" in error_message:
                     print(f"Duplicate key violation: {error_message}")
                     connection.rollback()
                     continue
@@ -4988,7 +5050,7 @@ class Loader:
                 print(traceback_str)
 
                 connection.rollback()
-             
+
             else:
                 self.misc.nls(
                     f"{self.misc.bcolors.OKGREEN} Project Member (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
@@ -4997,8 +5059,8 @@ class Loader:
 
             # finally:
             #     connection.commit()
-                # connection.close()
-                # cursor.close()
+            # connection.close()
+            # cursor.close()
 
     def spms_project_areas_setter(self):
         # Title
@@ -5129,7 +5191,6 @@ class Loader:
         finally:
             connection.commit()
 
-
         # Create empty array entries for projects without areas to avoid null values
         # Fetch all project IDs from the Project model
         cursor.execute("SELECT id FROM projects_project")
@@ -5140,11 +5201,15 @@ class Loader:
         existing_project_area_ids = [row[0] for row in cursor.fetchall()]
 
         # Identify projects without ProjectArea entries
-        projects_without_project_area = set(all_project_ids) - set(existing_project_area_ids)
+        projects_without_project_area = set(all_project_ids) - set(
+            existing_project_area_ids
+        )
 
         # Create empty entries for projects without ProjectArea entries
         for project_id in projects_without_project_area:
-            print(f"{self.misc.bcolors.WARNING}Creating empty Project Area entry for Project ID: {project_id}...{self.misc.bcolors.ENDC}")
+            print(
+                f"{self.misc.bcolors.WARNING}Creating empty Project Area entry for Project ID: {project_id}...{self.misc.bcolors.ENDC}"
+            )
             try:
                 # Start a transaction
                 cursor.execute(
@@ -5166,9 +5231,6 @@ class Loader:
 
         # Commit the transaction for empty entries
         connection.commit()
-
-            
-
 
     def spms_project_comments_setter(self, projects_df, cursor, connection):
         pass
@@ -5294,7 +5356,7 @@ class Loader:
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
-                # service_id,
+        # service_id,
 
         # area list and superivsing scientist list removed
 
@@ -5354,7 +5416,7 @@ class Loader:
             )
 
             # new_service_id = (
-            #     None 
+            #     None
             #     if self.pd.isna(df_project["service_id"])
             #     else self.spms_get_service_by_old_id(
             #         old_id=df_project["service_id"],
@@ -5370,35 +5432,36 @@ class Loader:
             )
 
             if new_research_function_id == None:
-                filename = 'ProjectsWithNoRFs.txt'
+                filename = "ProjectsWithNoRFs.txt"
                 rfs_dir = os.path.join(self.django_project_path, filename)
                 if not os.path.exists(rfs_dir):
-                    with open(rfs_dir, 'w') as file:
-                        pass  
+                    with open(rfs_dir, "w") as file:
+                        pass
                 # Read existing content from the file
-                with open(rfs_dir, 'r', encoding="utf-8") as file:
+                with open(rfs_dir, "r", encoding="utf-8") as file:
                     existing_content = file.read()
                 # Check if the content already exists
-                if f'https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n' not in existing_content:
-                    
+                if (
+                    f"https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n"
+                    not in existing_content
+                ):
                     # Get the project lead nasme
                     lead_name = self.spms_get_user_name_old_id(
                         connection=connection,
                         cursor=cursor,
-                        old_id=df_project['project_owner_id']
+                        old_id=df_project["project_owner_id"],
                     )
-                    title = df_project['title']
-                    status = df_project['status']
+                    title = df_project["title"]
+                    status = df_project["status"]
                     # Get the project title
                     # project_title = self.spms_get_project_title_by_
                     # Append to the file
-                    with open(rfs_dir, 'a', encoding="utf-8") as file:
+                    with open(rfs_dir, "a", encoding="utf-8") as file:
                         file.write(
-                            f'{lead_name}\n{status}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n'
+                            f"{lead_name}\n{status}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n"
                         )
                 else:
                     print("Content already exists in the file.")
-                
 
             # Start a transaction
             cursor = connection.cursor()
@@ -6027,13 +6090,22 @@ class Loader:
 
             pdf_generation_in_progress = False
             directorate_approval_granted = True if status == "approved" else False
-            business_area_lead_approval_granted = True if (directorate_approval_granted) or status == "inapproval" else False
-            project_lead_approval_granted = True if (status != "new") or business_area_lead_approval_granted or directorate_approval_granted else False # set all non-news to approved
+            business_area_lead_approval_granted = (
+                True
+                if (directorate_approval_granted) or status == "inapproval"
+                else False
+            )
+            project_lead_approval_granted = (
+                True
+                if (status != "new")
+                or business_area_lead_approval_granted
+                or directorate_approval_granted
+                else False
+            )  # set all non-news to approved
 
             # directorate_approval_granted = True if status == "approved" else False
             # business_area_lead_approval_granted = True if (directorate_approval_granted) else False
             # project_lead_approval_granted = True if (status != "new") or business_area_lead_approval_granted or directorate_approval_granted else False # set all non-news to approved
-
 
             kind = "concept"
             pdf = None if self.pd.isna(concept_plan["pdf"]) else concept_plan["pdf"]
@@ -6150,8 +6222,6 @@ class Loader:
                     ),
                 )
 
-
-
             except Exception as e:
                 print(new_document_id)
                 print(background)
@@ -6188,20 +6258,24 @@ class Loader:
             # )
 
             if pdf != None:
-                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                file_directory = os.path.join(
+                    self.django_project_path, "dumped_media", pdf
+                )
                 print(file_directory)
-                with open(file_directory, 'rb') as file:
+                with open(file_directory, "rb") as file:
                     # Create an InMemoryUploadedFile
                     uploaded_file = InMemoryUploadedFile(
                         file,
                         None,
                         os.path.basename(file_directory),
-                        'application/pdf',  # Adjust the content type based on your file type
+                        "application/pdf",  # Adjust the content type based on your file type
                         len(file.read()),  # Pass the file content length
-                        None
+                        None,
                     )
 
-                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    saved_file = default_storage.save(
+                        f"project_documents/{uploaded_file.name}", uploaded_file
+                    )
 
                     try:
                         self.create_project_document_pdf(
@@ -6215,9 +6289,6 @@ class Loader:
                     except Exception as e:
                         print(e)
                         continue
-
-
-
 
     def spms_project_plan_setter(
         self,
@@ -6289,11 +6360,20 @@ class Loader:
             pdf = None if self.pd.isna(project_plan["pdf"]) else project_plan["pdf"]
             print(pdf)
 
-            
             pdf_generation_in_progress = False
             directorate_approval_granted = True if status == "approved" else False
-            business_area_lead_approval_granted = True if (directorate_approval_granted) or status == "inapproval" else False
-            project_lead_approval_granted = True if (status != "new") or business_area_lead_approval_granted or directorate_approval_granted else False # set all non-news to approved
+            business_area_lead_approval_granted = (
+                True
+                if (directorate_approval_granted) or status == "inapproval"
+                else False
+            )
+            project_lead_approval_granted = (
+                True
+                if (status != "new")
+                or business_area_lead_approval_granted
+                or directorate_approval_granted
+                else False
+            )  # set all non-news to approved
 
             try:
                 # Start a transaction
@@ -6361,8 +6441,8 @@ class Loader:
                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
                 COMMIT;
             """
-        #            involves_plants,
-                    # involves_animals,
+            #            involves_plants,
+            # involves_animals,
 
             try:
                 print(
@@ -6467,18 +6547,18 @@ class Loader:
                     operating_budget_external,
                     related_projects,
                 )
-            #  document_id, 
-            #         project_id,
-            #         background, 
-            #         aims,
-            #         outcome, 
-            #         knowledge_transfer,
-            #         project_tasks,
-            #         listed_references,
-            #         methodology,
-            #         operating_budget,
-            #         operating_budget_external,
-            #         related_projects
+                #  document_id,
+                #         project_id,
+                #         background,
+                #         aims,
+                #         outcome,
+                #         knowledge_transfer,
+                #         project_tasks,
+                #         listed_references,
+                #         methodology,
+                #         operating_budget,
+                #         operating_budget_external,
+                #         related_projects
 
                 # Print the complete traceback information
                 traceback_str = traceback.format_exc()
@@ -6536,35 +6616,59 @@ class Loader:
                 # )
                 bm_endorsement_required = (
                     False
-                    if (self.pd.isna(project_plan["bm_endorsement"])
-                    or project_plan["bm_endorsement"] == "not required")
+                    if (
+                        self.pd.isna(project_plan["bm_endorsement"])
+                        or project_plan["bm_endorsement"] == "not required"
+                    )
                     else True
                 )
                 bm_endorsement_provided = (
                     True
-                    if ((project_plan["bm_endorsement"] == "granted") or (bm_endorsement_required == True and project_plan["status"] == 'approved'))
+                    if (
+                        (project_plan["bm_endorsement"] == "granted")
+                        or (
+                            bm_endorsement_required == True
+                            and project_plan["status"] == "approved"
+                        )
+                    )
                     else False
                 )
                 hc_endorsement_required = (
                     False
-                    if (self.pd.isna(project_plan["hc_endorsement"])
-                    or project_plan["hc_endorsement"] == "not required")
+                    if (
+                        self.pd.isna(project_plan["hc_endorsement"])
+                        or project_plan["hc_endorsement"] == "not required"
+                    )
                     else True
                 )
                 hc_endorsement_provided = (
                     True
-                    if ((project_plan["hc_endorsement"] == "granted") or (hc_endorsement_required == True and project_plan["status"] == 'approved'))
+                    if (
+                        (project_plan["hc_endorsement"] == "granted")
+                        or (
+                            hc_endorsement_required == True
+                            and project_plan["status"] == "approved"
+                        )
+                    )
                     else False
                 )
                 ae_endorsement_required = (
                     False
-                    if (self.pd.isna(project_plan["ae_endorsement"])
-                    or project_plan["ae_endorsement"] == "not required")
+                    if (
+                        self.pd.isna(project_plan["ae_endorsement"])
+                        or project_plan["ae_endorsement"] == "not required"
+                    )
                     else True
                 )
                 ae_endorsement_provided = (
                     True
-                    if ((project_plan["ae_endorsement"] == "granted") or (ae_endorsement_required == True and project_plan["status"] == 'approved'))
+                    if (
+                        (project_plan["ae_endorsement"] == "granted")
+                        or (
+                            ae_endorsement_required == True
+                            and project_plan["status"] == "approved"
+                        )
+                    )
                     else False
                 )
 
@@ -6589,26 +6693,25 @@ class Loader:
                         bm_endorsement_provided,
                         hc_endorsement_required,
                         hc_endorsement_provided,
-                        ae_endorsement_required, 
+                        ae_endorsement_required,
                         ae_endorsement_provided,
                         data_management,
                         no_specimens,
                     ),
                 )
-                                    
 
             except Exception as e:
                 print(
-                        project_plan_detail_id,
-                        # new_proj_id,
-                        bm_endorsement_required,
-                        bm_endorsement_provided,
-                        hc_endorsement_required,
-                        hc_endorsement_provided,
-                        ae_endorsement_required, 
-                        ae_endorsement_provided,
-                        data_management,
-                        no_specimens,
+                    project_plan_detail_id,
+                    # new_proj_id,
+                    bm_endorsement_required,
+                    bm_endorsement_provided,
+                    hc_endorsement_required,
+                    hc_endorsement_provided,
+                    ae_endorsement_required,
+                    ae_endorsement_provided,
+                    data_management,
+                    no_specimens,
                 )
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Endorsements ({project_plan_detail_id}): {str(e)}{self.misc.bcolors.ENDC}"
@@ -6637,20 +6740,24 @@ class Loader:
             # )
 
             if pdf != None:
-                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                file_directory = os.path.join(
+                    self.django_project_path, "dumped_media", pdf
+                )
                 print(file_directory)
-                with open(file_directory, 'rb') as file:
+                with open(file_directory, "rb") as file:
                     # Create an InMemoryUploadedFile
                     uploaded_file = InMemoryUploadedFile(
                         file,
                         None,
                         os.path.basename(file_directory),
-                        'application/pdf',  # Adjust the content type based on your file type
+                        "application/pdf",  # Adjust the content type based on your file type
                         len(file.read()),  # Pass the file content length
-                        None
+                        None,
                     )
 
-                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    saved_file = default_storage.save(
+                        f"project_documents/{uploaded_file.name}", uploaded_file
+                    )
 
                     try:
                         self.create_project_document_pdf(
@@ -6663,9 +6770,6 @@ class Loader:
                     except Exception as e:
                         print(e)
                         continue
-
-
-
 
     def spms_progress_report_setter(
         self, dataframe, cursor, connection, current_datetime, set_new_status
@@ -6730,13 +6834,25 @@ class Loader:
             )
             # status = progress_report["status"]
             kind = "progressreport"
-            pdf = None if self.pd.isna(progress_report["pdf"]) else progress_report["pdf"]
+            pdf = (
+                None if self.pd.isna(progress_report["pdf"]) else progress_report["pdf"]
+            )
             print(pdf)
-            
+
             pdf_generation_in_progress = False
             directorate_approval_granted = True if status == "approved" else False
-            business_area_lead_approval_granted = True if (directorate_approval_granted) or status == "inapproval" else False
-            project_lead_approval_granted = True if (status != "new") or business_area_lead_approval_granted or directorate_approval_granted else False # set all non-news to approved
+            business_area_lead_approval_granted = (
+                True
+                if (directorate_approval_granted) or status == "inapproval"
+                else False
+            )
+            project_lead_approval_granted = (
+                True
+                if (status != "new")
+                or business_area_lead_approval_granted
+                or directorate_approval_granted
+                else False
+            )  # set all non-news to approved
 
             try:
                 # Start a transaction
@@ -6782,11 +6898,10 @@ class Loader:
                     f"{self.misc.bcolors.OKGREEN}Progress Report Base (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
                 )
 
-            # finally:
+                # finally:
                 connection.commit()
 
             # Construct the SQL query for progressreports
-
 
             try:
                 year = (
@@ -6837,14 +6952,15 @@ class Loader:
                         doc=progress_report, old_report_id=progress_report["report_id"]
                     )
                 )
-       
+
                 if report_id is None:
-                    report_id = self.spms_get_new_report_id_by_year(year=year, connection=connection, cursor=cursor)
-                
+                    report_id = self.spms_get_new_report_id_by_year(
+                        year=year, connection=connection, cursor=cursor
+                    )
+
                 print(f"NEW DOC ID: {new_document_id}")
                 print(f"NEW REPORT ID: {report_id}")
                 print(f"NEW PROJ ID: {new_proj_id}")
-
 
                 progress_report_sql = """
                     BEGIN;
@@ -6914,8 +7030,6 @@ class Loader:
             finally:
                 connection.commit()
 
-
-
             # self.spms_create_tasks_for_document(
             #     connection=connection,
             #     cursor=cursor,
@@ -6925,20 +7039,24 @@ class Loader:
             # )
 
             if (pdf != None) and (report_id != None):
-                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                file_directory = os.path.join(
+                    self.django_project_path, "dumped_media", pdf
+                )
                 print(file_directory)
-                with open(file_directory, 'rb') as file:
+                with open(file_directory, "rb") as file:
                     # Create an InMemoryUploadedFile
                     uploaded_file = InMemoryUploadedFile(
                         file,
                         None,
                         os.path.basename(file_directory),
-                        'application/pdf',  # Adjust the content type based on your file type
+                        "application/pdf",  # Adjust the content type based on your file type
                         len(file.read()),  # Pass the file content length
-                        None
+                        None,
                     )
 
-                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    saved_file = default_storage.save(
+                        f"project_documents/{uploaded_file.name}", uploaded_file
+                    )
 
                     try:
                         self.create_project_document_pdf(
@@ -6951,7 +7069,6 @@ class Loader:
                     except Exception as e:
                         print(e)
                         continue
-
 
     def spms_student_report_setter(
         self, dataframe, cursor, connection, current_datetime, set_new_status
@@ -7018,11 +7135,21 @@ class Loader:
             kind = "studentreport"
             pdf = None if self.pd.isna(student_report["pdf"]) else student_report["pdf"]
             print(pdf)
-            
+
             pdf_generation_in_progress = False
             directorate_approval_granted = True if status == "approved" else False
-            business_area_lead_approval_granted = True if (directorate_approval_granted) or status == "inapproval" else False
-            project_lead_approval_granted = True if (status != "new") or business_area_lead_approval_granted or directorate_approval_granted else False # set all non-news to approved
+            business_area_lead_approval_granted = (
+                True
+                if (directorate_approval_granted) or status == "inapproval"
+                else False
+            )
+            project_lead_approval_granted = (
+                True
+                if (status != "new")
+                or business_area_lead_approval_granted
+                or directorate_approval_granted
+                else False
+            )  # set all non-news to approved
 
             try:
                 # Start a transaction
@@ -7149,8 +7276,6 @@ class Loader:
             finally:
                 connection.commit()
 
-
-
             # self.spms_create_tasks_for_document(
             #     connection=connection,
             #     cursor=cursor,
@@ -7160,20 +7285,24 @@ class Loader:
             # )
 
             if pdf != None:
-                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                file_directory = os.path.join(
+                    self.django_project_path, "dumped_media", pdf
+                )
                 print(file_directory)
-                with open(file_directory, 'rb') as file:
+                with open(file_directory, "rb") as file:
                     # Create an InMemoryUploadedFile
                     uploaded_file = InMemoryUploadedFile(
                         file,
                         None,
                         os.path.basename(file_directory),
-                        'application/pdf',  # Adjust the content type based on your file type
+                        "application/pdf",  # Adjust the content type based on your file type
                         len(file.read()),  # Pass the file content length
-                        None
+                        None,
                     )
 
-                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    saved_file = default_storage.save(
+                        f"project_documents/{uploaded_file.name}", uploaded_file
+                    )
                     try:
                         self.create_project_document_pdf(
                             connection=connection,
@@ -7251,20 +7380,28 @@ class Loader:
             kind = "projectclosure"
             pdf = None if self.pd.isna(proj_closure["pdf"]) else proj_closure["pdf"]
 
-            
             pdf_generation_in_progress = False
             directorate_approval_granted = True if status == "approved" else False
-            business_area_lead_approval_granted = True if (directorate_approval_granted) or status == "inapproval" else False
-            project_lead_approval_granted = True if (status != "new") or business_area_lead_approval_granted or directorate_approval_granted else False # set all non-news to approved
+            business_area_lead_approval_granted = (
+                True
+                if (directorate_approval_granted) or status == "inapproval"
+                else False
+            )
+            project_lead_approval_granted = (
+                True
+                if (status != "new")
+                or business_area_lead_approval_granted
+                or directorate_approval_granted
+                else False
+            )  # set all non-news to approved
 
             # directorate_approval_granted = True if status == "approved" else False
             # business_area_lead_approval_granted = True if (directorate_approval_granted == True or status == "inapproval") else False
             # project_lead_approval_granted = True if (
             #     status == "inreview" or status == "revising" or
-            #     business_area_lead_approval_granted == True or 
+            #     business_area_lead_approval_granted == True or
             #     directorate_approval_granted == True
             # ) else False # set all non-news to approved
-
 
             print(pdf)
             try:
@@ -7314,9 +7451,6 @@ class Loader:
             finally:
                 connection.commit()
 
-
-            
-
             try:
                 document_id = self.spms_get_document_id_by_old_id(
                     cursor=cursor, connection=connection, old_id=proj_closure["id"]
@@ -7357,7 +7491,7 @@ class Loader:
                 )
                 # Start a transaction
                 # cursor = connection.cursor()
-#                Construct the SQL query for projectclosure
+                #                Construct the SQL query for projectclosure
                 project_closure_sql = """
                     BEGIN;
                     INSERT INTO documents_projectclosure (
@@ -7427,20 +7561,24 @@ class Loader:
             # )
 
             if pdf != None:
-                file_directory = os.path.join(self.django_project_path, 'dumped_media', pdf)
+                file_directory = os.path.join(
+                    self.django_project_path, "dumped_media", pdf
+                )
                 print(file_directory)
-                with open(file_directory, 'rb') as file:
+                with open(file_directory, "rb") as file:
                     # Create an InMemoryUploadedFile
                     uploaded_file = InMemoryUploadedFile(
                         file,
                         None,
                         os.path.basename(file_directory),
-                        'application/pdf',  # Adjust the content type based on your file type
+                        "application/pdf",  # Adjust the content type based on your file type
                         len(file.read()),  # Pass the file content length
-                        None
+                        None,
                     )
 
-                    saved_file = default_storage.save(f'project_documents/{uploaded_file.name}', uploaded_file)
+                    saved_file = default_storage.save(
+                        f"project_documents/{uploaded_file.name}", uploaded_file
+                    )
 
                     try:
                         self.create_project_document_pdf(
@@ -8325,22 +8463,29 @@ class Loader:
                         continue
                     else:
                         new_kind_value = self.spms_assign_new_report_media_kind(kind)
-                        file_path = os.path.join(self.django_project_path, 'dumped_media', media_value.values[0])
+                        file_path = os.path.join(
+                            self.django_project_path,
+                            "dumped_media",
+                            media_value.values[0],
+                        )
                         print(file_path)
-                        if kind != 'pdf':
-                            with open(file_path, 'rb') as file:
+                        if kind != "pdf":
+                            with open(file_path, "rb") as file:
                                 # Create an InMemoryUploadedFile
                                 uploaded_file = InMemoryUploadedFile(
                                     file,
                                     None,
                                     os.path.basename(file_path),
-                                    'image/jpeg',  # Adjust the content type based on your file type
+                                    "image/jpeg",  # Adjust the content type based on your file type
                                     len(file.read()),  # Pass the file content length
-                                    None
+                                    None,
                                 )
 
                                 # Save the file to the default storage
-                                saved_file = default_storage.save(f'annual_reports/images/{uploaded_file.name}', uploaded_file)
+                                saved_file = default_storage.save(
+                                    f"annual_reports/images/{uploaded_file.name}",
+                                    uploaded_file,
+                                )
 
                                 self.spms_create_report_media(
                                     connection=connection,
@@ -8350,19 +8495,22 @@ class Loader:
                                     related_report_id=related_report_id,
                                 )
                         else:
-                            with open(file_path, 'rb') as file:
+                            with open(file_path, "rb") as file:
                                 # Create an InMemoryUploadedFile
                                 uploaded_file = InMemoryUploadedFile(
                                     file,
                                     None,
                                     os.path.basename(file_path),
-                                    'application/pdf',  # Adjust the content type based on your file type
+                                    "application/pdf",  # Adjust the content type based on your file type
                                     len(file.read()),  # Pass the file content length
-                                    None
+                                    None,
                                 )
 
                                 # Save the file to the default storage
-                                saved_file = default_storage.save(f'annual_reports/pdfs/{uploaded_file.name}', uploaded_file)
+                                saved_file = default_storage.save(
+                                    f"annual_reports/pdfs/{uploaded_file.name}",
+                                    uploaded_file,
+                                )
 
                                 self.spms_create_report_pdf(
                                     connection=connection,
@@ -8371,7 +8519,6 @@ class Loader:
                                     # kind=new_kind_value,
                                     related_report_id=related_report_id,
                                 )
-
 
         cursor.close()
         # connection.close()
@@ -8406,7 +8553,7 @@ class Loader:
     #             rear_cover_page,
     #         ]
 
-    def create_project_document_pdf(       
+    def create_project_document_pdf(
         self, connection, cursor, related_project_id, related_document_id, data
     ):
         self.misc.nls(
@@ -8430,8 +8577,8 @@ class Loader:
             # old_file, %s,
             # old_file = data
             # kind = kind
-            # old_file, 
-            # kind, 
+            # old_file,
+            # kind,
 
             created_at = dt.now()
             updated_at = dt.now()
@@ -8441,16 +8588,18 @@ class Loader:
             # uploader = self.spms_get_superuser(connection, cursor)
 
             # Check if pdf matching doc already exists (data issues)
-            already_present = self.spms_check_proj_pdf_exists(doc_id=document, cursor=cursor, connection=connection)
+            already_present = self.spms_check_proj_pdf_exists(
+                doc_id=document, cursor=cursor, connection=connection
+            )
             if already_present == False:
-                cursor.execute(                     
-                    project_document_pdf_sql,        
+                cursor.execute(
+                    project_document_pdf_sql,
                     (
-                        created_at, 
-                        updated_at, 
-                        file, 
+                        created_at,
+                        updated_at,
+                        file,
                         document,
-                        project, 
+                        project,
                     ),
                 )
 
@@ -8460,19 +8609,15 @@ class Loader:
             )
             # Rollback the transaction
             connection.rollback()
-            
 
         else:
             self.misc.nls(
                 f"{self.misc.bcolors.OKGREEN}Project Document PDF Created!{self.misc.bcolors.ENDC}"
             )
-            connection.commit() 
+            connection.commit()
         # finally:
 
-
-    def spms_create_report_pdf(        
-            self, connection, cursor, related_report_id, data
-    ):
+    def spms_create_report_pdf(self, connection, cursor, related_report_id, data):
         self.misc.nls(
             f"{self.misc.bcolors.OKBLUE}Creating Report PDF for NEW REPORT ID {related_report_id}...{self.misc.bcolors.ENDC}"
         )
@@ -8493,8 +8638,8 @@ class Loader:
             # old_file, %s,
             # old_file = data
             # kind = kind
-            # old_file, 
-            # kind, 
+            # old_file,
+            # kind,
 
             created_at = dt.now()
             updated_at = dt.now()
@@ -8502,14 +8647,14 @@ class Loader:
             report = related_report_id
             uploader = self.spms_get_superuser(connection, cursor)
 
-            cursor.execute(                     
-                annual_report_media_sql,        
+            cursor.execute(
+                annual_report_media_sql,
                 (
-                    created_at, 
-                    updated_at, 
-                    file, 
-                    report, 
-                    uploader, 
+                    created_at,
+                    updated_at,
+                    file,
+                    report,
+                    uploader,
                 ),
             )
 
@@ -8526,7 +8671,6 @@ class Loader:
             )
         finally:
             connection.commit()
-
 
     def spms_create_report_media(
         self, connection, cursor, kind, related_report_id, data
@@ -8651,520 +8795,3 @@ class Loader:
                     "Failed to upload file to cloudflare",
                 )
 
-    # Creates a .csv file with column names from_table, id, and new_location - in that order
-    # the new location is the new location on the local device inside the 'downloads' folder
-
-    # def spms_download_and_log_photo_file(self, from_table, dataframe, column_names):
-    #     #  Check if the file already uploaded
-
-    #     # Use the existing Chrome browser session
-    #     chrome_options = webdriver.ChromeOptions()
-    #     chrome_options.add_argument(
-    #         "--user-data-dir=C:\\Users\\JaridPrince\\AppData\\Local\\Google\\Chrome\\User Data"
-    #     )
-    #     # Path to your Chrome profile directory
-
-    #     # Instantiate the Chrome WebDriver with the existing user data directory
-    #     chrome_driver = webdriver.Chrome(options=chrome_options)
-
-    #     try:
-    #         # Open the first tab to the desired URL (https://scienceprojects.dbca.wa.gov.au/)
-    #         chrome_driver.execute_script("window.open('about:blank', '_blank');")
-    #         chrome_driver.switch_to.window(chrome_driver.window_handles[0])
-    #         chrome_driver.get("https://scienceprojects.dbca.wa.gov.au/")
-
-    #         self.misc.nls(
-    #             f"{self.misc.bcolors.OKBLUE}DOWNLOADING IMAGE FILES for {from_table} {self.misc.bcolors.ENDC}"
-    #         )
-
-    #         # Read the DataFrame with upload_location column
-    #         csv_path = f"download_references/{from_table}_file_references.csv"
-
-    #         # Iterate over each row in the DataFrame
-    #         for index, row in dataframe.iterrows():
-    #             # if row["upload_location"] != "":
-    #             #     self.misc.nls("Upload location already exists. Skipping...")
-    #             #     continue
-    #             if from_table == "annualreportmedia":
-    #                 if row["kind"] == "pdf":
-    #                     self.misc.nls(
-    #                         f"{self.misc.bcolors.WARNING}It's a pdf. Skipping...{self.misc.bcolors.ENDC}"
-    #                     )
-    #                     continue
-    #                 else:
-    #                     # Get the file link from the row
-    #                     file_link_from_db = row["old_file"]
-    #                     id = row["id"]
-
-    #                     # Check if the id exists in the df DataFrame and upload_location is empty
-    #                     # df_check = df[df["id"] == id]
-    #                     # if not self.pd.isna(df_check["upload_location"]).any():
-    #                     #     # Skip the current iteration
-    #                     #     print(
-    #                     #         f"Upload location is not empty for id {id}. Skipping..."
-    #                     #     )
-    #                     #     continue
-
-    #                     if file_link_from_db != None:
-    #                         # Open a new tab and navigate to the file link
-    #                         chrome_driver.execute_script(
-    #                             "window.open('about:blank', '_blank');"
-    #                         )
-    #                         chrome_driver.switch_to.window(
-    #                             chrome_driver.window_handles[-1]
-    #                         )
-    #                         chrome_driver.get(file_link_from_db)
-
-    #                         file_path_destination = f"downloads/{from_table}"
-    #                         if not file_link_from_db.endswith(".apng"):
-    #                             # Wait for the file to be downloaded
-    #                             wait = WebDriverWait(chrome_driver, 10)
-    #                             wait.until(
-    #                                 EC.presence_of_element_located((By.TAG_NAME, "img"))
-    #                             )
-
-    #                             # Save the file to a desired location using requests library
-    #                             file_download_path = file_path_destination  # Path to the folder where files are downloaded
-    #                         else:
-    #                             time.sleep(5)
-    #                             file_download_path = "C:\\Users\\JaridPrince\\Downloads"  # Path to the folder where files are downloaded
-
-    #                         self.os.makedirs(file_download_path, exist_ok=True)
-
-    #                         # Get the file extension
-    #                         file_extension = self.os.path.splitext(file_link_from_db)[
-    #                             1
-    #                         ].lower()
-
-    #                         # Check if the file extension is not .jpg, .jpeg, or .png
-    #                         # if file_extension not in [".jpg", ".jpeg", ".png"]:
-    #                         #     file_extension = (
-    #                         #         ".png"  # Change the extension to .png
-    #                         #     )
-
-    #                         # Modify the file path to include the updated extension
-    #                         file_name = file_link_from_db.split("/")[-1]
-    #                         file_name_without_extension = self.os.path.splitext(
-    #                             file_name
-    #                         )[0]
-    #                         file_path = f"{file_path_destination}/{file_name_without_extension}{file_extension}"
-
-    #                         if not file_link_from_db.endswith(".apng"):
-    #                             # Use Selenium to retrieve the image data and save it locally
-    #                             image_element = chrome_driver.find_element(
-    #                                 By.TAG_NAME, "img"
-    #                             )
-    #                             image_data = image_element.screenshot_as_png
-    #                             with open(file_path, "wb") as file:
-    #                                 file.write(image_data)
-
-    #                         else:
-    #                             file_path_apng = f"{file_download_path}/{file_name_without_extension}.apng"
-    #                             file_path_destination2 = f"{file_path_destination}/{file_name_without_extension}.png"
-
-    #                             # Replace the file and change the extension to .png
-    #                             self.os.replace(file_path_apng, file_path_destination2)
-
-    #                             file_path = file_path_destination2
-
-    #                             # "C:\\Users\\JaridPrince\\Downloads"
-
-    #                         # Save the reference to the file location in a CSV file
-    #                         csv_path = (
-    #                             f"download_references/{from_table}_file_references.csv"
-    #                         )
-    #                         data = {
-    #                             "from_table": [from_table],
-    #                             "id": row["id"],
-    #                             "file_path": [file_path],
-    #                             "spms_location": row["old_file"],
-    #                         }
-
-    #                         # Check if the entry already exists in the CSV file
-    #                         if self.os.path.isfile(csv_path):
-    #                             df = self.pd.read_csv(csv_path)
-    #                             existing_entry_index = df[
-    #                                 (df["from_table"] == from_table)
-    #                                 & (df["id"] == row["id"])
-    #                             ].index
-
-    #                             if not existing_entry_index.empty:
-    #                                 # Update the existing entry in the DataFrame
-    #                                 df.loc[
-    #                                     existing_entry_index, "file_path"
-    #                                 ] = file_path
-    #                             else:
-    #                                 # Append a new entry to the DataFrame
-    #                                 # df = df.append(self.pd.DataFrame(data))
-    #                                 df = self.pd.concat(
-    #                                     [df, self.pd.DataFrame(data)],
-    #                                     ignore_index=True,
-    #                                 )
-
-    #                         else:
-    #                             # Create a new DataFrame with the entry
-    #                             df = self.pd.DataFrame(data)
-
-    #                         # Save the DataFrame back to the CSV file
-    #                         df.to_csv(csv_path, index=False)
-
-    #                         # Close the tab
-    #                         chrome_driver.close()
-    #                         chrome_driver.switch_to.window(
-    #                             chrome_driver.window_handles[0]
-    #                         )
-
-    #                     else:
-    #                         self.misc.nls("No Old File, skipping...")
-
-    #             else:
-    #                 # Get the file link from the row
-
-    #                 # Get the file link from the row
-    #                 file_link_from_db = row["old_file"]
-    #                 id = row["id"]
-
-    #                 # df_check = df[df["id"] == id]
-    #                 # if not self.pd.isna(df_check["upload_location"]).any():
-    #                 #     # Skip the current iteration
-    #                 #     print(f"Upload location is not empty for id {id}. Skipping...")
-    #                 #     continue
-
-    #                 if file_link_from_db != None:
-    #                     # Open a new tab and navigate to the file link
-    #                     chrome_driver.execute_script(
-    #                         "window.open('about:blank', '_blank');"
-    #                     )
-    #                     chrome_driver.switch_to.window(chrome_driver.window_handles[-1])
-    #                     chrome_driver.get(file_link_from_db)
-
-    #                     file_path_destination = f"downloads/{from_table}"
-    #                     if not file_link_from_db.endswith(".apng"):
-    #                         # Wait for the file to be downloaded
-    #                         wait = WebDriverWait(chrome_driver, 10)
-    #                         wait.until(
-    #                             EC.presence_of_element_located((By.TAG_NAME, "img"))
-    #                         )
-
-    #                         # Save the file to a desired location using requests library
-    #                         file_download_path = file_path_destination  # Path to the folder where files are downloaded
-    #                     else:
-    #                         time.sleep(5)
-    #                         file_download_path = "C:\\Users\\JaridPrince\\Downloads"  # Path to the folder where files are downloaded
-
-    #                     self.os.makedirs(file_download_path, exist_ok=True)
-
-    #                     # Get the file extension
-    #                     file_extension = self.os.path.splitext(file_link_from_db)[
-    #                         1
-    #                     ].lower()
-
-    #                     # Check if the file extension is not .jpg, .jpeg, or .png
-    #                     # if file_extension not in [".jpg", ".jpeg", ".png"]:
-    #                     #     file_extension = (
-    #                     #         ".png"  # Change the extension to .png
-    #                     #     )
-
-    #                     # Modify the file path to include the updated extension
-    #                     file_name = file_link_from_db.split("/")[-1]
-    #                     file_name_without_extension = self.os.path.splitext(file_name)[
-    #                         0
-    #                     ]
-    #                     file_path = f"{file_path_destination}/{file_name_without_extension}{file_extension}"
-
-    #                     if not file_link_from_db.endswith(".apng"):
-    #                         # Use Selenium to retrieve the image data and save it locally
-    #                         image_element = chrome_driver.find_element(
-    #                             By.TAG_NAME, "img"
-    #                         )
-    #                         image_data = image_element.screenshot_as_png
-    #                         with open(file_path, "wb") as file:
-    #                             file.write(image_data)
-
-    #                     else:
-    #                         file_path_apng = f"{file_download_path}/{file_name_without_extension}.apng"
-    #                         file_path_destination2 = f"{file_path_destination}/{file_name_without_extension}.png"
-
-    #                         # Replace the file and change the extension to .png
-    #                         self.os.replace(file_path_apng, file_path_destination2)
-
-    #                         file_path = file_path_destination2
-
-    #                         # "C:\\Users\\JaridPrince\\Downloads"
-
-    #                     # Save the reference to the file location in a CSV file
-    #                     csv_path = (
-    #                         f"download_references/{from_table}_file_references.csv"
-    #                     )
-    #                     data = {
-    #                         "from_table": [from_table],
-    #                         "id": row["id"],
-    #                         "file_path": [file_path],
-    #                         "spms_location": row["old_file"],
-    #                     }
-
-    #                     # Check if the entry already exists in the CSV file
-    #                     if self.os.path.isfile(csv_path):
-    #                         df = self.pd.read_csv(csv_path)
-    #                         existing_entry_index = df[
-    #                             (df["from_table"] == from_table)
-    #                             & (df["id"] == row["id"])
-    #                         ].index
-
-    #                         if not existing_entry_index.empty:
-    #                             # Update the existing entry in the DataFrame
-    #                             df.loc[existing_entry_index, "file_path"] = file_path
-    #                         else:
-    #                             # Append a new entry to the DataFrame
-    #                             # df = df.append(self.pd.DataFrame(data))
-    #                             df = self.pd.concat(
-    #                                 [df, self.pd.DataFrame(data)],
-    #                                 ignore_index=True,
-    #                             )
-
-    #                     else:
-    #                         # Create a new DataFrame with the entry
-    #                         df = self.pd.DataFrame(data)
-
-    #                     # Save the DataFrame back to the CSV file
-    #                     df.to_csv(csv_path, index=False)
-
-    #                     # Close the tab
-    #                     chrome_driver.close()
-    #                     chrome_driver.switch_to.window(chrome_driver.window_handles[0])
-
-    #                 else:
-    #                     self.misc.nls("No Old File, skipping...")
-
-    #     except Exception as e:
-    #         print(f"Error occurred while downloading files: {e}")
-
-    #     finally:
-    #         # Quit the Chrome browser
-    #         chrome_driver.quit()
-    #         return csv_path
-
-    # def spms_replace_photo_with_cf_file(self, from_table):
-    #     (
-    #         cursor,
-    #         connection,
-    #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-
-    #     print(from_table)
-
-    #     # Construct the SQL query
-    #     sql = f"""
-    #         SELECT * FROM medias_{from_table}
-    #     """
-
-    #     # Execute the query with the user name
-    #     cursor.execute(sql)
-
-    #     # Fetch all rows from the query result
-    #     rows = cursor.fetchall()
-
-    #     # Create a dataframe based on the query result
-    #     column_names = [desc[0] for desc in cursor.description]
-    #     dataframe = self.pd.DataFrame(rows, columns=column_names)
-
-    #     # Access csv as df
-    #     csv_path = f"download_references/{from_table}_file_references.csv"
-
-    #     if self.os.path.exists(csv_path):
-    #         df = self.pd.read_csv(csv_path)
-
-    #         # Check if the columns already exist in the DataFrame
-    #         if "upload_location" not in df.columns:
-    #             # Add a new column for upload_location
-    #             df.insert(len(df.columns), "upload_location", "")
-
-    #         if "spms_location" not in df.columns:
-    #             # Add a new column for spms_location
-    #             df.insert(len(df.columns), "spms_location", "")
-
-    #         # Check if any entry has a null/na 'upload_location' - to prevent reuploading
-    #         if (
-    #             df["upload_location"].isna().any()
-    #             or (df["upload_location"] == "").any()
-    #         ):
-    #             # Call the download function and return the csv path
-    #             csv_path = self.spms_download_and_log_photo_file(
-    #                 from_table, dataframe, column_names
-    #             )
-    #             df = self.pd.read_csv(csv_path)
-    #             # Check if the columns already exist in the DataFrame
-    #             if "upload_location" not in df.columns:
-    #                 # Add a new column for upload_location
-    #                 df.insert(len(df.columns), "upload_location", "")
-
-    #             if "spms_location" not in df.columns:
-    #                 # Add a new column for spms_location
-    #                 df.insert(len(df.columns), "spms_location", "")
-    #     else:
-    #         csv_path = self.spms_download_and_log_photo_file(
-    #             from_table, dataframe, column_names
-    #         )
-    #         df = self.pd.read_csv(csv_path)
-    #         # Check if the columns already exist in the DataFrame
-    #         if "upload_location" not in df.columns:
-    #             # Add a new column for upload_location
-    #             df.insert(len(df.columns), "upload_location", "")
-
-    #         if "spms_location" not in df.columns:
-    #             # Add a new column for spms_location
-    #             df.insert(len(df.columns), "spms_location", "")
-
-    #     # Get the file_path for each row and upload
-    #     for index, entry in df.iterrows():
-    #         if entry["upload_location"] == "":
-    #             file = entry["file_path"]
-
-    #             # Get the cloudflare link to send the file to
-    #             try:
-    #                 self.misc.nls("Getting upload URL (cloudflare)")
-    #                 cf_image_id, upload_url = self.spms_get_cf_images_upload_url()
-    #             except Exception as e:
-    #                 self.misc.nli(
-    #                     f"{self.misc.bcolors.FAIL}FAILED TO GET UPLOAD URL: {e}{self.misc.bcolors.ENDC}"
-    #                 )
-    #             else:
-    #                 print(f"IMAGE_ID:{cf_image_id}, UPLOAD_URL: {upload_url}")
-
-    #             # Upload the file to cloudflare images once you have the link
-    #             try:
-    #                 new_cf_file_location = self.spms_upload_to_cf_url(
-    #                     url=upload_url, file_path=file
-    #                 )
-    #                 print(f"New Location: {new_cf_file_location}")
-    #             except Exception as e:
-    #                 self.misc.nli(
-    #                     f"{self.misc.bcolors.FAIL}FAILED TO UPLOAD IMAGE TO CF: {e}{self.misc.bcolors.ENDC}"
-    #                 )
-    #             else:
-    #                 # Once uploaded, replace the entry['file_path'] with the new_cf_location
-    #                 df.at[index, "upload_location"] = new_cf_file_location
-
-    #     # Saving back to csv
-    #     df.to_csv(csv_path, index=False)
-
-    #     # # Update the corresponding database table
-    #     self.misc.nls("Save complete, updating database.")
-
-    #     for index, item in df.iterrows():
-    #         update_sql = f"""
-    #             UPDATE medias_{from_table} SET file = '{item['upload_location']}' where id = {item['id']}
-    #         """
-    #         try:
-    #             cursor.execute(update_sql)
-    #         except Exception as e:
-    #             self.misc.nli(
-    #                 f"{self.misc.bcolors.FAIL}FAILED TO UPDATE IMAGE IN DB: {e}{self.misc.bcolors.ENDC}"
-    #             )
-    #     cursor.close()
-    #     connection.close()
-
-
-# ============================================================================================================
-# ============================================================================================================
-# ============================================================================================================
-# ============================================================================================================
-# ============================================================================================================
-# ============================================================================================================
-
-
-# def spms_create_dbca_divisions(self):
-#     self.misc.nls(
-#         f"{self.misc.bcolors.OKBLUE}Creating DBCA Divisions...{self.misc.bcolors.ENDC}"
-#     )
-
-#     # Load the divisions file into a data frame
-#     try:
-#         file_path = self.os.path.join(
-#             self.file_handler.clean_directory, "pythia_division.csv"
-#         )
-#         division_df = self.file_handler.read_csv_and_prepare_df(file_path)
-#     except Exception as e:
-#         print(f"{self.misc.bcolors.FAIL}Error: {e}{self.misc.bcolors.ENDC}")
-#     else:
-#         print(f"{self.misc.bcolors.OKGREEN}File loaded!{self.misc.bcolors.ENDC}")
-
-#     # Establishing connection:
-#     (
-#         cursor,
-#         connection,
-#     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-#     connection.autocommit = False
-
-#     # Display the columns available in file
-#     self.misc.nls("Columns available for workcenter df:")
-#     self.display_columns_available_in_df(division_df)
-
-#     # Get the user with the name "jp" if it exists
-#     # And set the manager_id value to the id of that row.
-#     superuser_id = self.spms_get_superuser(connection=connection, cursor=cursor)
-
-#     # Insert data from the DataFrame into the Divisions model
-#     # Try the Query
-#     print(
-#         f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
-#     )
-#     # Get the current date and time
-#     current_datetime = dt.now()
-
-#     # Establish columns we want to use in workcenter df
-#     division_columns = division_df[["id", "name", "slug", "director_id"]]
-
-#     # Construct the SQL query
-#     sql = """
-#         BEGIN;
-#         INSERT INTO agencies_division (
-#             created_at, updated_at, name, slug, director_id, approver_id, old_id, old_director_id
-#         ) VALUES (%s, %s, %s, %s,%s, %s, %s, %s);
-#         COMMIT;
-#     """
-
-#     # Create an entry for each branch in the csv
-#     for index, division in division_columns.iterrows():
-#         print(
-#             f"{self.misc.bcolors.WARNING}Creating entry for {division['name']}...{self.misc.bcolors.ENDC}"
-#         )
-#         try:
-#             # Start a transaction
-#             cursor = connection.cursor()
-
-#             cursor.execute(
-#                 sql,
-#                 (
-#                     current_datetime,
-#                     current_datetime,
-#                     division["name"],
-#                     division["slug"],
-#                     superuser_id,  # After loading users, change to the user
-#                     superuser_id,
-#                     division["id"],
-#                     division["director_id"],
-#                 ),
-#             )
-
-#         except Exception as e:
-#             self.misc.nls(
-#                 f"{self.misc.bcolors.FAIL}Error creating DBCA Division ({division['name']}): {str(e)}{self.misc.bcolors.ENDC}"
-#             )
-#             # Rollback the transaction
-#             connection.rollback()
-
-#         else:
-#             self.misc.nls(
-#                 f"{self.misc.bcolors.OKGREEN}DBCA Division ({division['name']}) Created!{self.misc.bcolors.ENDC}"
-#             )
-
-#         finally:
-#             connection.commit()
-
-#     # TODO: At the end of all operations remove old_id & old_director_id from divisions table in django
-
-#     # Commit the changes and close the cursor and connection
-#     cursor.close()
-#     connection.close()
-
-# print("Division Load operation finished.")
