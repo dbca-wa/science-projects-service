@@ -26,6 +26,7 @@ from .serializers import (
     ChatRoomSerializer,
     CommentSerializer,
     DirectMessageSerializer,
+    ReactionCreateSerializer,
     ReactionSerializer,
     TinyChatRoomSerializer,
     TinyCommentSerializer,
@@ -128,16 +129,53 @@ class Reactions(APIView):
         )
 
     def post(self, req):
-        ser = ReactionSerializer(data=req.data)
-        if ser.is_valid():
-            dm_reaction = ser.save()
-            return Response(
-                TinyReactionSerializer(dm_reaction).data,
-                status=HTTP_201_CREATED,
-            )
+        print(req.data)
+
+        # def get_comment():
+        #     try:
+        #         comment = Comment.objects.filter(pk=int(req.data.get("comment")))
+        #     except Comment.DoesNotExist:
+        #         raise NotFound
+        #     return comment
+
+        if req.data.get("comment"):
+            data = {
+                # "comment": get_comment(),
+                "comment": int(req.data.get("comment")),
+                "user": req.data.get("user")["pk"],
+                "reaction": Reaction.ReactionChoices.THUMBUP,
+                "direct_message": None,
+            }
+
+            # First check if there is a reaction by that user for the comment
+            exists = Reaction.objects.filter(
+                user=int(req.data.get("user")["pk"]),
+                reaction=Reaction.ReactionChoices.THUMBUP,
+                comment=int(req.data.get("comment")),
+            ).first()
+            if exists:
+                print("EXISTS")
+                exists.delete()
+                return Response(
+                    status=HTTP_204_NO_CONTENT,
+                )
+
+            #  if req.data.get("reaction") == "thumbup" else Reaction.ReactionChoices.THUMBUP
+            ser = ReactionCreateSerializer(data=data)
+            if ser.is_valid():
+                dm_reaction = ser.save()
+                return Response(
+                    TinyReactionSerializer(dm_reaction).data,
+                    status=HTTP_201_CREATED,
+                )
+            else:
+                print(ser.errors)
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
         else:
             return Response(
-                ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
 

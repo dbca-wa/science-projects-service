@@ -9,21 +9,6 @@ from users.serializers import TinyUserSerializer
 from rest_framework.serializers import ModelSerializer
 
 
-# Comments
-class TinyCommentSerializer(ModelSerializer):
-    # user = TinyUserSerializer(read_only=True)
-    # document = TinyProjectDocumentSerializer(read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = [
-            "pk",
-            "user",
-            "document",
-            "text",
-        ]
-
-
 class TinyDirectMessageSerializer(ModelSerializer):
     user = TinyUserSerializer(read_only=True)
     # chat_room = TinyChatRoomSerializer()
@@ -41,7 +26,7 @@ class TinyDirectMessageSerializer(ModelSerializer):
 class TinyReactionSerializer(ModelSerializer):
     # user = TinyUserSerializer(read_only=True)
     direct_message = TinyDirectMessageSerializer()
-    comment = TinyCommentSerializer()
+    # comment = TinyCommentSerializer()
 
     class Meta:
         model = Reaction
@@ -51,6 +36,52 @@ class TinyReactionSerializer(ModelSerializer):
             "direct_message",
             "comment",
             "reaction",
+        ]
+
+
+# Comments
+class TinyCommentSerializer(ModelSerializer):
+    user = TinyUserSerializer(read_only=True)
+
+    # document = TinyProjectDocumentSerializer(read_only=True)
+    # def get_reactions(self):
+    #     try:
+    #         ser = TinyReactionSerializer(
+    #             Reaction.objects.filter(comment__pk=self.pk).all(), many=True
+    #         )
+    #         return ser
+    #     except Exception as e:
+    #         print(e)
+    #         return None
+
+    reactions = TinyReactionSerializer(many=True)
+
+    class Meta:
+        model = Comment
+        fields = [
+            "pk",
+            "user",
+            "document",
+            "text",
+            "created_at",
+            "updated_at",
+            "reactions",
+        ]
+
+
+class TinyCommentCreateSerializer(ModelSerializer):
+    # user = TinyUserSerializer(read_only=True)
+    # document = TinyProjectDocumentSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = [
+            "pk",
+            "user",
+            "document",
+            "text",
+            "created_at",
+            "updated_at",
         ]
 
 
@@ -109,3 +140,17 @@ class ReactionSerializer(ModelSerializer):
     class Meta:
         model = Reaction
         fields = "__all__"
+
+
+class ReactionCreateSerializer(ModelSerializer):
+    class Meta:
+        model = Reaction
+        fields = [
+            "pk",
+            "user",
+            "comment",
+            "direct_message",
+            "reaction",
+            "created_at",
+            "updated_at",
+        ]

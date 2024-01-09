@@ -8,22 +8,25 @@ urlpatterns = [
     #     "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
     # ),
     path(
-        "projectdocuments/pendingmyaction", views.ProjectDocsPendingMyActionAllStages.as_view()
+        "projectdocuments/pendingmyaction",
+        views.ProjectDocsPendingMyActionAllStages.as_view(),
     ),
-        path(
-        "projectdocuments/pendingmyaction/stage1", views.ProjectDocsPendingMyActionStageOne.as_view()
+    path(
+        "projectdocuments/pendingmyaction/stage1",
+        views.ProjectDocsPendingMyActionStageOne.as_view(),
     ),
-        path(
-        "projectdocuments/pendingmyaction/stage2", views.ProjectDocsPendingMyActionStageTwo.as_view()
+    path(
+        "projectdocuments/pendingmyaction/stage2",
+        views.ProjectDocsPendingMyActionStageTwo.as_view(),
     ),
-        path(
-        "projectdocuments/pendingmyaction/stage3", views.ProjectDocsPendingMyActionStageThree.as_view()
+    path(
+        "projectdocuments/pendingmyaction/stage3",
+        views.ProjectDocsPendingMyActionStageThree.as_view(),
     ),
-        path(
-        "endorsements/pendingmyaction", views.EndorsementsPendingMyAction.as_view()
-    ),
+    path("endorsements/pendingmyaction", views.EndorsementsPendingMyAction.as_view()),
     # path("projectdocuments/pendingapproval/reports", views.ReportDocsPendingApproval.as_view()),
     path("projectdocuments/<int:pk>", views.ProjectDocumentDetail.as_view()),
+    path("projectdocuments/<int:pk>/comments", views.ProjectDocumentComments.as_view()),
     path("conceptplans", views.ConceptPlans.as_view()),
     path("conceptplans/<int:pk>", views.ConceptPlanDetail.as_view()),
     path("projectplans", views.ProjectPlans.as_view()),

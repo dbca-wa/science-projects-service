@@ -61,7 +61,7 @@ class DirectMessage(CommonModel):
 
 # DONE
 class Comment(CommonModel):
-    old_id = models.IntegerField()
+    # old_id = models.IntegerField()
     user = models.ForeignKey(
         "users.User",
         blank=True,
@@ -81,6 +81,13 @@ class Comment(CommonModel):
     )  # Will be sent from front-end
     is_public = models.BooleanField(default=True)
     is_removed = models.BooleanField(default=False)
+
+    def get_reactions(self):
+        try:
+            return self.reactions.all()
+        except Exception as e:
+            print(e)
+            return None
 
     def __str__(self) -> str:
         return f"{self.text[:40]}"
@@ -104,7 +111,7 @@ class Reaction(CommonModel):
         HUNDRED = "hundred", "Hundred"
         CONFUSED = "confused", "Confused"
         FUNNY = "funny", "Funny"
-        SURPRISED = "suprised", "Suprised"
+        SURPRISED = "surprised", "Surprised"
 
     user = models.ForeignKey(
         "users.User",
@@ -144,15 +151,6 @@ class Reaction(CommonModel):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
-
-    def __str__(self) -> str:
-        return (
-            f"Reaction to {self.comment}"
-            if self.comment
-            else f"Reaction to {self.direct_message}"
-            if self.direct_message
-            else "Reaction object null"
-        )
 
     def __str__(self) -> str:
         return (

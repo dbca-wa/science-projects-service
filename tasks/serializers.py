@@ -5,6 +5,7 @@ from rest_framework.serializers import (
 )
 
 from medias.serializers import BusinessAreaPhotoSerializer
+from users.serializers import TinyUserSerializer
 from .models import Task, UserFeedback
 
 
@@ -85,7 +86,10 @@ class TinyTaskSerializer(ModelSerializer):
         else:
             return None
 
+
 class UserFeedbackSerializer(ModelSerializer):
+    user = TinyUserSerializer()
+
     class Meta:
         model = UserFeedback
         fields = "__all__"
