@@ -8078,10 +8078,11 @@ class Loader:
         # updated_at,
 
         # Construct SQL for base document comment
+        # old_id, %s,
+
         sql = """
             BEGIN;
             INSERT INTO communications_comment (
-                old_id,
                 created_at,
                 updated_at,
                 user_id,
@@ -8090,7 +8091,7 @@ class Loader:
                 ip_address,
                 is_public,
                 is_removed
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+            ) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
 
@@ -8153,7 +8154,7 @@ class Loader:
                     cursor.execute(
                         sql,
                         (
-                            old_id,
+                            # old_id,
                             created_at,
                             updated_at,
                             new_user_id,
@@ -8166,7 +8167,7 @@ class Loader:
                     )
             except Exception as e:
                 print(
-                    old_id,
+                    # old_id,
                     created_at,
                     new_user_id,
                     new_document_id,
@@ -8794,4 +8795,3 @@ class Loader:
                 raise Exception(
                     "Failed to upload file to cloudflare",
                 )
-

@@ -2,6 +2,11 @@ import datetime
 import os
 import time
 from django.shortcuts import render
+from communications.models import Comment
+from communications.serializers import (
+    TinyCommentCreateSerializer,
+    TinyCommentSerializer,
+)
 
 # from config.tasks import generate_pdf
 from projects.models import Project, ProjectMember
@@ -1433,7 +1438,7 @@ class ProjectDocuments(APIView):
                         try:
                             with transaction.atomic():
                                 closure = closure_serializer.save()
-                                closure.document.project.status = 'closure_requested'
+                                closure.document.project.status = "closure_requested"
                                 print("saving project")
                                 closure.document.project.save()
                                 print("project saved")
@@ -1591,6 +1596,7 @@ class ProjectDocuments(APIView):
 #             status=HTTP_200_OK,
 #         )
 
+
 class EndorsementsPendingMyAction(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -1600,14 +1606,11 @@ class EndorsementsPendingMyAction(APIView):
         is_aec = req.user.is_aec
         is_superuser = req.user.is_superuser
 
-
         documents = []
         aec_input_required = []
         bm_input_required = []
         hc_input_required = []
 
-
-  
         if is_bio or is_superuser or is_aec or is_hc:
             active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
 
@@ -1651,7 +1654,6 @@ class EndorsementsPendingMyAction(APIView):
 
         # print(is_bio, is_hc, is_aec, is_superuser)
 
-   
         filtered_aec_input_required = list(
             {doc.id: doc for doc in aec_input_required}.values()
         )
@@ -1685,6 +1687,7 @@ class EndorsementsPendingMyAction(APIView):
             status=HTTP_200_OK,
         )
 
+
 class ProjectDocsPendingMyActionStageOne(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -1709,17 +1712,24 @@ class ProjectDocsPendingMyActionStageOne(APIView):
                 if related_project in active_projects:
                     if membershipp in all_leader_memberships:
                         # Handle lead membership
-                        project_docs_without_lead_approval = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        project_docs_without_lead_approval = (
+                            ProjectDocument.objects.filter(
+                                project=related_project,
+                                project_lead_approval_granted=False,
+                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        )
                         for doc in project_docs_without_lead_approval:
                             pl_input_required.append(doc)
                     else:
                         # Handle ordinary membership
-                        project_docs_requiring_member_input = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        project_docs_requiring_member_input = (
+                            ProjectDocument.objects.filter(
+                                project=related_project,
+                                project_lead_approval_granted=False,
+                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        )
                         for doc in project_docs_requiring_member_input:
                             member_input_required.append(doc)
-
-  
-
 
         filtered_pm_input_required = list(
             {doc.id: doc for doc in member_input_required}.values()
@@ -1728,7 +1738,6 @@ class ProjectDocsPendingMyActionStageOne(APIView):
             {doc.id: doc for doc in pl_input_required}.values()
         )
 
-  
         data = {
             "team": TinyProjectDocumentSerializer(
                 filtered_pm_input_required,
@@ -1777,15 +1786,15 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
                         ):
                             ba_input_required.append(doc)
             else:
-                filename = 'activeProjectsWithoutBAs.txt'
+                filename = "activeProjectsWithoutBAs.txt"
 
                 # Read existing content from the file
-                with open(filename, 'r') as file:
+                with open(filename, "r") as file:
                     existing_content = file.read()
                 # Check if the content already exists
                 if f"{project.pk} | {project.title}\n" not in existing_content:
                     # Append to the file
-                    with open(filename, 'a') as file:
+                    with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
                 else:
                     print("Content already exists in the file.")
@@ -1793,7 +1802,6 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
         filtered_ba_input_required = list(
             {doc.id: doc for doc in ba_input_required}.values()
         )
-
 
         data = {
             "ba": TinyProjectDocumentSerializer(
@@ -1845,15 +1853,15 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                             documents.append(doc)
                             ba_input_required.append(doc)
             else:
-                filename = 'activeProjectsWithoutBAs.txt'
+                filename = "activeProjectsWithoutBAs.txt"
 
                 # Read existing content from the file
-                with open(filename, 'r') as file:
+                with open(filename, "r") as file:
                     existing_content = file.read()
                 # Check if the content already exists
                 if f"{project.pk} | {project.title}\n" not in existing_content:
                     # Append to the file
-                    with open(filename, 'a') as file:
+                    with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
                 else:
                     print("Content already exists in the file.")
@@ -1876,7 +1884,6 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                         documents.append(doc)
                         directorate_input_required.append(doc)
 
-
         # Lead Filtering
         all_leader_memberships = []
         all_memberships = []
@@ -1893,19 +1900,26 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                 if related_project in active_projects:
                     if membershipp in all_leader_memberships:
                         # Handle lead membership
-                        project_docs_without_lead_approval = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        project_docs_without_lead_approval = (
+                            ProjectDocument.objects.filter(
+                                project=related_project,
+                                project_lead_approval_granted=False,
+                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        )
                         for doc in project_docs_without_lead_approval:
                             documents.append(doc)
                             pl_input_required.append(doc)
                     else:
                         # Handle ordinary membership
-                        project_docs_requiring_member_input = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        project_docs_requiring_member_input = (
+                            ProjectDocument.objects.filter(
+                                project=related_project,
+                                project_lead_approval_granted=False,
+                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        )
                         for doc in project_docs_requiring_member_input:
                             documents.append(doc)
                             member_input_required.append(doc)
-
-  
-
 
         filtered_documents = list({doc.id: doc for doc in documents}.values())
         filtered_pm_input_required = list(
@@ -1920,7 +1934,7 @@ class ProjectDocsPendingMyActionStageThree(APIView):
         filtered_directorate_input_required = list(
             {doc.id: doc for doc in directorate_input_required}.values()
         )
-  
+
         ser = TinyProjectDocumentSerializer(
             filtered_documents,
             many=True,
@@ -1993,19 +2007,19 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                             documents.append(doc)
                             ba_input_required.append(doc)
             else:
-                filename = 'activeProjectsWithoutBAs.txt'
+                filename = "activeProjectsWithoutBAs.txt"
 
                 # Read existing content from the file
-                with open(filename, 'r') as file:
+                with open(filename, "r") as file:
                     existing_content = file.read()
                 # Check if the content already exists
                 if f"{project.pk} | {project.title}\n" not in existing_content:
                     # Append to the file
-                    with open(filename, 'a') as file:
+                    with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
                 else:
                     print("Content already exists in the file.")
- 
+
         # Directorate Filtering
         if user_work.business_area is not None:
             is_directorate = user_work.business_area.name == "Directorate"
@@ -2025,7 +2039,6 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                         documents.append(doc)
                         directorate_input_required.append(doc)
 
-
         # Lead Filtering
         all_leader_memberships = []
         all_memberships = []
@@ -2042,19 +2055,26 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 if related_project in active_projects:
                     if membershipp in all_leader_memberships:
                         # Handle lead membership
-                        project_docs_without_lead_approval = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        project_docs_without_lead_approval = (
+                            ProjectDocument.objects.filter(
+                                project=related_project,
+                                project_lead_approval_granted=False,
+                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        )
                         for doc in project_docs_without_lead_approval:
                             documents.append(doc)
                             pl_input_required.append(doc)
                     else:
                         # Handle ordinary membership
-                        project_docs_requiring_member_input = ProjectDocument.objects.filter(project=related_project, project_lead_approval_granted=False).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        project_docs_requiring_member_input = (
+                            ProjectDocument.objects.filter(
+                                project=related_project,
+                                project_lead_approval_granted=False,
+                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
+                        )
                         for doc in project_docs_requiring_member_input:
                             documents.append(doc)
                             member_input_required.append(doc)
-
-  
-
 
         filtered_documents = list({doc.id: doc for doc in documents}.values())
         filtered_pm_input_required = list(
@@ -2069,7 +2089,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         filtered_directorate_input_required = list(
             {doc.id: doc for doc in directorate_input_required}.values()
         )
-  
+
         ser = TinyProjectDocumentSerializer(
             filtered_documents,
             many=True,
@@ -2152,6 +2172,47 @@ class ProjectDocumentDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class ProjectDocumentComments(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req, pk):
+        print(f"doc pk received {pk}")
+        comments = Comment.objects.filter(document_id=pk).all()
+        comments = comments.order_by("-updated_at", "-created_at")
+
+        ser = TinyCommentSerializer(
+            comments,
+            many=True,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req, pk):
+        ser = TinyCommentCreateSerializer(
+            data={
+                "document": pk,
+                "text": req.data["payload"],
+                "user": req.data["user"],
+            },
+            context={"request": req},
+        )
+        if ser.is_valid():
+            print("legit, saving...")
+            # print(ser.data)
+            ser.save()
+            return Response(
+                ser.data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            print(ser.errors)
+            print(req.data)
+            return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class ConceptPlans(APIView):
@@ -2678,6 +2739,7 @@ class RepoenProject(APIView):
 
 # ENDORSEMENTS & APPROVALS ==========================================================
 
+
 class DocReopenProject(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -2704,7 +2766,6 @@ class DocReopenProject(APIView):
         closure.delete()
         document.delete()
         return Response(status=HTTP_204_NO_CONTENT)
-
 
 
 class DocApproval(APIView):
@@ -2762,7 +2823,7 @@ class DocApproval(APIView):
                 u_document.project.save()
                 print(u_document.project.status)
             if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                print('closing project')
+                print("closing project")
                 # find the closure matching
                 closure_doc = ProjectClosure.objects.get(document=u_document)
                 outcome = closure_doc.intended_outcome
@@ -2771,7 +2832,7 @@ class DocApproval(APIView):
                 print(outcome)
                 u_document.project.status = outcome
                 u_document.project.save()
-                print('project closed')
+                print("project closed")
             else:
                 # if u_document.kind == "progressreport" or u_document.kind == "studentreport":
                 #     if (stage == 2 or stage == '2'):
@@ -2852,7 +2913,7 @@ class DocRecall(APIView):
                 u_document.project.save()
                 print(u_document.project.status)
             elif u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                print('recalling approval and reopening')
+                print("recalling approval and reopening")
                 u_document.project.status = Project.StatusChoices.CLOSUREREQ
                 u_document.project.save()
             else:
