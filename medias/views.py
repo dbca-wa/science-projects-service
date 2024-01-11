@@ -377,6 +377,26 @@ class AnnualReportMediaUpload(APIView):
             else:
                 return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class AnnualReportMediaDelete(APIView):
+    def go(self, pk, section):
+        try:
+            object = AnnualReportMedia.objects.filter(report=pk, kind=section).first()
+        except AnnualReportMedia.DoesNotExist:
+            raise NotFound
+        return object
+
+    def delete(self, req, pk, section):
+        print(pk, section)
+        object = self.go(pk, section)
+        print(object)
+        object.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
 
 # BUSINESS AREAS ==================================================================================================
 
