@@ -11,6 +11,8 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from django.shortcuts import get_object_or_404
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
@@ -36,6 +38,7 @@ from .models import (
 )
 from .serializers import (
     AgencyPhotoSerializer,
+    AnnualReportMediaCreationSerializer,
     AnnualReportMediaSerializer,
     AnnualReportPDFCreateSerializer,
     AnnualReportPDFSerializer,
@@ -304,6 +307,75 @@ class AnnualReportMediaDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class AnnualReportMediaUpload(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req, pk):
+        def go(pk):
+            try:
+                medias = AnnualReportMedia.objects.filter(report=pk).all()
+                return TinyAnnualReportMediaSerializer(medias, many=True)
+            except AnnualReportMedia.DoesNotExist:
+                raise NotFound
+            except Exception as e:
+                print("OTHER EXCEPTION: ", e)
+                raise e
+
+        this_reports_media = go(pk)
+        return Response(
+            this_reports_media.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req, pk):
+        def get_report(pk):
+            try:
+                report = get_object_or_404(AnnualReport, pk=pk)
+                return report
+            except AnnualReport.DoesNotExist:
+                raise NotFound
+            except Exception as e:
+                print("Different exception", e)
+                raise e
+
+        def get_image_of_section(section, report):
+            return AnnualReportMedia.objects.filter(report=report, kind=section).first()
+
+        print(req.data)
+        section = req.data["section"]
+        file = req.data["file"]
+
+        report = get_report(pk)
+        image_instance = get_image_of_section(section, report)
+
+        if image_instance:
+            # If an instance exists, update the file
+            image_instance.file = file
+            image_instance.uploader = req.user
+            updated = image_instance.save()
+            updated_ser = AnnualReportMediaSerializer(updated)
+            return Response(
+                updated_ser.data,
+                status=HTTP_202_ACCEPTED,
+            )
+
+        else:
+            # If no instance exists, create a new one
+            new_instance_data = {
+                "kind": section,
+                "file": file,
+                "report": report.pk,
+                "uploader": req.user.pk,
+            }
+            serializer = AnnualReportMediaCreationSerializer(data=new_instance_data)
+            if serializer.is_valid():
+                updated = serializer.save()
+                ser = AnnualReportMediaSerializer(updated).data
+                return Response(ser, HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 # BUSINESS AREAS ==================================================================================================
