@@ -74,6 +74,21 @@ class AnnualReportMediaSerializer(ModelSerializer):
         return None
 
 
+class AnnualReportMediaCreationSerializer(ModelSerializer):
+    class Meta:
+        model = AnnualReportMedia
+        fields = "__all__"
+
+    # def get_report(self, obj):
+    #     report = obj.report
+    #     if report:
+    #         return {
+    #             "id": report.id,
+    #             "year": report.year,
+    #         }
+    #     return None
+
+
 class TinyAnnualReportPDFSerializer(ModelSerializer):
     report = SerializerMethodField(read_only=True)
 
