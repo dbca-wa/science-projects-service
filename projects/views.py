@@ -252,8 +252,8 @@ class ProjectYears(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
-                # Get all unique years from the Project model
-        unique_years = Project.objects.values_list('year', flat=True).distinct()
+        # Get all unique years from the Project model
+        unique_years = Project.objects.values_list("year", flat=True).distinct()
 
         # Convert the queryset to a list
         year_list = list(unique_years)
@@ -266,7 +266,6 @@ class ProjectYears(APIView):
 
 class Projects(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
-
 
     def determine_db_kind(self, provided):
         if provided.startswith("CF"):
@@ -286,14 +285,14 @@ class Projects(APIView):
         number = None
 
         # Split the search term into parts using '-'
-        parts = search_term.split('-')
+        parts = search_term.split("-")
         print(len(parts))
         print(parts)
         print(parts[0].upper())
 
         # Check if there are at least three parts
         if len(parts) == 3:
-            print('len is 3 parts')
+            print("len is 3 parts")
             db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
             year = parts[1]
@@ -308,7 +307,7 @@ class Projects(APIView):
 
             print(year, len(year))
             if len(year) == 4:
-                print('checking kind and year')
+                print("checking kind and year")
                 projects = Project.objects.filter(kind=kind, year=year_as_int).all()
                 try:
                     print("Trying to validate third part as number")
@@ -323,9 +322,9 @@ class Projects(APIView):
             else:
                 projects = Project.objects.filter(kind=kind, year=year).all()
                 return projects
-            
+
         elif len(parts) == 2:
-            print('len is 2 parts')
+            print("len is 2 parts")
             year = parts[1]
             db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
@@ -337,12 +336,11 @@ class Projects(APIView):
                 projects = Project.objects.filter(kind=kind).all()
                 return projects
             if len(year) == 4:
-                print('checking kind and year')
+                print("checking kind and year")
                 projects = Project.objects.filter(kind=kind, year=year_as_int).all()
             else:
                 projects = Project.objects.filter(kind=kind).all()
             return projects
-
 
     def get(self, request):
         try:
@@ -364,10 +362,10 @@ class Projects(APIView):
         search_term = request.GET.get("searchTerm")
         # Handle search by project id string
         if search_term and (
-            search_term.lower().startswith("cf-") or 
-            search_term.lower().startswith("sp-") or 
-            search_term.lower().startswith("stp-") or 
-            search_term.lower().startswith("ext-")
+            search_term.lower().startswith("cf-")
+            or search_term.lower().startswith("sp-")
+            or search_term.lower().startswith("stp-")
+            or search_term.lower().startswith("ext-")
         ):
             print("SEARCHING FOR A KEY")
             projects = self.parse_search_term(search_term=search_term)
@@ -430,7 +428,6 @@ class Projects(APIView):
         else:
             projects = Project.objects.all()
 
-
             if search_term:
                 projects = projects.filter(
                     Q(title__icontains=search_term)
@@ -466,7 +463,6 @@ class Projects(APIView):
         elif only_inactive:
             projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
 
-
         total_projects = projects.count()
         total_pages = ceil(total_projects / page_size)
 
@@ -486,7 +482,6 @@ class Projects(APIView):
         }
 
         return Response(response_data, status=HTTP_200_OK)
-
 
     def handle_project_image(self, image):
         print(f"Image is", image)
@@ -563,8 +558,8 @@ class Projects(APIView):
         # start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
         # end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
 
-        start_date_str = data.get('startDate')
-        end_date_str = data.get('endDate')
+        start_date_str = data.get("startDate")
+        end_date_str = data.get("endDate")
         # Check if start_date_str is not None and not empty
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
@@ -577,7 +572,6 @@ class Projects(APIView):
         else:
             end_date = None
 
-
         # dates = req.data.get("dates")
         # if dates is not None:
         #     if isinstance(dates, list):
@@ -587,8 +581,6 @@ class Projects(APIView):
         #         start_date = end_date = dt.fromisoformat(dates).date()
         # else:
         #     start_date = end_date = None
-
-
 
         # Individual values (location)
         location_data_list = data.getlist("locations")
@@ -869,9 +861,11 @@ class Projects(APIView):
                                 "strategic_context": req.data.get("strategic_context")
                                 if req.data.get("strategic_context") is not None
                                 else "<p></p>",
-                                "staff_time_allocation": req.data.get("staff_time_allocation")
-                                    if req.data.get("staff_time_allocation") is not None
-                                    else '<table class="table-light">\
+                                "staff_time_allocation": req.data.get(
+                                    "staff_time_allocation"
+                                )
+                                if req.data.get("staff_time_allocation") is not None
+                                else '<table class="table-light">\
                                         <colgroup>\
                                             <col>\
                                             <col>\
@@ -943,9 +937,9 @@ class Projects(APIView):
                                             </tr>\
                                         </tbody>\
                                         </table>',
-                            "budget": req.data.get("budget")
-                            if req.data.get("budget") is not None
-                            else '<table class="table-light"><colgroup>\
+                                "budget": req.data.get("budget")
+                                if req.data.get("budget") is not None
+                                else '<table class="table-light"><colgroup>\
                                 <col>\
                                 <col>\
                                 <col>\
@@ -1228,18 +1222,16 @@ class ProjectDetails(APIView):
         keywords = req.data.get("keywords")
         locations_str = req.data.get("locations")
         if locations_str:
-            print(f'LOCATIONS: {locations_str}')
+            print(f"LOCATIONS: {locations_str}")
             # locations = locations_str
-
 
         # start_date = req.data.get('startDate')
         # end_date = req.data.get('endDate')
         # start_date = dt.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ").date()
         # end_date = dt.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ").date()
 
-
-        start_date_str = req.data.get('startDate')
-        end_date_str = req.data.get('endDate')
+        start_date_str = req.data.get("startDate")
+        end_date_str = req.data.get("endDate")
         # Check if start_date_str is not None and not empty
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
@@ -1251,7 +1243,6 @@ class ProjectDetails(APIView):
             end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
         else:
             end_date = None
-
 
         # dates = req.data.get("dates")
         # if dates is not None:
@@ -1292,7 +1283,7 @@ class ProjectDetails(APIView):
             if value is not None and (not isinstance(value, list) or value)
         }
 
-        if locations_str and locations_str != '[]':
+        if locations_str and locations_str != "[]":
             # print('Length is bigger than one\n')
             print(locations_str)
             updated_proj_area_data = {
@@ -1384,12 +1375,15 @@ class ProjectDetails(APIView):
                         print("Could not find a related project photo")
                         # Create the object with the data
                         try:
+                            print("creating data object")
                             image_data = {
-                                "file": self.handle_project_image(image_data),
+                                "file": self.handle_project_image(image),
                                 "uploader": req.user,
                                 "project": proj,
                             }
+                            print("object created")
                         except ValueError as e:
+                            print("error creating data object")
                             error_message = str(e)
                             print(error_message)
                             response_data = {"error": error_message}
@@ -1426,6 +1420,13 @@ class ProjectDetails(APIView):
                             )
                         # project_photo.updated_at = dt.now()
                         # project_photo.save()
+                else:
+                    selectedImageUrl = req.data.get("selectedImageUrl")
+                    if selectedImageUrl == "delete":
+                        project_photo = ProjectPhoto.objects.filter(project=pk).first()
+                        if project_photo:
+                            project_photo.delete()
+
                 if updated_proj_area_data:
                     project_area = ProjectArea.objects.get(project=proj)
                     area_ser = ProjectAreaSerializer(
@@ -2226,14 +2227,12 @@ class AreasForProject(APIView):
             ser.data,
             status=HTTP_200_OK,
         )
-    
+
     def put(self, req, pk):
         project_areas = self.go(pk)
-        area_data = req.data.get('areas')
-        print(f'Areas: {area_data}')
-        data = {
-            'areas': area_data
-        }
+        area_data = req.data.get("areas")
+        print(f"Areas: {area_data}")
+        data = {"areas": area_data}
 
         ser = ProjectAreaSerializer(
             project_areas,
