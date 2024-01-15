@@ -70,7 +70,7 @@ class Feedbacks(APIView):
         )
 
     def post(self, req):
-        print(req.data)
+        # print(req.data)
         # text = req.data['text']
         # kind = req.data['kind']
         # status = req.data['status']
@@ -88,14 +88,14 @@ class Feedbacks(APIView):
             data=req.data,
         )
         if ser.is_valid():
-            print("feedback ser valid")
+            # print("feedback ser valid")
             feedback = ser.save()
             return Response(
                 UserFeedbackSerializer(feedback).data,
                 status=HTTP_201_CREATED,
             )
         else:
-            print("feedback ser NOT VALID", ser.errors)
+            # print("feedback ser NOT VALID", ser.errors)
             return Response(
                 ser.errors, 
                 HTTP_400_BAD_REQUEST,
