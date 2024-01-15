@@ -13,8 +13,15 @@ jobs:
         id: extract_version
         run: echo "::set-output name=version::$(echo ${GITHUB_REF#refs/tags/})"
 
+      - name: Check if version is provided
+        id: check_version
+        run: echo "::set-output name=version_provided::$(test -n "${{ steps.extract_version.outputs.version }}")"
+
       - name: Build and Push Image
+        if: steps.check_version.outputs.version_provided == 'true'
         run: |
           docker login --username idabblewith --password ${{ secrets.GH_PAT }} ghcr.io
           docker buildx create --use
           docker buildx build . --tag ghcr.io/dbca-wa/science-projects-service:${{ steps.extract_version.outputs.version }} --push
+          docker tag ghcr.io/dbca-wa/science-projects-service:${{ steps.extract_version.outputs.version }} ghcr.io/dbca-wa/science-projects-service:latest
+          docker push ghcr.io/dbca-wa/science-projects-service:latest
