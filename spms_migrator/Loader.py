@@ -32,6 +32,19 @@ from django.conf import settings
 import psycopg2
 
 
+def determine_user():
+    env = environ.Env()
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+    print("basedir:", BASE_DIR)
+    debugmode = env("DJANGO_DEBUG")
+    print("debug:", debugmode)
+    if debugmode == "True":
+        user = os.environ.get("USER") or os.getlogin() #Update to support linux environment
+        return user
+
+
+
 def determine_project_folder():
     print("DETERMINING PROJECT FOLDER")
     env = environ.Env()
@@ -67,7 +80,7 @@ class Loader:
         parent_directory,
     ):
         self.os = os
-        self.user = os.getlogin()
+        self.user = determine_user()
         self.load_dotenv = load_dotenv
         self.tqdm = tqdm
         self.pd = pd
