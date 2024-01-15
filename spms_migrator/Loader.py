@@ -2842,7 +2842,7 @@ class Loader:
             f"{self.misc.bcolors.WARNING}Running sqlflush command...{self.misc.bcolors.ENDC}"
         )
         try:
-            print("User is", os.getlogin())
+            print("User is", self.user)
             flush_command = f"python manage.py flush --noinput"
             subprocess.run(flush_command, shell=True, cwd=self.django_project_path)
         except Exception as e:
