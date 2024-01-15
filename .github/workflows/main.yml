@@ -16,3 +16,7 @@ jobs:
             docker login --username idabblewith --password ${{ secrets.GH_PAT }} ghcr.io
             docker buildx create --use
             docker buildx build . --tag ghcr.io/dbca-wa/science-projects-service:${{ steps.get_version.outputs.version }} --push
+        - name: Tag the image as 'latest'
+          run: |
+            docker tag ghcr.io/dbca-wa/science-projects-service:${{ steps.get_version.outputs.version }} ghcr.io/dbca-wa/science-projects-service:latest
+            docker push ghcr.io/dbca-wa/science-projects-service:latest
