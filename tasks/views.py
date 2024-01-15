@@ -16,7 +16,7 @@ from rest_framework.exceptions import (
 )
 from django.db import transaction
 from .models import Task, UserFeedback
-from .serializers import TaskSerializer, TinyTaskSerializer, UserFeedbackSerializer
+from .serializers import TaskSerializer, TinyTaskSerializer, UserFeedbackCreationSerializer, UserFeedbackSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
@@ -70,18 +70,34 @@ class Feedbacks(APIView):
         )
 
     def post(self, req):
-        # print(req.data)
-        ser = UserFeedbackSerializer(
+        print(req.data)
+        # text = req.data['text']
+        # kind = req.data['kind']
+        # status = req.data['status']
+        # user = req.user
+
+        # data_object = {
+        #     "user": user,
+        #     "text": text,
+        #     "kind": kind,
+        #     "status": status,
+        # }
+
+
+        ser = UserFeedbackCreationSerializer(
             data=req.data,
         )
         if ser.is_valid():
+            print("feedback ser valid")
             feedback = ser.save()
             return Response(
                 UserFeedbackSerializer(feedback).data,
                 status=HTTP_201_CREATED,
             )
         else:
+            print("feedback ser NOT VALID", ser.errors)
             return Response(
+                ser.errors, 
                 HTTP_400_BAD_REQUEST,
             )
 

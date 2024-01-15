@@ -95,6 +95,15 @@ class UserFeedbackSerializer(ModelSerializer):
         fields = "__all__"
 
 
+
+class UserFeedbackCreationSerializer(ModelSerializer):
+
+    class Meta:
+        model = UserFeedback
+        fields = "__all__"
+
+
+
 class TaskSerializer(ModelSerializer):
     class Meta:
         model = Task
