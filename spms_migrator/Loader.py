@@ -40,8 +40,9 @@ def determine_project_folder():
     print("basedir:", BASE_DIR)
     debugmode = env("DJANGO_DEBUG")
     print("debug:", debugmode)
-    user = os.getlogin()
     if debugmode == "True":
+        user = os.environ.get("USER") or os.getlogin() #Update to support linux environment
+
         if user == "JaridPrince":
             return os.path.join(f"C:\\Users\\{user}\\Documents\\GitHub\\service_spms")
         else:
