@@ -29,10 +29,11 @@ class AddQuotesFromUniques(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def post(self, req):
-        print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is adding all unique quotes")
 
         def clean_quotes():
-            print(os.path.dirname(os.path.realpath(__file__)))
+            settings.LOGGER.info(msg=f"{req.user} is cleaning quotes")
+            # print(os.path.dirname(os.path.realpath(__file__)))
             with open(
                 os.path.dirname(os.path.realpath(__file__)) + "/unique_quotes.txt"
             ) as quotesfile:
@@ -60,9 +61,6 @@ class AddQuotesFromUniques(APIView):
                         author = line_array[-1]
                     unique_quotes.append({"text": quote, "author": author})
 
-                print(f"\n\n\nFormatting: {unique_quotes[0]}\n")
-                print(f"Uniques: {len(unique_quotes)}/{len(array_of_raw_quotes)}\n")
-                print(f"Duplicates: {duplicates}\n")
                 return unique_quotes
 
         uniques = clean_quotes()
@@ -73,10 +71,10 @@ class AddQuotesFromUniques(APIView):
                     # with transaction.atomic():
                     ser.save()
                 else:
-                    print(f"ERROR: {ser.errors}")
+                    settings.LOGGER.error(msg=f"{ser.errors}")
             print("SUCCESS: GENERATED")
         except Exception as e:
-            print(f"ERROR: {e}")
+            settings.LOGGER.error(msg=f"{e}")
         return Response(
             status=HTTP_201_CREATED,
         )
@@ -99,6 +97,7 @@ class Quotes(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating quote")
         if not req.user.is_authenticated:
             raise NotAuthenticated
         ser = QuoteListSerializer(data=req.data)
@@ -109,6 +108,7 @@ class Quotes(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -125,9 +125,9 @@ class QuoteRandom(APIView):
     def get(self, req):
         # count = Quote.objects.count()
         # quote = self.go(pk=random.randint(0, count))
-        
+
         # Faster means of getting a random quote
-        quote = Quote.objects.order_by('?').first()
+        quote = Quote.objects.order_by("?").first()
         ser = QuoteDetailSerializer(quote, context={"request": req})
         return Response(
             ser.data,
@@ -153,7 +153,9 @@ class QuoteDetail(APIView):
     def delete(self, req, pk):
         if not req.user.is_authenticated:
             raise NotAuthenticated
+
         a = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting quote: {a}")
         a.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -163,6 +165,7 @@ class QuoteDetail(APIView):
         if not req.user.is_authenticated:
             raise NotAuthenticated
         a = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating quote: {a}")
         ser = QuoteDetailSerializer(
             a,
             data=req.data,
@@ -173,4 +176,10 @@ class QuoteDetail(APIView):
             return Response(
                 QuoteDetailSerializer(updated).data,
                 status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
             )

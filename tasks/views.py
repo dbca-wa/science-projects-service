@@ -16,7 +16,12 @@ from rest_framework.exceptions import (
 )
 from django.db import transaction
 from .models import Task, UserFeedback
-from .serializers import TaskSerializer, TinyTaskSerializer, UserFeedbackCreationSerializer, UserFeedbackSerializer
+from .serializers import (
+    TaskSerializer,
+    TinyTaskSerializer,
+    UserFeedbackCreationSerializer,
+    UserFeedbackSerializer,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
@@ -39,7 +44,7 @@ class Tasks(APIView):
         )
 
     def post(self, req):
-        # print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is creating task")
         ser = TaskSerializer(
             data=req.data,
         )
@@ -50,9 +55,11 @@ class Tasks(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
+
 
 class Feedbacks(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -70,19 +77,7 @@ class Feedbacks(APIView):
         )
 
     def post(self, req):
-        # print(req.data)
-        # text = req.data['text']
-        # kind = req.data['kind']
-        # status = req.data['status']
-        # user = req.user
-
-        # data_object = {
-        #     "user": user,
-        #     "text": text,
-        #     "kind": kind,
-        #     "status": status,
-        # }
-
+        settings.LOGGER.info(msg=f"{req.user} is posting feedback")
 
         ser = UserFeedbackCreationSerializer(
             data=req.data,
@@ -96,8 +91,9 @@ class Feedbacks(APIView):
             )
         else:
             # print("feedback ser NOT VALID", ser.errors)
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
-                ser.errors, 
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -125,6 +121,7 @@ class FeedbackDetail(APIView):
 
     def delete(self, req, pk):
         feedback = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting feedback: {feedback}")
         feedback.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -133,6 +130,7 @@ class FeedbackDetail(APIView):
     def put(self, req, pk):
         # print(req.data)
         feedback = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating feedback: {feedback}")
         ser = UserFeedbackSerializer(
             feedback,
             data=req.data,
@@ -145,6 +143,7 @@ class FeedbackDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -174,6 +173,7 @@ class TaskDetail(APIView):
 
     def delete(self, req, pk):
         task = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting task: {task}")
         task.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -182,6 +182,7 @@ class TaskDetail(APIView):
     def put(self, req, pk):
         # print(req.data)
         task = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating task: {task}")
         ser = TaskSerializer(
             task,
             data=req.data,
@@ -194,6 +195,7 @@ class TaskDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
