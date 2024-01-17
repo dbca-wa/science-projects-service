@@ -14,7 +14,7 @@ from rest_framework.status import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-
+from django.conf import settings
 
 from .models import UserContact, BranchContact, AgencyContact, Address
 from .serializers import (
@@ -44,6 +44,7 @@ class Addresses(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.error(msg=f"{req.user} is creating address")
         ser = AddressSerializer(
             data=req.data,
         )
@@ -54,6 +55,7 @@ class Addresses(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -75,6 +77,7 @@ class AgencyContacts(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.error(msg=f"{req.user} is creating agency contact")
         ser = AgencyContactSerializer(
             data=req.data,
         )
@@ -85,6 +88,7 @@ class AgencyContacts(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -106,6 +110,7 @@ class BranchContacts(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating branch contact")
         ser = BranchContactSerializer(
             data=req.data,
         )
@@ -116,6 +121,7 @@ class BranchContacts(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -137,6 +143,9 @@ class UserContacts(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is creating a user contact with {req.data}"
+        )
         ser = UserContactSerializer(
             data=req.data,
         )
@@ -147,6 +156,7 @@ class UserContacts(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -176,6 +186,8 @@ class AddressDetail(APIView):
 
     def delete(self, req, pk):
         address = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting address {address}")
+
         address.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -183,6 +195,7 @@ class AddressDetail(APIView):
 
     def put(self, req, pk):
         address = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating address {address}")
         ser = AddressSerializer(
             address,
             data=req.data,
@@ -195,6 +208,7 @@ class AddressDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -221,6 +235,9 @@ class BranchContactDetail(APIView):
 
     def delete(self, req, pk):
         branch_contact = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting branch contact {branch_contact}"
+        )
         branch_contact.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -228,6 +245,9 @@ class BranchContactDetail(APIView):
 
     def put(self, req, pk):
         branch_contact = self.go(pk)
+        settings.LOGGER.error(
+            msg=f"{req.user} is updating branch contact {branch_contact}"
+        )
         ser = BranchContactSerializer(
             branch_contact,
             data=req.data,
@@ -240,6 +260,7 @@ class BranchContactDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -266,6 +287,9 @@ class AgencyContactDetail(APIView):
 
     def delete(self, req, pk):
         Agency_contact = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting agency contact {Agency_contact}"
+        )
         Agency_contact.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -273,6 +297,9 @@ class AgencyContactDetail(APIView):
 
     def put(self, req, pk):
         Agency_contact = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating agency contact {Agency_contact}"
+        )
         ser = AgencyContactSerializer(
             Agency_contact,
             data=req.data,
@@ -285,6 +312,7 @@ class AgencyContactDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -309,6 +337,7 @@ class UserContactDetail(APIView):
 
     def delete(self, req, pk):
         uc = self.go(pk)
+        settings.LOGGER.error(msg=f"{req.user} is deleting {uc}")
         uc.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -316,6 +345,7 @@ class UserContactDetail(APIView):
 
     def put(self, req, pk):
         uc = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updaing contact details {uc}")
         ser = UserContactSerializer(
             uc,
             data=req.data,
@@ -328,6 +358,7 @@ class UserContactDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,

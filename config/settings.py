@@ -1,3 +1,5 @@
+import logging
+from logging import LogRecord
 from pathlib import Path
 import os
 import environ
@@ -246,26 +248,7 @@ if not DEBUG:
         # We recommend adjusting this value in production.
         profiles_sample_rate=1.0,
     )
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-        },
-    },
-    "root": {
-        "handlers": ["console"],
-        "level": "ERROR",  # Change to 'DEBUG' to see more detailed logs
-    },
-    "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": "ERROR",  # Change to 'DEBUG' to see more detailed logs
-            "propagate": True,
-        },
-    },
-}
+
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
@@ -307,3 +290,111 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
+
+
+class ColoredFormatter(logging.Formatter):
+    def color_string(self, string, color):
+        colors = {
+            "blue": "\033[94m",
+            "cyan": "\033[96m",
+            "green": "\033[92m",
+            "white": "\033[97m",
+            "yellow": "\033[93m",
+            "red": "\033[91m",
+        }
+        ft = f"{colors[color]}{string}\033[0m"
+        return ft
+
+    def format(self, record: LogRecord) -> str:
+        log_message = super().format(record)
+        level = ""
+        message = ""
+        time = self.formatTime(record, "%d-%m-%Y @ %H:%M:%S")
+        traceback = ""
+        # time = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
+
+        if record.levelname == "DEBUG" or record.levelname == "INFO":
+            level = self.color_string(f"[{record.levelname}] {record.message}", "white")
+            message = self.color_string(log_message, "white")
+        elif record.levelname == "WARNING":
+            level = self.color_string(
+                f"[{record.levelname}] {record.message}", "yellow"
+            )
+            message = self.color_string(log_message, "white")
+        elif record.levelname == "ERROR":
+            level = self.color_string(f"[{record.levelname}] {record.message}", "red")
+            message = self.color_string(log_message, "white")
+
+        if record.levelname == "ERROR":
+            traceback += f"{record.exc_text}"
+
+        if len(traceback) > 1 and traceback != "None":
+            return f"{self.color_string(time, 'blue')} {level}\n{traceback}"
+        else:
+            return f"{self.color_string(time, 'blue')} {level}"
+
+
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {
+#         "console": {
+#             "class": "logging.StreamHandler",
+#         },
+#     },
+#     "root": {
+#         "handlers": ["console"],
+#         "level": "ERROR",  # Change to 'DEBUG' to see more detailed logs
+#     },
+#     "loggers": {
+#         "django": {
+#             "handlers": ["console"],
+#             "level": "ERROR",  # Change to 'DEBUG' to see more detailed logs
+#             "propagate": True,
+#         },
+#     },
+# }
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        # "standard": {"format": "%(levelname)s %(name)s %(message)s"},
+        "colored": {
+            "()": "config.settings.ColoredFormatter",
+            # "format": "%(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "colored",
+            "filters": [],
+        }
+    },
+    "loggers": {
+        logger_name: {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        }
+        for logger_name in (
+            "django",
+            "django.request",
+            "django.db.backends",
+            "django.template",
+            "core",
+        )
+    },
+    "root": {
+        "level": "DEBUG",
+        "handlers": ["console"],
+    },
+}
+
+LOGGER = logging.getLogger(__name__)
+
+# logger.error(f'')
+# logger.warning(f'')
+# logger.info(f'')
+# logger.debug(f'')
