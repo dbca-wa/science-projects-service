@@ -326,7 +326,7 @@ class Reports(APIView):
     def create_reports_for_eligible_projects(self, report_id, user):
         report = AnnualReport.objects.get(pk=report_id)
 
-        settings.LOGGER.error(msg=f"{user} is Creating reports for eligible projects")
+        settings.LOGGER.error(msg=f"{user} is BATCH Creating PROGRESS/STUDENT reports for eligible projects")
         # Create progress reports
         eligible_projects = Project.objects.filter(
             Q(status__in=Project.ACTIVE_ONLY)
@@ -520,6 +520,7 @@ class ReportDetail(APIView):
     def put(self, req, pk):
         report = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating report {report}")
+        
         ser = AnnualReportSerializer(
             report,
             data=req.data,
