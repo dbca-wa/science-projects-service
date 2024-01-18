@@ -38,9 +38,6 @@ class DBCAMiddleware(MiddlewareMixin):
             raise ParseError(str(e))
 
     def __call__(self, request):
-        # for header, value in request.META.items():
-        #     if header.startswith("HTTP_"):
-        #         print(f"{header}: {value}")
 
         if (
             "HTTP_REMOTE_USER" not in request.META
@@ -72,8 +69,6 @@ class DBCAMiddleware(MiddlewareMixin):
             for key, value in attributemap.items():
                 if value in request.META:
                     attributemap[key] = request.META[value]
-
-            # print(attributemap)
 
             if (
                 attributemap["email"]

@@ -38,9 +38,6 @@ class ChatRoomForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         instance = kwargs.get("instance")
         if instance:
-            print(instance)
-            print(instance.users.values_list("id", flat=True))
-            print(list(instance.users.values_list("id", flat=True)))
             self.initial["users"] = list(instance.users.values_list("id", flat=True))
 
         self.fields["users"].queryset = User.objects.all().order_by("first_name")

@@ -311,6 +311,7 @@ class Reports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is viewing reports")
         all_reports = AnnualReport.objects.all()
         ser = TinyAnnualReportSerializer(
             all_reports,
@@ -503,13 +504,13 @@ class ReportDetail(APIView):
 
     def delete(self, req, pk):
         report = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting report {report}")
 
         def delete_reports(report):
             reports = ProgressReport.objects.filter(report=report).all()
             for report in reports:
                 report.document.delete()
 
-        settings.LOGGER.info(msg=f"{req.user} is deleting report {report}")
         delete_reports(report)
         report.delete()
         return Response(
@@ -518,12 +519,12 @@ class ReportDetail(APIView):
 
     def put(self, req, pk):
         report = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating report {report}")
         ser = AnnualReportSerializer(
             report,
             data=req.data,
             partial=True,
         )
-        settings.LOGGER.info(msg=f"{req.user} is updating report {report}")
         if ser.is_valid():
             ureport = ser.save()
             return Response(
@@ -737,7 +738,7 @@ class ProjectDocuments(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"Creating Project Document: {e}")
+        settings.LOGGER.info(msg=f"{req.user} is Creating Project Document for project {req.data.get('project')}")
         kind = req.data.get("kind")
         project_pk = req.data.get("project")
         document_serializer = ProjectDocumentCreateSerializer(
@@ -750,13 +751,8 @@ class ProjectDocuments(APIView):
                 "modifier": req.user.pk,
             }
         )
-        settings.LOGGER.info(
-            msg=f"Creating Project Document with: {document_serializer}"
-        )
 
         if document_serializer.is_valid():
-            # print(document_serializer.data)
-            # doc = document_serializer.save()
             with transaction.atomic():
                 doc = document_serializer.save()
                 if kind == "concept":
@@ -1358,8 +1354,6 @@ class ProjectDocuments(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
-            # print("Main Doc Serializer issue")
-            # print(document_serializer.errors)
             settings.LOGGER.error(msg=f"{document_serializer.errors}")
             return Response(
                 document_serializer.errors,
@@ -1418,8 +1412,6 @@ class EndorsementsPendingMyAction(APIView):
                         and (endorsements.bm_endorsement_required)
                         and not (endorsements.bm_endorsement_provided)
                     ):
-                        # print("Doc found where bio required, but not yet granted")
-                        # print(doc)
                         documents.append(doc)
                         bm_input_required.append(doc)
                     if (
@@ -1427,9 +1419,6 @@ class EndorsementsPendingMyAction(APIView):
                         and (endorsements.ae_endorsement_required)
                         and not (endorsements.ae_endorsement_provided)
                     ):
-                        # print("Doc found where aec required, but not yet granted")
-
-                        # print(doc)
                         documents.append(doc)
                         aec_input_required.append(doc)
                     if (
@@ -1437,12 +1426,9 @@ class EndorsementsPendingMyAction(APIView):
                         and (endorsements.hc_endorsement_required)
                         and not (endorsements.hc_endorsement_provided)
                     ):
-                        # print("Doc found where hc required, but not yet granted")
-                        # print(doc)
                         documents.append(doc)
                         hc_input_required.append(doc)
 
-        # print(is_bio, is_hc, is_aec, is_superuser)
 
         filtered_aec_input_required = list(
             {doc.id: doc for doc in aec_input_required}.values()
@@ -1588,17 +1574,6 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
                     # Append to the file
                     with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
-                else:
-                    # logging.Logger.warning("Content already exists in the file.")
-                    # settings.logger.warning("CA: ontent already exists in the file")
-                    # settings.logger.error(
-                    #     "A: ontent already exists in the file",
-                    #     exc_info=True,
-                    #     extra={"error_filename": __name__},
-                    # )
-                    print("error")
-
-                    # logger("A: Content already exists in the file.")
 
         filtered_ba_input_required = list(
             {doc.id: doc for doc in ba_input_required}.values()
@@ -1634,8 +1609,6 @@ class ProjectDocsPendingMyActionStageThree(APIView):
 
         # Business Area Lead Task Filtering
         for project in active_projects:
-            # print(project)
-            # print(project.business_area)
             if project.business_area != None:
                 ba_id = project.business_area.leader.id
                 if ba_id == req.user.id:
@@ -1665,15 +1638,6 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                     # Append to the file
                     with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
-                else:
-                    # settings.logger.warning("Content already exists in the file")
-                    # settings.logger.error(
-                    #     "B: ontent already exists in the file",
-                    #     exc_info=True,
-                    #     extra={"error_filename": __name__},
-                    # )
-
-                    print("Content already exists in the file.")
         # Directorate Filtering
         if user_work.business_area is not None:
             is_directorate = user_work.business_area.name == "Directorate"
@@ -1798,8 +1762,6 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
         # Business Area Lead Task Filtering
         for project in active_projects:
-            # print(project)
-            # print(project.business_area)
             if project.business_area != None:
                 ba_id = project.business_area.leader.id
                 if ba_id == req.user.id:
@@ -2016,7 +1978,6 @@ class ProjectDocumentComments(APIView):
         )
         if ser.is_valid():
             ser.save()
-            settings.LOGGER.warning(msg=f"SUCCESS")
             return Response(
                 ser.data,
                 status=HTTP_201_CREATED,
@@ -2600,6 +2561,7 @@ class DocReopenProject(APIView):
         return obj
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is reopening project by deleting closure")
         user = req.user
         settings.LOGGER.info(
             msg=f"{req.user} is reopening project {req.data['documentPk']}"
@@ -2634,7 +2596,7 @@ class DocApproval(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        print(user, stage, document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is approving a doc {document_pk}")
         if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
@@ -2659,6 +2621,7 @@ class DocApproval(APIView):
                 "status": "approved",
             }
         else:
+            settings.LOGGER.error(msg=f"No stage provided for approval")
             return Response(
                 status=HTTP_400_BAD_REQUEST,
             )
@@ -2670,31 +2633,17 @@ class DocApproval(APIView):
         if ser.is_valid():
             u_document = ser.save()
             if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
-                print("weeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-                print(u_document.project.status)
                 u_document.project.status = Project.StatusChoices.ACTIVE
                 u_document.project.save()
-                print(u_document.project.status)
             if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                print("closing project")
+                settings.LOGGER.info(msg=f"{req.user} is closing a project")
                 # find the closure matching
                 closure_doc = ProjectClosure.objects.get(document=u_document)
                 outcome = closure_doc.intended_outcome
                 if outcome == "forcecompleted":
                     outcome = "completed"
-                print(outcome)
                 u_document.project.status = outcome
                 u_document.project.save()
-                print("project closed")
-            else:
-                # if u_document.kind == "progressreport" or u_document.kind == "studentreport":
-                #     if (stage == 2 or stage == '2'):
-
-                # else:
-
-                print("nope")
-                print(u_document.kind)
-                print(stage)
 
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
@@ -2722,7 +2671,7 @@ class DocRecall(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        print(user, stage, document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is recalling a doc {document_pk}")
         if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
@@ -2752,9 +2701,6 @@ class DocRecall(APIView):
                 "status": "inapproval",
             }
 
-        if data == "test":
-            return Response(status=HTTP_400_BAD_REQUEST)
-
         ser = ProjectDocumentSerializer(
             document,
             data=data,
@@ -2763,19 +2709,11 @@ class DocRecall(APIView):
         if ser.is_valid():
             u_document = ser.save()
             if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
-                print("weeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-                print(u_document.project.status)
                 u_document.project.status = Project.StatusChoices.PENDING
                 u_document.project.save()
-                print(u_document.project.status)
             elif u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                print("recalling approval and reopening")
                 u_document.project.status = Project.StatusChoices.CLOSUREREQ
                 u_document.project.save()
-            else:
-                print("nope")
-                print(u_document.kind)
-                print(stage)
 
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
@@ -2803,7 +2741,7 @@ class DocSendBack(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        # print(user, stage, document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
         if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
@@ -2825,9 +2763,6 @@ class DocSendBack(APIView):
                 "modifier": req.user.pk,
                 "status": "revising",
             }
-
-        if data == "test":
-            return Response(status=HTTP_400_BAD_REQUEST)
 
         ser = ProjectDocumentSerializer(
             document,
@@ -2902,7 +2837,7 @@ class SeekEndorsement(APIView):
         )
 
         settings.LOGGER.info(
-            msg=f"{req.user} is seeking an endorsement for project plan {project_plan}"
+            msg=f"{req.user} is seeking an endorsement for project plan {project_plan} with db object {endorsement}"
         )
         if end_ser.is_valid():
             with transaction.atomic():

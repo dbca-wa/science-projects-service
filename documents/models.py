@@ -4,7 +4,7 @@ from common.models import CommonModel
 from datetime import datetime as dt
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MinValueValidator
-
+from bs4 import BeautifulSoup
 from users.models import User
 
 
@@ -359,11 +359,21 @@ class ConceptPlan(models.Model):
 
     )
 
+    def extract_inner_text(self, html_string):
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
+
+        # Extract the text content
+        inner_text = soup.get_text(separator=' ', strip=True)
+
+        return inner_text
+    
     def __str__(self) -> str:
         title = self.document.project.title
+        title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
-        return f"CONCEPT PLAN | {title}"
+        return f"CONCEPT PLAN ({self.year}) | {title}"
 
     class Meta:
         verbose_name = "Concept Plan"
@@ -691,11 +701,22 @@ class ProjectPlan(models.Model):
         help_text="Name related SPPs and the extent you have consulted with their project leaders",
     )
 
+    def extract_inner_text(self, html_string):
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
+
+        # Extract the text content
+        inner_text = soup.get_text(separator=' ', strip=True)
+
+        return inner_text
+    
     def __str__(self) -> str:
         title = self.document.project.title
+        title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
-        return f"{title}"
+        return f"PROJECT PLAN ({self.year}) | {title}"
+
 
     class Meta:
         verbose_name = "Project Plan"
@@ -766,9 +787,18 @@ class ProgressReport(models.Model):
         null=True,
         help_text="Future directions for the annual activity update. Aim for 100 to 150 words. One bullet point per direction.",
     )
+    def extract_inner_text(self, html_string):
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
 
+        # Extract the text content
+        inner_text = soup.get_text(separator=' ', strip=True)
+
+        return inner_text
+    
     def __str__(self) -> str:
         title = self.document.project.title
+        title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
         return f"PROGRESS REPORT ({self.year}) | {title}"
@@ -819,11 +849,22 @@ class StudentReport(models.Model):
         help_text="The year on which this progress report reports on with four digits, e.g. 2014 for FY 2013/14.",
     )
 
+    def extract_inner_text(self, html_string):
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
+
+        # Extract the text content
+        inner_text = soup.get_text(separator=' ', strip=True)
+
+        return inner_text
+    
     def __str__(self) -> str:
         title = self.document.project.title
+        title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
         return f"STUDENT REPORT ({self.year}) | {title}"
+
 
     class Meta:
         verbose_name = "Student Report"
@@ -902,11 +943,22 @@ class ProjectClosure(models.Model):
         help_text="Location of electronic project data.",
     )
 
+    def extract_inner_text(self, html_string):
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
+
+        # Extract the text content
+        inner_text = soup.get_text(separator=' ', strip=True)
+
+        return inner_text
+    
     def __str__(self) -> str:
         title = self.document.project.title
+        title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
-        return f"CLOSURE | {title}| {self.intended_outcome}: {self.reason}"
+        return f"PROJECT CLOSURE ({self.year}) | {title}"
+
 
     class Meta:
         verbose_name = "Project Closure"

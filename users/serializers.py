@@ -177,7 +177,6 @@ class UpdatePISerializer(serializers.ModelSerializer):
 
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
-    # print(f"\nUPDATING\n")
     image = serializers.PrimaryKeyRelatedField(
         source="profile.image", queryset=UserAvatar.objects.all(), required=False
     )

@@ -118,8 +118,6 @@ def export_all_quotes_txt(model_admin, req, selected):
     try:
         with open(f"{directory}", "w+", encoding="utf-8") as quotesfile:
             for quote in saved_quotes:
-                # print(quote)
-                # for quote in saved_quotes:
                 text = quote.text
                 author = quote.author
                 quotesfile.write(f"{text} - {author}\n")

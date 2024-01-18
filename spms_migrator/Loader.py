@@ -653,7 +653,6 @@ class Loader:
         pass
 
     def spms_get_user_name_old_id(self, connection, cursor, old_id):
-        # print(old_id)
         print(f"trying for old id: {old_id}")
         if old_id == 101073 or old_id == "101073":
             return old_id
@@ -689,7 +688,6 @@ class Loader:
             return f"{first_name} {last_name}"
 
     def spms_get_user_by_old_id(self, connection, cursor, old_id):
-        # print(old_id)
         print(f"trying for old id: {old_id}")
         if old_id == 101073 or old_id == "101073":
             return old_id
@@ -1231,12 +1229,6 @@ class Loader:
         # Load environment variables from .env file
         print(f"{self.misc.bcolors.WARNING}Loading Env...{self.misc.bcolors.ENDC}")
         self.load_dotenv()
-        # print(self.os.getenv("ADDITIONAL_URL"))
-        # # Read the password from the environment variables
-        # password = self.os.getenv("UAT_PASSWORD")
-
-        # # Set the PGPASSWORD environment variable to avoid prompts for password
-        # self.os.environ["PGPASSWORD"] = password
 
         # Run the dropdb command
         print(
@@ -1943,18 +1935,6 @@ class Loader:
     # SPMS FUNCTIONS ===============================================================
 
     def spms_set_correct_user_ids(self):
-        # print(f'{self.misc.bcolors.WARNING}Loading Users CSV{self.misc.bcolors.ENDC}')
-        # # Load the users file into a data frame
-        # try:
-        #     file_path = self.os.path.join(
-        #         self.file_handler.clean_directory, "pythia_user.csv"
-        #     )
-        #     users_df = self.file_handler.read_csv_and_prepare_df(file_path)
-        # except Exception as e:
-        #     self.misc.nli(f"{self.misc.bcolors.FAIL}Error: {e}{self.misc.bcolors.ENDC}")
-        # else:
-        #     print(f"{self.misc.bcolors.OKGREEN}File loaded!{self.misc.bcolors.ENDC}")
-
         (
             cursor,
             connection,
@@ -2353,11 +2333,6 @@ class Loader:
         for index, user in users_columns.iterrows():
             # Skip my superuser account
             if user["id"] != 101073:
-                # print("starting loop")
-                # print(
-                #     f"{self.misc.bcolors.WARNING}Creating entry for {user['username']}...{self.misc.bcolors.ENDC}"
-                # )
-
                 # Create a temp email for external users to avoid duplicate email issue.
                 if self.pd.isna(user["email"]):
                     user["email"] = f"unset_{temp_number}@email.com"
@@ -2365,7 +2340,6 @@ class Loader:
 
                 is_staff_value = False
                 is_superuser_value = False
-                # print(user["email"])
 
                 if self.pd.isna(user["first_name"]):
                     user["first_name"] = "None"
@@ -2481,7 +2455,6 @@ class Loader:
                         current_datetime=current_datetime,
                     )
 
-                # print("DONE stuff")
 
                 # Get the branch, business area and affiliation based on old_id and affiliatoin name
                 users_branch_id = (
@@ -2494,7 +2467,6 @@ class Loader:
                     else None
                 )
 
-                # print("DONE 2")
                 users_ba_id = (
                     self.spms_get_ba_by_old_program_id(
                         connection=connection, cursor=cursor, old_id=user["program_id"]
@@ -2629,7 +2601,6 @@ class Loader:
                 finally:
                     connection.commit()
 
-                # print("ending loop")
 
             # TODO: At the end of all operations remove old_id from users table in django
 
@@ -5049,7 +5020,6 @@ class Loader:
                 print(new_user_id)
                 print(new_role)
                 print(new_time_allocation)
-                # print(100 if self.pd.isna(member["position"]) else member["position"])
                 print(new_position)
                 print(
                     None if self.pd.isna(member["short_code"]) else member["short_code"]
@@ -6152,7 +6122,6 @@ class Loader:
                 print(new_proj_id)
                 print(status)
                 print(kind)
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Concept Plan Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -6417,7 +6386,6 @@ class Loader:
                 print(new_proj_id)
                 print(status)
                 print(kind)
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Project Plan Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -6896,7 +6864,6 @@ class Loader:
                 print(new_proj_id)
                 print(status)
                 print(kind)
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Progress Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -7025,7 +6992,6 @@ class Loader:
                     future,
                     # pdf,
                 ),
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Progress Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -7193,7 +7159,6 @@ class Loader:
                 print(new_proj_id)
                 print(status)
                 print(kind)
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Studebt Report Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -7271,7 +7236,6 @@ class Loader:
                     reported_info,
                     year,
                 )
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Student Report Detail (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -7446,7 +7410,6 @@ class Loader:
                 print(new_proj_id)
                 print(status)
                 print(kind)
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Project Closure Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -7547,7 +7510,6 @@ class Loader:
                     hardcopy_location,
                     backup_location,
                 ),
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Project Closure Detail (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )
@@ -8190,7 +8152,6 @@ class Loader:
                     is_public,
                     is_removed,
                 )
-                # print(pdf)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Doc Comment (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
                 )

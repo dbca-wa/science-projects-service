@@ -232,9 +232,6 @@ class PublicationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         instance = kwargs.get("instance")
         if instance:
-            print(instance)
-            print(instance.internal_authors.values_list("id", flat=True))
-            print(list(instance.internal_authors.values_list("id", flat=True)))
             self.initial["internal_authors"] = list(
                 instance.internal_authors.values_list("id", flat=True)
             )

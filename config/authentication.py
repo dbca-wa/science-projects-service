@@ -23,8 +23,6 @@ class JWTAuthentication(BaseAuthentication):
             raise exceptions.PermissionDenied("CSRF Failed: %s" % reason)
 
     def authenticate(self, req):
-        # print(req.headers)
-        # return None
         token = req.headers.get("Jwt")
         if not token:
             return None
@@ -33,7 +31,6 @@ class JWTAuthentication(BaseAuthentication):
             settings.SECRET_KEY,
             algorithms=["HS256"],
         )
-        print(decoded)
         pk = decoded.get("pk")
         if not pk:
             raise exceptions.AuthenticationFailed("Invalid token")

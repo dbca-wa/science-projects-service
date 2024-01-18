@@ -33,39 +33,3 @@ class ChoiceLauncher:
         except Exception as e:
             print(e)
 
-            # # self.misc.cls()
-            # self.misc.nls(f"{'*'*20} ERR! {'*'*20}\n")
-
-            # dir_path = os.path.dirname(os.path.realpath(__file__))
-            # exc_type, exc_obj, exc_tb = sys.exc_info()
-            # fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            # # excdata = (traceback.extract_tb(exc_tb))
-            # # excdata = (traceback.print_stack())
-
-            # tbLines = traceback.format_exception(*sys.exc_info())
-            # f = "\n"
-            # # print(tbLines)
-            # for l in tbLines[:-1]:
-            #     if l == "Traceback (most recent call last):\n":
-            #         #  or l == '  File "D:\\dev\\py100\\tools\\ProgramLauncher.py", line 122, in launch\n    self.DAYS[self.program_id - 1]()\n'
-            #         pass
-            #     else:
-            #         l = str(l)
-            #         l.lstrip().rstrip().replace("\n", "#\n").replace(" ", "")
-            #         # print(l)
-
-            #         f += l
-            # f.lstrip().rstrip().replace("\n", "giggity")
-            # raw = re.sub(r"File \"D:\\dev\\py100\\tools\\days\\day_0\d+", "", f)
-            # raw = re.sub(r"\\main.py\", ", "", raw)
-            # raw = re.sub(r", in day_0\d+", " in main", raw)
-            # raw = re.sub(r"\\files\\", "", raw)
-            # raw = re.sub(r".py\",", " @", raw)
-
-            # print(
-            #     f"{self.misc.bcolors.FAIL}FROM DIRECTORY:\t\t {dir_path}\{fname}@{exc_tb.tb_lineno}{self.misc.bcolors.ENDC}\n"
-            # )
-            # print(f"{self.misc.bcolors.FAIL}INFO:\n{raw}{self.misc.bcolors.ENDC}\n")
-            # print(
-            #     f"{self.misc.bcolors.HEADER}{exc_type.__name__.upper()}:\t\t {exc_obj}{self.misc.bcolors.ENDC}\n"
-            # )

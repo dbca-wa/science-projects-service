@@ -83,14 +83,12 @@ class Feedbacks(APIView):
             data=req.data,
         )
         if ser.is_valid():
-            # print("feedback ser valid")
             feedback = ser.save()
             return Response(
                 UserFeedbackSerializer(feedback).data,
                 status=HTTP_201_CREATED,
             )
         else:
-            # print("feedback ser NOT VALID", ser.errors)
             settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
@@ -128,7 +126,6 @@ class FeedbackDetail(APIView):
         )
 
     def put(self, req, pk):
-        # print(req.data)
         feedback = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating feedback: {feedback}")
         ser = UserFeedbackSerializer(
@@ -180,7 +177,6 @@ class TaskDetail(APIView):
         )
 
     def put(self, req, pk):
-        # print(req.data)
         task = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating task: {task}")
         ser = TaskSerializer(
@@ -215,7 +211,6 @@ class MyTasks(APIView):
         # Fetch tasks that belong to the authenticated user (req.user) and order by date added
         tasks = Task.objects.filter(user=req.user).order_by("-created_at")
 
-        # print(tasks)
 
         # Split the tasks into separate arrays based on their status
         tasks_by_status = {
@@ -229,7 +224,6 @@ class MyTasks(APIView):
                 task.status
                 # task.get_status_display()
             )  # Get the human-readable status from choices
-            # print(status)
             if status in tasks_by_status:
                 tasks_by_status[status].append(task)
 

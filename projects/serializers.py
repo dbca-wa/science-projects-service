@@ -167,7 +167,6 @@ class ProjectDetailViewSerializer(ModelSerializer):
         fields = "__all__"
 
     def get_project(self, obj):
-        print(obj)
         project = obj.project
         if project:
             return {
@@ -254,7 +253,6 @@ class ProjectDetailSerializer(ModelSerializer):
         fields = "__all__"
 
     def get_project(self, obj):
-        print(obj)
         project = obj.project
         if project:
             return {

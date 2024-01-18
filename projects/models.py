@@ -5,6 +5,7 @@ from common.models import CommonModel
 from datetime import datetime as dt
 from django.db.models import UniqueConstraint
 from django.contrib.postgres.fields import JSONField, ArrayField
+from bs4 import BeautifulSoup
 
 # ------------------------------
 # Section: Research Function Model
@@ -194,9 +195,17 @@ class Project(CommonModel):
     #     blank=True,
     #     on_delete=models.SET_NULL,
     # )
+    def extract_inner_text(self, html_string):
+        # Parse the HTML using BeautifulSoup
+        soup = BeautifulSoup(html_string, 'html.parser')
 
+        # Extract the text content
+        inner_text = soup.get_text(separator=' ', strip=True)
+
+        return inner_text
+    
     def __str__(self) -> str:
-        return f"({self.kind.upper()}) {self.title}"
+        return f"({self.kind.upper()}) {self.extract_inner_text(self.title)}"
 
 
 # DONE

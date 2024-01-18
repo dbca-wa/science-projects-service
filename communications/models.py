@@ -2,7 +2,7 @@ from django.db import models
 from django.forms import ValidationError
 
 from common.models import CommonModel
-
+from django.conf import settings
 
 # DONE
 class ChatRoom(CommonModel):
@@ -86,7 +86,7 @@ class Comment(CommonModel):
         try:
             return self.reactions.all()
         except Exception as e:
-            print(e)
+            settings.LOGGER.error(f"Error getting reactions: {e}")
             return None
 
     def __str__(self) -> str:

@@ -33,7 +33,6 @@ class AddQuotesFromUniques(APIView):
 
         def clean_quotes():
             settings.LOGGER.info(msg=f"{req.user} is cleaning quotes")
-            # print(os.path.dirname(os.path.realpath(__file__)))
             with open(
                 os.path.dirname(os.path.realpath(__file__)) + "/unique_quotes.txt"
             ) as quotesfile:

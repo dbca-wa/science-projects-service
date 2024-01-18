@@ -42,18 +42,6 @@ class TinyReactionSerializer(ModelSerializer):
 # Comments
 class TinyCommentSerializer(ModelSerializer):
     user = TinyUserSerializer(read_only=True)
-
-    # document = TinyProjectDocumentSerializer(read_only=True)
-    # def get_reactions(self):
-    #     try:
-    #         ser = TinyReactionSerializer(
-    #             Reaction.objects.filter(comment__pk=self.pk).all(), many=True
-    #         )
-    #         return ser
-    #     except Exception as e:
-    #         print(e)
-    #         return None
-
     reactions = TinyReactionSerializer(many=True)
 
     class Meta:

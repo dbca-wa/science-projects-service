@@ -74,7 +74,7 @@ class Login(APIView):
             login(req, user)
             return Response({"ok": "Welcome"})
         else:
-            print("Password Error")
+            print("Password Error: no user")
             return Response({"error": "Incorrect Password"})
 
 
@@ -186,7 +186,6 @@ class SmallInternalUserSearch(APIView):
         search_term = request.GET.get("searchTerm")
         only_internal = request.GET.get("onlyInternal")
 
-        # print(only_internal)
 
         try:
             only_internal = ast.literal_eval(only_internal)
@@ -232,6 +231,7 @@ class Users(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
+        settings.LOGGER.info(msg=f"{request.user} is viewing/filtering users")
         try:
             page = int(request.query_params.get("page", 1))
         except ValueError:
@@ -291,7 +291,6 @@ class Users(APIView):
             users = users.filter(is_superuser=True)
 
         if business_area != "All":
-            # print(business_area)
             users = users.filter(work__business_area__name=business_area).all()
 
         # Sort users alphabetically based on email
@@ -318,7 +317,6 @@ class Users(APIView):
             data=req.data,
         )
         if ser.is_valid():
-            # print("Serializer legit")
             try:
                 # Ensures everything is rolled back if there is an error.
                 with transaction.atomic():
@@ -336,7 +334,6 @@ class Users(APIView):
 
                     new_user.set_password(settings.EXTERNAL_PASS)
                     new_user.save()
-                    # print(new_user)
                     ser = TinyUserSerializer(new_user)
                     return Response(
                         ser.data,
@@ -392,7 +389,6 @@ class UserDetail(APIView):
             user,
             context={"request": req},
         )
-        # print(ser.data)
         return Response(
             ser.data,
             status=HTTP_200_OK,
@@ -616,7 +612,6 @@ class UpdatePersonalInformation(APIView):
     def get(self, req, pk):
         user = self.go(pk)
         ser = UpdatePISerializer(user)
-        # print(ser.data)
         return Response(
             ser.data,
             status=HTTP_200_OK,
@@ -674,7 +669,6 @@ class SwitchAdmin(APIView):
     def post(self, req, pk):
         user = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is changing user's admin status {user}")
-        # print(user)
 
         # Toggle the is_admin attribute
         user.is_superuser = not user.is_superuser
@@ -832,7 +826,7 @@ class UpdateProfile(APIView):
                     avatar_response = TinyUserAvatarSerializer(new_avatar_instance).data
 
                 except Exception as e:
-                    print(e)
+                    settings.LOGGER.error(msg=f"{e}")
                     response_data = {
                         "error": str(e)
                     }  # Create a response data dictionary
@@ -852,21 +846,14 @@ class UpdateProfile(APIView):
             if expertise:
                 updated_data["expertise"] = expertise
 
-            try:
-                print(UpdateProfileSerializer(user).data)
-            except Exception as e:
-                print(e)
-
             ser = UpdateProfileSerializer(
                 user,
                 data=updated_data,
                 partial=True,
             )
-            # print(ser.data)
             if ser.is_valid():
                 updated_user = ser.save()
                 u_ser = UpdateProfileSerializer(updated_user).data
-                # print(u_ser)
                 return Response(
                     u_ser,
                     status=HTTP_202_ACCEPTED,
@@ -898,7 +885,6 @@ class UpdateMembership(APIView):
         user = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating user membership {user}")
         user_work = user.work
-        # print(req.data)
 
         # Convert primary key values to integers
 
@@ -940,11 +926,3 @@ class UpdateMembership(APIView):
                 status=HTTP_200_OK,
             )
 
-    # branch_id = req.data.get("branch_pk")
-    # business_area_id = req.data.get("business_area_pk")
-
-    # # data_obj = {
-    # #     "branch": branch_id,
-    # #     "business_area": business_area_id,
-    # # }
-    # # print(data_obj)

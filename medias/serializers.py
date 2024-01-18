@@ -138,15 +138,6 @@ class AnnualReportPDFCreateSerializer(ModelSerializer):
         cp = AnnualReportPDF.objects.create(**validated_data)
         return cp
 
-    # def get_report(self, obj):
-    #     report = obj.report
-    #     print(report)
-    #     if report:
-    #         return {
-    #             "id": report.id,
-    #             "year": report.year,
-    #         }
-    #     return None
 
 
 class AnnualReportPDFSerializer(ModelSerializer):

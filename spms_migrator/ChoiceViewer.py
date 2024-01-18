@@ -49,7 +49,6 @@ class ChoiceViewer:
                 sys.exit()
 
             if self.selected_function_in_category == "":
-                # print("returning true")
                 return True
 
             else:
@@ -113,8 +112,6 @@ class ChoiceViewer:
             try:
                 option_choice = int(option_choice)
             except:
-                # self.misc.cls()
-                # print(e)
                 self.misc.nls(
                     "You must type a number in the range 1-3. Try again or q to quit."
                 )

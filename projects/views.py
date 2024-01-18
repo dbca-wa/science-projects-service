@@ -320,7 +320,6 @@ class Projects(APIView):
             year = parts[1]
             db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
-            print(year, len(year))
             try:
                 year_as_int = int(year)
             except Exception as e:
@@ -334,6 +333,8 @@ class Projects(APIView):
             return projects
 
     def get(self, request):
+        settings.LOGGER.info(msg=f"{request.user} is viewing/filtering projects")
+
         try:
             page = int(request.query_params.get("page", 1))
         except ValueError:
@@ -696,7 +697,6 @@ class Projects(APIView):
                 # if kind != "student" and kind != "external"
                 else:
                     # serialized_proj = ProjectSerializer(proj)
-                    # print(serialized_proj.data)
 
                     # create document for concept plan data
                     document_serializer = ProjectDocumentCreateSerializer(
@@ -1012,9 +1012,9 @@ class ProjectDetails(APIView):
 
     def get(self, req, pk):
         proj = self.go(pk=pk)
+        settings.LOGGER.info(msg=f"{req.user} is viewing project: {proj}")
         ser = ProjectSerializer(proj).data
         details, documents, members, area_obj = self.get_full_object(pk)
-        # print(documents)
         return Response(
             {
                 "project": ser,
@@ -1068,8 +1068,8 @@ class ProjectDetails(APIView):
             return file_path
 
     def put(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is updating project: {proj}")
         proj = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating project: {proj}")
         title = req.data.get("title")
         description = req.data.get("description")
         image = req.data.get("image")
@@ -1124,7 +1124,6 @@ class ProjectDetails(APIView):
         }
 
         if locations_str and locations_str != "[]":
-            # print('Length is bigger than one\n')
             updated_proj_area_data = {
                 key: value
                 for key, value in {
@@ -1881,7 +1880,6 @@ class AreasForProject(APIView):
         project_areas = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating areas for project area {project_areas}")
         area_data = req.data.get("areas")
-        print(f"Areas: {area_data}")
         data = {"areas": area_data}
 
         ser = ProjectAreaSerializer(
@@ -1976,7 +1974,6 @@ class DownloadAllProjectsAsCSV(APIView):
 
             # Write CSV headers (CoreFunctionProject)
             writer.writerow(field_names)
-            # print(res.data)
 
             # Write project data rows
             for project in projects:
