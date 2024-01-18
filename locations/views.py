@@ -121,6 +121,7 @@ class Areas(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating area")
         ser = AreaSerializer(
             data=req.data,
         )
@@ -131,6 +132,7 @@ class Areas(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -157,12 +159,14 @@ class AreaDetail(APIView):
 
     def delete(self, req, pk):
         area = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting area {area}")
         area.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
 
     def put(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is updating area detail for {pk}")
         area = self.go(pk)
         ser = AreaSerializer(
             area,
@@ -176,6 +180,7 @@ class AreaDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,

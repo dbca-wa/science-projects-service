@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 import time
 from django.shortcuts import render
@@ -113,8 +114,8 @@ class DownloadProjectDocument(APIView):
     def post(self, req):
         document_id = req.data["document_id"]
         document = self.go(document_id)
+        settings.LOGGER.info(msg=f"{req.user} is trying to download pdf for {document}")
         pdf = document.pdf
-        print(pdf)
         return Response(
             data=pdf,
             status=HTTP_200_OK,
@@ -162,36 +163,33 @@ class GenerateProjectDocument(APIView):
         return obj
 
     def post(self, req, pk):
-        print(req)
         kind = req.data["kind"]
-        print(kind)
-
+        settings.LOGGER.info(
+            msg=f"{req.user} is trying to generate pdf for doc id: {pk}"
+        )
         if kind == "conceptplan":
             try:
                 cp = self.get_concept_plan(pk=pk)
             except Exception as e:
-                print(e)
+                settings.LOGGER.error(msg=f"{e}")
                 raise ValueError("Error in Finding Concept Plan")
-            print(cp)
             # Perform latex pdf generation for Concept Plan
             return Response(status=HTTP_200_OK, data=ConceptPlanSerializer(cp).data)
         elif kind == "projectplan":
             try:
                 pp = self.get_project_plan(pk=pk)
             except Exception as e:
-                print(e)
+                settings.LOGGER.error(msg=f"{e}")
                 raise ValueError("Error in Finding Project Plan")
-            print(pp)
             # Perform latex pdf generation for progress report
             return Response(status=HTTP_200_OK, data=ProjectPlanSerializer(pp).data)
         elif kind == "progressreport":
             try:
                 pr = self.get_progress_report(pk=pk)
-                print(pr)
             except Exception as e:
-                print(e)
+                settings.LOGGER.error(msg=f"{e}")
                 raise ValueError("Error in Finding Progress Report")
-
+        elif kind == "progressreport":
             # Define the LaTeX template content with placeholders
             template_path = os.path.join(
                 settings.BASE_DIR, "documents", "latex_templates", "progressreport.tex"
@@ -285,9 +283,8 @@ class GenerateProjectDocument(APIView):
             try:
                 sr = self.get_student_report(pk=pk)
             except Exception as e:
-                print(e)
+                settings.LOGGER.error(msg=f"{e}")
                 raise ValueError("Error in Finding Student Report")
-            print(sr)
             # Perform latex pdf generation for student report  then return
             return Response(status=HTTP_200_OK, data=StudentReportSerializer(sr).data)
 
@@ -295,76 +292,10 @@ class GenerateProjectDocument(APIView):
             try:
                 pc = self.get_project_closure(pk=pk)
             except Exception as e:
-                print(e)
+                settings.LOGGER.error(msg=f"{e}")
                 raise ValueError("Error in Finding Project Closure")
-            print(pc)
             # Perform latex pdf generation for progress closure then return
             return Response(status=HTTP_200_OK, data=StudentReportSerializer(pc).data)
-
-        # project_document = self.get_proj_document(pk)
-        # if project_document.kind == "progressreport":
-        #     progress_report = self.get_progress_report(pk=pk)
-        #     print(progress_report)
-        #     # project = self.get_project(project_document.project.pk)
-        #     for field in progress_report._meta.fields:
-        #         field_name = field.name
-        #         field_value = getattr(progress_report, field_name)
-        #         print(f"{field_name}: {field_value}")
-
-        # print(project_document)
-        # for field in project_document._meta.fields:
-        #     field_name = field.name
-        #     field_value = getattr(project_document, field_name)
-        #     print(f"{field_name}: {field_value}")
-
-        # if project_document.kind == "progressreport":
-        #     # get the specific project document
-        #     specific_document = project_document.progress_report_details
-        #     print(specific_document)
-        #     print
-
-        # try:
-        #     document = ProjectDocumentPDF.objects.get(document__pk=pk)
-        # except ProjectDocumentPDF.DoesNotExist:
-        #     # If the document doesn't exist, create a new instance
-        #     document_data = {
-        #         "project": req.data["project_pk"],
-        #         "document": req.data["document_pk"],
-        #         # "file": req.data["file"],
-        #     }
-        #     document = ProjectDocumentPDF(**document_data)
-
-        # ser = ProjectDocumentPDFSerializer(document)
-        # if ser.is_valid():
-        #     print("serializer valid")
-        #     ser = ser.save()
-        #     return Response(
-        #         ser.data,
-        #         status=HTTP_200_OK,
-        #     )
-        # else:
-        #     print("serializer invalid")
-        #     return Response(
-        #         ser.errors,
-        #         status=HTTP_400_BAD_REQUEST,
-        #     )
-        # document.save()  # Save the newly created instance to the database
-
-        #             {
-        #         "project": 7,
-        #         "old_file": "",
-        #         "document": 2135,
-        #         "file": "https://scienceprojects.dbca.wa.gov.au/media/ararreports/12/AnnualReport20222023_25.pdf"
-        # }
-        # if document.pdf_generation_in_progress:
-        #     return Response(
-        #         data="A PDF file is already being generate, please wait",
-        #         status=HTTP_403_FORBIDDEN,
-        #     )
-
-        # document.pdf_generation_in_progress = True
-
-        # document.pdf_generation_in_progress = True
 
 
 # REPORTS ==========================================================
@@ -372,92 +303,8 @@ class GenerateProjectDocument(APIView):
 
 class DownloadAnnualReport(APIView):
     def get(self, req):
+        settings.LOGGER.error(msg=f"{req.user} is downloading annual report")
         pass
-        # try:
-        #     # Retrieve projects data from the database
-        #     core_projects = CoreFunctionProject.objects.all()
-
-        #     # Create a response object with CSV content type
-        #     res = HttpResponse(content_type="text/csv")
-        #     res["Content-Disposition"] = 'attachment; filename="projects.csv"'
-
-        #     # Create a CSV writer
-        #     writer = csv.writer(res)
-        #     writer.writerow(["-----", "Core Function Projects", "-----"])
-
-        #     # Get field names (CoreFunctionProject)
-        #     core_field_names = [
-        #         field.name for field in CoreFunctionProject._meta.fields
-        #     ]
-
-        #     # Write CSV headers (CoreFunctionProject)
-        #     writer.writerow(core_field_names)
-        #     # print(res.data)
-
-        #     # Write project data rows
-        #     for project in core_projects:
-        #         row = [getattr(project, field) for field in core_field_names]
-        #         writer.writerow(row)
-
-        #     # Add an empty row for separation
-        #     writer.writerow([])
-        #     writer.writerow(["-----", "Science Projects", "-----"])
-
-        #     science_projects = ScienceProject.objects.all()
-
-        #     # Get field names (ScienceProject)
-        #     science_field_names = [field.name for field in ScienceProject._meta.fields]
-
-        #     # Write CSV headers for (Science Project)
-        #     writer.writerow(science_field_names)
-
-        #     # Write project data rows
-        #     for project in science_projects:
-        #         row = [getattr(project, field) for field in science_field_names]
-        #         writer.writerow(row)
-
-        #     # Add an empty row for separation
-        #     writer.writerow([])
-        #     writer.writerow(["-----", "Student Projects", "-----"])
-
-        #     student_projects = StudentProject.objects.all()
-
-        #     # Get field names (StudentProject)
-        #     student_field_names = [field.name for field in StudentProject._meta.fields]
-
-        #     # Write CSV headers (StudentProject)
-        #     writer.writerow(student_field_names)
-
-        #     # Write project data rows
-        #     for project in student_projects:
-        #         row = [getattr(project, field) for field in student_field_names]
-        #         writer.writerow(row)
-
-        #     # Add an empty row for separation
-        #     writer.writerow([])
-        #     writer.writerow(["-----", "External Projects", "-----"])
-
-        #     external_projects = ExternalProject.objects.all()
-
-        #     # Get field names (ExternalProject)
-        #     external_field_names = [
-        #         field.name for field in ExternalProject._meta.fields
-        #     ]
-
-        #     # Write CSV headers (StudentProject)
-        #     writer.writerow(external_field_names)
-
-        #     # Write project data rows
-        #     for project in external_projects:
-        #         row = [getattr(project, field) for field in external_field_names]
-        #         writer.writerow(row)
-
-        #     return res
-
-        # # If server is down or otherwise error
-        # except Exception as e:
-        #     print(e)
-        #     return HttpResponse(status=500, content="Error generating CSV")
 
 
 class Reports(APIView):
@@ -478,7 +325,7 @@ class Reports(APIView):
     def create_reports_for_eligible_projects(self, report_id, user):
         report = AnnualReport.objects.get(pk=report_id)
 
-        print("Fetching eligible project")
+        settings.LOGGER.error(msg=f"{user} is Creating reports for eligible projects")
         # Create progress reports
         eligible_projects = Project.objects.filter(
             Q(status__in=Project.ACTIVE_ONLY)
@@ -499,7 +346,6 @@ class Reports(APIView):
 
         # Combine the two querysets
         all_eligible_projects = eligible_projects | eligible_student_projects
-        print("Fetched eligible project")
 
         for project in all_eligible_projects:
             if project.kind == Project.CategoryKindChoices.STUDENT:
@@ -518,16 +364,11 @@ class Reports(APIView):
                 "project": project.pk,
             }
 
-            print("Serializing document")
-
             new_project_document = ProjectDocumentCreateSerializer(data=new_doc_data)
-            print("Serialized document")
 
             if new_project_document.is_valid():
                 with transaction.atomic():
-                    print("Saving document")
                     doc = new_project_document.save()
-                    print("Saved document")
                     if project.kind != Project.CategoryKindChoices.STUDENT:
                         progress_report_data = {
                             "document": doc.pk,
@@ -541,24 +382,17 @@ class Reports(APIView):
                             "progress": "<p></p>",
                             "aims": "<p></p>",
                         }
-                        print("Serializing PR")
 
                         progress_report = ProgressReportCreateSerializer(
                             data=progress_report_data
                         )
-                        print("Serialized PR")
 
                         if progress_report.is_valid():
-                            print("Saving PR")
                             progress_report.save()
-                            print("Saved PR")
                             project.status = Project.StatusChoices.UPDATING
                             project.save()
                         else:
-                            print(
-                                "ERROR IN PROGRESS REPORT SERIALIZER",
-                                progress_report.errors,
-                            )
+                            settings.LOGGER.error(msg=f"{progress_report.errors}")
                             return Response(
                                 progress_report.errors, HTTP_400_BAD_REQUEST
                             )
@@ -571,34 +405,27 @@ class Reports(APIView):
                             "year": report.year,
                             "progress_report": "<p></p>",
                         }
-                        print("Serializing SR")
 
                         progress_report = StudentReportCreateSerializer(
                             data=student_report_data
                         )
-                        print("Serialized SR")
 
                         if progress_report.is_valid():
-                            print("Saving SPR")
                             progress_report.save()
-                            print("Saved SPR")
                             project.status = Project.StatusChoices.UPDATING
                             project.save()
                         else:
-                            print(
-                                "ERROR IN PROGRESS REPORT SERIALIZER",
-                                progress_report.errors,
-                            )
+                            settings.LOGGER.error(msg=f"{progress_report.errors}")
                             return Response(
                                 progress_report.errors, HTTP_400_BAD_REQUEST
                             )
 
             else:
-                print("ERROR IN DOC SERIALIZER", new_project_document.errors)
+                settings.LOGGER.error(msg=f"{new_project_document.errors}")
                 return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
 
     def post(self, req):
-        print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is creating a report.")
         year = req.data.get("year")
         date_open = req.data.get("date_open")
         date_closed = req.data.get("date_closed")
@@ -621,28 +448,21 @@ class Reports(APIView):
             "modifier": modifier,
         }
 
-        print("serializing report")
-
         ser = AnnualReportSerializer(
             data={**creation_data},
         )
         if ser.is_valid():
-            print("report serializer valid")
             with transaction.atomic():
-                print("saving report")
-
                 report = ser.save()
-                print("report saved")
                 should_seek_reports_now = req.data.get("seek_update")
                 if should_seek_reports_now == True:
                     try:
-                        print("attempting pr creation for eligible")
                         self.create_reports_for_eligible_projects(
                             report_id=report.id, user=req.user
                         )
                     except Exception as e:
-                        print("failed creation of eligible")
-                        print(e)
+                        settings.LOGGER.error(msg=f"{e}")
+
                         return Response(
                             e,
                             status=HTTP_400_BAD_REQUEST,
@@ -653,6 +473,7 @@ class Reports(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
@@ -688,6 +509,7 @@ class ReportDetail(APIView):
             for report in reports:
                 report.document.delete()
 
+        settings.LOGGER.info(msg=f"{req.user} is deleting report {report}")
         delete_reports(report)
         report.delete()
         return Response(
@@ -701,6 +523,7 @@ class ReportDetail(APIView):
             data=req.data,
             partial=True,
         )
+        settings.LOGGER.info(msg=f"{req.user} is updating report {report}")
         if ser.is_valid():
             ureport = ser.save()
             return Response(
@@ -708,6 +531,7 @@ class ReportDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -865,14 +689,13 @@ class DocumentSpawner(APIView):
         ser = ProjectDocumentSerializer(
             data={"kind": kind, "status": "new", "project": req.project}
         )
+        settings.LOGGER.info(msg=f"{req.user} is spawning document")
         if ser.is_valid():
             with transaction.atomic():
                 try:
-                    print("jere")
                     project_document = ser.save()
-                    print("ser saved")
                 except Exception as e:
-                    print(e)
+                    settings.LOGGER.error(msg=f"{e}")
                     return Response(e, HTTP_400_BAD_REQUEST)
                 else:
                     doc_pk = project_document.pk
@@ -891,6 +714,7 @@ class DocumentSpawner(APIView):
                 #     status=HTTP_201_CREATED,
                 # )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
@@ -913,7 +737,7 @@ class ProjectDocuments(APIView):
         )
 
     def post(self, req):
-        print(req.data)
+        settings.LOGGER.info(msg=f"Creating Project Document: {e}")
         kind = req.data.get("kind")
         project_pk = req.data.get("project")
         document_serializer = ProjectDocumentCreateSerializer(
@@ -926,18 +750,16 @@ class ProjectDocuments(APIView):
                 "modifier": req.user.pk,
             }
         )
+        settings.LOGGER.info(
+            msg=f"Creating Project Document with: {document_serializer}"
+        )
 
         if document_serializer.is_valid():
-            print("\n\nvalid\n\n")
-            print("Serializer for doc is good")
             # print(document_serializer.data)
             # doc = document_serializer.save()
             with transaction.atomic():
-                print("saving doc")
                 doc = document_serializer.save()
-                print("saved doc")
                 if kind == "concept":
-                    print("kind concept")
                     project = req.data.get("project")
                     concept_plan_data_object = {
                         "document": doc.pk,
@@ -1082,27 +904,23 @@ class ProjectDocuments(APIView):
       </tbody>\
     </table>',
                     }
-                    print("concept Plan serializing")
 
                     concept_plan_serializer = ConceptPlanCreateSerializer(
                         data=concept_plan_data_object
                     )
-                    print("concept Plan serialized")
                     if concept_plan_serializer.is_valid():
-                        print("concept plan valid")
                         # with transaction.atomic():
                         try:
                             concplan = concept_plan_serializer.save()
-                            print("saved")
                         except Exception as e:
-                            print(f"concept Plan error: {e}")
+                            settings.LOGGER.error(msg=f"concept Plan error: {e}")
+
                             return Response(
                                 e,
                                 status=HTTP_400_BAD_REQUEST,
                             )
                     else:
-                        print("concept Plan error heree")
-                        print(project_plan_serializer.errors)
+                        settings.LOGGER.error(msg=f"{project_plan_serializer.errors}")
                         return Response(
                             project_plan_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1131,12 +949,6 @@ class ProjectDocuments(APIView):
                         "listed_references": req.data.get("listed_references")
                         if req.data.get("listed_references") is not None
                         else "<p></p>",
-                        # "involves_plants": req.data.get("involves_plants")
-                        # if req.data.get("involves_plants") is not None
-                        # else False,
-                        # "involves_animals": req.data.get("involves_animals")
-                        # if req.data.get("involves_animals") is not None
-                        # else False,
                         "operating_budget": req.data.get("operating_budget")
                         if req.data.get("operating_budget") is not None
                         else '<table class="table-light">\
@@ -1351,17 +1163,14 @@ class ProjectDocuments(APIView):
                         if req.data.get("related_projects") is not None
                         else "<p></p>",
                     }
-                    print(project_plan_data_object)
                     project_plan_serializer = ProjectPlanCreateSerializer(
                         data=project_plan_data_object
                     )
 
                     if project_plan_serializer.is_valid():
-                        print("project plan valid")
                         # with transaction.atomic():
                         try:
                             projplan = project_plan_serializer.save()
-                            print("saved")
                             endorsements = EndorsementCreationSerializer(
                                 data={
                                     "project_plan": projplan.pk,
@@ -1378,26 +1187,25 @@ class ProjectDocuments(APIView):
                                 }
                             )
                             if endorsements.is_valid():
-                                print("saving endorsement...")
                                 endorsements.save()
-                                print("saved")
 
                             else:
-                                print(f"endorsement error: {endorsements.errors}")
+                                settings.LOGGER.error(
+                                    f"endorsement error: {endorsements.errors}"
+                                )
                                 return Response(
                                     endorsements.errors,
                                     HTTP_400_BAD_REQUEST,
                                 )
 
                         except Exception as e:
-                            print(f"project Plan error: {e}")
+                            settings.LOGGER.error(msg=f"{e}")
                             return Response(
                                 e,
                                 status=HTTP_400_BAD_REQUEST,
                             )
                     else:
-                        print("project Plan")
-                        print(project_plan_serializer.errors)
+                        settings.LOGGER.error(msg=f"{project_plan_serializer.errors}")
                         return Response(
                             project_plan_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1434,24 +1242,20 @@ class ProjectDocuments(APIView):
                     )
 
                     if closure_serializer.is_valid():
-                        print("closure valid")
                         try:
                             with transaction.atomic():
                                 closure = closure_serializer.save()
                                 closure.document.project.status = "closure_requested"
-                                print("saving project")
                                 closure.document.project.save()
-                                print("project saved")
 
                         except Exception as e:
-                            print(f"Closure save error: {e}")
+                            settings.LOGGER.error(msg=f"{e}")
                             return Response(
                                 e,
                                 status=HTTP_400_BAD_REQUEST,
                             )
                     else:
-                        print("Closure Error")
-                        print(closure_serializer.errors)
+                        settings.LOGGER.error(msg=f"{closure_serializer.errors}")
                         return Response(
                             closure_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1491,37 +1295,29 @@ class ProjectDocuments(APIView):
                     )
 
                     if pr_serializer.is_valid():
-                        print("progress report valid")
                         try:
                             with transaction.atomic():
                                 progress_report = pr_serializer.save()
                                 progress_report.document.project.status = "updating"
-                                print("saving project")
                                 progress_report.document.project.save()
-                                print("project saved")
 
                         except Exception as e:
-                            print(f"Progress Report save error: {e}")
+                            settings.LOGGER.error(f"Progress Report save error: {e}")
                             return Response(
                                 e,
                                 status=HTTP_400_BAD_REQUEST,
                             )
                     else:
-                        print("Progress Report Error")
-                        print(pr_serializer.errors)
+                        settings.LOGGER.error(msg=f"{pr_serializer.errors}")
                         return Response(
                             pr_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
 
                 elif kind == "studentreport":
-                    print("Kind is Student")
-
                     project = req.data.get("project")
                     report_id = req.data.get("report")
-                    print("getting report...")
                     report = AnnualReport.objects.get(pk=report_id)
-                    print("got report...", report)
 
                     student_report_data_object = {
                         "document": doc.pk,
@@ -1532,34 +1328,26 @@ class ProjectDocuments(APIView):
                         if req.data.get("progress_report") is not None
                         else "<p></p>",
                     }
-                    print("DATA:")
                     print(student_report_data_object)
-                    print("Serializing...")
                     sr_serializer = StudentReportCreateSerializer(
                         data=student_report_data_object
                     )
 
                     if sr_serializer.is_valid():
-                        print("Student report valid")
                         try:
                             with transaction.atomic():
-                                print("saving student serializer...")
                                 student_report = sr_serializer.save()
-                                print("student serializer saved...")
                                 student_report.document.project.status = "updating"
-                                print("saving project")
                                 student_report.document.project.save()
-                                print("project saved")
 
                         except Exception as e:
-                            print(f"Student Report save error: {e}")
+                            settings.LOGGER.error(msg=f"{e}")
                             return Response(
                                 e,
                                 status=HTTP_400_BAD_REQUEST,
                             )
                     else:
-                        print("Student Report Error")
-                        print(sr_serializer.errors)
+                        settings.LOGGER.error(sr_serializer.errors)
                         return Response(
                             sr_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1570,8 +1358,9 @@ class ProjectDocuments(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
-            print("Main Doc Serializer issue")
-            print(document_serializer.errors)
+            # print("Main Doc Serializer issue")
+            # print(document_serializer.errors)
+            settings.LOGGER.error(msg=f"{document_serializer.errors}")
             return Response(
                 document_serializer.errors,
                 HTTP_400_BAD_REQUEST,
@@ -1601,6 +1390,7 @@ class EndorsementsPendingMyAction(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting endorsements pending action")
         is_bio = req.user.is_biometrician
         is_hc = req.user.is_herbarium_curator
         is_aec = req.user.is_aec
@@ -1692,6 +1482,7 @@ class ProjectDocsPendingMyActionStageOne(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting docs pending stage 1 action")
         member_input_required = []
         pl_input_required = []
         active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
@@ -1761,6 +1552,7 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting docs pending stage 2 action")
         ba_input_required = []
 
         user_work = UserWork.objects.get(user=req.user.pk)
@@ -1797,7 +1589,16 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
                     with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
                 else:
-                    print("Content already exists in the file.")
+                    # logging.Logger.warning("Content already exists in the file.")
+                    # settings.logger.warning("CA: ontent already exists in the file")
+                    # settings.logger.error(
+                    #     "A: ontent already exists in the file",
+                    #     exc_info=True,
+                    #     extra={"error_filename": __name__},
+                    # )
+                    print("error")
+
+                    # logger("A: Content already exists in the file.")
 
         filtered_ba_input_required = list(
             {doc.id: doc for doc in ba_input_required}.values()
@@ -1821,6 +1622,7 @@ class ProjectDocsPendingMyActionStageThree(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting docs pending stage 3 action")
         documents = []
         member_input_required = []
         pl_input_required = []
@@ -1864,6 +1666,13 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                     with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
                 else:
+                    # settings.logger.warning("Content already exists in the file")
+                    # settings.logger.error(
+                    #     "B: ontent already exists in the file",
+                    #     exc_info=True,
+                    #     extra={"error_filename": __name__},
+                    # )
+
                     print("Content already exists in the file.")
         # Directorate Filtering
         if user_work.business_area is not None:
@@ -1975,6 +1784,9 @@ class ProjectDocsPendingMyActionAllStages(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is getting their documents pending action"
+        )
         documents = []
         member_input_required = []
         pl_input_required = []
@@ -2017,8 +1829,6 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                     # Append to the file
                     with open(filename, "a") as file:
                         file.write(f"{project.pk} | {project.title}\n")
-                else:
-                    print("Content already exists in the file.")
 
         # Directorate Filtering
         if user_work.business_area is not None:
@@ -2149,6 +1959,7 @@ class ProjectDocumentDetail(APIView):
 
     def delete(self, req, pk):
         project_document = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting {project_document}")
         project_document.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -2156,6 +1967,7 @@ class ProjectDocumentDetail(APIView):
 
     def put(self, req, pk):
         project_document = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating {project_document}")
         ser = ProjectDocumentSerializer(
             project_document,
             data=req.data,
@@ -2168,6 +1980,7 @@ class ProjectDocumentDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2178,7 +1991,6 @@ class ProjectDocumentComments(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req, pk):
-        print(f"doc pk received {pk}")
         comments = Comment.objects.filter(document_id=pk).all()
         comments = comments.order_by("-updated_at", "-created_at")
 
@@ -2193,6 +2005,7 @@ class ProjectDocumentComments(APIView):
         )
 
     def post(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is trying to post a comment to doc {pk}")
         ser = TinyCommentCreateSerializer(
             data={
                 "document": pk,
@@ -2202,16 +2015,14 @@ class ProjectDocumentComments(APIView):
             context={"request": req},
         )
         if ser.is_valid():
-            print("legit, saving...")
-            # print(ser.data)
             ser.save()
+            settings.LOGGER.warning(msg=f"SUCCESS")
             return Response(
                 ser.data,
                 status=HTTP_201_CREATED,
             )
         else:
-            print(ser.errors)
-            print(req.data)
+            settings.LOGGER.error(msg=f"FAIL: {ser.errors}")
             return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
 
 
@@ -2234,6 +2045,7 @@ class ConceptPlans(APIView):
         ser = ConceptPlanSerializer(
             data=req.data,
         )
+        settings.LOGGER.info(msg=f"{req.user} is posting a new concept plan")
         if ser.is_valid():
             concept_plan = ser.save()
             return Response(
@@ -2242,6 +2054,7 @@ class ConceptPlans(APIView):
             )
         else:
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -2265,6 +2078,7 @@ class ProjectPlans(APIView):
         ser = ProjectPlanSerializer(
             data=req.data,
         )
+        settings.LOGGER.info(msg=f"{req.user} is posting a new project plan")
         if ser.is_valid():
             project_plan = ser.save()
             return Response(
@@ -2272,7 +2086,9 @@ class ProjectPlans(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -2296,6 +2112,7 @@ class ProgressReports(APIView):
         ser = ProgressReportSerializer(
             data=req.data,
         )
+        settings.LOGGER.info(msg=f"{req.user} is posting a new progress report")
         if ser.is_valid():
             progress_report = ser.save()
             return Response(
@@ -2303,7 +2120,9 @@ class ProgressReports(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -2324,6 +2143,7 @@ class StudentReports(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating new student report")
         ser = StudentReportSerializer(
             data=req.data,
         )
@@ -2355,6 +2175,7 @@ class ProjectClosures(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating new project closure")
         ser = ProjectClosureSerializer(
             data=req.data,
         )
@@ -2365,12 +2186,11 @@ class ProjectClosures(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
-
-
-# For saving rich text
 
 
 class ConceptPlanDetail(APIView):
@@ -2396,6 +2216,7 @@ class ConceptPlanDetail(APIView):
 
     def delete(self, req, pk):
         concept_plan = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting concept plan {concept_plan}")
         concept_plan.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -2403,6 +2224,7 @@ class ConceptPlanDetail(APIView):
 
     def put(self, req, pk):
         concept_plan = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating concept plan {concept_plan}")
         ser = ConceptPlanSerializer(
             concept_plan,
             data=req.data,
@@ -2419,6 +2241,7 @@ class ConceptPlanDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2447,6 +2270,9 @@ class ProjectPlanDetail(APIView):
         )
 
     def delete(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting project plan details for {pk}"
+        )
         project_plan = self.go(pk)
         project_plan.delete()
         return Response(
@@ -2454,7 +2280,9 @@ class ProjectPlanDetail(APIView):
         )
 
     def put(self, req, pk):
-        print(req.data)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating project plan details for {pk}"
+        )
         if (
             "data_management" in req.data
             or "specimens" in req.data
@@ -2464,12 +2292,10 @@ class ProjectPlanDetail(APIView):
             endorsement_to_edit = Endorsement.objects.filter(project_plan=pk).first()
             if "specimens" in req.data:
                 specimen_value = req.data["specimens"]
-                print(f"specimen value: {specimen_value}")
                 endorsement_to_edit.no_specimens = specimen_value
 
             if "data_management" in req.data:
                 data_management_value = req.data["data_management"]
-                print(f"data_management value: {data_management_value}")
                 endorsement_to_edit.data_management = data_management_value
 
             if "involves_animals" in req.data or "involves_plants" in req.data:
@@ -2505,6 +2331,7 @@ class ProjectPlanDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2578,6 +2405,10 @@ class ProgressReportDetail(APIView):
 
     def delete(self, req, pk):
         progress_report = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting progress report {progress_report}"
+        )
+
         progress_report.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -2585,6 +2416,9 @@ class ProgressReportDetail(APIView):
 
     def put(self, req, pk):
         progress_report = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating progress report {progress_report}"
+        )
         ser = ProgressReportSerializer(
             progress_report,
             data=req.data,
@@ -2597,6 +2431,7 @@ class ProgressReportDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2626,6 +2461,8 @@ class StudentReportDetail(APIView):
 
     def delete(self, req, pk):
         student_report = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting {student_report}")
+
         student_report.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -2633,6 +2470,9 @@ class StudentReportDetail(APIView):
 
     def put(self, req, pk):
         student_report = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating student report {student_report}"
+        )
         ser = StudentReportSerializer(
             student_report,
             data=req.data,
@@ -2645,6 +2485,7 @@ class StudentReportDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2673,6 +2514,7 @@ class ProjectClosureDetail(APIView):
         )
 
     def delete(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is deleting project closure {pk}")
         project_closure = self.go(pk)
         project_closure.delete()
         return Response(
@@ -2686,6 +2528,9 @@ class ProjectClosureDetail(APIView):
             data=req.data,
             partial=True,
         )
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating project closure {project_closure}"
+        )
         if ser.is_valid():
             u_project_closure = ser.save()
             return Response(
@@ -2693,6 +2538,7 @@ class ProjectClosureDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2724,16 +2570,19 @@ class RepoenProject(APIView):
     #     return obj
 
     def post(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is reopening project belonging to doc ({pk})"
+        )
         with transaction.atomic():
             try:
+                settings.LOGGER.info(msg=f"{req.user} is reopening project {pk}")
                 project_document = self.get_base_document(pk)
                 project_document.project.status = "updating"
                 project_document.project.save()
                 project_document.delete()
                 return Response(status=HTTP_204_NO_CONTENT)
             except Exception as e:
-                print(e)
-                print("error here")
+                settings.LOGGER.error(msg=f"{e}")
                 return Response(f"{e}", status=HTTP_400_BAD_REQUEST)
 
 
@@ -2752,10 +2601,13 @@ class DocReopenProject(APIView):
 
     def post(self, req):
         user = req.user
+        settings.LOGGER.info(
+            msg=f"{req.user} is reopening project {req.data['documentPk']}"
+        )
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        print(user, stage, document_pk)
         if not stage and not document_pk:
+            settings.LOGGER.error(msg=f"Error reopening - no stage/doc pk")
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
@@ -2787,6 +2639,7 @@ class DocApproval(APIView):
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is approving {document}")
         if int(stage) == 1:
             data = {
                 "project_lead_approval_granted": True,
@@ -2848,6 +2701,7 @@ class DocApproval(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2873,6 +2727,8 @@ class DocRecall(APIView):
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is recalling {document}")
+
         data = "test"
         if int(stage) == 1:
             if document.business_area_lead_approval_granted == False:
@@ -2926,7 +2782,7 @@ class DocRecall(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            print(ser.errors)
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2947,11 +2803,12 @@ class DocSendBack(APIView):
         user = req.user
         stage = req.data["stage"]
         document_pk = req.data["documentPk"]
-        print(user, stage, document_pk)
+        # print(user, stage, document_pk)
         if not stage and not document_pk:
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is sending back {document}")
         data = "test"
         if int(stage) == 2:
             if document.directorate_approval_granted == False:
@@ -2984,6 +2841,7 @@ class DocSendBack(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -3006,6 +2864,7 @@ class Endorsements(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting an endorsement")
         ser = EndorsementSerializer(
             data=req.data,
         )
@@ -3016,6 +2875,7 @@ class Endorsements(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -3034,12 +2894,6 @@ class SeekEndorsement(APIView):
     def post(self, req, pk):
         project_plan = self.go(pk)
         endorsement = Endorsement.objects.filter(project_plan=project_plan).first()
-        print("Project Plan:\n")
-        print(project_plan)
-        print("Endorsement:\n")
-        print(endorsement)
-        print("Request:\n")
-        print(req.data)
 
         end_ser = EndorsementSerializer(
             endorsement,
@@ -3047,33 +2901,28 @@ class SeekEndorsement(APIView):
             partial=True,
         )
 
+        settings.LOGGER.info(
+            msg=f"{req.user} is seeking an endorsement for project plan {project_plan}"
+        )
         if end_ser.is_valid():
-            print("End ser is valid")
             with transaction.atomic():
                 updated = end_ser.save()
 
                 # If there is a pdf file, see if once exists related to the endorsement
                 pdf_file = req.FILES.get("aec_pdf_file")
-                # pdf_file_2 = req.data.get("aec_pdf_file")
-                # print("pdf2", pdf_file_2)
 
-                print(pdf_file)
-                # print(pdf_file_2.name)
-                print(req.FILES)
                 if pdf_file:
                     existing_pdf = AECEndorsementPDF.objects.filter(
                         endorsement=updated
                     ).first()
                     # If it does, update it
                     if existing_pdf:
-                        print("found an entry for pdf")
                         existing_pdf.file = pdf_file
                         existing_pdf.save()
-                        print("updated pdf")
+                        settings.LOGGER.info(msg=f"Found entry and updated PDF")
                     # If it doesnt, create it
                     else:
                         # Create a new file
-                        # AECEndorsementPDF.objects.create(endorsement=updated, file=pdf_file, creator=req.user)
                         new_instance_data = {
                             "file": pdf_file,
                             "endorsement": updated.id,  # Assuming 'endorsement' is a ForeignKey
@@ -3084,12 +2933,13 @@ class SeekEndorsement(APIView):
                         )
 
                         if new_instance_serializer.is_valid():
-                            print("New PDF Instnace Valid")
                             new_pdf = new_instance_serializer.save()
-                            print("Saved new pdf")
+                            settings.LOGGER.info(msg=f"Saved new valid pdf instance")
+
                         else:
-                            print("New PDF Instnace INVALID")
-                            print("errors", new_instance_serializer.errors)
+                            settings.LOGGER.error(
+                                msg=f"{new_instance_serializer.errors}"
+                            )
                             return Response(
                                 new_instance_serializer.errors, HTTP_400_BAD_REQUEST
                             )
@@ -3101,8 +2951,10 @@ class SeekEndorsement(APIView):
                     HTTP_202_ACCEPTED,
                 )
         else:
-            print("End ser is NOT valid")
-            print(end_ser.errors)
+            settings.LOGGER.error(
+                msg=f"Endorsement serializer invalid: {end_ser.errors}"
+            )
+
             return Response(
                 end_ser.errors,
                 HTTP_400_BAD_REQUEST,
@@ -3130,15 +2982,8 @@ class EndorsementDetail(APIView):
             status=HTTP_200_OK,
         )
 
-    # Commented out as accidentally deleting vai drf would cause errors (non-existent endorsements on frontend)
-    # def delete(self, req, pk):
-    #     endorsement = self.go(pk)
-    #     endorsement.delete()
-    #     return Response(
-    #         status=HTTP_204_NO_CONTENT,
-    #     )
-
     def put(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is updating endorsement for {pk}")
         endorsement = self.go(pk)
         ser = EndorsementSerializer(
             endorsement,
@@ -3152,6 +2997,7 @@ class EndorsementDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -3177,6 +3023,7 @@ class Publications(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.error(msg=f"{req.user} is posting a publication")
         ser = PublicationSerializer(
             data=req.data,
         )
@@ -3187,6 +3034,7 @@ class Publications(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -3215,6 +3063,7 @@ class PublicationDetail(APIView):
 
     # Commented out as accidentally deleting vai drf would cause errors (non-existent endorsements on frontend)
     def delete(self, req, pk):
+        settings.LOGGER.error(msg=f"{req.user} is deleting publication {pk}")
         publication = self.go(pk)
         publication.delete()
         return Response(
@@ -3222,6 +3071,7 @@ class PublicationDetail(APIView):
         )
 
     def put(self, req, pk):
+        settings.LOGGER.error(msg=f"{req.user} is updating publication {pk}")
         publication = self.go(pk)
         ser = PublicationSerializer(
             publication,
@@ -3235,6 +3085,7 @@ class PublicationDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,

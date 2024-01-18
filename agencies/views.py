@@ -563,6 +563,7 @@ class BusinessAreaDetail(APIView):
         ba = self.go(pk)
 
         image = req.data.get("image")
+        print("IMAGE: ", image)
         if image:
             if isinstance(image, str) and (
                 image.startswith("http://") or image.startswith("https://")
@@ -571,6 +572,11 @@ class BusinessAreaDetail(APIView):
                 if not image.lower().endswith((".jpg", ".jpeg", ".png")):
                     error_message = "The URL is not a valid photo file"
                     return Response(error_message, status=HTTP_400_BAD_REQUEST)
+        else:
+            selectedImageUrl = req.data.get("selectedImageUrl")
+            if selectedImageUrl == "delete":
+                photo = self.get_ba_photo(pk)
+                photo.delete()
 
         ba_data = {
             "old_id": req.data.get("old_id"),

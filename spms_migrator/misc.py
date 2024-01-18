@@ -31,6 +31,18 @@ def title(string):
     print(ft)
 
 
+def color_string(string, color):
+    colors = {
+        "blue": "\033[94m",
+        "cyan": "\033[96m",
+        "green": "\033[92m",
+        "yellow": "\033[93m",
+        "red": "\033[91m",
+    }
+    ft = f"{colors[color]}\t{string}\033[0m\n"
+    return ft
+
+
 def cls():
     os.system("clear")
 

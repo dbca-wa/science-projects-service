@@ -102,6 +102,7 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             "data_custodian",
             "is_active",
         )
+        ordering = ["name"]
 
     def get_image(self, obj):
         try:

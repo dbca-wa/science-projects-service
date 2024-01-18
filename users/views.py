@@ -61,28 +61,6 @@ from django.db import transaction
 from django.utils.text import capfirst
 
 
-# class JWTLogin(APIView):
-#     def post(self, req):
-#         username = req.data.get("username")
-#         password = req.data.get("password")
-#         if not username or not password:
-#             raise ParseError("Username and Password must both be provided!")
-#         user = authenticate(username=username, password=password)
-#         if user:
-#             token = jwt.encode(
-#                 {"pk": user.pk},
-#                 settings.SECRET_KEY,
-#                 algorithm="HS256",
-#             )
-#             return Response({"token": token})
-#         else:
-#             return Response({"error": "Incorrect Password"})
-
-
-# class SSOLogin(APIView):
-#     pass
-
-
 class Login(APIView):
     permission_classes = [AllowAny]
 
@@ -176,6 +154,7 @@ class Me(APIView):
 
     def put(self, req):
         user = req.user
+        settings.LOGGER.info(msg=f"{req.user} is updating their details")
         ser = TinyUserSerializer(
             user,
             data=req.data,
@@ -188,6 +167,7 @@ class Me(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -275,7 +255,7 @@ class Users(APIView):
             only_staff = False
             only_superuser = False
         elif only_staff or only_superuser:
-            only_external = False            
+            only_external = False
 
         if search_term:
             # Check if there is a space in the search term (fn + ln)
@@ -284,11 +264,12 @@ class Users(APIView):
             if len(search_parts) == 2:
                 first_name, last_name = search_parts
                 users = User.objects.filter(
-                    Q(first_name__icontains=first_name) & Q(last_name__icontains=last_name)
+                    Q(first_name__icontains=first_name)
+                    & Q(last_name__icontains=last_name)
                     | Q(email__icontains=search_term)
                     | Q(username__icontains=search_term)
                 )
-          
+
             else:
                 # If the search term cannot be split, continue with the existing logic
                 users = User.objects.filter(
@@ -312,7 +293,6 @@ class Users(APIView):
         if business_area != "All":
             # print(business_area)
             users = users.filter(work__business_area__name=business_area).all()
-            
 
         # Sort users alphabetically based on email
         users = users.order_by("email")
@@ -333,7 +313,7 @@ class Users(APIView):
         return Response(response_data, status=HTTP_200_OK)
 
     def post(self, req):
-        # print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is creating user")
         ser = PrivateTinyUserSerializer(
             data=req.data,
         )
@@ -363,14 +343,15 @@ class Users(APIView):
                         status=HTTP_201_CREATED,
                     )
             except Exception as e:
-                # print("exxxxxxxxx")
-                print(e)
+                settings.LOGGER.error(msg=f"{e}")
                 raise ParseError(e)
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
 
 class ToggleUserActive(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -382,9 +363,9 @@ class ToggleUserActive(APIView):
             raise NotFound
         return obj
 
-
     def post(self, req, pk):
         user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is setting user's active state: {user}")
         user.is_active = not user.is_active
         updated = user.save()
 
@@ -419,6 +400,7 @@ class UserDetail(APIView):
 
     def delete(self, req, pk):
         user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting user: {user}")
         user.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -426,6 +408,7 @@ class UserDetail(APIView):
 
     def put(self, req, pk):
         user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating user: {user}")
         ser = UserSerializer(
             user,
             data=req.data,
@@ -438,6 +421,7 @@ class UserDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -467,6 +451,7 @@ class UserProfileDetail(APIView):
 
     def delete(self, req, pk):
         profile = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting profile {profile}")
         profile.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -474,6 +459,7 @@ class UserProfileDetail(APIView):
 
     def put(self, req, pk):
         profile = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating userprofile {profile}")
         ser = UserProfileSerializer(
             profile,
             data=req.data,
@@ -508,6 +494,7 @@ class UserProfiles(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting user profile")
         ser = UserProfileSerializer(
             data=req.data,
         )
@@ -518,7 +505,9 @@ class UserProfiles(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.errors(msg=f"{ser.errors}")
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -546,6 +535,7 @@ class UserWorkDetail(APIView):
 
     def delete(self, req, pk):
         work = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting work {work}")
         work.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -553,6 +543,7 @@ class UserWorkDetail(APIView):
 
     def put(self, req, pk):
         work = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating work of {work}")
         ser = UserWorkSerializer(
             work,
             data=req.data,
@@ -565,6 +556,7 @@ class UserWorkDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.errors(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -587,6 +579,7 @@ class UserWorks(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating user work")
         ser = UserWorkSerializer(
             data=req.data,
         )
@@ -597,6 +590,7 @@ class UserWorks(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -610,49 +604,6 @@ class DirectorateUsers(ListAPIView):
         user_works = UserWork.objects.filter(business_area__name="Directorate")
         user_ids = user_works.values_list("user", flat=True)
         return User.objects.filter(id__in=user_ids)
-
-
-# class DirectorateUsers(APIView):
-#     permission_classes = [IsAuthenticatedOrReadOnly]
-
-#     def get(self, req):
-#         user_works = UserWork.objects.filter(business_area__name="Directorate")
-#         print(user_works)
-#         user_ids = user_works.values_list(
-#             "user", flat=True
-#         )  # Extracts only the 'user' values
-#         print(user_ids)
-#         data = []
-#         for user_id in user_ids:
-#             user = User.objects.filter(id=user_id).first()
-#             data.append(user)
-#         ser = TinyUserSerializer(
-#             data=data,
-#             many=True,
-#         )
-#         if ser.is_valid():
-#             return Response(
-#                 data,
-#                 status=HTTP_200_OK,
-#             )
-#         else:
-#             return Response(status=HTTP_400_BAD_REQUEST)
-
-
-# class UserProfileView(APIView):
-#     def go(self, pk):
-#         try:
-#             return User.objects.get(pk=pk)
-#         except User.DoesNotExist:
-#             raise NotFound
-
-#     def get(self, req, pk):
-#         user = self.go(pk)
-#         ser = ProfilePageSerializer(user)
-#         return Response(
-#             ser.data,
-#             status=HTTP_202_ACCEPTED,
-#         )
 
 
 class UpdatePersonalInformation(APIView):
@@ -672,6 +623,10 @@ class UpdatePersonalInformation(APIView):
         )
 
     def put(self, req, pk):
+        user = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating personal information of {user}"
+        )
         title = req.data.get("title")
         phone = req.data.get("phone")
         fax = req.data.get("fax")
@@ -686,10 +641,6 @@ class UpdatePersonalInformation(APIView):
         if fax is not None and fax != "":
             updated_data["fax"] = fax
 
-        print(f"Updated Data: {updated_data}")
-
-        user = self.go(pk)
-        print(UpdatePISerializer(user).data)
         ser = UpdatePISerializer(
             user,
             data=updated_data,
@@ -699,24 +650,16 @@ class UpdatePersonalInformation(APIView):
         if ser.is_valid():
             updated_user = ser.save()
             u_ser = UpdatePISerializer(updated_user).data
-            print(u_ser)
             return Response(
                 u_ser,
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            print(ser.errors)
+            settings.LOGGER.info(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
-
-    # Remove empty variables from updated_data
-    # updated_data = {
-    #     key: value
-    #     for key, value in updated_data.items()
-    #     if value is not None and value != ""
-    # }
 
 
 class SwitchAdmin(APIView):
@@ -730,6 +673,7 @@ class SwitchAdmin(APIView):
 
     def post(self, req, pk):
         user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is changing user's admin status {user}")
         # print(user)
 
         # Toggle the is_admin attribute
@@ -755,98 +699,16 @@ class UpdateProfile(APIView):
 
     def get(self, req, pk):
         user = self.go(pk)
-        # print(f"\nUSER: {user}\n")
         ser = ProfilePageSerializer(user)
-        # print(ser.data)
         return Response(
             ser.data,
             status=HTTP_200_OK,
         )
 
-    def create_cf_url(self):
-        cf_one_time_url = requests.post(
-            settings.CF_UPLOAD_URL,
-            headers={
-                "Authorization": f"Bearer {settings.CF_IMAGES_TOKEN}",
-                # "Content-Type": "multipart/form-data",
-            },
-        )
-        cf_one_time_url = cf_one_time_url.json()
-        result = cf_one_time_url.get("result")
-        print(f"{result}")
-        return (result.get("id"), result.get("uploadURL"))
-
-    def upload_to_cf_url(self, url, file_path=None, file_content=None):
-        if file_path:
-            with open(file_path, "rb") as file:
-                filename = os.path.basename(file_path)
-                file_content = file.read()
-        else:
-            # Ensure that file_content is not None
-            if file_content is None:
-                raise ValueError("Either file_path or file_content must be provided.")
-
-            # Generate a unique filename for in-memory content
-            filename = (
-                f"uploaded_{uuid.uuid4().hex}.png"  # Use the appropriate extension
-            )
-
-        if file_path and not self.is_valid_image_extension(filename):
-            raise ValueError("The file is not a valid photo file")
-
-        http = urllib3.PoolManager()
-        fields = {"file": (filename, file_content)}
-        response = http.request("POST", url, fields=fields)
-
-        if response.status == 200:
-            data = json.loads(response.data.decode("utf-8"))
-            variants = data["result"]["variants"]
-            variants_string = variants[0] if variants else None
-            print(f"Variants string: {variants_string}")
-            return variants_string
-        else:
-            print(response)
-            error_message = response.text
-            print(
-                response.status,
-                error_message,
-            )
-            raise Exception("Failed to upload file to cloudflare")
-
-        # # Read the image file
-        # with open(file_path, "rb") as file:
-        #     filename = os.path.basename(file_path)  # Use os module directly
-        #     file_content = file.read()
-        #     http = urllib3.PoolManager()
-        #     fields = {"file": (filename, file_content)}
-        #     response = http.request("POST", url, fields=fields)
-
-        #     if response.status == 200:
-        #         # self.misc.nls(
-        #         #     f"{self.misc.bcolors.OKGREEN}File uploaded{self.misc.bcolors.ENDC}"
-        #         # )
-        #         data = json.loads(response.data.decode("utf-8"))
-        #         variants = data["result"]["variants"]
-        #         variants_string = variants[0] if variants else None
-        #         print(f"Variants string: {variants_string}")
-        #         return variants_string
-        #     else:
-        #         print(response)
-        #         error_message = response.text
-        #         print(
-        #             response.status,
-        #             error_message,
-        #         )
-        #         raise Exception(
-        #             "Failed to upload file to cloudflare",
-        #         )
-
     def handle_image(self, image):
-        print(f"Image is", image)
         if isinstance(image, str):
             return image
         elif image is not None:
-            print("Image is a file")
             # Get the original file name with extension
             original_filename = image.name
 
@@ -873,12 +735,11 @@ class UpdateProfile(APIView):
             content = ContentFile(image.read())
             file_path = default_storage.save(file_path, content)
             # `file_path` now contains the path to the saved file
-            print("File saved to:", file_path)
 
             return file_path
 
     def put(self, req, pk):
-        # print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is updating their profile")
         image = req.data.get("image")
         if image:
             if isinstance(image, str) and (
@@ -891,93 +752,33 @@ class UpdateProfile(APIView):
 
         about = req.data.get("about")
         expertise = req.data.get("expertise")
-
-        # if isinstance(image, str):
-        #     print("Image is string")
-        #     return image
-        # elif image is not None:
-        #     print("Image is file")
-        #     image_id, upload_url = self.create_cf_url()
-
-        #     # Try using the temporary file path
-        #     try:
-        #         file_path = image.temporary_file_path()
-        #     except Exception as e:
-        #         print(e)
-        #         file_path = None
-
-        #     if file_path:
-        #         print("Using temporary file path")
-        #         variants_string = self.upload_to_cf_url(
-        #             upload_url, file_path=file_path
-        #         )
-        #     else:
-        #         print("Using inMemory file")
-        #         variants_string = self.upload_to_cf_url(
-        #             upload_url,
-        #             file_content=image.read()
-        #             # image.file.name
-        #         )
-
-        #     print(variants_string)
-        #     return variants_string
-
-        # # if isinstance(image, str):
-        # #     print("Image is string")
-        # #     return image
-        # # elif image is not None:
-        # #     print("Image is file")
-        # #     image_id, upload_url = self.create_cf_url()
-        # #     print("getting temp file path")
-        # #     file_path = image.temporary_file_path()  # Get the temporary file path
-        # #     variants_string = self.upload_to_cf_url(upload_url, file_path)
-        # #     print(variants_string)
-        # #     return variants_string
-        # else:
-        #     return None
-
         user = self.go(pk)
         user_avatar_post_view = UserAvatars()
         user_avatar_put_view = UserAvatarDetail()
         avatar_exists = UserAvatar.objects.filter(user=user).first()
-        # print(f"Image is None yooooo") if avatar_exists is None else print(
-        #     "Image is not none"
-        # )
 
         # If user didn't update the image
         if image is None:
-            print("NO IMAGE, RUNNING FIRST IF BLOCK")
             updated_data = {}
             if about:
                 updated_data["about"] = about
             if expertise:
                 updated_data["expertise"] = expertise
 
-            print(f"Updated (PROFILE) Data: {updated_data}")
-
-            try:
-                print(UpdateProfileSerializer(user).data)
-            except Exception as e:
-                print(e)
-
             ser = UpdateProfileSerializer(
                 user,
                 data=updated_data,
                 partial=True,
             )
-            # print(ser.data)
             if ser.is_valid():
-                print("serializer is valid")
                 updated_user = ser.save()
                 u_ser = UpdateProfileSerializer(updated_user).data
-                # print(u_ser)
                 return Response(
                     u_ser,
                     status=HTTP_202_ACCEPTED,
                 )
             else:
-                print("serializer is invalid")
-                print(ser.errors)
+                settings.LOGGER.error(msg=f"{ser.errors}")
                 return Response(
                     ser.errors,
                     status=HTTP_400_BAD_REQUEST,
@@ -1004,7 +805,7 @@ class UpdateProfile(APIView):
                     avatar_exists.save()
                     avatar_response = TinyUserAvatarSerializer(avatar_exists).data
                 except Exception as e:
-                    print(e)
+                    settings.LOGGER.error(msg=f"{ser.errors}")
                     response_data = {
                         "error": str(e)
                     }  # Create a response data dictionary
@@ -1039,9 +840,6 @@ class UpdateProfile(APIView):
                         response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
                     )
 
-            # Set the image, now in db
-            # print(avatar_response)
-
             updated_data = {}
 
             if avatar_response["pk"] is not None and avatar_response["pk"] != "":
@@ -1053,14 +851,6 @@ class UpdateProfile(APIView):
                 updated_data["about"] = about
             if expertise:
                 updated_data["expertise"] = expertise
-
-            # updated_data = {
-            #     "image": avatar_response["pk"],
-            #     "about": about,
-            #     "expertise": expertise,
-            # }
-
-            print(f"Updated (PROFILE) Data: {updated_data}")
 
             try:
                 print(UpdateProfileSerializer(user).data)
@@ -1074,7 +864,6 @@ class UpdateProfile(APIView):
             )
             # print(ser.data)
             if ser.is_valid():
-                print("serializer is valid")
                 updated_user = ser.save()
                 u_ser = UpdateProfileSerializer(updated_user).data
                 # print(u_ser)
@@ -1083,8 +872,7 @@ class UpdateProfile(APIView):
                     status=HTTP_202_ACCEPTED,
                 )
             else:
-                print("serializer is invalid")
-                print(ser.errors)
+                settings.LOGGER.error(msg=f"{ser.errors}")
                 return Response(
                     ser.errors,
                     status=HTTP_400_BAD_REQUEST,
@@ -1108,6 +896,7 @@ class UpdateMembership(APIView):
 
     def put(self, req, pk):
         user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating user membership {user}")
         user_work = user.work
         # print(req.data)
 
@@ -1131,13 +920,6 @@ class UpdateMembership(APIView):
             if business_area_pk != 0:
                 data_obj["business_area"] = business_area_pk
 
-            print("Data Object:", data_obj)
-            # data_obj = {
-            #     "user_pk": user_pk,
-            #     "branch": branch_pk,
-            #     "business_area": business_area_pk,
-            # }
-
             ser = UpdateMembershipSerializer(user_work, data=data_obj)
             if ser.is_valid():
                 updated = ser.save()
@@ -1146,12 +928,13 @@ class UpdateMembership(APIView):
                     status=HTTP_202_ACCEPTED,
                 )
             else:
-                print(ser.errors)
+                settings.LOGGER.error(msg=f"{ser.errors}")
                 return Response(
                     ser.errors,
                     status=HTTP_400_BAD_REQUEST,
                 )
         else:
+            settings.LOGGER.warning(msg=f"This user is not staff")
             return Response(
                 "This user is not staff",
                 status=HTTP_200_OK,
