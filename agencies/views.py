@@ -70,6 +70,7 @@ class Affiliations(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting an affiliation")
         ser = AffiliationSerializer(
             data=req.data,
         )
@@ -80,6 +81,7 @@ class Affiliations(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -101,6 +103,7 @@ class Agencies(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting an agency")
         ser = AgencySerializer(
             data=req.data,
         )
@@ -111,6 +114,7 @@ class Agencies(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -150,7 +154,6 @@ class Branches(APIView):
                 "total_results": total_branches,
                 "total_pages": total_pages,
             }
-            print(response_data)
             return Response(response_data, status=HTTP_200_OK)
 
         else:
@@ -159,6 +162,7 @@ class Branches(APIView):
             return Response(ser.data, status=HTTP_200_OK)
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a branch")
         ser = BranchSerializer(
             data=req.data,
         )
@@ -169,6 +173,7 @@ class Branches(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -190,12 +195,9 @@ class BusinessAreas(APIView):
         )
 
     def handle_ba_image(self, image):
-        print(f"Image is", image)
         if isinstance(image, str):
             return image
         elif image is not None:
-            print("Image is a file")
-            print(image)
             # Get the original file name with extension
             original_filename = image.name
 
@@ -222,11 +224,10 @@ class BusinessAreas(APIView):
             content = ContentFile(image.read())
             file_path = default_storage.save(file_path, content)
             # `file_path` now contains the path to the saved file
-            print("File saved to:", file_path)
-
             return file_path
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a business area")
         image = req.data.get("image")
         if image:
             if isinstance(image, str) and (
@@ -252,7 +253,6 @@ class BusinessAreas(APIView):
         ser = BusinessAreaSerializer(data=ba_data)
 
         if ser.is_valid():
-            print("valid serializer")
             with transaction.atomic():
                 # First create the Business Area
                 new_business_area = ser.save()
@@ -265,6 +265,7 @@ class BusinessAreas(APIView):
                         "business_area": new_business_area,
                     }
                 except ValueError as e:
+                    settings.LOGGER.error(msg=f"{e}")
                     error_message = str(e)
                     response_data = {"error": error_message}
                     return Response(response_data, status=HTTP_400_BAD_REQUEST)
@@ -276,7 +277,7 @@ class BusinessAreas(APIView):
                         new_bap_instance
                     ).data
                 except Exception as e:
-                    print(e)
+                    settings.LOGGER.error(msg=f"{e}")
                     response_data = {"error": str(e)}
                     return Response(
                         response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
@@ -287,7 +288,7 @@ class BusinessAreas(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
-            print("invalid serializer", ser.errors)
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -307,6 +308,7 @@ class Divisions(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a division")
         ser = DivisionSerializer(
             data=req.data,
         )
@@ -317,6 +319,7 @@ class Divisions(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -336,6 +339,7 @@ class DepartmentalServices(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a departmental service")
         ser = DepartmentalServiceSerializer(
             data=req.data,
         )
@@ -346,6 +350,7 @@ class DepartmentalServices(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -375,6 +380,7 @@ class AffiliationDetail(APIView):
 
     def delete(self, req, pk):
         affiliation = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting affiliation {affiliation}")
         affiliation.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -382,6 +388,7 @@ class AffiliationDetail(APIView):
 
     def put(self, req, pk):
         affiliation = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating affiliation {affiliation}")
         ser = AffiliationSerializer(
             affiliation,
             data=req.data,
@@ -394,6 +401,7 @@ class AffiliationDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.info(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -420,6 +428,7 @@ class AgencyDetail(APIView):
 
     def delete(self, req, pk):
         Agency = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting agency {Agency}")
         Agency.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -427,6 +436,7 @@ class AgencyDetail(APIView):
 
     def put(self, req, pk):
         Agency = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating {Agency}")
         ser = AgencySerializer(
             Agency,
             data=req.data,
@@ -439,6 +449,7 @@ class AgencyDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -465,6 +476,7 @@ class BranchDetail(APIView):
 
     def delete(self, req, pk):
         branch = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting branch detail {branch}")
         branch.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -472,6 +484,7 @@ class BranchDetail(APIView):
 
     def put(self, req, pk):
         branch = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating branch detail {branch}")
         ser = BranchSerializer(
             branch,
             data=req.data,
@@ -484,6 +497,7 @@ class BranchDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.info(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -510,18 +524,16 @@ class BusinessAreaDetail(APIView):
 
     def delete(self, req, pk):
         ba = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting business area {ba}")
         ba.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
 
     def handle_ba_image(self, image):
-        print(f"Image is", image)
         if isinstance(image, str):
             return image
         elif image is not None:
-            print("Image is a file")
-            print(image)
             # Get the original file name with extension
             original_filename = image.name
 
@@ -548,7 +560,6 @@ class BusinessAreaDetail(APIView):
             content = ContentFile(image.read())
             file_path = default_storage.save(file_path, content)
             # `file_path` now contains the path to the saved file
-            print("File saved to:", file_path)
 
             return file_path
 
@@ -561,9 +572,9 @@ class BusinessAreaDetail(APIView):
 
     def put(self, req, pk):
         ba = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is udpating business area {ba}")
 
         image = req.data.get("image")
-        print("IMAGE: ", image)
         if image:
             if isinstance(image, str) and (
                 image.startswith("http://") or image.startswith("https://")
@@ -605,9 +616,8 @@ class BusinessAreaDetail(APIView):
                     try:
                         # Check if Photo already present:
                         currentphoto = BusinessAreaPhoto.objects.get(business_area=pk)
-                        print(currentphoto)
-                        print("all good1")
-                    except BusinessAreaPhoto.DoesNotExist:
+                    except BusinessAreaPhoto.DoesNotExist as e:
+                        settings.LOGGER.error(msg=f"{e}")
                         # If the image doesn't exist, create it
                         image_data = {
                             "file": self.handle_ba_image(image),
@@ -615,10 +625,8 @@ class BusinessAreaDetail(APIView):
                             "business_area": uba,
                         }
                         currentphoto = BusinessAreaPhoto.objects.create(**image_data)
-                        print("all good2")
                     else:
                         # Update the existing photo
-                        print("all good3")
                         currentphoto.file = self.handle_ba_image(image)
                         currentphoto.save()
 
@@ -627,7 +635,7 @@ class BusinessAreaDetail(APIView):
                     status=HTTP_202_ACCEPTED,
                 )
         else:
-            print(ser.errors)
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -652,6 +660,7 @@ class DivisionDetail(APIView):
 
     def delete(self, req, pk):
         div = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting division {div}")
         div.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -659,6 +668,7 @@ class DivisionDetail(APIView):
 
     def put(self, req, pk):
         div = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating division {div}")
         ser = DivisionSerializer(
             div,
             data=req.data,
@@ -671,6 +681,7 @@ class DivisionDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -695,6 +706,7 @@ class DepartmentalServiceDetail(APIView):
 
     def delete(self, req, pk):
         service = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting departmental service detail {service}")
         service.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -702,6 +714,7 @@ class DepartmentalServiceDetail(APIView):
 
     def put(self, req, pk):
         service = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating departmental service detail {service}")   
         ser = DepartmentalServiceSerializer(
             service,
             data=req.data,
@@ -714,6 +727,7 @@ class DepartmentalServiceDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
