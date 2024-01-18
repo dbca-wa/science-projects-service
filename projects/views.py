@@ -113,18 +113,18 @@ class ResearchFunctions(APIView):
         )
 
     def post(self, req):
-        print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is creating a research function")
         ser = ResearchFunctionSerializer(
             data=req.data,
         )
         if ser.is_valid():
-            print("valid")
             rf = ser.save()
             return Response(
                 TinyResearchFunctionSerializer(rf).data,
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
@@ -149,6 +149,7 @@ class ResearchFunctionDetail(APIView):
 
     def delete(self, req, pk):
         rf = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting research function: {rf}")
         rf.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -156,6 +157,7 @@ class ResearchFunctionDetail(APIView):
 
     def put(self, req, pk):
         rf = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating research function: {rf}")
         ser = ResearchFunctionSerializer(
             rf,
             data=req.data,
@@ -168,6 +170,7 @@ class ResearchFunctionDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.error}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -191,8 +194,6 @@ class SmallProjectSearch(APIView):
         if req.user.is_superuser:
             projects = Project.objects.all()
         else:
-            # projects = Project.objects.filter()
-
             # Fetch project memberships of the authenticated user (req.user)
             user_memberships = ProjectMember.objects.filter(user=req.user)
 
@@ -286,13 +287,9 @@ class Projects(APIView):
 
         # Split the search term into parts using '-'
         parts = search_term.split("-")
-        print(len(parts))
-        print(parts)
-        print(parts[0].upper())
 
         # Check if there are at least three parts
         if len(parts) == 3:
-            print("len is 3 parts")
             db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
             year = parts[1]
@@ -301,19 +298,15 @@ class Projects(APIView):
             try:
                 year_as_int = int(year)
             except Exception as e:
-                print("ERROR: ", e)
+                settings.LOGGER.error(msg=f"{e}")
                 projects = Project.objects.filter(kind=kind).all()
                 return projects
 
-            print(year, len(year))
             if len(year) == 4:
-                print("checking kind and year")
                 projects = Project.objects.filter(kind=kind, year=year_as_int).all()
                 try:
-                    print("Trying to validate third part as number")
                     number_as_int = int(number)
                 except Exception as e:
-                    print("ERROR: ", e)
                     return projects
                 else:
                     number_filter = Q(number__icontains=number_as_int)
@@ -324,7 +317,6 @@ class Projects(APIView):
                 return projects
 
         elif len(parts) == 2:
-            print("len is 2 parts")
             year = parts[1]
             db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
@@ -332,11 +324,10 @@ class Projects(APIView):
             try:
                 year_as_int = int(year)
             except Exception as e:
-                print("ERROR: ", e)
+                settings.LOGGER.error(msg=f"{e}")
                 projects = Project.objects.filter(kind=kind).all()
                 return projects
             if len(year) == 4:
-                print("checking kind and year")
                 projects = Project.objects.filter(kind=kind, year=year_as_int).all()
             else:
                 projects = Project.objects.filter(kind=kind).all()
@@ -367,62 +358,7 @@ class Projects(APIView):
             or search_term.lower().startswith("stp-")
             or search_term.lower().startswith("ext-")
         ):
-            print("SEARCHING FOR A KEY")
             projects = self.parse_search_term(search_term=search_term)
-
-            # if ba_slug != "All":
-            #     projects = projects.filter(business_area__slug=ba_slug)
-
-            # status_slug = request.GET.get("projectstatus", "All")
-            # if status_slug != "All":
-            #     projects = projects.filter(status=status_slug)
-
-            # kind_slug = request.GET.get("projectkind", "All")
-            # if kind_slug != "All":
-            #     projects = projects.filter(kind=kind_slug)
-
-            # # Interaction logic between checkboxes
-            # if only_active:
-            #     only_inactive = False
-            # elif only_inactive:
-            #     only_active = False
-
-            # if only_active:
-            #     projects = projects.filter(status__in=Project.ACTIVE_ONLY)
-            # elif only_inactive:
-            #     projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
-
-            # total_projects = projects.count()
-            # total_pages = ceil(total_projects / page_size)
-
-            # serialized_projects = ProjectSerializer(
-            #     projects[start:end],
-            #     many=True,
-            #     context={
-            #         "request": request,
-            #         "projects": projects[start:end],
-            #     },
-            # )
-
-            # response_data = {
-            #     "projects": serialized_projects.data,
-            #     "total_results": total_projects,
-            #     "total_pages": total_pages,
-            # }
-
-            # return Response(response_data, status=HTTP_200_OK)
-
-            # def return_slug_kind(kind):
-            #     if kind == "corefunction":
-            #         return "CF"
-            #     elif kind == "student":
-            #         return "STP"
-            #     elif kind == "science":
-            #         return "SP"
-            #     else:
-            #         return "EXT"
-            # CF, SP, STP, EXT
-            # year, number
 
         # Ordinary filtering
         else:
@@ -484,12 +420,9 @@ class Projects(APIView):
         return Response(response_data, status=HTTP_200_OK)
 
     def handle_project_image(self, image):
-        print(f"Image is", image)
         if isinstance(image, str):
             return image
         elif image is not None:
-            print("Image is a file")
-            print(image)
             # Get the original file name with extension
             original_filename = image.name
 
@@ -515,8 +448,6 @@ class Projects(APIView):
             # If the file doesn't exist or has a different size, continue with the file-saving logic
             content = ContentFile(image.read())
             file_path = default_storage.save(file_path, content)
-            # `file_path` now contains the path to the saved file
-            print("File saved to:", file_path)
 
             return file_path
 
@@ -524,7 +455,7 @@ class Projects(APIView):
         # DATA WRANGLING =============================================================
         # Get and print the data
         data = req.data
-        print(data)
+        settings.LOGGER.info(msg=f"{req.user} is creating a {data.get('kind')} project")
 
         # Extract into individual values for base information
         title = data.get("title")
@@ -538,7 +469,6 @@ class Projects(APIView):
         # Convert keywords to a string and then list.
         keywords_str = keywords_str.strip("[]").replace('"', "")
         keywords_list = keywords_str.split(",")
-        print(keywords_str)
 
         # Extract into individual values for the details
         business_area = data.get("businessArea")
@@ -546,21 +476,10 @@ class Projects(APIView):
         departmental_service = data.get("departmentalService")
         data_custodian = data.get("dataCustodian")
         supervising_scientist = data.get("supervisingScientist")
-        # dates = data.getlist("dates")
-
-        # Convert dates to 'YYYY-MM-DD' format
-        # start_date_str, end_date_str = dates
-        # start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
-        # end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
-
-        # start_date_str = data.get('startDate')
-        # end_date_str = data.get('endDate')
-        # start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
-        # end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
 
         start_date_str = data.get("startDate")
         end_date_str = data.get("endDate")
-        # Check if start_date_str is not None and not empty
+
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
         else:
@@ -572,20 +491,9 @@ class Projects(APIView):
         else:
             end_date = None
 
-        # dates = req.data.get("dates")
-        # if dates is not None:
-        #     if isinstance(dates, list):
-        #         start_date = dt.fromisoformat(dates[0]).date()
-        #         end_date = dt.fromisoformat(dates[-1]).date()
-        #     else:
-        #         start_date = end_date = dt.fromisoformat(dates).date()
-        # else:
-        #     start_date = end_date = None
-
         # Individual values (location)
         location_data_list = data.getlist("locations")
         status = "new"
-        # DATA WRANGLING =============================================================
 
         # OBJECT CREATION =============================================================
         # Create base project object & serialize
@@ -605,7 +513,6 @@ class Projects(APIView):
 
         ser = CreateProjectSerializer(data=project_data_object)
         if ser.is_valid():
-            print("LEGIT PROJECT SERIALIZER")
             with transaction.atomic():
                 proj = ser.save()
                 project_id = proj.pk
@@ -619,6 +526,7 @@ class Projects(APIView):
                             "project": proj,
                         }
                     except ValueError as e:
+                        settings.LOGGER.error(msg=f"{e}")
                         error_message = str(e)
                         response_data = {"error": error_message}
                         return Response(response_data, status=HTTP_400_BAD_REQUEST)
@@ -631,7 +539,7 @@ class Projects(APIView):
                             new_proj_photo_instance
                         ).data
                     except Exception as e:
-                        print(e)
+                        settings.LOGGER.error(msg=f"{e}")
                         response_data = {"error": str(e)}
                         return Response(
                             response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
@@ -644,19 +552,17 @@ class Projects(APIView):
                 }
                 project_area_ser = ProjectAreaSerializer(data=project_area_data_object)
                 if project_area_ser.is_valid():
-                    print("LEGIT Area SERIALIZER")
                     try:
                         project_area_ser.save()
                     except Exception as e:
-                        print(e)
+                        settings.LOGGER.error(msg=f"{e}")
                         response_data = {"error": str(e)}
                         return Response(
                             response_data,
                             HTTP_400_BAD_REQUEST,
                         )
                 else:
-                    print("Project Area")
-                    print(project_area_ser.errors)
+                    settings.LOGGER.error(msg=f"{project_area_ser.errors}")
                     return Response(
                         project_area_ser.errors,
                         HTTP_400_BAD_REQUEST,
@@ -670,30 +576,23 @@ class Projects(APIView):
                     "role": "supervising" if kind == "student" else "research",
                     "old_id": 1,
                 }
-                print(project_member_data_object)
                 project_member_ser = ProjectMemberSerializer(
                     data=project_member_data_object
                 )
                 if project_member_ser.is_valid():
-                    # with transaction.atomic():
-                    print("Legit members")
                     try:
                         project_member_ser.save()
                     except IntegrityError as e:
-                        print(e)
-                        print(project_member_ser.data)
+                        settings.LOGGER.error(msg=f"{e}")
                         return Response(
                             "An identical user already exists on this project",
                             HTTP_400_BAD_REQUEST,
                         )
 
                     except Exception as e:
-                        print(e)
-                        print(project_member_ser.data)
+                        settings.LOGGER.error(msg=f"{e}")
                 else:
-                    print("Project Members")
-                    print(project_member_ser.errors)
-
+                    settings.LOGGER.error(msg=f"{project_member_ser.errors}")
                     return Response(
                         project_member_ser.errors,
                         HTTP_400_BAD_REQUEST,
@@ -713,28 +612,21 @@ class Projects(APIView):
                     "research_function": research_function,
                 }
 
-                print(project_detail_data_object)
                 project_detail_ser = ProjectDetailSerializer(
                     data=project_detail_data_object
                 )
                 if project_detail_ser.is_valid():
                     # with transaction.atomic():
-                    print("project details legit")
                     try:
-                        print("saving details...")
                         project_detail_ser.save()
-                        print("details saved")
                     except Exception as e:
-                        print("Exception in save details for project")
-                        print(e)
+                        settings.LOGGER.error(msg=f"{e}")
                         return Response(
                             e,
                             HTTP_400_BAD_REQUEST,
                         )
                 else:
-                    print("Project Detail")
-
-                    print(project_detail_ser.errors)
+                    settings.LOGGER.error(msg=f"{project_detail_ser.errors}")
                     return Response(
                         project_detail_ser.errors,
                         HTTP_400_BAD_REQUEST,
@@ -742,7 +634,6 @@ class Projects(APIView):
 
                 # Create unique entries in student table if student project
                 if kind == "student":
-                    print("Kind is Student")
                     level = data.get("level")
                     organisation = data.get("organisation")
                     old_id = 1
@@ -759,16 +650,12 @@ class Projects(APIView):
                         data=student_project_details_data_object
                     )
                     if student_proj_details_ser.is_valid():
-                        # with transaction.atomic():
-                        print("LEGIT STUDENT DETAILS SERIALIZER")
                         try:
                             student_proj_details_ser.save()
                         except Exception as e:
-                            print(e)
+                            settings.LOGGER.error(msg=f"{e}")
                     else:
-                        print("Student Detail")
-
-                        print(student_proj_details_ser.errors)
+                        settings.LOGGER.error(msg=f"{student_proj_details_ser.errors}")
                         return Response(
                             student_proj_details_ser.errors,
                             HTTP_400_BAD_REQUEST,
@@ -797,27 +684,19 @@ class Projects(APIView):
                     )
                     if external_details_ser.is_valid():
                         # with transaction.atomic():
-                        print("LEGIT EXTERNAL DETAILS SERIALIZER")
-                        print(external_details_data_object)
                         try:
                             external_details_ser.save()
                         except Exception as e:
-                            print(e)
+                            settings.LOGGER.error(msg=f"{e}")
                     else:
-                        print("External Detail")
-
-                        print(external_details_ser.errors)
+                        settings.LOGGER.error(external_details_ser.errors)
                         return Response(
                             HTTP_400_BAD_REQUEST,
                         )
                 # if kind != "student" and kind != "external"
                 else:
-                    print(
-                        f"PROJECTPK====================\n\nprojpk: {proj.pk}, project_id: {project_id}, kind: {proj.kind}\n\n===================="
-                    )
-
-                    serialized_proj = ProjectSerializer(proj)
-                    print(serialized_proj.data)
+                    # serialized_proj = ProjectSerializer(proj)
+                    # print(serialized_proj.data)
 
                     # create document for concept plan data
                     document_serializer = ProjectDocumentCreateSerializer(
@@ -832,16 +711,11 @@ class Projects(APIView):
                     )
 
                     if document_serializer.is_valid():
-                        print("Serializer for doc is good")
-                        # print(document_serializer.data)
-                        # doc = document_serializer.save()
                         with transaction.atomic():
                             try:
-                                print("Attempting to save doc via project view...")
                                 doc = document_serializer.save()
-                                print("Saved...")
                             except Exception as e:
-                                print(e)
+                                settings.LOGGER.error(msg=f"{e}")
                                 return Response(
                                     e,
                                     status=HTTP_400_BAD_REQUEST,
@@ -997,26 +871,22 @@ class Projects(APIView):
                             )
 
                             if concept_plan_serializer.is_valid():
-                                print("concept plan valid")
-                                # with transaction.atomic():
                                 try:
                                     concept_plan_serializer.save()
                                 except Exception as e:
-                                    print(f"Concept Plan error: {e}")
+                                    settings.LOGGER.error(msg=f"Concept Plan Error: {e}")
                                     return Response(
                                         e,
                                         status=HTTP_400_BAD_REQUEST,
                                     )
                             else:
-                                print("Concept Plan ser not valid")
-                                print(concept_plan_serializer.errors)
+                                settings.LOGGER.error(msg=f"Concept Plan Error: {concept_plan_serializer.errors}")
                                 return Response(
                                     concept_plan_serializer.errors,
                                     status=HTTP_400_BAD_REQUEST,
                                 )
                     else:
-                        print("Project Document (Concept kind)")
-                        print(document_serializer.errors)
+                        settings.LOGGER.error(msg=f"Concept Plan Error: {document_serializer.errors}")
                         return Response(
                             document_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1027,8 +897,7 @@ class Projects(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
-            print("issue in base project serializer")
-            print(ser.errors)
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
@@ -1143,7 +1012,6 @@ class ProjectDetails(APIView):
 
     def get(self, req, pk):
         proj = self.go(pk=pk)
-        print(proj)
         ser = ProjectSerializer(proj).data
         details, documents, members, area_obj = self.get_full_object(pk)
         # print(documents)
@@ -1158,28 +1026,18 @@ class ProjectDetails(APIView):
             status=HTTP_200_OK,
         )
 
-    # def get(self, req, pk):
-    #     proj = self.go(pk)
-    #     ser = ProjectSerializer(proj)
-    #     return Response(
-    #         ser.data,
-    #         status=HTTP_200_OK,
-    #     )
-
     def delete(self, req, pk):
         proj = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting project: {proj}")
         proj.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
 
     def handle_project_image(self, image):
-        print(f"Image is", image)
         if isinstance(image, str):
             return image
         elif image is not None:
-            print("Image is a file")
-            print(image)
             # Get the original file name with extension
             original_filename = image.name
 
@@ -1206,12 +1064,11 @@ class ProjectDetails(APIView):
             content = ContentFile(image.read())
             file_path = default_storage.save(file_path, content)
             # `file_path` now contains the path to the saved file
-            print("File saved to:", file_path)
 
             return file_path
 
     def put(self, req, pk):
-        print(req.data)
+        settings.LOGGER.info(msg=f"{req.user} is updating project: {proj}")
         proj = self.go(pk)
         title = req.data.get("title")
         description = req.data.get("description")
@@ -1221,17 +1078,10 @@ class ProjectDetails(APIView):
 
         keywords = req.data.get("keywords")
         locations_str = req.data.get("locations")
-        if locations_str:
-            print(f"LOCATIONS: {locations_str}")
-            # locations = locations_str
-
-        # start_date = req.data.get('startDate')
-        # end_date = req.data.get('endDate')
-        # start_date = dt.strptime(start_date, "%Y-%m-%dT%H:%M:%S.%fZ").date()
-        # end_date = dt.strptime(end_date, "%Y-%m-%dT%H:%M:%S.%fZ").date()
 
         start_date_str = req.data.get("startDate")
         end_date_str = req.data.get("endDate")
+
         # Check if start_date_str is not None and not empty
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
@@ -1243,16 +1093,6 @@ class ProjectDetails(APIView):
             end_date = dt.strptime(end_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
         else:
             end_date = None
-
-        # dates = req.data.get("dates")
-        # if dates is not None:
-        #     if isinstance(dates, list):
-        #         start_date = dt.fromisoformat(dates[0]).date()
-        #         end_date = dt.fromisoformat(dates[-1]).date()
-        #     else:
-        #         start_date = end_date = dt.fromisoformat(dates).date()
-        # else:
-        #     start_date = end_date = None
 
         service = req.data.get("service")
         research_function = req.data.get("research_function")
@@ -1285,7 +1125,6 @@ class ProjectDetails(APIView):
 
         if locations_str and locations_str != "[]":
             # print('Length is bigger than one\n')
-            print(locations_str)
             updated_proj_area_data = {
                 key: value
                 for key, value in {
@@ -1294,9 +1133,6 @@ class ProjectDetails(APIView):
                 if value is not None and (not isinstance(value, list) or value)
             }
         else:
-            # print(updated_proj_area_data)
-            # print('Length is less than one\n')
-
             # check if there is a project plan matching project
             projplan = ProjectPlan.objects.filter(project=pk).first()
 
@@ -1316,30 +1152,6 @@ class ProjectDetails(APIView):
             }.items()
             if value is not None and (not isinstance(value, list) or value)
         }
-
-        print(
-            # proj,
-            # title,
-            # description,
-            # image,
-            # status,
-            # data_custodian,
-            # keywords,
-            # dates,
-            # locations,
-            # service,
-            # research_function,
-            # business_area,
-            updated_base_proj_data,
-            updated_proj_detail_data,
-            updated_proj_area_data,
-            updated_proj_image_data,
-            sep="\n",
-        )
-
-        # return Response(
-        #     status=HTTP_202_ACCEPTED,
-        # )
 
         base_ser = ProjectSerializer(
             proj,
@@ -1362,7 +1174,7 @@ class ProjectDetails(APIView):
                     if detail_ser.is_valid():
                         detail_ser.save()
                     else:
-                        print(detail_ser.errors)
+                        settings.LOGGER.error(msg=f"{detail_ser.errors}")
                         return Response(
                             detail_ser.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1371,21 +1183,18 @@ class ProjectDetails(APIView):
                     # Check if project already has an image:
                     try:
                         project_photo = ProjectPhoto.objects.get(project=pk)
-                    except ProjectPhoto.DoesNotExist:
-                        print("Could not find a related project photo")
+                    except ProjectPhoto.DoesNotExist as e:
+                        settings.LOGGER.error(msg=f"{e}")
                         # Create the object with the data
                         try:
-                            print("creating data object")
                             image_data = {
                                 "file": self.handle_project_image(image),
                                 "uploader": req.user,
                                 "project": proj,
                             }
-                            print("object created")
                         except ValueError as e:
-                            print("error creating data object")
+                            settings.LOGGER.error(msg=f"{e}")
                             error_message = str(e)
-                            print(error_message)
                             response_data = {"error": error_message}
                             return Response(response_data, status=HTTP_400_BAD_REQUEST)
 
@@ -1397,7 +1206,7 @@ class ProjectDetails(APIView):
                                 new_proj_photo_instance
                             ).data
                         except Exception as e:
-                            print(e)
+                            settings.LOGGER.error(msg=f"{e}")
                             response_data = {"error": str(e)}
                             return Response(
                                 response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
@@ -1413,13 +1222,11 @@ class ProjectDetails(APIView):
                         if img_ser.is_valid():
                             img_ser.save()
                         else:
-                            print(img_ser.errors)
+                            settings.LOGGER.error(msg=f"{img_ser.errors}")
                             return Response(
                                 img_ser.errors,
                                 status=HTTP_400_BAD_REQUEST,
                             )
-                        # project_photo.updated_at = dt.now()
-                        # project_photo.save()
                 else:
                     selectedImageUrl = req.data.get("selectedImageUrl")
                     if selectedImageUrl == "delete":
@@ -1437,7 +1244,7 @@ class ProjectDetails(APIView):
                     if area_ser.is_valid():
                         area_ser.save()
                     else:
-                        print(area_ser.errors)
+                        settings.LOGGER.error(msg=f"{area_ser.errors}")
                         return Response(
                             area_ser.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -1447,7 +1254,7 @@ class ProjectDetails(APIView):
                     status=HTTP_202_ACCEPTED,
                 )
         else:
-            print(base_ser.errors)
+            settings.LOGGER.error(msg=f"{base_ser.errors}")
             return Response(
                 base_ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -1470,6 +1277,7 @@ class ProjectAdditional(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is adding details for a project")
         ser = ProjectDetailSerializer(
             data=req.data,
         )
@@ -1480,6 +1288,7 @@ class ProjectAdditional(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -1503,12 +1312,14 @@ class ProjectAdditionalDetail(APIView):
 
     def delete(self, req, pk):
         details = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting project details")
         details.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
 
     def put(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is updating project details")
         details = self.go(pk)
         ser = ProjectDetailSerializer(
             details,
@@ -1522,6 +1333,7 @@ class ProjectAdditionalDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -1541,6 +1353,7 @@ class StudentProjectAdditional(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting student project details")
         ser = StudentProjectDetailSerializer(
             data=req.data,
         )
@@ -1551,6 +1364,7 @@ class StudentProjectAdditional(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -1574,6 +1388,7 @@ class StudentProjectAdditionalDetail(APIView):
 
     def delete(self, req, pk):
         details = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting student project details {details}")
         details.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -1581,6 +1396,7 @@ class StudentProjectAdditionalDetail(APIView):
 
     def put(self, req, pk):
         details = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating student project details: {details}")
         ser = StudentProjectDetailSerializer(
             details,
             data=req.data,
@@ -1593,6 +1409,7 @@ class StudentProjectAdditionalDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -1612,6 +1429,7 @@ class ExternalProjectAdditional(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting external project details")
         ser = ExternalProjectDetailSerializer(
             data=req.data,
         )
@@ -1622,6 +1440,7 @@ class ExternalProjectAdditional(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -1645,6 +1464,7 @@ class ExternalProjectAdditionalDetail(APIView):
 
     def delete(self, req, pk):
         details = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting external project details: {details}")
         details.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -1652,6 +1472,7 @@ class ExternalProjectAdditionalDetail(APIView):
 
     def put(self, req, pk):
         details = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating external project details: {details}")
         ser = ExternalProjectDetailSerializer(
             details,
             data=req.data,
@@ -1664,6 +1485,7 @@ class ExternalProjectAdditionalDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -1682,10 +1504,6 @@ class SelectedProjectAdditionalDetail(APIView):
             base_details = ProjectDetail.objects.filter(project=pk)
             student_details = StudentProjectDetails.objects.filter(project=pk)
             external_details = ExternalProjectDetails.objects.filter(project=pk)
-
-            # print(base_details)
-            # print(student_details)
-            # print(external_details)
 
             details = {
                 "base_details": ProjectDetailSerializer(
@@ -1713,9 +1531,6 @@ class SelectedProjectAdditionalDetail(APIView):
 
 
 class ProjectMembers(APIView):
-    # pagination_class = PageNumberPagination
-    # pagination_class.page_size = 100
-
     def get(self, req):
         try:
             page = int(req.query_params.get("page", 1))
@@ -1731,16 +1546,11 @@ class ProjectMembers(APIView):
 
         all_members = ProjectMember.objects.all()
 
-        # Paginate the queryset
-        # paginator = self.pagination_class()
-        # paginated_members = paginator.paginate_queryset(all_members, req)
-
         # Serialize the paginated results
         ser = TinyProjectMemberSerializer(
             all_members[start:end],
             many=True,
         )
-        # return paginator.get_paginated_response(ser.data)
         return Response(ser.data, status=HTTP_200_OK)
 
     def post(self, req):
@@ -1753,6 +1563,8 @@ class ProjectMembers(APIView):
         is_leader = req.data.get("is_leader")
         position = req.data.get("position")
         old_id = req.data.get("old_id")
+
+        settings.LOGGER.info(msg=f"{req.user} is updating project membership for {project}")
 
         data_to_serialize = {
             "user": user,
@@ -1770,21 +1582,6 @@ class ProjectMembers(APIView):
             data=data_to_serialize,
         )
         if ser.is_valid():
-            print("SERIALIIIIIIIIIIIIZED")
-            # Set the is_leader field based on whether the user is the owner of the project
-            # project_id = req.data.get("project")
-            # user_id = req.data.get("user")
-            # try:
-            #     project = Project.objects.get(pk=project_id)
-            # except Project.DoesNotExist:
-            #     return Response(status=HTTP_400_BAD_REQUEST)
-
-            # try:
-            #     user = User.objects.get(pk=user_id)
-            # except User.DoesNotExist:
-            #     return Response(status=HTTP_400_BAD_REQUEST)
-
-            # is_leader = user == project.owner
             member = ser.save(is_leader=is_leader)
 
             return Response(
@@ -1792,6 +1589,7 @@ class ProjectMembers(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
 
 
@@ -1811,10 +1609,10 @@ class PromoteToLeader(APIView):
         return objects
 
     def post(self, req):
-        print(req.data)
         project_id = req.data["project"]
         user_id = req.data["user"]
         user_to_become_leader_obj = self.go(user_id=user_id, project_id=project_id)
+        settings.LOGGER.info(msg=f"{req.user} is promoting {user_to_become_leader_obj} to leader")
 
         team = self.gteam(project_id=project_id)
 
@@ -1822,12 +1620,7 @@ class PromoteToLeader(APIView):
         try:
             team.update(is_leader=False)
         except Exception as e:
-            print(e)
-
-        # Set is_leader to True for the user to become a leader
-        # user_to_become_leader_obj.is_leader = True
-
-        print(user_to_become_leader_obj)
+            settings.LOGGER.error(msg=f"{e}")
 
         # Create a serializer instance with the data and set is_leader=True
         ser = ProjectMemberSerializer(
@@ -1838,78 +1631,16 @@ class PromoteToLeader(APIView):
         if ser.is_valid():
             user_to_become_leader_obj = ser.save()  # Save the updated object
 
-            print("DATA", user_to_become_leader_obj)
             return Response(
                 ProjectMemberSerializer(user_to_become_leader_obj).data,
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
-
-
-# class PromoteToLeader(APIView):
-#     # permission_classes = [IsAuthenticatedOrReadOnly]
-
-#     def go(self, user_id, project_id):
-#         try:
-#             obj = ProjectMember.objects.get(user__pk=user_id, project__pk=project_id)
-#         except ProjectMember.DoesNotExist:
-#             raise NotFound
-#         return obj
-
-#     def gteam(self, project_id):
-#         try:
-#             objects = ProjectMember.objects.get(project__pk=project_id)
-#         except ProjectMember.DoesNotExist:
-#             raise NotFound
-#         return objects
-
-#     def post(self, req):
-#         user_to_become_leader = req.GET.get("user")
-#         project_id = req.GET.get("project")
-#         print(user_to_become_leader)
-#         user_to_become_leader_obj = self.go(
-#             user_id=user_to_become_leader, project_id=project_id
-#         )
-
-#         team = self.gteam(project_id=project_id)
-
-#         # Set is_leader to False for all members in the team
-#         team.update(is_leader=False)
-
-#         # Set is_leader to True for the user to become a leader
-#         user_to_become_leader_obj.is_leader = True
-#         user_to_become_leader_obj.save()
-
-#         ser = ProjectMemberSerializer(
-#             team,
-#             data=req.data,
-#             many=True,  # Update multiple objects
-#             partial=True,
-#         )
-#         if ser.is_valid():
-#             updated_team = ser.save()
-
-#             # Create a serializer for the user to become a leader
-#             user_to_become_leader_serializer = ProjectMemberSerializer(
-#                 user_to_become_leader_obj
-#             )
-
-#             # Append the user to become a leader to the updated_team data
-#             updated_team_data = ser.data + [user_to_become_leader_serializer.data]
-
-#             return Response(
-#                 updated_team_data,
-#                 status=HTTP_202_ACCEPTED,
-#             )
-#         else:
-#             return Response(
-#                 ser.errors,
-#                 status=HTTP_400_BAD_REQUEST,
-#             )
 
 
 class ProjectLeaderDetail(APIView):
@@ -1945,11 +1676,13 @@ class ProjectMemberDetail(APIView):
 
     def delete(self, req, user_id, project_id):
         team_member = self.go(user_id, project_id)
+        settings.LOGGER.info(msg=f"{req.user} is deleting project member {team_member} from project id {project_id}")
         team_member.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
     def put(self, req, user_id, project_id):
         team = self.go(user_id, project_id)
+        settings.LOGGER.info(msg=f"{req.user} is updating project member {team} from project id {project_id}")
         ser = ProjectMemberSerializer(
             team,
             data=req.data,
@@ -1962,51 +1695,12 @@ class ProjectMemberDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
 
-    # def go(self, user_pk, project_pk):
-    #     try:
-    #         obj = ProjectMember.objects.get(user_pk=user_pk, project_pk=project_pk)
-    #     except ProjectMember.DoesNotExist:
-    #         raise NotFound
-    #     return obj
-
-    # def get(self, req, pk):
-    #     team = self.go(pk)
-    #     ser = ProjectMemberSerializer(team)
-    #     return Response(
-    #         ser.data,
-    #         status=HTTP_200_OK,
-    #     )
-
-    # def delete(self, req, pk):
-    #     team = self.go(pk)
-    #     team.delete()
-    #     return Response(
-    #         status=HTTP_204_NO_CONTENT,
-    #     )
-
-    # def put(self, req, pk):
-    #     team = self.go(pk)
-    #     ser = ProjectMemberSerializer(
-    #         team,
-    #         data=req.data,
-    #         partial=True,
-    #     )
-    #     if ser.is_valid():
-    #         uteam = ser.save()
-    #         return Response(
-    #             TinyProjectMemberSerializer(uteam).data,
-    #             status=HTTP_202_ACCEPTED,
-    #         )
-    #     else:
-    #         return Response(
-    #             ser.errors,
-    #             status=HTTP_400_BAD_REQUEST,
-    #         )
 
 
 class MembersForProject(APIView):
@@ -2031,12 +1725,11 @@ class MembersForProject(APIView):
         )
 
     def put(self, req, pk):
-        # Assuming you receive reordered_team in the request data
+        settings.LOGGER.info(msg=f"{req.user} is reordering members for project id {pk}")
         reordered_team = req.data.get("reordered_team")
 
         # Create a dictionary to keep track of positions
         positions = {}
-        # print(reordered_team)
         # Assuming reordered_team is a list of dictionaries, each containing user_id and new_position
         for item in reordered_team:
             user_id = item["user"]["pk"]  # Access user_id as item["user"]["pk"]
@@ -2045,10 +1738,8 @@ class MembersForProject(APIView):
                 project_member = ProjectMember.objects.filter(
                     user_id=user_id, project_id=pk
                 ).first()
-                # print(project_member[0]["user"])
-                # print("\n\n\n\n")
-                # print(project_member[1]["user"])
-            except ProjectMember.DoesNotExist:
+            except ProjectMember.DoesNotExist as e:
+                settings.LOGGER.error(msg=f"{e}")
                 raise NotFound
 
             # Adjust the position of the member based on the new_position
@@ -2084,54 +1775,6 @@ class MembersForProject(APIView):
             status=HTTP_202_ACCEPTED,  # Use status from rest_framework
         )
 
-    # def put(self, req, pk):
-    #     # Assuming you receive reordered_team in the request data
-    #     reordered_team = req.data.get("reordered_team")
-
-    #     # Create a dictionary to keep track of positions
-    #     positions = {}
-    #     print(reordered_team)
-    #     # Assuming reordered_team is a list of dictionaries, each containing user_id and new_position
-    #     for item in reordered_team:
-    #         user_id = item["user"]["pk"]  # Access user_id as item["user"]["pk"]
-
-    #         try:
-    #             project_member = ProjectMember.objects.get(
-    #                 user_id=user_id, project_id=pk
-    #             )
-    #         except ProjectMember.DoesNotExist:
-    #             raise NotFound
-
-    #         # Adjust the position of the member based on the new_position
-    #         if item["is_leader"] == False and item["position"] == 1:
-    #             item["position"] += 1
-    #         elif item["is_leader"] == True:
-    #             project_member.position = 1  # Set the leader's position to 1
-
-    #         # Check if the new position is already occupied
-    #         new_position = item["position"]
-    #         while new_position in positions:
-    #             new_position += 1
-    #         positions[new_position] = True
-
-    #         # Update the project_member's position to the new_position
-    #         project_member.position = new_position
-    #         project_member.save()
-
-    #     # Re-sort project members based on their positions
-    #     project_members = ProjectMember.objects.filter(project_id=pk).order_by(
-    #         "position"
-    #     )
-    #     ser = ProjectMemberSerializer(
-    #         project_members,
-    #         many=True,
-    #     )
-
-    #     return Response(
-    #         ser.data,
-    #         status=HTTP_202_ACCEPTED,  # Use status from rest_framework
-    #     )
-
 
 # AREAS =================================================================================================
 
@@ -2149,6 +1792,7 @@ class ProjectAreas(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a project area")
         ser = ProjectAreaSerializer(
             data=req.data,
         )
@@ -2159,7 +1803,9 @@ class ProjectAreas(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
+                ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
 
@@ -2182,6 +1828,7 @@ class ProjectAreaDetail(APIView):
 
     def delete(self, req, pk):
         projarea = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting project area {projarea}")
         projarea.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -2189,6 +1836,7 @@ class ProjectAreaDetail(APIView):
 
     def put(self, req, pk):
         projarea = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating project area {projarea}")
         ser = ProjectAreaSerializer(
             projarea,
             data=req.data,
@@ -2201,6 +1849,7 @@ class ProjectAreaDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2230,6 +1879,7 @@ class AreasForProject(APIView):
 
     def put(self, req, pk):
         project_areas = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating areas for project area {project_areas}")
         area_data = req.data.get("areas")
         print(f"Areas: {area_data}")
         data = {"areas": area_data}
@@ -2246,7 +1896,7 @@ class AreasForProject(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            print(ser.errors)
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -2337,5 +1987,5 @@ class DownloadAllProjectsAsCSV(APIView):
 
         # If server is down or otherwise error
         except Exception as e:
-            print(e)
+            settings.LOGGER.error(msg=f"{e}")
             return HttpResponse(status=500, content="Error generating CSV")
