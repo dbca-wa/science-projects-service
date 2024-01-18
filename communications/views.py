@@ -48,6 +48,7 @@ class ChatRooms(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating a chat room")   
         ser = ChatRoomSerializer(data=req.data)
         if ser.is_valid():
             cr = ser.save()
@@ -56,6 +57,7 @@ class ChatRooms(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -75,6 +77,7 @@ class DirectMessages(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a dm")   
         ser = DirectMessageSerializer(data=req.data)
         if ser.is_valid():
             dm = ser.save()
@@ -83,6 +86,7 @@ class DirectMessages(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -102,6 +106,7 @@ class Comments(APIView):
         )
 
     def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a comment")   
         ser = CommentSerializer(data=req.data)
         if ser.is_valid():
             comment = ser.save()
@@ -110,6 +115,7 @@ class Comments(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -129,16 +135,8 @@ class Reactions(APIView):
         )
 
     def post(self, req):
-        print(req.data)
-
-        # def get_comment():
-        #     try:
-        #         comment = Comment.objects.filter(pk=int(req.data.get("comment")))
-        #     except Comment.DoesNotExist:
-        #         raise NotFound
-        #     return comment
-
         if req.data.get("comment"):
+            settings.LOGGER.info(msg=f"{req.user} is reacting to a comment")   
             data = {
                 # "comment": get_comment(),
                 "comment": int(req.data.get("comment")),
@@ -154,7 +152,6 @@ class Reactions(APIView):
                 comment=int(req.data.get("comment")),
             ).first()
             if exists:
-                print("EXISTS")
                 exists.delete()
                 return Response(
                     status=HTTP_204_NO_CONTENT,
@@ -169,12 +166,13 @@ class Reactions(APIView):
                     status=HTTP_201_CREATED,
                 )
             else:
-                print(ser.errors)
+                settings.LOGGER.error(msg=f"{ser.errors}")   
                 return Response(
                     ser.errors,
                     status=HTTP_400_BAD_REQUEST,
                 )
         else:
+            settings.LOGGER.info(msg=f"{req.user} tried to react to something but no comment data was found")   
             return Response(
                 status=HTTP_400_BAD_REQUEST,
             )
@@ -199,6 +197,7 @@ class ChatRoomDetail(APIView):
 
     def delete(self, req, pk):
         cr = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting a chat room {cr}")   
         cr.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -206,6 +205,7 @@ class ChatRoomDetail(APIView):
 
     def put(self, req, pk):
         cr = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating a chat room {cr}")   
         ser = ChatRoomSerializer(
             cr,
             data=req.data,
@@ -218,6 +218,7 @@ class ChatRoomDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -242,6 +243,7 @@ class DirectMessageDetail(APIView):
 
     def delete(self, req, pk):
         dm = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting a dm {dm}")   
         dm.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -249,6 +251,7 @@ class DirectMessageDetail(APIView):
 
     def put(self, req, pk):
         dm = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating a dm {dm}")   
         ser = DirectMessageSerializer(
             dm,
             data=req.data,
@@ -261,6 +264,7 @@ class DirectMessageDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.info(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -285,6 +289,7 @@ class CommentDetail(APIView):
 
     def delete(self, req, pk):
         comment = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting a comment detail {comment}")   
         comment.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -292,6 +297,7 @@ class CommentDetail(APIView):
 
     def put(self, req, pk):
         comment = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating a comment detail {comment}")   
         ser = CommentSerializer(
             comment,
             data=req.data,
@@ -304,6 +310,7 @@ class CommentDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -328,6 +335,7 @@ class ReactionDetail(APIView):
 
     def delete(self, req, pk):
         dmr = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting a reaction detail {dmr}")   
         dmr.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -335,6 +343,7 @@ class ReactionDetail(APIView):
 
     def put(self, req, pk):
         reaction = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating a reaction detail {reaction}")   
         ser = ReactionSerializer(
             reaction,
             data=req.data,
@@ -347,6 +356,7 @@ class ReactionDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
+            settings.LOGGER.error(msg=f"{ser.errors}")   
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
