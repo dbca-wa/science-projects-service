@@ -19,5 +19,5 @@ urlpatterns = [
     path("agency_photos/<int:pk>", views.AgencyPhotoDetail.as_view()),
     path("user_avatars", views.UserAvatars.as_view()),
     path("user_avatars/<int:pk>", views.UserAvatarDetail.as_view()),
-    path("geturl", views.GetUploadURL.as_view()),
+    # path("geturl", views.GetUploadURL.as_view()),
 ]
