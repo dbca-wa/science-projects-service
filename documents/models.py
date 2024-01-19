@@ -373,7 +373,7 @@ class ConceptPlan(models.Model):
         title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
-        return f"CONCEPT PLAN ({self.year}) | {title}"
+        return f"(CONCEPT PLAN) {title}"
 
     class Meta:
         verbose_name = "Concept Plan"
@@ -715,7 +715,7 @@ class ProjectPlan(models.Model):
         title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
-        return f"PROJECT PLAN ({self.year}) | {title}"
+        return f"(PROJECT PLAN) {title}"
 
 
     class Meta:
@@ -957,7 +957,7 @@ class ProjectClosure(models.Model):
         title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
-        return f"PROJECT CLOSURE ({self.year}) | {title}"
+        return f"(PROJECT CLOSURE) {title}"
 
 
     class Meta:
