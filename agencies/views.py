@@ -575,6 +575,8 @@ class BusinessAreaDetail(APIView):
         settings.LOGGER.info(msg=f"{req.user} is udpating business area {ba}")
 
         image = req.data.get("image")
+        print(req.data)
+
         if image:
             if isinstance(image, str) and (
                 image.startswith("http://") or image.startswith("https://")
@@ -586,8 +588,9 @@ class BusinessAreaDetail(APIView):
         else:
             selectedImageUrl = req.data.get("selectedImageUrl")
             if selectedImageUrl == "delete":
-                photo = self.get_ba_photo(pk)
-                photo.delete()
+                photo = BusinessAreaPhoto.objects.filter(business_area=pk).first()
+                if (photo):
+                    photo.delete()
 
         ba_data = {
             "old_id": req.data.get("old_id"),

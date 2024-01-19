@@ -1082,6 +1082,8 @@ class ProjectDetails(APIView):
         start_date_str = req.data.get("startDate")
         end_date_str = req.data.get("endDate")
 
+
+
         # Check if start_date_str is not None and not empty
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
@@ -1121,6 +1123,36 @@ class ProjectDetails(APIView):
                 "modifier": req.user.pk,
             }.items()
             if value is not None and (not isinstance(value, list) or value)
+        }
+
+        # External Fields
+        collaboration_with = req.data.get("collaborationWith")
+        budget = req.data.get("budget")
+        external_description = req.data.get("externalDescription")
+        aims = req.data.get("aims")
+
+        # Student Fields
+        level = req.data.get("level")
+        organisation = req.data.get("organisation")
+
+        updated_student_project_data = {
+            key: value
+            for key, value in {
+                "level": level,
+                "organisation": organisation,
+            }.items()
+            if level is not None and organisation is not None and (not isinstance(value, list) or value)
+        }
+
+        updated_external_project_data = {
+            key: value
+            for key, value in {
+                "description": external_description,
+                "aims": aims,                
+                "budget": budget,
+                "collaboration_with": collaboration_with,
+            }.items()
+            if aims is not None and external_description is not None and budget is not None and collaboration_with is not None and (not isinstance(value, list) or value)
         }
 
         if locations_str and locations_str != "[]":
@@ -1248,6 +1280,39 @@ class ProjectDetails(APIView):
                             area_ser.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
+                    
+                if updated_external_project_data:
+                    project_details = ExternalProjectDetails.objects.get(project=proj)
+                    external_ser = ExternalProjectDetailSerializer(
+                        project_details,
+                        data=updated_external_project_data,
+                        partial=True,
+                    )
+                    if external_ser.is_valid():
+                        external_ser.save()
+                    else:
+                        settings.LOGGER.error(msg=f"{external_ser.errors}")
+                        return Response(
+                            external_ser.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+
+                if updated_student_project_data:
+                    project_details = StudentProjectDetails.objects.get(project=proj)
+                    student_proj_detail_ser = StudentProjectDetailSerializer(
+                        project_details,
+                        data=updated_student_project_data,
+                        partial=True,
+                    )
+                    if student_proj_detail_ser.is_valid():
+                        student_proj_detail_ser.save()
+                    else:
+                        settings.LOGGER.error(msg=f"{student_proj_detail_ser.errors}")
+                        return Response(
+                            student_proj_detail_ser.errors,
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                    
                 return Response(
                     TinyProjectSerializer(uproj).data,
                     status=HTTP_202_ACCEPTED,
