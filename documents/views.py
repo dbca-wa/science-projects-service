@@ -2928,6 +2928,9 @@ class DocApproval(APIView):
                     )
 
             if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+            if u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
                 u_document.project.status = Project.StatusChoices.ACTIVE
                 u_document.project.save()
             if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
@@ -3010,6 +3013,9 @@ class DocRecall(APIView):
                 u_document.project.status = Project.StatusChoices.CLOSUREREQ
                 u_document.project.save()
 
+            elif u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
                 status=HTTP_202_ACCEPTED,
