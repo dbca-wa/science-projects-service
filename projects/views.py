@@ -334,7 +334,6 @@ class Projects(APIView):
 
     def get(self, request):
         settings.LOGGER.info(msg=f"{request.user} is viewing/filtering projects")
-
         try:
             page = int(request.query_params.get("page", 1))
         except ValueError:
@@ -348,7 +347,7 @@ class Projects(APIView):
         # Get the values of the checkboxes
         only_active = bool(request.GET.get("only_active", False))
         only_inactive = bool(request.GET.get("only_inactive", False))
-        ba_slug = request.GET.get("businessarea", "All")
+        ba_pk = request.GET.get("businessarea", "All")
 
         # Get the search term
         search_term = request.GET.get("searchTerm")
@@ -373,8 +372,9 @@ class Projects(APIView):
                     | Q(keywords__icontains=search_term)
                 )
 
-        if ba_slug != "All":
-            projects = projects.filter(business_area__slug=ba_slug)
+        if ba_pk != "All":
+            # print(ba_pk)
+            projects = projects.filter(business_area__pk=ba_pk)
 
         status_slug = request.GET.get("projectstatus", "All")
         if status_slug != "All":
