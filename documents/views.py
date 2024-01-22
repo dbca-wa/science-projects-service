@@ -2633,6 +2633,300 @@ class DocApproval(APIView):
         )
         if ser.is_valid():
             u_document = ser.save()
+            if u_document.kind == "concept" and (stage == 3 or stage == "3"):
+                # Create a fresh document with type of project plan =====================
+                # Get the project id
+                project_pk = document.project.pk
+                kind = "projectplan"
+                document_serializer = ProjectDocumentCreateSerializer(
+                    data={
+                        "old_id": 1,
+                        "kind": kind,
+                        "status": "new",
+                        "project": project_pk,
+                        "creator": req.user.pk,
+                        "modifier": req.user.pk,
+                    }
+                )
+
+                if document_serializer.is_valid():
+                    with transaction.atomic():
+                        projplanmaindoc = document_serializer.save()
+                                        # Create a project plan
+
+                        project_plan_data_object = {
+                            "document": projplanmaindoc.pk,
+                            "project": project_pk,
+                            "background": "<p></p>",
+                            "methodology": "<p></p>",
+                            "aims": "<p></p>",
+                            "outcome": "<p></p>",
+                            "knowledge_transfer": "<p></p>",
+                            "listed_references": "<p></p>",
+                            "operating_budget":'<table class="table-light">\
+                <colgroup>\
+                <col>\
+                <col>\
+                <col>\
+                <col>\
+                </colgroup>\
+                <tbody>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Source</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 1</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 2</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 3</span>\
+                    </p>\
+                    </th>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">FTE Scientist</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">FTE Technical</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Equipment</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Vehicle</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Travel</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Other</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Total</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                </tbody>\
+            </table>',
+                            "operating_budget_external": '<table class="table-light">\
+                <colgroup>\
+                <col>\
+                <col>\
+                <col>\
+                <col>\
+                </colgroup>\
+                <tbody>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Source</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 1</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 2</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 3</span>\
+                    </p>\
+                    </th>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Overheads</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Equipment</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Vehicle</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Travel</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Other</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Total</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                </tbody>\
+            </table>',
+                            "related_projects": "<p></p>",
+                        }
+                        project_plan_serializer = ProjectPlanCreateSerializer(
+                            data=project_plan_data_object
+                        )
+
+                        if project_plan_serializer.is_valid():
+                            # with transaction.atomic():
+                            try:
+                                projplan = project_plan_serializer.save()
+                                endorsements = EndorsementCreationSerializer(
+                                    data={
+                                        "project_plan": projplan.pk,
+                                        "bm_endorsement_required": True,
+                                        "hc_endorsement_required": False,
+                                        # "dm_endorsement_required": True,
+                                        "ae_endorsement_required": False,
+                                        "bm_endorsement_provided": False,
+                                        "hc_endorsement_provided": False,
+                                        "ae_endorsement_provided": False,
+                                        # "dm_endorsement_provided": False,
+                                        "data_management": "<p></p>",
+                                        "no_specimens": "<p></p>",
+                                    }
+                                )
+                                if endorsements.is_valid():
+                                    endorsements.save()
+
+                                else:
+                                    settings.LOGGER.error(
+                                        f"endorsement error: {endorsements.errors}"
+                                    )
+                                    return Response(
+                                        endorsements.errors,
+                                        HTTP_400_BAD_REQUEST,
+                                    )
+
+                            except Exception as e:
+                                settings.LOGGER.error(msg=f"{e}")
+                                return Response(
+                                    e,
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                            u_document.project.status = Project.StatusChoices.PENDING
+                            u_document.project.save()
+                        else:
+                            settings.LOGGER.error(msg=f"{project_plan_serializer.errors}")
+                            return Response(
+                                project_plan_serializer.errors,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+
+
+                else:
+                    settings.LOGGER.error(msg=f"{document_serializer.errors}")
+                    return Response(
+                        document_serializer.errors,
+                        HTTP_400_BAD_REQUEST,
+                    )
+
             if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
                 u_document.project.status = Project.StatusChoices.ACTIVE
                 u_document.project.save()
