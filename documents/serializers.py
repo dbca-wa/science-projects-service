@@ -1,3 +1,4 @@
+from projects.models import Project
 from projects.serializers import ProjectSerializer, TinyProjectSerializer
 from users.serializers import TinyUserSerializer
 from .models import (
@@ -96,8 +97,28 @@ class TinyConceptPlanSerializer(serializers.ModelSerializer):
             "budget",
         ]
 
+class SuperSmallProjSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Project
+        fields = ["pk", "title", "kind",]
+
+class SuperSmallDocSerializer(serializers.ModelSerializer):
+
+    project = SuperSmallProjSerializer(read_only=True)
+
+    class Meta:
+        model = ProjectDocument
+        fields = [
+            "pk",
+            "project",
+        ]
+
 
 class TinyProjectPlanSerializer(serializers.ModelSerializer):
+
+    document = SuperSmallDocSerializer(read_only=True)
+
     class Meta:
         model = ProjectPlan
         fields = [
@@ -114,6 +135,17 @@ class TinyProjectPlanSerializer(serializers.ModelSerializer):
             "operating_budget_external",
             "related_projects",
         ]
+
+class MiniEndorsementSerializer(serializers.ModelSerializer):
+    project_plan = TinyProjectPlanSerializer(read_only=True)
+
+    class Meta:
+        model = Endorsement
+        fields = [
+            "pk",
+            "project_plan",
+        ]
+
 
 
 class TinyEndorsementSerializer(serializers.ModelSerializer):
@@ -132,8 +164,6 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
             "hc_endorsement_provided",
             "ae_endorsement_provided",
             "aec_pdf",
-            # "dm_endorsement_required",
-            # "dm_endorsement_provided",
         ]
 
 
@@ -422,6 +452,7 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
         ]
 
     def get_endorsements(self, obj):
+        print(obj)
         project_plan = obj
         endorsements = Endorsement.objects.get(project_plan=project_plan)
         return EndorsementSerializerForProjectPlanView(endorsements).data

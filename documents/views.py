@@ -30,7 +30,7 @@ from .models import (
     Endorsement,
     Publication,
 )
-from django.db.models import Q, F
+from django.db.models import Q, F, Prefetch
 
 from .serializers import (
     AnnualReportSerializer,
@@ -39,6 +39,7 @@ from .serializers import (
     EndorsementCreationSerializer,
     EndorsementSerializer,
     MiniAnnualReportSerializer,
+    MiniEndorsementSerializer,
     ProgressReportCreateSerializer,
     ProgressReportSerializer,
     ProjectClosureCreationSerializer,
@@ -1381,11 +1382,99 @@ class ProjectDocuments(APIView):
 #         )
 
 
+# class EndorsementsPendingMyAction(APIView):
+#     permission_classes = [IsAuthenticatedOrReadOnly]
+
+#     def get(self, req):
+#         settings.LOGGER.info(msg=f"{req.user} is getting endorsements pending action")
+#         is_bio = req.user.is_biometrician
+#         is_hc = req.user.is_herbarium_curator
+#         is_aec = req.user.is_aec
+#         is_superuser = req.user.is_superuser
+
+#         documents = []
+#         aec_input_required = []
+#         bm_input_required = []
+#         hc_input_required = []
+
+#         if is_bio or is_superuser or is_aec or is_hc:
+#             active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
+
+#             for project in active_projects:
+#                 project_docs = ProjectDocument.objects.filter(
+#                     project=project,
+#                     kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
+#                 ).all()
+#                 for doc in project_docs:
+#                     # find the related project plan
+#                     project_plan = ProjectPlan.objects.filter(document=doc).first()
+#                     print("PROJECT PLAN", project_plan)
+#                     endorsements = Endorsement.objects.filter(project_plan=project_plan).all()
+#                     if endorsements:
+#                         print("ENDORSEMENTS:", endorsements)
+#                         print("ENDORSEMENTS LEN :", len(endorsements))
+#                         if (
+#                             (is_bio or is_superuser)
+#                             and (endorsements[0].bm_endorsement_required)
+#                             and not (endorsements[0].bm_endorsement_provided)
+#                         ):
+#                             documents.append(doc)
+#                             bm_input_required.append(doc)
+#                         if (
+#                             (is_aec or is_superuser)
+#                             and (endorsements[0].ae_endorsement_required)
+#                             and not (endorsements[0].ae_endorsement_provided)
+#                         ):
+#                             documents.append(doc)
+#                             aec_input_required.append(doc)
+#                         if (
+#                             (is_hc or is_superuser)
+#                             and (endorsements[0].hc_endorsement_required)
+#                             and not (endorsements[0].hc_endorsement_provided)
+#                         ):
+#                             documents.append(doc)
+#                             hc_input_required.append(doc)
+
+
+#         filtered_aec_input_required = list(
+#             {doc.id: doc for doc in aec_input_required}.values()
+#         )
+#         filtered_bm_input_required = list(
+#             {doc.id: doc for doc in bm_input_required}.values()
+#         )
+#         filtered_hc_input_required = list(
+#             {doc.id: doc for doc in hc_input_required}.values()
+#         )
+
+#         data = {
+#             "aec": TinyProjectDocumentSerializer(
+#                 filtered_aec_input_required,
+#                 many=True,
+#                 context={"request": req},
+#             ).data,
+#             "bm": TinyProjectDocumentSerializer(
+#                 filtered_bm_input_required,
+#                 many=True,
+#                 context={"request": req},
+#             ).data,
+#             "hc": TinyProjectDocumentSerializer(
+#                 filtered_hc_input_required,
+#                 many=True,
+#                 context={"request": req},
+#             ).data,
+#         }
+
+#         return Response(
+#             data,
+#             status=HTTP_200_OK,
+#         )
+
 class EndorsementsPendingMyAction(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting endorsements pending action")
+
         is_bio = req.user.is_biometrician
         is_hc = req.user.is_herbarium_curator
         is_aec = req.user.is_aec
@@ -1396,73 +1485,57 @@ class EndorsementsPendingMyAction(APIView):
         bm_input_required = []
         hc_input_required = []
 
-        if is_bio or is_superuser or is_aec or is_hc:
-            active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
 
-            for project in active_projects:
-                project_docs = ProjectDocument.objects.filter(
-                    project=project,
-                    kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
-                ).all()
-                for doc in project_docs:
-                    # find the related project plan
-                    project_plan = ProjectPlan.objects.filter(document=doc).first()
-                    endorsements = Endorsement.objects.get(project_plan=project_plan)
-                    if (
-                        (is_bio or is_superuser)
-                        and (endorsements.bm_endorsement_required)
-                        and not (endorsements.bm_endorsement_provided)
-                    ):
-                        documents.append(doc)
-                        bm_input_required.append(doc)
-                    if (
-                        (is_aec or is_superuser)
-                        and (endorsements.ae_endorsement_required)
-                        and not (endorsements.ae_endorsement_provided)
-                    ):
-                        documents.append(doc)
-                        aec_input_required.append(doc)
-                    if (
-                        (is_hc or is_superuser)
-                        and (endorsements.hc_endorsement_required)
-                        and not (endorsements.hc_endorsement_provided)
-                    ):
-                        documents.append(doc)
-                        hc_input_required.append(doc)
+        # Construct Q objects based on conditions
+        q_bm = Q(bm_endorsement_required=True, bm_endorsement_provided=False) & (Q(bm_endorsement_required=True) if is_bio or is_superuser else Q())
+        q_ae = Q(ae_endorsement_required=True, ae_endorsement_provided=False) & (Q(ae_endorsement_required=True) if is_aec or is_superuser else Q())
+        q_hc = Q(hc_endorsement_required=True, hc_endorsement_provided=False) & (Q(hc_endorsement_required=True) if is_hc or is_superuser else Q())
 
-
-        filtered_aec_input_required = list(
-            {doc.id: doc for doc in aec_input_required}.values()
-        )
-        filtered_bm_input_required = list(
-            {doc.id: doc for doc in bm_input_required}.values()
-        )
-        filtered_hc_input_required = list(
-            {doc.id: doc for doc in hc_input_required}.values()
+        # Filter endorsements based on conditions
+        filtered_endorsements = Endorsement.objects.filter(
+            q_bm | q_ae | q_hc,
+            project_plan__project__status__in=Project.ACTIVE_ONLY
         )
 
+        for endorsement in filtered_endorsements:
+            print(endorsement)
+            if endorsement.bm_endorsement_required and not endorsement.bm_endorsement_provided:
+                documents.append(endorsement)
+                bm_input_required.append(endorsement)
+
+            if endorsement.ae_endorsement_required and not endorsement.ae_endorsement_provided:
+                documents.append(endorsement)
+                aec_input_required.append(endorsement)
+
+            if endorsement.hc_endorsement_required and not endorsement.hc_endorsement_provided:
+                documents.append(endorsement)
+                hc_input_required.append(endorsement)
+
+        all_aec = MiniEndorsementSerializer(
+                aec_input_required if aec_input_required else [],
+                many=True,
+                context={"request": req},
+            ).data
+        
+        all_bm = MiniEndorsementSerializer(
+                bm_input_required if bm_input_required else [],
+                many=True,
+                context={"request": req},
+            ).data
+
+        all_hc = MiniEndorsementSerializer(
+                hc_input_required if hc_input_required else [],
+                many=True,
+                context={"request": req},
+            ).data
+        
         data = {
-            "aec": TinyProjectDocumentSerializer(
-                filtered_aec_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "bm": TinyProjectDocumentSerializer(
-                filtered_bm_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "hc": TinyProjectDocumentSerializer(
-                filtered_hc_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
+            "aec": all_aec,
+            "bm": all_bm,
+            "hc": all_hc,
         }
 
-        return Response(
-            data,
-            status=HTTP_200_OK,
-        )
+        return Response(data, status=HTTP_200_OK)
 
 
 class ProjectDocsPendingMyActionStageOne(APIView):
@@ -1758,144 +1831,138 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         ba_input_required = []
         directorate_input_required = []
 
-        user_work = UserWork.objects.get(user=req.user.pk)
-        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+        small_user_object = User.objects.filter(pk=req.user.pk).first()
 
-        # Business Area Lead Task Filtering
-        for project in active_projects:
-            if project.business_area != None:
-                ba_id = project.business_area.leader.id
-                if ba_id == req.user.id:
-                    is_business_area_lead = True
+        if small_user_object and small_user_object.work.business_area:
+            # user_work = UserWork.objects.get(user=req.user.pk)
+            is_directorate = small_user_object.work.business_area.name = "Directorate" or req.user.is_superuser
+
+            active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+
+            # Check if the user is a leader of any business area
+            business_areas_led = small_user_object.business_areas_led.values_list('id', flat=True)
+            is_ba_leader = len(business_areas_led) >= 1
+
+            if is_ba_leader:
+                print("Is ba lead")
+
+                # filter further for only projects which the user leads
+                ba_projects = active_projects.filter(business_area__pk__in=business_areas_led).all()
+
+                # Extract project IDs for Business Area
+                ba_project_ids = ba_projects.values_list('id', flat=True)
+
+                # Fetch all documents requiring BA attention in a single query
+                docs_requiring_ba_attention = ProjectDocument.objects.exclude(
+                    status=ProjectDocument.StatusChoices.APPROVED
+                ).filter(
+                    project__in=ba_project_ids,
+                    project_lead_approval_granted=True,
+                    business_area_lead_approval_granted=False,
+                ).all()
+
+                # Append the documents to the respective lists
+                documents.extend(docs_requiring_ba_attention)
+                ba_input_required.extend(docs_requiring_ba_attention)
+
+
+    
+
+            # Directorate Filtering
+            if is_directorate:
+                # Extract project IDs for Directorate
+                directorate_project_ids = active_projects.values_list('id', flat=True)
+
+                # Fetch all documents requiring Directorate attention in a single query
+                docs_requiring_directorate_attention = ProjectDocument.objects.exclude(
+                    status=ProjectDocument.StatusChoices.APPROVED
+                ).filter(
+                    project__in=directorate_project_ids,
+                    business_area_lead_approval_granted=True,
+                    directorate_approval_granted=False,
+                ).all()
+
+                # Append the documents to the respective lists
+                documents.extend(docs_requiring_directorate_attention)
+                directorate_input_required.extend(docs_requiring_directorate_attention)
+
+
+            # Lead Filtering
+            all_leader_memberships = ProjectMember.objects.filter(
+                project__in=active_projects, user=small_user_object, is_leader=True
+            ).select_related('project')
+
+            # Extract project IDs for projects where the user is a lead
+            lead_project_ids = [membership.project_id for membership in all_leader_memberships]
+
+            # Fetch all documents requiring lead attention in a single query
+            docs_requiring_lead_attention = ProjectDocument.objects.exclude(
+                status=ProjectDocument.StatusChoices.APPROVED
+            ).filter(
+                project__in=lead_project_ids,
+                project_lead_approval_granted=False,
+            ).all()
+
+            # Separate the documents based on lead and member input
+            for doc in docs_requiring_lead_attention:
+                documents.append(doc)
+                if doc.project_id in lead_project_ids:
+                    pl_input_required.append(doc)
                 else:
-                    is_business_area_lead = False
-                if is_business_area_lead == True:
-                    projects_docs = (
-                        ProjectDocument.objects.filter(project=project)
-                        .exclude(status=ProjectDocument.StatusChoices.APPROVED)
-                        .all()
-                    )
-                    for doc in projects_docs:
-                        if (doc.project_lead_approval_granted == True) and (
-                            doc.business_area_lead_approval_granted == False
-                        ):
-                            documents.append(doc)
-                            ba_input_required.append(doc)
-            else:
-                filename = "activeProjectsWithoutBAs.txt"
+                    member_input_required.append(doc)
 
-                # Read existing content from the file
-                with open(filename, "r") as file:
-                    existing_content = file.read()
-                # Check if the content already exists
-                if f"{project.pk} | {project.title}\n" not in existing_content:
-                    # Append to the file
-                    with open(filename, "a") as file:
-                        file.write(f"{project.pk} | {project.title}\n")
+            filtered_documents = list({doc.id: doc for doc in documents}.values())
+            filtered_pm_input_required = list(
+                {doc.id: doc for doc in member_input_required}.values()
+            )
+            filtered_pl_input_required = list(
+                {doc.id: doc for doc in pl_input_required}.values()
+            )
+            filtered_ba_input_required = list(
+                {doc.id: doc for doc in ba_input_required}.values()
+            )
+            filtered_directorate_input_required = list(
+                {doc.id: doc for doc in directorate_input_required}.values()
+            )
 
-        # Directorate Filtering
-        if user_work.business_area is not None:
-            is_directorate = user_work.business_area.name == "Directorate"
+            ser = TinyProjectDocumentSerializer(
+                filtered_documents,
+                many=True,
+                context={"request": req},
+            )
+
+            data = {
+                "all": ser.data,
+                "team": TinyProjectDocumentSerializer(
+                    filtered_pm_input_required,
+                    many=True,
+                    context={"request": req},
+                ).data,
+                "lead": TinyProjectDocumentSerializer(
+                    filtered_pl_input_required,
+                    many=True,
+                    context={"request": req},
+                ).data,
+                "ba": TinyProjectDocumentSerializer(
+                    filtered_ba_input_required,
+                    many=True,
+                    context={"request": req},
+                ).data,
+                "directorate": TinyProjectDocumentSerializer(
+                    filtered_directorate_input_required,
+                    many=True,
+                    context={"request": req},
+                ).data,
+            }
+
+            return Response(
+                data,
+                status=HTTP_200_OK,
+            )
         else:
-            is_directorate = False
-        if is_directorate:
-            for project in active_projects:
-                projects_docs = (
-                    ProjectDocument.objects.filter(project=project)
-                    .exclude(status=ProjectDocument.StatusChoices.APPROVED)
-                    .all()
-                )
-                for doc in projects_docs:
-                    if (doc.business_area_lead_approval_granted == True) and (
-                        doc.directorate_approval_granted == False
-                    ):
-                        documents.append(doc)
-                        directorate_input_required.append(doc)
-
-        # Lead Filtering
-        all_leader_memberships = []
-        all_memberships = []
-        for project in active_projects:
-            membership = ProjectMember.objects.filter(project=project, user=req.user)
-            if membership.exists():
-                all_memberships.append(membership.first())
-                lead_membership = membership.filter(is_leader=True)
-                if lead_membership.exists():
-                    all_leader_memberships.append(lead_membership.first())
-        if len(all_memberships) >= 1:
-            for membershipp in all_memberships:
-                related_project = membershipp.project
-                if related_project in active_projects:
-                    if membershipp in all_leader_memberships:
-                        # Handle lead membership
-                        project_docs_without_lead_approval = (
-                            ProjectDocument.objects.filter(
-                                project=related_project,
-                                project_lead_approval_granted=False,
-                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
-                        )
-                        for doc in project_docs_without_lead_approval:
-                            documents.append(doc)
-                            pl_input_required.append(doc)
-                    else:
-                        # Handle ordinary membership
-                        project_docs_requiring_member_input = (
-                            ProjectDocument.objects.filter(
-                                project=related_project,
-                                project_lead_approval_granted=False,
-                            ).exclude(status=ProjectDocument.StatusChoices.APPROVED)
-                        )
-                        for doc in project_docs_requiring_member_input:
-                            documents.append(doc)
-                            member_input_required.append(doc)
-
-        filtered_documents = list({doc.id: doc for doc in documents}.values())
-        filtered_pm_input_required = list(
-            {doc.id: doc for doc in member_input_required}.values()
-        )
-        filtered_pl_input_required = list(
-            {doc.id: doc for doc in pl_input_required}.values()
-        )
-        filtered_ba_input_required = list(
-            {doc.id: doc for doc in ba_input_required}.values()
-        )
-        filtered_directorate_input_required = list(
-            {doc.id: doc for doc in directorate_input_required}.values()
-        )
-
-        ser = TinyProjectDocumentSerializer(
-            filtered_documents,
-            many=True,
-            context={"request": req},
-        )
-
-        data = {
-            "all": ser.data,
-            "team": TinyProjectDocumentSerializer(
-                filtered_pm_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "lead": TinyProjectDocumentSerializer(
-                filtered_pl_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "ba": TinyProjectDocumentSerializer(
-                filtered_ba_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-            "directorate": TinyProjectDocumentSerializer(
-                filtered_directorate_input_required,
-                many=True,
-                context={"request": req},
-            ).data,
-        }
-
-        return Response(
-            data,
-            status=HTTP_200_OK,
+            data = {"all": [], "team": [], "lead": [], "ba": [], "directorate": []}
+            return Response (
+            data, status=HTTP_200_OK,
         )
 
 

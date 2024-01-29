@@ -100,6 +100,8 @@ class Task(CommonModel):
         "users.User",
         on_delete=models.CASCADE,
         related_name="tasks",
+        db_index=True,
+
     )
     project = models.ForeignKey(
         "projects.Project",

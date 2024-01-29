@@ -442,15 +442,6 @@ class ProjectPlan(models.Model):
         help_text="Describe the study design and statistical analysis.",
     )
 
-    # involves_plants = models.BooleanField(
-    #     default=False,
-    #     help_text="Tick to indicate that this project will collect plant specimens, which will require endorsement by the Herbarium Curator.",
-    # )
-
-    # involves_animals = models.BooleanField(
-    #     default=False,
-    #     help_text="Tick to indicate that this project will involve direct interaction with animals, which will require endorsement by the Animal Ethics Committee.",
-    # )
 
     operating_budget = models.TextField(
         blank=True,
@@ -700,6 +691,18 @@ class ProjectPlan(models.Model):
         null=True,
         help_text="Name related SPPs and the extent you have consulted with their project leaders",
     )
+
+
+    # involves_plants = models.BooleanField(
+    #     default=False,
+    #     help_text="Tick to indicate that this project will collect plant specimens, which will require endorsement by the Herbarium Curator.",
+    # )
+
+    # involves_animals = models.BooleanField(
+    #     default=False,
+    #     help_text="Tick to indicate that this project will involve direct interaction with animals, which will require endorsement by the Animal Ethics Committee.",
+    # )
+
 
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
@@ -1039,6 +1042,8 @@ class Endorsement(models.Model):
         null=True,
         help_text="Describe how and where data will be maintained, archived, cataloged. Read DBCA guideline 16.",
     )
+
+    
 
     def __str__(self) -> str:
         return f"ENDORSEMENTS - {self.project_plan}"

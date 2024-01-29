@@ -209,38 +209,9 @@ class MyTasks(APIView):
             )
 
         # Fetch tasks that belong to the authenticated user (req.user) and order by date added
-        tasks = Task.objects.filter(user=req.user).order_by("-created_at")
-
-
-        # Split the tasks into separate arrays based on their status
-        tasks_by_status = {
-            "done": [],
-            "todo": [],
-            "inprogress": [],
-        }
-
-        for task in tasks:
-            status = (
-                task.status
-                # task.get_status_display()
-            )  # Get the human-readable status from choices
-            if status in tasks_by_status:
-                tasks_by_status[status].append(task)
-
-        # Serialize the tasks in each array using TinyTaskSerializer
-        tasks_data = {
-            "done": TinyTaskSerializer(
-                tasks_by_status["done"], many=True, context={"request": req}
-            ).data,
-            "todo": TinyTaskSerializer(
-                tasks_by_status["todo"], many=True, context={"request": req}
-            ).data,
-            "inprogress": TinyTaskSerializer(
-                tasks_by_status["inprogress"], many=True, context={"request": req}
-            ).data,
-        }
+        tasks = Task.objects.select_related('user').filter(user=req.user).order_by("-created_at")
 
         return Response(
-            tasks_data,
+            TinyTaskSerializer(tasks, many=True).data,
             status=HTTP_200_OK,
         )
