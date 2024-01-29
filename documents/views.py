@@ -1844,8 +1844,6 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             is_ba_leader = len(business_areas_led) >= 1
 
             if is_ba_leader:
-                print("Is ba lead")
-
                 # filter further for only projects which the user leads
                 ba_projects = active_projects.filter(business_area__pk__in=business_areas_led).all()
 
