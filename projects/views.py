@@ -75,8 +75,8 @@ from .serializers import (
     TinyProjectDetailSerializer,
     TinyProjectMemberSerializer,
     TinyProjectSerializer,
-    TinyResearchFunctionSerializer,
-    ResearchFunctionSerializer,
+    # TinyResearchFunctionSerializer,
+    # ResearchFunctionSerializer,
     TinyStudentProjectDetailSerializer,
 )
 
@@ -87,7 +87,7 @@ from .models import (
     ProjectDetail,
     ProjectArea,
     ProjectMember,
-    ResearchFunction,
+    # ResearchFunction,
     StudentProjectDetails,
 )
 import csv
@@ -100,81 +100,81 @@ from datetime import datetime as dt
 # RESEARCH FUNCTIONS ==========================================================================================
 
 
-class ResearchFunctions(APIView):
-    def get(self, req):
-        all = ResearchFunction.objects.all()
-        ser = TinyResearchFunctionSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
+# class ResearchFunctions(APIView):
+#     def get(self, req):
+#         all = ResearchFunction.objects.all()
+#         ser = TinyResearchFunctionSerializer(
+#             all,
+#             many=True,
+#         )
+#         return Response(
+#             ser.data,
+#             status=HTTP_200_OK,
+#         )
 
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is creating a research function")
-        ser = ResearchFunctionSerializer(
-            data=req.data,
-        )
-        if ser.is_valid():
-            rf = ser.save()
-            return Response(
-                TinyResearchFunctionSerializer(rf).data,
-                status=HTTP_201_CREATED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                HTTP_400_BAD_REQUEST,
-            )
+#     def post(self, req):
+#         settings.LOGGER.info(msg=f"{req.user} is creating a research function")
+#         ser = ResearchFunctionSerializer(
+#             data=req.data,
+#         )
+#         if ser.is_valid():
+#             rf = ser.save()
+#             return Response(
+#                 TinyResearchFunctionSerializer(rf).data,
+#                 status=HTTP_201_CREATED,
+#             )
+#         else:
+#             settings.LOGGER.error(msg=f"{ser.errors}")
+#             return Response(
+#                 ser.errors,
+#                 HTTP_400_BAD_REQUEST,
+#             )
 
 
-class ResearchFunctionDetail(APIView):
-    def go(self, pk):
-        try:
-            obj = ResearchFunction.objects.get(pk=pk)
-        except ResearchFunction.DoesNotExist:
-            raise NotFound
-        return obj
+# class ResearchFunctionDetail(APIView):
+#     def go(self, pk):
+#         try:
+#             obj = ResearchFunction.objects.get(pk=pk)
+#         except ResearchFunction.DoesNotExist:
+#             raise NotFound
+#         return obj
 
-    def get(self, req, pk):
-        rf = self.go(pk)
-        ser = ResearchFunctionSerializer(rf)
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
+#     def get(self, req, pk):
+#         rf = self.go(pk)
+#         ser = ResearchFunctionSerializer(rf)
+#         return Response(
+#             ser.data,
+#             status=HTTP_200_OK,
+#         )
 
-    def delete(self, req, pk):
-        rf = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting research function: {rf}")
-        rf.delete()
-        return Response(
-            status=HTTP_204_NO_CONTENT,
-        )
+#     def delete(self, req, pk):
+#         rf = self.go(pk)
+#         settings.LOGGER.info(msg=f"{req.user} is deleting research function: {rf}")
+#         rf.delete()
+#         return Response(
+#             status=HTTP_204_NO_CONTENT,
+#         )
 
-    def put(self, req, pk):
-        rf = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating research function: {rf}")
-        ser = ResearchFunctionSerializer(
-            rf,
-            data=req.data,
-            partial=True,
-        )
-        if ser.is_valid():
-            urf = ser.save()
-            return Response(
-                TinyResearchFunctionSerializer(urf).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.error}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
+#     def put(self, req, pk):
+#         rf = self.go(pk)
+#         settings.LOGGER.info(msg=f"{req.user} is updating research function: {rf}")
+#         ser = ResearchFunctionSerializer(
+#             rf,
+#             data=req.data,
+#             partial=True,
+#         )
+#         if ser.is_valid():
+#             urf = ser.save()
+#             return Response(
+#                 TinyResearchFunctionSerializer(urf).data,
+#                 status=HTTP_202_ACCEPTED,
+#             )
+#         else:
+#             settings.LOGGER.error(msg=f"{ser.error}")
+#             return Response(
+#                 ser.errors,
+#                 status=HTTP_400_BAD_REQUEST,
+#             )
 
 
 # PROJECTS =================================================================================================
@@ -476,7 +476,7 @@ class Projects(APIView):
 
         # Extract into individual values for the details
         business_area = data.get("businessArea")
-        research_function = data.get("researchFunction")
+        # research_function = data.get("researchFunction")
         departmental_service = data.get("departmentalService")
         data_custodian = data.get("dataCustodian")
         supervising_scientist = data.get("supervisingScientist")
@@ -613,7 +613,7 @@ class Projects(APIView):
                     "service": departmental_service,
                     "data_custodian": data_custodian,
                     # site_custodian:,
-                    "research_function": research_function,
+                    # "research_function": research_function,
                 }
 
                 project_detail_ser = ProjectDetailSerializer(
@@ -1100,7 +1100,7 @@ class ProjectDetails(APIView):
             end_date = None
 
         service = req.data.get("service")
-        research_function = req.data.get("research_function")
+        # research_function = req.data.get("research_function")
         business_area = req.data.get("business_area")
 
         updated_base_proj_data = {
@@ -1120,7 +1120,7 @@ class ProjectDetails(APIView):
         updated_proj_detail_data = {
             key: value
             for key, value in {
-                "research_function": research_function,
+                # "research_function": research_function,
                 "service": service,
                 "data_custodian": data_custodian,
                 "modifier": req.user.pk,

@@ -1363,112 +1363,6 @@ class ProjectDocuments(APIView):
             )
 
 
-# class ProjectDocsPendingApproval(APIView):
-#     permission_classes = [IsAuthenticatedOrReadOnly]
-
-#     def get(self, req):
-#         all_docs_pending_approval = ProjectDocument.objects.filter(
-#             status=ProjectDocument.StatusChoices.INAPPROVAL,
-#             business_area_lead_approval_granted=True,
-#         ).all()
-#         ser = TinyProjectDocumentSerializer(
-#             all_docs_pending_approval,
-#             many=True,
-#             context={"request": req},
-#         )
-#         return Response(
-#             ser.data,
-#             status=HTTP_200_OK,
-#         )
-
-
-# class EndorsementsPendingMyAction(APIView):
-#     permission_classes = [IsAuthenticatedOrReadOnly]
-
-#     def get(self, req):
-#         settings.LOGGER.info(msg=f"{req.user} is getting endorsements pending action")
-#         is_bio = req.user.is_biometrician
-#         is_hc = req.user.is_herbarium_curator
-#         is_aec = req.user.is_aec
-#         is_superuser = req.user.is_superuser
-
-#         documents = []
-#         aec_input_required = []
-#         bm_input_required = []
-#         hc_input_required = []
-
-#         if is_bio or is_superuser or is_aec or is_hc:
-#             active_projects = Project.objects.exclude(status=Project.ACTIVE_ONLY).all()
-
-#             for project in active_projects:
-#                 project_docs = ProjectDocument.objects.filter(
-#                     project=project,
-#                     kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
-#                 ).all()
-#                 for doc in project_docs:
-#                     # find the related project plan
-#                     project_plan = ProjectPlan.objects.filter(document=doc).first()
-#                     print("PROJECT PLAN", project_plan)
-#                     endorsements = Endorsement.objects.filter(project_plan=project_plan).all()
-#                     if endorsements:
-#                         print("ENDORSEMENTS:", endorsements)
-#                         print("ENDORSEMENTS LEN :", len(endorsements))
-#                         if (
-#                             (is_bio or is_superuser)
-#                             and (endorsements[0].bm_endorsement_required)
-#                             and not (endorsements[0].bm_endorsement_provided)
-#                         ):
-#                             documents.append(doc)
-#                             bm_input_required.append(doc)
-#                         if (
-#                             (is_aec or is_superuser)
-#                             and (endorsements[0].ae_endorsement_required)
-#                             and not (endorsements[0].ae_endorsement_provided)
-#                         ):
-#                             documents.append(doc)
-#                             aec_input_required.append(doc)
-#                         if (
-#                             (is_hc or is_superuser)
-#                             and (endorsements[0].hc_endorsement_required)
-#                             and not (endorsements[0].hc_endorsement_provided)
-#                         ):
-#                             documents.append(doc)
-#                             hc_input_required.append(doc)
-
-
-#         filtered_aec_input_required = list(
-#             {doc.id: doc for doc in aec_input_required}.values()
-#         )
-#         filtered_bm_input_required = list(
-#             {doc.id: doc for doc in bm_input_required}.values()
-#         )
-#         filtered_hc_input_required = list(
-#             {doc.id: doc for doc in hc_input_required}.values()
-#         )
-
-#         data = {
-#             "aec": TinyProjectDocumentSerializer(
-#                 filtered_aec_input_required,
-#                 many=True,
-#                 context={"request": req},
-#             ).data,
-#             "bm": TinyProjectDocumentSerializer(
-#                 filtered_bm_input_required,
-#                 many=True,
-#                 context={"request": req},
-#             ).data,
-#             "hc": TinyProjectDocumentSerializer(
-#                 filtered_hc_input_required,
-#                 many=True,
-#                 context={"request": req},
-#             ).data,
-#         }
-
-#         return Response(
-#             data,
-#             status=HTTP_200_OK,
-#         )
-
 class EndorsementsPendingMyAction(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -1498,7 +1392,6 @@ class EndorsementsPendingMyAction(APIView):
         )
 
         for endorsement in filtered_endorsements:
-            print(endorsement)
             if endorsement.bm_endorsement_required and not endorsement.bm_endorsement_provided:
                 documents.append(endorsement)
                 bm_input_required.append(endorsement)
@@ -3003,8 +2896,8 @@ class DocApproval(APIView):
                 # find the closure matching
                 closure_doc = ProjectClosure.objects.get(document=u_document)
                 outcome = closure_doc.intended_outcome
-                if outcome == "forcecompleted":
-                    outcome = "completed"
+                # if outcome == "force_completed":
+                #     outcome = "completed"
                 u_document.project.status = outcome
                 u_document.project.save()
 

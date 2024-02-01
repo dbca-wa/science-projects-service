@@ -5,7 +5,7 @@ from .models import (
     ExternalProjectDetails,
     Project,
     ProjectArea,
-    ResearchFunction,
+    # ResearchFunction,
     ProjectMember,
     ProjectDetail,
     StudentProjectDetails,
@@ -41,25 +41,25 @@ class ProjectAdmin(admin.ModelAdmin):
     ordering = ["title"]
 
 
-@admin.register(ResearchFunction)
-class ResearchFunctionAdmin(admin.ModelAdmin):
-    list_display = [
-        "name",
-        "description",
-        "leader",
-        "is_active",
-    ]
+# @admin.register(ResearchFunction)
+# class ResearchFunctionAdmin(admin.ModelAdmin):
+#     list_display = [
+#         "name",
+#         "description",
+#         "leader",
+#         "is_active",
+#     ]
 
-    list_filter = [
-        "is_active",
-    ]
+#     list_filter = [
+#         "is_active",
+#     ]
 
-    search_fields = [
-        "name",
-        "description",
-    ]
+#     search_fields = [
+#         "name",
+#         "description",
+#     ]
 
-    ordering = ["name"]
+#     ordering = ["name"]
 
 
 @admin.register(ProjectArea)
@@ -240,9 +240,9 @@ class ProjectDetailAdmin(admin.ModelAdmin):
         "project__title",
     ]
 
-    list_filter = [
-        "research_function",
-    ]
+    # list_filter = [
+    #     "research_function",
+    # ]
 
     ordering = ["project__title"]
 

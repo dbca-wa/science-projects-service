@@ -12,44 +12,44 @@ from bs4 import BeautifulSoup
 # ------------------------------
 
 
-# DONE
-class ResearchFunction(CommonModel):
-    """
-    Model Definition for Research Function
+# # DONE
+# class ResearchFunction(CommonModel):
+#     """
+#     Model Definition for Research Function
 
-    """
+#     """
 
-    name = models.CharField(max_length=150, unique=True)
-    description = models.TextField(
-        null=True,
-        blank=True,
-    )
-    association = models.TextField(
-        null=True,
-        blank=True,
-        help_text="The research function's association with departmental programs/divisions.",
-    )
-    leader = models.ForeignKey(
-        "users.User",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="research_functions_led",
-        verbose_name="Function Leader",
-        help_text="The scientist in charge of the Research Function",
-    )
-    is_active = models.BooleanField(
-        default=False,
-        help_text="Whether this research function has been deprecated or not.",
-    )
-    old_id = models.BigIntegerField()
+#     name = models.CharField(max_length=150, unique=True)
+#     description = models.TextField(
+#         null=True,
+#         blank=True,
+#     )
+#     association = models.TextField(
+#         null=True,
+#         blank=True,
+#         help_text="The research function's association with departmental programs/divisions.",
+#     )
+#     leader = models.ForeignKey(
+#         "users.User",
+#         null=True,
+#         blank=True,
+#         on_delete=models.SET_NULL,
+#         related_name="research_functions_led",
+#         verbose_name="Function Leader",
+#         help_text="The scientist in charge of the Research Function",
+#     )
+#     is_active = models.BooleanField(
+#         default=False,
+#         help_text="Whether this research function has been deprecated or not.",
+#     )
+#     old_id = models.BigIntegerField()
 
-    class Meta:
-        verbose_name = "Research Function"
-        verbose_name_plural = "Research Functions"
+#     class Meta:
+#         verbose_name = "Research Function"
+#         verbose_name_plural = "Research Functions"
 
-    def __str__(self) -> str:
-        return f"{self.name}"
+#     def __str__(self) -> str:
+#         return f"{self.name}"
 
 
 # ------------------------------
@@ -358,12 +358,12 @@ class ProjectDetail(CommonModel):
         null=True,
     )
 
-    research_function = models.ForeignKey(
-        "projects.ResearchFunction",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
+    # research_function = models.ForeignKey(
+    #     "projects.ResearchFunction",
+    #     blank=True,
+    #     null=True,
+    #     on_delete=models.SET_NULL,
+    # )
 
     service = models.ForeignKey(
         "agencies.DepartmentalService",

@@ -10,7 +10,7 @@ from .models import (
     ProjectArea,
     ProjectDetail,
     ProjectMember,
-    ResearchFunction,
+    # ResearchFunction,
     StudentProjectDetails,
 )
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
@@ -18,23 +18,23 @@ from rest_framework import serializers
 from rest_framework.response import Response
 
 
-class TinyResearchFunctionSerializer(ModelSerializer):
-    class Meta:
-        model = ResearchFunction
-        fields = (
-            "pk",
-            "name",
-            "description",
-            "leader",
-            "association",
-            "is_active",
-        )
+# class TinyResearchFunctionSerializer(ModelSerializer):
+#     class Meta:
+#         model = ResearchFunction
+#         fields = (
+#             "pk",
+#             "name",
+#             "description",
+#             "leader",
+#             "association",
+#             "is_active",
+#         )
 
 
-class ResearchFunctionSerializer(ModelSerializer):
-    class Meta:
-        model = ResearchFunction
-        fields = "__all__"
+# class ResearchFunctionSerializer(ModelSerializer):
+#     class Meta:
+#         model = ResearchFunction
+#         fields = "__all__"
 
 
 class CreateProjectSerializer(ModelSerializer):
@@ -154,7 +154,7 @@ class ProjectMemberSerializer(ModelSerializer):
 
 class ProjectDetailViewSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
-    research_function = SerializerMethodField(read_only=True)
+    # research_function = SerializerMethodField(read_only=True)
     service = SerializerMethodField(read_only=True)
     creator = SerializerMethodField(read_only=True)
     modifier = SerializerMethodField(read_only=True)
@@ -175,14 +175,14 @@ class ProjectDetailViewSerializer(ModelSerializer):
             }
         return None
 
-    def get_research_function(self, obj):
-        research_function = obj.research_function
-        if research_function:
-            return {
-                "pk": research_function.pk,
-                "name": research_function.name,
-            }
-        return None
+    # def get_research_function(self, obj):
+    #     research_function = obj.research_function
+    #     if research_function:
+    #         return {
+    #             "pk": research_function.pk,
+    #             "name": research_function.name,
+    #         }
+    #     return None
 
     def get_service(self, obj):
         service = obj.service
@@ -261,14 +261,14 @@ class ProjectDetailSerializer(ModelSerializer):
             }
         return None
 
-    def get_research_function(self, obj):
-        research_function = obj.research_function
-        if research_function:
-            return {
-                "pk": research_function.pk,
-                "name": research_function.name,
-            }
-        return None
+    # def get_research_function(self, obj):
+    #     research_function = obj.research_function
+    #     if research_function:
+    #         return {
+    #             "pk": research_function.pk,
+    #             "name": research_function.name,
+    #         }
+    #     return None
 
     def get_service(self, obj):
         service = obj.service
@@ -327,7 +327,7 @@ class ProjectDetailSerializer(ModelSerializer):
 
 class TinyProjectDetailSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
-    research_function = SerializerMethodField(read_only=True)
+    # research_function = SerializerMethodField(read_only=True)
     creator = SerializerMethodField(read_only=True)
     modifier = SerializerMethodField(read_only=True)
     owner = SerializerMethodField(read_only=True)
@@ -344,7 +344,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
             "owner",
             "data_custodian",
             "site_custodian",
-            "research_function",
+            # "research_function",
         )
 
     def get_project(self, obj):
@@ -356,14 +356,14 @@ class TinyProjectDetailSerializer(ModelSerializer):
             }
         return None
 
-    def get_research_function(self, obj):
-        research_function = obj.research_function
-        if research_function:
-            return {
-                "pk": research_function.pk,
-                "name": research_function.name,
-            }
-        return None
+    # def get_research_function(self, obj):
+    #     research_function = obj.research_function
+    #     if research_function:
+    #         return {
+    #             "pk": research_function.pk,
+    #             "name": research_function.name,
+    #         }
+    #     return None
 
     def get_creator(self, obj):
         user = obj.creator
@@ -410,14 +410,14 @@ class TinyProjectDetailSerializer(ModelSerializer):
             }
         return None
 
-    def get_research_function(self, obj):
-        research_function = obj.research_function
-        if research_function:
-            return {
-                "pk": research_function.pk,
-                "name": research_function.name,
-            }
-        return None
+    # def get_research_function(self, obj):
+    #     research_function = obj.research_function
+    #     if research_function:
+    #         return {
+    #             "pk": research_function.pk,
+    #             "name": research_function.name,
+    #         }
+    #     return None
 
 
 class StudentProjectDetailSerializer(ModelSerializer):

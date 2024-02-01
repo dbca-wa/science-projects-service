@@ -722,37 +722,37 @@ class Loader:
             )
             return user_id
 
-    def spms_get_research_function_by_old_id(self, connection, cursor, old_id):
-        try:
-            # cursor = connection.cursor()
+    # def spms_get_research_function_by_old_id(self, connection, cursor, old_id):
+    #     try:
+    #         # cursor = connection.cursor()
 
-            # Construct the SQL query
-            sql = """
-                SELECT id FROM projects_researchfunction WHERE old_id = %s
-            """
+    #         # Construct the SQL query
+    #         sql = """
+    #             SELECT id FROM projects_researchfunction WHERE old_id = %s
+    #         """
 
-            old_id = int(old_id)
+    #         old_id = int(old_id)
 
-            # Execute the query with the user name
-            cursor.execute(sql, (old_id,))
+    #         # Execute the query with the user name
+    #         cursor.execute(sql, (old_id,))
 
-            # Fetch the result
-            result = cursor.fetchone()
+    #         # Fetch the result
+    #         result = cursor.fetchone()
 
-            if result:
-                rf_id = result[0]  # Return the user ID
-        except Exception as e:
-            self.misc.nli(
-                f"{self.misc.bcolors.FAIL}Error retrieving Research function: {str(e)}{self.misc.bcolors.ENDC}"
-            )
-            # Rollback the transaction
-            connection.rollback()
-            return None
-        else:
-            self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}Research function retrieved ({rf_id})!{self.misc.bcolors.ENDC}"
-            )
-            return rf_id
+    #         if result:
+    #             rf_id = result[0]  # Return the user ID
+    #     except Exception as e:
+    #         self.misc.nli(
+    #             f"{self.misc.bcolors.FAIL}Error retrieving Research function: {str(e)}{self.misc.bcolors.ENDC}"
+    #         )
+    #         # Rollback the transaction
+    #         connection.rollback()
+    #         return None
+    #     else:
+    #         self.misc.nls(
+    #             f"{self.misc.bcolors.OKGREEN}Research function retrieved ({rf_id})!{self.misc.bcolors.ENDC}"
+    #         )
+    #         return rf_id
 
     def spms_get_superuser(self, connection, cursor):
         # connection.autocommit = False
@@ -2102,7 +2102,7 @@ class Loader:
         self.spms_create_users()  # populate users
 
         self.spms_set_correct_user_ids()
-        self.spms_create_dbca_research_functions()  # populate research functions (with users)
+        # self.spms_create_dbca_research_functions()  # populate research functions (with users)
         self.spms_create_dbca_divisions()  # create the divisions that programs belong to
         self.spms_create_dbca_departmental_services()  # populate departmental services (with users)
         self.spms_create_quotes()  # Creates quotes from unique_quotes.txt file
@@ -3608,221 +3608,221 @@ class Loader:
         #     print("Business Area Load operation finished.")
         pass
 
-    def spms_create_dbca_research_functions(self):
-        self.misc.nls(
-            f"{self.misc.bcolors.OKBLUE}Creating DBCA Research Functions...{self.misc.bcolors.ENDC}"
-        )
+    # def spms_create_dbca_research_functions(self):
+    #     self.misc.nls(
+    #         f"{self.misc.bcolors.OKBLUE}Creating DBCA Research Functions...{self.misc.bcolors.ENDC}"
+    #     )
 
-        # Load the research functions file into a data frame
-        try:
-            file_path = self.os.path.join(
-                self.file_handler.clean_directory, "projects_researchfunction.csv"
-            )
-            rf_df = self.file_handler.read_csv_and_prepare_df(file_path)
-        except Exception as e:
-            self.misc.nli(f"{self.misc.bcolors.FAIL}Error: {e}{self.misc.bcolors.ENDC}")
-        else:
-            print(f"{self.misc.bcolors.OKGREEN}File loaded!{self.misc.bcolors.ENDC}")
+    #     # Load the research functions file into a data frame
+    #     try:
+    #         file_path = self.os.path.join(
+    #             self.file_handler.clean_directory, "projects_researchfunction.csv"
+    #         )
+    #         rf_df = self.file_handler.read_csv_and_prepare_df(file_path)
+    #     except Exception as e:
+    #         self.misc.nli(f"{self.misc.bcolors.FAIL}Error: {e}{self.misc.bcolors.ENDC}")
+    #     else:
+    #         print(f"{self.misc.bcolors.OKGREEN}File loaded!{self.misc.bcolors.ENDC}")
 
-        # Establishing connection:
-        (
-            cursor,
-            connection,
-        ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-        connection.autocommit = False
+    #     # Establishing connection:
+    #     (
+    #         cursor,
+    #         connection,
+    #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+    #     connection.autocommit = False
 
-        # # Get the user with the name "jp" if it exists
-        # superuser_id = self.spms_get_superuser(connection=connection, cursor=cursor)
+    #     # # Get the user with the name "jp" if it exists
+    #     # superuser_id = self.spms_get_superuser(connection=connection, cursor=cursor)
 
-        # # Get the DBCA Agency
-        # dbca_id = self.spms_get_dbca_agency(connection=connection, cursor=cursor)
+    #     # # Get the DBCA Agency
+    #     # dbca_id = self.spms_get_dbca_agency(connection=connection, cursor=cursor)
 
-        # Get the current date and time
-        current_datetime = dt.now()
+    #     # Get the current date and time
+    #     current_datetime = dt.now()
 
-        # Establish columns we want to use in workcenter df
-        rf_columns = rf_df[
-            [
-                "id",
-                "name",
-                "description",
-                "leader_id",
-                "association",
-                "active",
-            ]
-        ]
+    #     # Establish columns we want to use in workcenter df
+    #     rf_columns = rf_df[
+    #         [
+    #             "id",
+    #             "name",
+    #             "description",
+    #             "leader_id",
+    #             "association",
+    #             "active",
+    #         ]
+    #     ]
 
-        # Insert data from the DataFrame into the RF model
-        # Try the Query
-        print(
-            f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
-        )
+    #     # Insert data from the DataFrame into the RF model
+    #     # Try the Query
+    #     print(
+    #         f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
+    #     )
 
-        # Construct the SQL query
-        sql = """
-            BEGIN;
-            INSERT INTO projects_researchfunction (
-                old_id, created_at, updated_at, name, description, leader_id, association, is_active
-            ) VALUES (%s, %s, %s, %s, %s,%s, %s, %s);
-            COMMIT;
-        """
+    #     # Construct the SQL query
+    #     sql = """
+    #         BEGIN;
+    #         INSERT INTO projects_researchfunction (
+    #             old_id, created_at, updated_at, name, description, leader_id, association, is_active
+    #         ) VALUES (%s, %s, %s, %s, %s,%s, %s, %s);
+    #         COMMIT;
+    #     """
 
-        # Create an entry for each branch in the csv
-        for index, research_function in rf_columns.iterrows():
-            print(
-                f"{self.misc.bcolors.WARNING}Creating entry for {research_function['name']}...{self.misc.bcolors.ENDC}"
-            )
+    #     # Create an entry for each branch in the csv
+    #     for index, research_function in rf_columns.iterrows():
+    #         print(
+    #             f"{self.misc.bcolors.WARNING}Creating entry for {research_function['name']}...{self.misc.bcolors.ENDC}"
+    #         )
 
-            # Get the new leader if there was an old one
-            if self.pd.isna(research_function["leader_id"]):
-                new_leader_id = None
-            else:
-                new_leader_id = self.spms_get_user_by_old_id(
-                    connection=connection,
-                    cursor=cursor,
-                    old_id=research_function["leader_id"],
-                )
+    #         # Get the new leader if there was an old one
+    #         if self.pd.isna(research_function["leader_id"]):
+    #             new_leader_id = None
+    #         else:
+    #             new_leader_id = self.spms_get_user_by_old_id(
+    #                 connection=connection,
+    #                 cursor=cursor,
+    #                 old_id=research_function["leader_id"],
+    #             )
 
-            try:
-                # Start a transaction
-                cursor = connection.cursor()
+    #         try:
+    #             # Start a transaction
+    #             cursor = connection.cursor()
 
-                cursor.execute(
-                    sql,
-                    (
-                        research_function["id"],  # old_id,
-                        current_datetime,
-                        current_datetime,
-                        research_function["name"],
-                        None
-                        if self.pd.isna(research_function["description"])
-                        else research_function["description"],
-                        new_leader_id,  # leader id based on old pk
-                        None
-                        if self.pd.isna(research_function["association"])
-                        else research_function["association"],
-                        research_function["active"],
-                    ),
-                )
+    #             cursor.execute(
+    #                 sql,
+    #                 (
+    #                     research_function["id"],  # old_id,
+    #                     current_datetime,
+    #                     current_datetime,
+    #                     research_function["name"],
+    #                     None
+    #                     if self.pd.isna(research_function["description"])
+    #                     else research_function["description"],
+    #                     new_leader_id,  # leader id based on old pk
+    #                     None
+    #                     if self.pd.isna(research_function["association"])
+    #                     else research_function["association"],
+    #                     research_function["active"],
+    #                 ),
+    #             )
 
-            except Exception as e:
-                self.misc.nli(
-                    f"{self.misc.bcolors.FAIL}Error creating DBCA RF ({research_function['name']}): {str(e)}{self.misc.bcolors.ENDC}"
-                )
-                # Print the complete traceback information
-                traceback_str = traceback.format_exc()
-                print(traceback_str)
-                # Rollback the transaction
-                connection.rollback()
+    #         except Exception as e:
+    #             self.misc.nli(
+    #                 f"{self.misc.bcolors.FAIL}Error creating DBCA RF ({research_function['name']}): {str(e)}{self.misc.bcolors.ENDC}"
+    #             )
+    #             # Print the complete traceback information
+    #             traceback_str = traceback.format_exc()
+    #             print(traceback_str)
+    #             # Rollback the transaction
+    #             connection.rollback()
 
-            else:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}DBCA RF ({research_function['name']}) Created!{self.misc.bcolors.ENDC}"
-                )
+    #         else:
+    #             self.misc.nls(
+    #                 f"{self.misc.bcolors.OKGREEN}DBCA RF ({research_function['name']}) Created!{self.misc.bcolors.ENDC}"
+    #             )
 
-            finally:
-                connection.commit()
+    #         finally:
+    #             connection.commit()
 
-        # TODO: At the end of all operations remove old_id & old_director_id from divisions table in django
+    #     # TODO: At the end of all operations remove old_id & old_director_id from divisions table in django
 
-        # Commit the changes and close the cursor and connection
-        cursor.close()
-        connection.close()
+    #     # Commit the changes and close the cursor and connection
+    #     cursor.close()
+    #     connection.close()
 
-        print("RF Load operation finished.")
+    #     print("RF Load operation finished.")
 
-        # def spms_create_business_areas(self):
-        #     BusinessArea = self.import_model("agencies", "BusinessArea")
-        #     agency = self.import_model("agencies", "agency")
-        #     User = self.import_model("users", "User")
-        #     BusinessAreaPhoto = self.import_model("medias", "BusinessAreaPhoto")
+    #     # def spms_create_business_areas(self):
+    #     #     BusinessArea = self.import_model("agencies", "BusinessArea")
+    #     #     agency = self.import_model("agencies", "agency")
+    #     #     User = self.import_model("users", "User")
+    #     #     BusinessAreaPhoto = self.import_model("medias", "BusinessAreaPhoto")
 
-        #     # Load the file into a data frame
-        #     file_path = self.os.path.join(
-        #         self.file_handler.clean_directory, "pythia_program.csv"
-        #     )
-        #     df = self.file_handler.read_csv_and_prepare_df(file_path)
+    #     #     # Load the file into a data frame
+    #     #     file_path = self.os.path.join(
+    #     #         self.file_handler.clean_directory, "pythia_program.csv"
+    #     #     )
+    #     #     df = self.file_handler.read_csv_and_prepare_df(file_path)
 
-        #     # Display the columns available in file
-        #     self.display_columns_available_in_df(df)
+    #     #     # Display the columns available in file
+    #     #     self.display_columns_available_in_df(df)
 
-        #     # Check if continuing with these columns or not
-        #     df = self.alter_column_check(df)
+    #     #     # Check if continuing with these columns or not
+    #     #     df = self.alter_column_check(df)
 
-        #     # Establish DB connection
-        #     (
-        #         cursor,
-        #         connection,
-        #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+    #     #     # Establish DB connection
+    #     #     (
+    #     #         cursor,
+    #     #         connection,
+    #     #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
 
-        #     # Get the agency with the name "DBCA" if it exists
-        #     try:
-        #         dbca_agency = agency.objects.get(name="DBCA")
-        #     except agency.DoesNotExist:
-        #         # If the agency does not exist, create it
-        #         user, _ = User.objects.get_or_create(
-        #             email="jarid.prince@dbca.wa.gov.au", username="jp"
-        #         )
-        #         user.set_password("1")
-        #         user.is_superuser = True
-        #         user.is_staff = True
-        #         user.save()
+    #     #     # Get the agency with the name "DBCA" if it exists
+    #     #     try:
+    #     #         dbca_agency = agency.objects.get(name="DBCA")
+    #     #     except agency.DoesNotExist:
+    #     #         # If the agency does not exist, create it
+    #     #         user, _ = User.objects.get_or_create(
+    #     #             email="jarid.prince@dbca.wa.gov.au", username="jp"
+    #     #         )
+    #     #         user.set_password("1")
+    #     #         user.is_superuser = True
+    #     #         user.is_staff = True
+    #     #         user.save()
 
-        #         dbca_agency = agency.objects.create(name="DBCA", key_stakeholder=user)
+    #     #         dbca_agency = agency.objects.create(name="DBCA", key_stakeholder=user)
 
-        #     # Insert data from the DataFrame into the BusinessArea model
-        #     try:
-        #         for row in df.itertuples(index=False):
-        #             # Calculate the current year
-        #             current_year = dt.now().year
+    #     #     # Insert data from the DataFrame into the BusinessArea model
+    #     #     try:
+    #     #         for row in df.itertuples(index=False):
+    #     #             # Calculate the current year
+    #     #             current_year = dt.now().year
 
-        #             # Create the BusinessArea object
-        #             business_area = BusinessArea(
-        #                 old_pk=row.id,
-        #                 agency_id=dbca_agency.id,
-        #                 name=row.name,
-        #                 slug=row.slug,
-        #                 published=row.published,
-        #                 is_active=row.is_active,
-        #                 leader=row.leader_id,
-        #                 finance_admin=row.finance_admin_id,
-        #                 data_custodian=row.data_custodian_id,
-        #                 focus=row.focus,
-        #                 introduction=row.introduction,
-        #                 image=None
-        #                 # image=row.image,
-        #             )
+    #     #             # Create the BusinessArea object
+    #     #             business_area = BusinessArea(
+    #     #                 old_pk=row.id,
+    #     #                 agency_id=dbca_agency.id,
+    #     #                 name=row.name,
+    #     #                 slug=row.slug,
+    #     #                 published=row.published,
+    #     #                 is_active=row.is_active,
+    #     #                 leader=row.leader_id,
+    #     #                 finance_admin=row.finance_admin_id,
+    #     #                 data_custodian=row.data_custodian_id,
+    #     #                 focus=row.focus,
+    #     #                 introduction=row.introduction,
+    #     #                 image=None
+    #     #                 # image=row.image,
+    #     #             )
 
-        #             business_area.save()
+    #     #             business_area.save()
 
-        #             # Save the BusinessArea object first
-        #             business_area.save()
+    #     #             # Save the BusinessArea object first
+    #     #             business_area.save()
 
-        #             # Create or get the BusinessAreaPhoto object
-        #             business_area_photo, created = BusinessAreaPhoto.objects.get_or_create(
-        #                 file=row.image,
-        #                 defaults={
-        #                     "year": current_year,
-        #                     "business_area": business_area,
-        #                     "uploader": dbca_agency.key_stakeholder,
-        #                 },
-        #             )
+    #     #             # Create or get the BusinessAreaPhoto object
+    #     #             business_area_photo, created = BusinessAreaPhoto.objects.get_or_create(
+    #     #                 file=row.image,
+    #     #                 defaults={
+    #     #                     "year": current_year,
+    #     #                     "business_area": business_area,
+    #     #                     "uploader": dbca_agency.key_stakeholder,
+    #     #                 },
+    #     #             )
 
-        #             # Assign the BusinessAreaPhoto to the BusinessArea
-        #             business_area.image = business_area_photo
-        #             business_area.save()
+    #     #             # Assign the BusinessAreaPhoto to the BusinessArea
+    #     #             business_area.image = business_area_photo
+    #     #             business_area.save()
 
-        #     except Exception as e:
-        #         print(e)
+    #     #     except Exception as e:
+    #     #         print(e)
 
-        #     # Commit the changes and close the cursor and connection
-        #     connection.commit()
-        #     cursor.close()
-        #     connection.close()
+    #     #     # Commit the changes and close the cursor and connection
+    #     #     connection.commit()
+    #     #     cursor.close()
+    #     #     connection.close()
 
-        #     print("Business Area Load operation finished.")
+    #     #     print("Business Area Load operation finished.")
 
-        pass
+    #     pass
 
     def spms_create_dbca_divisions(self):
         self.misc.nls(
@@ -4361,7 +4361,6 @@ class Loader:
                 "team_list_plain",
                 "supervising_scientist_list_plain",
                 # FK &                 # Area Information
-                "research_function_id",
                 "program_id",
                 "output_program_id",
                 "image",
@@ -4371,6 +4370,8 @@ class Loader:
                 "area_list_nrm_region",
             ]
         ]
+                        # "research_function_id",
+
 
         # ======================================================================================
 
@@ -4585,6 +4586,8 @@ class Loader:
 
             if project["status"] == "closure requested":
                 new_status = "closure_requested"
+            elif project["status"] == "final update":
+                new_status = "final_update"
             else:
                 new_status = project["status"]
             try:
@@ -5335,11 +5338,12 @@ class Loader:
                 owner_id,
                 data_custodian_id,
                 site_custodian_id,
-                research_function_id,
                 old_output_program_id
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
+                        # research_function_id,
+
         # service_id,
 
         # area list and superivsing scientist list removed
@@ -5389,15 +5393,15 @@ class Loader:
                     connection=connection,
                 )
             )
-            new_research_function_id = (
-                None
-                if self.pd.isna(df_project["research_function_id"])
-                else self.spms_get_research_function_by_old_id(
-                    old_id=df_project["research_function_id"],
-                    cursor=cursor,
-                    connection=connection,
-                )
-            )
+            # new_research_function_id = (
+            #     None
+            #     if self.pd.isna(df_project["research_function_id"])
+            #     else self.spms_get_research_function_by_old_id(
+            #         old_id=df_project["research_function_id"],
+            #         cursor=cursor,
+            #         connection=connection,
+            #     )
+            # )
 
             # new_service_id = (
             #     None
@@ -5415,37 +5419,37 @@ class Loader:
                 else int(df_project["output_program_id"])
             )
 
-            if new_research_function_id == None:
-                filename = "ProjectsWithNoRFs.txt"
-                rfs_dir = os.path.join(self.django_project_path, filename)
-                if not os.path.exists(rfs_dir):
-                    with open(rfs_dir, "w") as file:
-                        pass
-                # Read existing content from the file
-                with open(rfs_dir, "r", encoding="utf-8") as file:
-                    existing_content = file.read()
-                # Check if the content already exists
-                if (
-                    f"https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n"
-                    not in existing_content
-                ):
-                    # Get the project lead nasme
-                    lead_name = self.spms_get_user_name_old_id(
-                        connection=connection,
-                        cursor=cursor,
-                        old_id=df_project["project_owner_id"],
-                    )
-                    title = df_project["title"]
-                    status = df_project["status"]
-                    # Get the project title
-                    # project_title = self.spms_get_project_title_by_
-                    # Append to the file
-                    with open(rfs_dir, "a", encoding="utf-8") as file:
-                        file.write(
-                            f"{lead_name}\n{status}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n"
-                        )
-                else:
-                    print("Content already exists in the file.")
+            # if new_research_function_id == None:
+            #     filename = "ProjectsWithNoRFs.txt"
+            #     rfs_dir = os.path.join(self.django_project_path, filename)
+            #     if not os.path.exists(rfs_dir):
+            #         with open(rfs_dir, "w") as file:
+            #             pass
+            #     # Read existing content from the file
+            #     with open(rfs_dir, "r", encoding="utf-8") as file:
+            #         existing_content = file.read()
+            #     # Check if the content already exists
+            #     if (
+            #         f"https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n"
+            #         not in existing_content
+            #     ):
+            #         # Get the project lead nasme
+            #         lead_name = self.spms_get_user_name_old_id(
+            #             connection=connection,
+            #             cursor=cursor,
+            #             old_id=df_project["project_owner_id"],
+            #         )
+            #         title = df_project["title"]
+            #         status = df_project["status"]
+            #         # Get the project title
+            #         # project_title = self.spms_get_project_title_by_
+            #         # Append to the file
+            #         with open(rfs_dir, "a", encoding="utf-8") as file:
+            #             file.write(
+            #                 f"{lead_name}\n{status}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n"
+            #             )
+            #     else:
+            #         print("Content already exists in the file.")
 
             # Start a transaction
             cursor = connection.cursor()
@@ -5460,10 +5464,11 @@ class Loader:
                     new_project_owner_id,
                     new_data_custodian_id,
                     new_site_custodian_id,
-                    new_research_function_id,  # description
                     # new_service_id,
                     old_output_program_id,
                 ),
+                                    # new_research_function_id,
+
             )
         except Exception as e:
             self.misc.nli(
@@ -5483,9 +5488,9 @@ class Loader:
                     {new_project_owner_id}\n,\
                     {new_data_custodian_id}\n,\
                     {new_site_custodian_id}\n,\
-                    {new_research_function_id}\n, \
                     {old_output_program_id}\n,"
             )
+                                # {new_research_function_id}\n, \
             # Rollback the transaction
             connection.rollback()
 
@@ -7489,7 +7494,7 @@ class Loader:
                     (
                         document_id,
                         new_proj_id,
-                        intended_outcome,
+                        intended_outcome if intended_outcome is not "force_completed" else "completed",
                         reason,
                         scientific_outputs,
                         knowledge_transfer,
