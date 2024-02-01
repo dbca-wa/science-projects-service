@@ -378,7 +378,10 @@ class Projects(APIView):
 
         status_slug = request.GET.get("projectstatus", "All")
         if status_slug != "All":
-            projects = projects.filter(status=status_slug)
+            if status_slug == "unknown":
+                projects = projects.exclude(status__in=Project.StatusChoices.values)
+            else:
+                projects = projects.filter(status=status_slug)
 
         kind_slug = request.GET.get("projectkind", "All")
         if kind_slug != "All":
