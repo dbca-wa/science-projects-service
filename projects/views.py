@@ -2038,17 +2038,45 @@ class DownloadAllProjectsAsCSV(APIView):
             # writer.writerow(["-----", "Projects", "-----"])
 
             # Get field names
-            field_names = [field.name for field in Project._meta.fields]
+            # field_names = [field.name for field in Project._meta.fields]
+            # id, created_at, updated_at, old_id, kind, status, year, number, title, description, tagline, keywords, start_date, end_date, business_area
 
-            # Write CSV headers (CoreFunctionProject)
-            writer.writerow(field_names)
+            # NEEDS TO BECOME In this order
+            # id, status, kind, year, title, ba, ba leader, team names (comma separated), cost_center, start_date, end_date
+            # Define custom field names in the desired order
+            custom_field_names = ['ID', 'Status', 'Type', 'Year', 'Title', 'Business Area', 'Business Area Leader', 'Team Members', 'Cost Center ID', 'Start Date', 'End Date']
+
+            # 'cost_center',
+            # Write CSV headers
+            writer.writerow(custom_field_names)
 
             # Write project data rows
             for project in projects:
-                row = [getattr(project, field) for field in field_names]
+                row = [
+                    project.pk,
+                    project.status,
+                    project.kind,
+                    project.year,
+                    project.title,
+                    project.business_area,
+                    project.business_area.leader if project.business_area else "",  # Assuming business_area has a leader attribute
+                    ', '.join([f'{project_member.user.first_name} {project_member.user.last_name}' for project_member in project.members.all()]),  # Assuming team_names is a related field with ManyToMany relationship
+                    project.business_area.cost_center if project.business_area else "",
+                    project.start_date,
+                    project.end_date
+                ]
                 writer.writerow(row)
 
             return res
+            # Write CSV headers (CoreFunctionProject)
+            # writer.writerow(field_names)
+
+            # Write project data rows
+            # for project in projects:
+            #     row = [getattr(project, field) for field in field_names]
+            #     writer.writerow(row)
+
+            # return res
 
         # If server is down or otherwise error
         except Exception as e:
