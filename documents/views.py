@@ -426,6 +426,35 @@ class Reports(APIView):
                 settings.LOGGER.error(msg=f"{new_project_document.errors}")
                 return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
 
+
+    def get_prepopulation_data_from_last_report(self, year):
+
+        data_object = {
+            "dm": "",
+            "service_delivery_intro": "",
+            "research_intro": "",
+            "student_intro": "",
+            "publications": "",
+        }
+
+        # Use the year parameter to search for the first AnnualReport that comes prior to the given year. 
+        # Whilst this sometimes may be the prior year, sometimes the prior year's report doesnt exist, so just get the year that is closest and which comes before.
+        # If there is such a report, prepopulate the data object, otherwise leave it as is.
+        # Use the year parameter to find the closest previous report
+        previous_year = AnnualReport.objects.filter(year__lt=year).aggregate(Max('year'))['year__max']
+
+        if previous_year is not None:
+            # If there is a report from the previous year, fetch its data
+            previous_report = AnnualReport.objects.get(year=previous_year)
+            data_object["dm"] = previous_report.dm
+            data_object["service_delivery_intro"] = previous_report.service_delivery_intro
+            data_object["research_intro"] = previous_report.research_intro
+            data_object["student_intro"] = previous_report.student_intro
+            data_object["publications"] = previous_report.publications
+
+
+        return data_object
+
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is creating a report.")
         year = req.data.get("year")
@@ -441,14 +470,14 @@ class Reports(APIView):
             "year": year,
             "date_open": date_open,
             "date_closed": date_closed,
-            "dm": "",
-            "publications": "",
-            "research_intro": "",
-            "service_delivery_intro": "",
-            "student_intro": "",
             "creator": creator,
             "modifier": modifier,
         }
+
+        additional_data = self.get_prepopulation_data_from_last_report(year)
+
+        creation_data.update(additional_data)
+
 
         ser = AnnualReportSerializer(
             data={**creation_data},
@@ -1263,26 +1292,47 @@ class ProjectDocuments(APIView):
                     year = req.data.get("year")
                     project = req.data.get("project")
 
+
+
+                    def get_prepopulation_data_from_last_report(year, project):
+                        data_object = {
+                            "context": "",
+                            "aims": "",
+                            "progress": "",
+                            "implications": "",
+                            "future": "",
+                        }
+
+                        # Use the year parameter to search for the first ProgressReport that comes prior to the given year.
+                        # Whilst this sometimes may be the prior year, sometimes the prior year's report doesnt exist, so just get the year that is closest and which comes before.
+                        progress_reports_for_this_project = ProgressReport.objects.filter(project=project).all()
+                        previous_year = progress_reports_for_this_project.filter(year__lt=year).aggregate(Max('year'))['year__max']
+
+                        print(previous_year)
+
+                        if previous_year is not None:
+                            # If there is a report from the previous year, fetch its data
+                            previous_report = progress_reports_for_this_project.get(year=previous_year)
+                            print(previous_report)
+                            data_object["context"] = previous_report.context
+                            data_object["aims"] = previous_report.aims
+                            data_object["progress"] = previous_report.progress
+                            data_object["implications"] = previous_report.implications
+                            data_object["future"] = previous_report.future
+
+                        return data_object
+                    last_reports_data = get_prepopulation_data_from_last_report(year, project)
+
                     progress_report_data_object = {
                         "document": doc.pk,
                         "report": report_id,
                         "project": project,
                         "year": year,
-                        "context": req.data.get("context")
-                        if req.data.get("context") is not None
-                        else "<p></p>",
-                        "implications": req.data.get("implications")
-                        if req.data.get("implications") is not None
-                        else "<p></p>",
-                        "future": req.data.get("future")
-                        if req.data.get("future") is not None
-                        else "<p></p>",
-                        "progress": req.data.get("progress")
-                        if req.data.get("progress") is not None
-                        else "<p></p>",
-                        "aims": req.data.get("aims")
-                        if req.data.get("aims") is not None
-                        else "<p></p>",
+                        "context": last_reports_data["context"],
+                        "implications": last_reports_data["implications"],
+                        "future": last_reports_data["future"],
+                        "progress": last_reports_data["progress"],
+                        "aims": last_reports_data["aims"],
                         "is_final_report": req.data.get("is_final_report")
                         if req.data.get("is_final_report") is not None
                         else False,
@@ -1317,14 +1367,35 @@ class ProjectDocuments(APIView):
                     report_id = req.data.get("report")
                     report = AnnualReport.objects.get(pk=report_id)
 
+
+                    def get_prepopulation_data_from_last_report(year, project):
+                        data_object = {
+                            "progress_report": "",
+                        }
+
+                        # Use the year parameter to search for the first ProgressReport that comes prior to the given year.
+                        # Whilst this sometimes may be the prior year, sometimes the prior year's report doesnt exist, so just get the year that is closest and which comes before.
+                        student_reports_for_this_project = StudentReport.objects.filter(project=project).all()
+                        previous_year = student_reports_for_this_project.filter(year__lt=year).aggregate(Max('year'))['year__max']
+
+                        print(previous_year)
+
+                        if previous_year is not None:
+                            # If there is a report from the previous year, fetch its data
+                            previous_report = student_reports_for_this_project.get(year=previous_year)
+                            print(previous_report)
+                            data_object["progress_report"] = previous_report.progress_report
+
+                        return data_object
+                    
+                    last_reports_data = get_prepopulation_data_from_last_report(report.year, project)
+
                     student_report_data_object = {
                         "document": doc.pk,
                         "report": report.pk,
                         "project": project,
                         "year": report.year,
-                        "progress_report": req.data.get("progress_report")
-                        if req.data.get("progress_report") is not None
-                        else "<p></p>",
+                        "progress_report": last_reports_data["progress_report"]
                     }
                     print(student_report_data_object)
                     sr_serializer = StudentReportCreateSerializer(
