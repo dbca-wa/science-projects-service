@@ -308,6 +308,135 @@ class DownloadAnnualReport(APIView):
         pass
 
 
+class BatchApprove(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, req):
+        settings.LOGGER.warning(msg=f"{req.user} is attempting to batch approve reports...")
+        if (req.user.is_superuser == False):
+            return Response(
+                {
+                    "error": "You don't have permission to do that!"
+                },
+                HTTP_401_UNAUTHORIZED,
+            )
+        
+        # Get the last report with the highest year
+        last_report = AnnualReport.objects.order_by('-year').first()
+
+        # Handle the case where no report is found
+        if not last_report:
+            return Response(
+                {
+                    "error": "No annual report found!"
+                },
+                status=HTTP_404_NOT_FOUND,
+            )
+        
+        relevant_docs_belonging_to_last_report_awaiting_final_approval = ProjectDocument.objects.filter(
+            Q(kind="studentreport") | Q(kind="progressreport"),
+            project_lead_approval_granted=True,
+            business_area_lead_approval_granted=True,
+            directorate_approval_granted=False,
+        ).exclude(
+            project__status__in=["suspended", "terminated", "completed", "closing", "closure_requested"],
+        ).all()
+
+        try:
+            for doc in relevant_docs_belonging_to_last_report_awaiting_final_approval:
+                # FIRST ENSURE THEY BELONG TO THE ANNUAL REPORT BY FINDING THE YEAR ON EACH MODEL
+                if doc.kind == "studentreport":
+                    sr_obj = StudentReport.objects.filter(report=last_report).first()
+                    if sr_obj:
+                        doc.directorate_approval_granted = True
+                        doc.project.status = Project.StatusChoices.ACTIVE
+                        doc.save()                
+                elif doc.kind == "progressreport":
+                    pr_obj = ProgressReport.objects.filter(report=last_report).first()
+                    if pr_obj:
+                        doc.directorate_approval_granted = True
+                        doc.project.status = Project.StatusChoices.ACTIVE
+                        doc.save()
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response(
+                str(e),
+                HTTP_400_BAD_REQUEST,
+            )
+        else:
+            settings.LOGGER.info(msg=f"Reports have been batch approved for year {last_report.year}")
+            return Response(
+                "Success",
+                HTTP_202_ACCEPTED,
+            )
+        
+class BatchApproveOld(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, req):
+        settings.LOGGER.warning(msg=f"{req.user} is attempting to batch approve older reports...")
+        if (req.user.is_superuser == False):
+            return Response(
+                {
+                    "error": "You don't have permission to do that!"
+                },
+                HTTP_401_UNAUTHORIZED,
+            )
+        
+        # Get the last report with the highest year
+        last_report = AnnualReport.objects.order_by('-year').first()
+
+        # Handle the case where no report is found
+        if not last_report:
+            return Response(
+                {
+                    "error": "No annual reports found!"
+                },
+                status=HTTP_404_NOT_FOUND,
+            )
+        
+        relevant_docs_belonging_to_reports_other_than_last_report = ProjectDocument.objects.filter(
+            Q(kind="studentreport") | Q(kind="progressreport"),
+            directorate_approval_granted=False,
+        ).exclude(
+            project__status__in=["suspended", "terminated", "completed"],
+        ).all()
+
+        try:
+            for doc in relevant_docs_belonging_to_reports_other_than_last_report:
+                # FIRST ENSURE THEY BELONG TO THE ANNUAL REPORT BY FINDING THE YEAR ON EACH MODEL
+                if doc.kind == "studentreport":
+                    sr_obj = StudentReport.objects.filter(document=doc.id).first()
+                    if sr_obj and sr_obj.report != last_report:
+                        doc.directorate_approval_granted = True
+                        doc.project.status = Project.StatusChoices.ACTIVE
+                        doc.save()                
+                elif doc.kind == "progressreport":
+                    pr_obj = ProgressReport.objects.filter(document=doc.id).first()
+                    if pr_obj and pr_obj.report != last_report:
+                        doc.directorate_approval_granted = True
+                        doc.project.status = Project.StatusChoices.ACTIVE
+                        doc.save()
+
+            for doc in relevant_docs_belonging_to_reports_other_than_last_report:
+                doc.project_lead_approval_granted = True
+                doc.business_area_lead_approval_granted = True
+                doc.directorate_approval_granted = True
+                doc.project.status = Project.StatusChoices.ACTIVE
+                doc.save()
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response(
+                str(e),
+                HTTP_400_BAD_REQUEST,
+            )
+        else:
+            settings.LOGGER.info(msg=f"Reports have been batch approved for annual report documents before year: {last_report.year}")
+            return Response(
+                "Success",
+                HTTP_202_ACCEPTED,
+            )
+
+
 class Reports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -2960,6 +3089,9 @@ class DocApproval(APIView):
                 u_document.project.status = Project.StatusChoices.UPDATING
                 u_document.project.save()
             if u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.ACTIVE
+                u_document.project.save()
+            if u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
                 u_document.project.status = Project.StatusChoices.ACTIVE
                 u_document.project.save()
             if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):

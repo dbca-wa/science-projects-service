@@ -2024,7 +2024,7 @@ class ExternalProjects(APIView):
 
 class DownloadAllProjectsAsCSV(APIView):
     def get(self, req):
-        # TODO: Make it join with the other project-related tables.
+        settings.LOGGER.info(msg=f"{req.user} is generating a csv of projects...")
         try:
             # Retrieve projects data from the database
             projects = Project.objects.all()

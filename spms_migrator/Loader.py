@@ -5735,28 +5735,38 @@ class Loader:
         ]
 
         # Establish how status will be remapped (if necessary)
-        statuses = [
-            # For brand new docs
-            {"new": "new"},  # "New document"
-            # For when a doc is sent back for revision or a change made to new doc
-            {"revising": "revising"},  # Revising
-            # For when a revised/new doc is in review
-            {"inreview": "inreview"},  # In Review
-            # For when the revised doc is approved by reviewer, and finally sent to directorate
-            {"inapproval": "inapproval"},  # Seeking Approval
-            # When a doc receives final approval. Only progress reports in this state added to report
-            {"approved": "approved"},  # Approved
-        ]
+  
 
         # Helper function to reallocate values to status based on statuses dict
-        def set_new_status(old_status, created, updated):
-            for status in statuses:
-                if old_status in status:
-                    new_status = status[old_status]
-                    if new_status == "new" and created < updated:
-                        return "revising"
-                    return new_status
-            return None  # Handle the case when no matching status is found
+        def set_new_status(old_status):
+            if old_status == None:
+                return "new"
+            else:
+                # if old_status == "new" and created < updated:
+                #         return "revising"
+                return old_status
+            # statuses = [
+            #     # For brand new docs
+            #     {"new": "new"},  # "New document"
+            #     # For when a doc is sent back for revision or a change made to new doc
+            #     {"revising": "revising"},  # Revising
+            #     # For when a revised/new doc is in review
+            #     {"inreview": "inreview"},  # In Review
+            #     # For when the revised doc is approved by reviewer, and finally sent to directorate
+            #     {"inapproval": "inapproval"},  # Seeking Approval
+            #     # When a doc receives final approval. Only progress reports in this state added to report
+            #     {"approved": "approved"},  # Approved
+            # ]
+
+            # for item in statuses:
+            #     if old_status in status_dict:
+            #         new_status = status_dict[old_status]
+            #         if new_status == "new" and created < updated:
+            #             return "revising"
+            #         return new_status
+
+            # print(old_status)
+            # return None  # Handle the case when no matching status is found
 
         # Joining on id, to create new dataframes for each document file.
         # ======================================================================================
@@ -6058,8 +6068,8 @@ class Loader:
             )
             status = set_new_status(
                 old_status=concept_plan["status"],
-                created=created_at,
-                updated=updated_at,
+                # created=created_at,
+                # updated=updated_at,
             )
             creator = self.spms_get_user_by_old_id(
                 cursor=cursor,
@@ -6125,7 +6135,7 @@ class Loader:
                 print(created_at)
                 print(updated_at)
                 print(new_proj_id)
-                print(status)
+                print(concept_plan["status"])
                 print(kind)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Concept Plan Base (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
@@ -6326,8 +6336,8 @@ class Loader:
             )
             status = set_new_status(
                 old_status=project_plan["status"],
-                created=created_at,
-                updated=updated_at,
+                # created=created_at,
+                # updated=updated_at,
             )
             creator = self.spms_get_user_by_old_id(
                 cursor=cursor,
@@ -6801,8 +6811,8 @@ class Loader:
             )
             status = set_new_status(
                 old_status=progress_report["status"],
-                created=created_at,
-                updated=updated_at,
+                # created=created_at,
+                # updated=updated_at,
             )
             creator = self.spms_get_user_by_old_id(
                 cursor=cursor,
@@ -7098,8 +7108,8 @@ class Loader:
             )
             status = set_new_status(
                 old_status=student_report["status"],
-                created=created_at,
-                updated=updated_at,
+                # created=created_at,
+                # updated=updated_at,
             )
             creator = self.spms_get_user_by_old_id(
                 cursor=cursor,
@@ -7341,8 +7351,8 @@ class Loader:
             )
             status = set_new_status(
                 old_status=proj_closure["status"],
-                created=created_at,
-                updated=updated_at,
+                # created=created_at,
+                # updated=updated_at,
             )
             creator = self.spms_get_user_by_old_id(
                 cursor=cursor,
@@ -7359,12 +7369,19 @@ class Loader:
                 cursor=cursor,
                 connection=connection,
             )
+
+            # Get project to check status
+            
+
             # status = proj_closure["status"]
             kind = "projectclosure"
             pdf = None if self.pd.isna(proj_closure["pdf"]) else proj_closure["pdf"]
 
             pdf_generation_in_progress = False
-            directorate_approval_granted = True if status == "approved" else False
+            if status != "approved":
+                directorate_approval_granted = False
+            else:
+                directorate_approval_granted = True
             business_area_lead_approval_granted = (
                 True
                 if (directorate_approval_granted) or status == "inapproval"
@@ -7489,12 +7506,14 @@ class Loader:
                     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
                     COMMIT;
                 """
+                if intended_outcome == "force_completed":
+                    intended_outcome = "completed"
                 cursor.execute(
                     project_closure_sql,
                     (
                         document_id,
                         new_proj_id,
-                        intended_outcome if intended_outcome is not "force_completed" else "completed",
+                        intended_outcome,
                         reason,
                         scientific_outputs,
                         knowledge_transfer,
@@ -7573,6 +7592,43 @@ class Loader:
                     except Exception as e:
                         print(e)
                         continue
+
+    def spms_get_new_project_status(
+            self, connection, new_proj_id,
+    ): 
+        try:
+            cursor = connection.cursor()
+
+            # Convert the old_id value to a regular Python integer
+            new_proj_id = int(new_proj_id)
+
+            # Construct the SQL query
+            sql = """
+                SELECT id FROM projects_project WHERE id = %s
+            """
+            print(f"Seeking id {new_proj_id} in project table")
+
+            # Execute the query with the user name
+            cursor.execute(sql, (new_proj_id,))
+
+            # Fetch the result
+            result = cursor.fetchone()
+
+            if result:
+                status = result["status"]  # Return the user ID
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Error retrieving project: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+            return None
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Project Status ({status})!{self.misc.bcolors.ENDC}"
+            )
+            return status
+
 
     def spms_create_project_task(
         self,
