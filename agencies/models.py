@@ -81,6 +81,8 @@ class BusinessArea(CommonModel):  # Renamed from program
     )
     name = models.CharField(max_length=140)
     slug = models.SlugField(
+        blank=True,
+        null=True,
         help_text="A URL-sage acronym of the BA's name without whitespace",
     )
 
@@ -130,7 +132,7 @@ class BusinessArea(CommonModel):  # Renamed from program
         blank=True,
     )
 
-    old_id = models.IntegerField()
+    old_id = models.IntegerField(blank=True, null=True)
 
     # NOTE SPECIES AND COMMUNITIES 1230 words (this was originally 250 words - expand further when doing lexical)
     focus = models.CharField(

@@ -239,10 +239,10 @@ class BusinessAreas(APIView):
                     return Response(error_message, status=HTTP_400_BAD_REQUEST)
 
         ba_data = {
-            "old_id": req.data.get("old_id"),
-            "name": req.data.get("name"),
-            "slug": req.data.get("slug"),
+            # "old_id": req.data.get("old_id"),
+            # "slug": req.data.get("slug"),
             "agency": req.data.get("agency"),
+            "name": req.data.get("name"),
             "focus": req.data.get("focus"),
             "introduction": req.data.get("introduction"),
             "data_custodian": req.data.get("data_custodian"),
@@ -260,12 +260,12 @@ class BusinessAreas(APIView):
                 # Then create the related image based on the ba
                 try:
                     image_data = {
-                        "file": self.handle_ba_image(image),
+                        "file": self.handle_ba_image(image) if image else None,
                         "uploader": req.user,
                         "business_area": new_business_area,
                     }
                 except ValueError as e:
-                    settings.LOGGER.error(msg=f"{e}")
+                    settings.LOGGER.error(msg=f"Error on handling BA image: {e}")
                     error_message = str(e)
                     response_data = {"error": error_message}
                     return Response(response_data, status=HTTP_400_BAD_REQUEST)
@@ -273,11 +273,13 @@ class BusinessAreas(APIView):
                 # Create the image with prepped data
                 try:
                     new_bap_instance = BusinessAreaPhoto.objects.create(**image_data)
-                    bap_response = TinyBusinessAreaPhotoSerializer(
-                        new_bap_instance
-                    ).data
+                    print(image_data)
+                    # bap_response = TinyBusinessAreaPhotoSerializer(
+                    #     new_bap_instance
+                    # ).data
                 except Exception as e:
-                    settings.LOGGER.error(msg=f"{e}")
+                    settings.LOGGER.error(msg=f"Error on creating new BA Photo instance: {e}")
+                    new_business_area.delete()
                     response_data = {"error": str(e)}
                     return Response(
                         response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
@@ -288,7 +290,7 @@ class BusinessAreas(APIView):
                     status=HTTP_201_CREATED,
                 )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
+            settings.LOGGER.error(msg=f"BA Serializer invalid: {ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,

@@ -7371,7 +7371,7 @@ class Loader:
             )
 
             # Get project to check status
-            
+            proj_status = self.spms_get_new_project_status(connection=connection, new_proj_id=new_proj_id)
 
             # status = proj_closure["status"]
             kind = "projectclosure"

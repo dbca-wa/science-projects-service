@@ -112,7 +112,10 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             # Get the image URL (choose old_file or file based on your requirement)
             pk = business_area_photo.pk
             # old_file = business_area_photo.old_file
-            file = business_area_photo.file.url
+            if business_area_photo.file:
+                file = business_area_photo.file.url
+            else: file = None
+            print({business_area_photo, file})
             return {
                 "pk": pk,
                 # "old_file": old_file,
