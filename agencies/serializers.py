@@ -115,7 +115,7 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             if business_area_photo.file:
                 file = business_area_photo.file.url
             else: file = None
-            print({business_area_photo, file})
+            # print({business_area_photo, file})
             return {
                 "pk": pk,
                 # "old_file": old_file,

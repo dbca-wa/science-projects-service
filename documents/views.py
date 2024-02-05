@@ -436,6 +436,162 @@ class BatchApproveOld(APIView):
                 HTTP_202_ACCEPTED,
             )
 
+class BatchProgressReportCreation(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, req):
+        print(req.data)
+        should_update = req.data["update"]
+        settings.LOGGER.warning(msg=f"{req.user} is attempting to batch create new progress reports for latest year {'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}...")
+        if (req.user.is_superuser == False):
+            return Response(
+                {
+                    "error": "You don't have permission to do that!"
+                },
+                HTTP_401_UNAUTHORIZED,
+            )
+
+        last_report = AnnualReport.objects.order_by('-year').first()
+
+        # Handle the case where no report is found
+        if not last_report:
+            return Response(
+                {
+                    "error": "No annual report found!"
+                },
+                status=HTTP_404_NOT_FOUND,
+            )
+        
+        if should_update:
+            eligible_projects = Project.objects.filter(
+                Q(
+                    kind__in=[
+                        Project.CategoryKindChoices.SCIENCE,
+                        Project.CategoryKindChoices.COREFUNCTION,
+                    ]
+                )
+                & Q(status__in=["active", "updating"])
+            )
+        else:
+            eligible_projects = Project.objects.filter(
+                Q(
+                    kind__in=[
+                        Project.CategoryKindChoices.SCIENCE,
+                        Project.CategoryKindChoices.COREFUNCTION,
+                    ]
+                )
+                & Q(status="active")
+            )
+
+        eligible_projects = eligible_projects.exclude(documents__progress_report_details__report__year=last_report.year)
+
+
+
+        if should_update:
+            eligible_student_projects = Project.objects.filter(
+                Q(status__in=["active", "updating"])
+                & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+            )
+        else:
+            eligible_student_projects = Project.objects.filter(
+                Q(status="active")
+                & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+            )
+        
+
+        eligible_student_projects = Project.objects.filter(
+            Q(status="active")
+            & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+        )
+        
+        eligible_student_projects.exclude(documents__progress_report_details__report__year=last_report.year)
+
+        # Combine the two querysets
+        all_eligible_projects = eligible_projects | eligible_student_projects
+
+        for project in all_eligible_projects:
+            if project.kind == Project.CategoryKindChoices.STUDENT:
+                typeofdoc = ProjectDocument.CategoryKindChoices.STUDENTREPORT
+            elif (
+                project.kind == Project.CategoryKindChoices.SCIENCE
+                or project.kind == Project.CategoryKindChoices.COREFUNCTION
+            ):
+                typeofdoc = ProjectDocument.CategoryKindChoices.PROGRESSREPORT
+            new_doc_data = {
+                "old_id": 1,
+                "kind": typeofdoc,
+                "status": "new",
+                "modifier": req.user.pk,
+                "creator": req.user.pk,
+                "project": project.pk,
+            }
+
+            new_project_document = ProjectDocumentCreateSerializer(data=new_doc_data)
+
+            if new_project_document.is_valid():
+                with transaction.atomic():
+                    doc = new_project_document.save()
+                    if project.kind != Project.CategoryKindChoices.STUDENT:
+                        progress_report_data = {
+                            "document": doc.pk,
+                            "project": project.pk,
+                            "report": last_report.pk,
+                            "project": project.pk,
+                            "year": last_report.year,
+                            "context": "<p></p>",
+                            "implications": "<p></p>",
+                            "future": "<p></p>",
+                            "progress": "<p></p>",
+                            "aims": "<p></p>",
+                        }
+
+                        progress_report = ProgressReportCreateSerializer(
+                            data=progress_report_data
+                        )
+
+                        if progress_report.is_valid():
+                            progress_report.save()
+                            project.status = Project.StatusChoices.UPDATING
+                            project.save()
+                        else:
+                            settings.LOGGER.error(msg=f"Error validating progress report: {progress_report.errors}")
+                            return Response(
+                                progress_report.errors, HTTP_400_BAD_REQUEST
+                            )
+                    else:
+                        student_report_data = {
+                            "document": doc.pk,
+                            "project": project.pk,
+                            "report": last_report.pk,
+                            "project": project.pk,
+                            "year": last_report.year,
+                            "progress_report": "<p></p>",
+                        }
+
+                        student_report = StudentReportCreateSerializer(
+                            data=student_report_data
+                        )
+
+                        if student_report.is_valid():
+                            student_report.save()
+                            project.status = Project.StatusChoices.UPDATING
+                            project.save()
+                        else:
+                            settings.LOGGER.error(msg=f"Error validating student report {student_report.errors}")
+                            return Response(
+                                student_report.errors, HTTP_400_BAD_REQUEST
+                            )
+
+            else:
+                settings.LOGGER.error(msg=f"Error opening new cycle: {new_project_document.errors}")
+                return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
+            
+        return Response(
+            HTTP_202_ACCEPTED,
+        )
+
+        
+
+
 
 class Reports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]

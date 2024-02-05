@@ -5,6 +5,7 @@ urlpatterns = [
     # REST framework
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
+    path("opennewcycle", views.BatchProgressReportCreation.as_view()),
     path("projectdocuments", views.ProjectDocuments.as_view()),
     # path(
     #     "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
