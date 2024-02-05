@@ -7609,7 +7609,7 @@ class Loader:
             print(f"Seeking id {new_proj_id} in project table")
 
             # Execute the query with the user name
-            cursor.execute(sql, new_proj_id)
+            cursor.execute(sql, (new_proj_id))
 
             # Fetch the result
             result = cursor.fetchone()
