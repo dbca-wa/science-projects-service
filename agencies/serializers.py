@@ -85,47 +85,6 @@ class MiniBASerializer(serializers.ModelSerializer):
         fields = ["pk", "name"]
 
 
-class TinyBusinessAreaSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = BusinessArea
-        fields = (
-            "pk",
-            "name",
-            "slug",
-            "focus",
-            "introduction",
-            "image",
-            "leader",
-            "finance_admin",
-            "data_custodian",
-            "is_active",
-        )
-        ordering = ["name"]
-
-    def get_image(self, obj):
-        try:
-            # Retrieve the related BusinessAreaPhoto object
-            business_area_photo = BusinessAreaPhoto.objects.get(business_area=obj)
-
-            # Get the image URL (choose old_file or file based on your requirement)
-            pk = business_area_photo.pk
-            # old_file = business_area_photo.old_file
-            if business_area_photo.file:
-                file = business_area_photo.file.url
-            else: file = None
-            # print({business_area_photo, file})
-            return {
-                "pk": pk,
-                # "old_file": old_file,
-                "file": file,
-            }
-        except BusinessAreaPhoto.DoesNotExist:
-            # Return None if the image is not available
-            return None
-
-
 class BusinessAreaSerializer(serializers.ModelSerializer):
     # pk = serializers.IntegerField(source="id")  # Map 'id' to 'pk'
 
@@ -150,6 +109,50 @@ class DivisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Division
         fields = "__all__"
+
+
+class TinyBusinessAreaSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    division = TinyDivisionSerializer(read_only=True)
+
+    class Meta:
+        model = BusinessArea
+        fields = (
+            "pk",
+            "name",
+            "slug",
+            "focus",
+            "division",
+            "introduction",
+            "image",
+            "leader",
+            "finance_admin",
+            "data_custodian",
+            "is_active",
+        )
+        ordering = ["name"]
+
+    def get_image(self, obj):
+        try:
+            # Retrieve the related BusinessAreaPhoto object
+            business_area_photo = BusinessAreaPhoto.objects.get(business_area=obj)
+
+            # Get the image URL (choose old_file or file based on your requirement)
+            pk = business_area_photo.pk
+            # old_file = business_area_photo.old_file
+            if business_area_photo.file:
+                file = business_area_photo.file.url
+            else:
+                file = None
+            # print({business_area_photo, file})
+            return {
+                "pk": pk,
+                # "old_file": old_file,
+                "file": file,
+            }
+        except BusinessAreaPhoto.DoesNotExist:
+            # Return None if the image is not available
+            return None
 
 
 class TinyDepartmentalServiceSerializer(serializers.ModelSerializer):

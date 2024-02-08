@@ -4,7 +4,6 @@ from common.models import CommonModel
 
 # DONE
 class Affiliation(CommonModel):
-
     """Model Definition for Affiliation for external users (Previously defined on UserModel)"""
 
     name = models.CharField(max_length=250)
@@ -19,7 +18,6 @@ class Affiliation(CommonModel):
 
 # DONE
 class Agency(CommonModel):
-
     """Model Definition for Agency (Previously defined on UserModel)"""
 
     name = models.CharField(max_length=140)
@@ -43,7 +41,6 @@ class Agency(CommonModel):
 
 # DONE
 class Branch(CommonModel):  # Renamed from workcenter
-
     """Model Definition for Business Area (Previously Workcenter)"""
 
     old_id = models.IntegerField()
@@ -72,7 +69,6 @@ class Branch(CommonModel):  # Renamed from workcenter
 
 # DONE
 class BusinessArea(CommonModel):  # Renamed from program
-
     """Model Definition for Business Area (Previously Program)"""
 
     agency = models.ForeignKey(
@@ -84,6 +80,13 @@ class BusinessArea(CommonModel):  # Renamed from program
         blank=True,
         null=True,
         help_text="A URL-sage acronym of the BA's name without whitespace",
+    )
+    division = models.ForeignKey(
+        "agencies.Division",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="business_areas",
     )
 
     published = models.BooleanField(default=False)

@@ -40,9 +40,10 @@ def determine_user():
     debugmode = env("DJANGO_DEBUG")
     print("debug:", debugmode)
     if debugmode == "True":
-        user = os.environ.get("USER") or os.getlogin() #Update to support linux environment
+        user = (
+            os.environ.get("USER") or os.getlogin()
+        )  # Update to support linux environment
         return user
-
 
 
 def determine_project_folder():
@@ -54,7 +55,9 @@ def determine_project_folder():
     debugmode = env("DJANGO_DEBUG")
     print("debug:", debugmode)
     if debugmode == "True":
-        user = os.environ.get("USER") or os.getlogin() #Update to support linux environment
+        user = (
+            os.environ.get("USER") or os.getlogin()
+        )  # Update to support linux environment
 
         if user == "JaridPrince":
             return os.path.join(f"C:\\Users\\{user}\\Documents\\GitHub\\service_spms")
@@ -650,7 +653,37 @@ class Loader:
             return project_id
 
     def spms_get_division_by_old_id(self, connection, cursor, old_id):
-        pass
+        print(f"trying for old id: {old_id}")
+        try:
+            cursor = connection.cursor()
+
+            # Construct the SQL query
+            sql = """
+                SELECT id FROM agencies_division WHERE old_id = %s
+            """
+
+            old_id = int(old_id)
+
+            # Execute the query with the user name
+            cursor.execute(sql, (old_id,))
+
+            # Fetch the result
+            result = cursor.fetchone()
+
+            if result:
+                id = result[0]
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Error old division id: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+            return None
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}New div id fetched ({id})!{self.misc.bcolors.ENDC}"
+            )
+            return id
 
     def spms_get_user_name_old_id(self, connection, cursor, old_id):
         print(f"trying for old id: {old_id}")
@@ -1017,9 +1050,11 @@ class Loader:
             print("debug:", debugmode)
             print(
                 "connecting to",
-                env("SPMS_DESTINATION_HOST")
-                if debugmode == "True"
-                else env("PRODUCTION_HOST"),
+                (
+                    env("SPMS_DESTINATION_HOST")
+                    if debugmode == "True"
+                    else env("PRODUCTION_HOST")
+                ),
             )
             if debugmode == "True" or debugmode == True:
                 connection = self.psycopg2.connect(
@@ -1850,7 +1885,7 @@ class Loader:
         connection,
         cursor,
         superuser_id,
-        current_datetime
+        current_datetime,
         # , dbca_id
     ):
         # Loading environment variables for superuser work:
@@ -2109,7 +2144,7 @@ class Loader:
         self.spms_create_locations()
         # # TODO: Remove "All" entries for areas
         self.spms_create_projects()
-        self.spms_remove_empty_business_areas()  # Removes BAs with no projects and saves it to txt
+        self.spms_remove_empty_business_areas_and_set_original_ba_divisions()  # Removes BAs with no projects and saves it to txt
 
         self.spms_project_members_setter()  # Set the project team
         # (NOTE: duplicates are skipped, the first instance of user is taken into account only per project)
@@ -2131,7 +2166,7 @@ class Loader:
 
         self.misc.nls("Data ETL complete! You may now use the site!")
 
-    def spms_remove_empty_business_areas(self):
+    def spms_remove_empty_business_areas_and_set_original_ba_divisions(self):
         # Establishing connection:
         (
             cursor,
@@ -2211,6 +2246,178 @@ class Loader:
             self.misc.nli(
                 f"{self.misc.bcolors.FAIL}Error occurred while removing empty business areas: {e}{self.misc.bcolors.ENDC}"
             )
+
+        else:
+            # Set the division to BCS for all current items
+            try:
+                bcs_division_id = self.spms_get_division_by_old_id(
+                    connection=connection, cursor=cursor, old_id=1
+                )
+                sql = "UPDATE agencies_businessarea SET division_id = %s;"
+
+                cursor.execute(sql, (bcs_division_id,))
+                connection.commit()
+            except Exception as e:
+                connection.rollback()
+                print("ERROR1:", e)
+
+            # Add the new business areas
+            def add_cem_bas():
+                array_of_non_led = [
+                    "Rivers and Estuaries Branch",
+                    "Ecosystem Health Branch",
+                    "Forest Management Branch",
+                ]
+                # dic_of_led = {
+                #     "Rivers and Estuaries Branch": "Glen McLeod-Thorpe",
+                #     "Ecosystem Health Branch": "Tony Mennen",
+                #     "Forest Management Branch": "Martin Rayner",    # EXISTS
+                # }
+                cem_division_id = self.spms_get_division_by_old_id(
+                    connection=connection, cursor=cursor, old_id=4
+                )
+                agency_id = 1
+                now = dt.now()
+
+                for ba in array_of_non_led:
+                    sql = """
+                            BEGIN;
+                            INSERT INTO agencies_businessarea (
+                                old_id, created_at, updated_at, division_id, name, slug, cost_center, published, is_active, focus, introduction, agency_id, data_custodian_id, finance_admin_id, leader_id, old_leader_id, old_finance_admin_id, old_data_custodian_id
+                            ) VALUES (%s, %s, %s, %s, %s, %s,%s, %s, %s, %s,%s,%s, %s, %s, %s, %s, %s, %s);
+                            COMMIT;
+                        """
+                    cursor.execute(
+                        sql,
+                        (
+                            None,
+                            now,  # created at
+                            now,  # updated at
+                            cem_division_id,
+                            ba,
+                            None,
+                            None,  # cost center
+                            False,
+                            True,
+                            "",
+                            "",
+                            agency_id,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                        ),
+                    )
+
+            def add_rfms_bas():
+                array_of_non_led = [
+                    "Kimberley Region",
+                    "Goldfields Region",
+                    "Wheatbelt Region",
+                    "Swan Region",
+                    "Warren Region",
+                    "East Kimberley District",
+                    "West Kimberley District",
+                    "Karratha District",
+                    "Exmouth District",
+                    "Murchison District",
+                    "Gascoyne District",
+                    "Turquoise Coast District",
+                    "Perth Hills District",
+                    "Swan Coastal District",
+                    "Blackwood District",
+                    "Wellington District",
+                    "Donnelly District",
+                    "Frankland District",
+                    "Albany District",
+                    "Esperance District",
+                    "Pilbara Region",  # Led from here
+                    "Midwest Region",
+                    "South West Region",
+                    "South Coast Region",
+                ]
+
+                # dic_of_led = {
+                #     "Pilbara Region": "Alicia Whittington", #Exists
+                #     "Midwest Region": "Alison Donovan",
+                #     "South West Region": "Aminya Ennis",
+                #     "South Coast Region": "Peter Hartley",
+                # }
+
+                rfms_division_id = self.spms_get_division_by_old_id(
+                    connection=connection, cursor=cursor, old_id=6
+                )
+                agency_id = 1
+                now = dt.now()
+
+                for ba in array_of_non_led:
+                    sql = """
+                            BEGIN;
+                            INSERT INTO agencies_businessarea (
+                                old_id, created_at, updated_at, division_id, name, slug, cost_center, published, is_active, focus, introduction, agency_id, data_custodian_id, finance_admin_id, leader_id, old_leader_id, old_finance_admin_id, old_data_custodian_id
+                            ) VALUES (%s, %s, %s, %s, %s, %s,%s, %s, %s, %s,%s,%s, %s, %s, %s, %s, %s, %s);
+                            COMMIT;
+                        """
+                    cursor.execute(
+                        sql,
+                        (
+                            None,
+                            now,  # created at
+                            now,  # updated at
+                            rfms_division_id,
+                            ba,
+                            None,
+                            None,  # cost center
+                            False,
+                            True,
+                            "",
+                            "",
+                            agency_id,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
+                        ),
+                    )
+
+            try:
+                add_cem_bas()
+            except Exception as e:
+                print("Error on CEM:", e)
+
+            try:
+                add_rfms_bas()
+            except Exception as e:
+                print("Error on RFMS:", e)
+
+            try:
+                # Deactivate the business areas which are not in the list, and set the new leaders
+                bas_to_deactivate = [
+                    "Biodiversity and Climate Change Unit",
+                    "Biogeography",
+                    "Ecoinformatics",
+                    "Perth Observatory",
+                    "Region Swan",
+                    "Wetlands Conservation",
+                ]
+
+                for ba in bas_to_deactivate:
+                    sql = "UPDATE agencies_businessarea SET is_active = False WHERE name = %s;"
+
+                    cursor.execute(sql, (ba,))
+                    connection.commit()
+                    self.misc.nls(
+                        f"{self.misc.bcolors.OKGREEN}Business area '{ba}' deactivated successfully.{self.misc.bcolors.ENDC}"
+                    )
+            except Exception as e:
+                connection.rollback()
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error occurred while deactivating business areas: {e}{self.misc.bcolors.ENDC}"
+                )
 
         finally:
             cursor.close()
@@ -2455,7 +2662,6 @@ class Loader:
                         current_datetime=current_datetime,
                     )
 
-
                 # Get the branch, business area and affiliation based on old_id and affiliatoin name
                 users_branch_id = (
                     self.spms_get_branch_by_old_id(
@@ -2504,18 +2710,26 @@ class Loader:
                             current_datetime,  # created at
                             current_datetime,  # updated at
                             # "NONE",  # role
-                            None
-                            if self.pd.isna(user["title"]) or len(user["title"]) > 5
-                            else user["title"],  # title #TODO: Double check
-                            None
-                            if self.pd.isna(user["middle_initials"])
-                            else user["middle_initials"],  # middle_initials
-                            None
-                            if self.pd.isna(user["profile_text"])
-                            else user["profile_text"],  # about
-                            None
-                            if self.pd.isna(user["expertise"])
-                            else user["expertise"],  # expertise
+                            (
+                                None
+                                if self.pd.isna(user["title"]) or len(user["title"]) > 5
+                                else user["title"]
+                            ),  # title #TODO: Double check
+                            (
+                                None
+                                if self.pd.isna(user["middle_initials"])
+                                else user["middle_initials"]
+                            ),  # middle_initials
+                            (
+                                None
+                                if self.pd.isna(user["profile_text"])
+                                else user["profile_text"]
+                            ),  # about
+                            (
+                                None
+                                if self.pd.isna(user["expertise"])
+                                else user["expertise"]
+                            ),  # expertise
                             image_id,  # image_id
                             user_id,  # user_id
                         ),
@@ -2544,9 +2758,11 @@ class Loader:
                             current_datetime,  # created at
                             current_datetime,  # updated at
                             None,  # role
-                            None
-                            if self.pd.isna(user["work_center_id"])
-                            else users_branch_id,
+                            (
+                                None
+                                if self.pd.isna(user["work_center_id"])
+                                else users_branch_id
+                            ),
                             None if self.pd.isna(user["program_id"]) else users_ba_id,
                             users_affiliation_id,
                             user_id,  # user_id
@@ -2579,9 +2795,11 @@ class Loader:
                             user["email"],
                             # None if self.pd.isna(user["email"]) else user["email"],
                             None if self.pd.isna(user["phone"]) else user["phone"],
-                            None
-                            if self.pd.isna(user["phone_alt"])
-                            else user["phone_alt"],
+                            (
+                                None
+                                if self.pd.isna(user["phone_alt"])
+                                else user["phone_alt"]
+                            ),
                             None if self.pd.isna(user["fax"]) else user["fax"],
                             user_id,  # user_id
                         ),
@@ -2600,7 +2818,6 @@ class Loader:
                     )
                 finally:
                     connection.commit()
-
 
             # TODO: At the end of all operations remove old_id from users table in django
 
@@ -3096,10 +3313,12 @@ class Loader:
                         current_datetime,
                         current_datetime,
                         workcenter["id"],
-                        workcenter["name"]
-                        if workcenter["name"]
-                        != "Kensington (including Herbarium)"  # Removes the bracketed part from Kensington
-                        else "Kensington",
+                        (
+                            workcenter["name"]
+                            if workcenter["name"]
+                            != "Kensington (including Herbarium)"  # Removes the bracketed part from Kensington
+                            else "Kensington"
+                        ),
                         dbca_id,
                         superuser_id,
                     ),
@@ -3164,22 +3383,32 @@ class Loader:
                             (
                                 current_datetime,
                                 current_datetime,
-                                None
-                                if self.pd.isna(address["street"])
-                                else address["street"],
+                                (
+                                    None
+                                    if self.pd.isna(address["street"])
+                                    else address["street"]
+                                ),
                                 None,  # suburb
-                                None
-                                if self.pd.isna(address["city"])
-                                else address["city"],
-                                None
-                                if self.pd.isna(address["zipcode"])
-                                else address["zipcode"],
-                                None
-                                if self.pd.isna(address["state"])
-                                else address["state"],
-                                None
-                                if self.pd.isna(address["country"])
-                                else address["country"],
+                                (
+                                    None
+                                    if self.pd.isna(address["city"])
+                                    else address["city"]
+                                ),
+                                (
+                                    None
+                                    if self.pd.isna(address["zipcode"])
+                                    else address["zipcode"]
+                                ),
+                                (
+                                    None
+                                    if self.pd.isna(address["state"])
+                                    else address["state"]
+                                ),
+                                (
+                                    None
+                                    if self.pd.isna(address["country"])
+                                    else address["country"]
+                                ),
                                 pobox,
                                 branch_id,  # Branch ID (of just created branch)
                                 None,  # Not using agency for branch (agency can only have one address)
@@ -3308,8 +3537,8 @@ class Loader:
         sql = """
             BEGIN;
             INSERT INTO agencies_businessarea (
-                old_id, created_at, updated_at, name, slug, cost_center, published, is_active, focus, introduction, agency_id, data_custodian_id, finance_admin_id, leader_id, old_leader_id, old_finance_admin_id, old_data_custodian_id
-            ) VALUES (%s, %s, %s, %s, %s,%s, %s, %s, %s,%s,%s, %s, %s, %s, %s, %s, %s);
+                old_id, created_at, updated_at, division_id, name, slug, cost_center, published, is_active, focus, introduction, agency_id, data_custodian_id, finance_admin_id, leader_id, old_leader_id, old_finance_admin_id, old_data_custodian_id
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
         # old_id, %s,
@@ -3355,14 +3584,18 @@ class Loader:
                     else business_area["program_leader_id"]
                 )
                 fa_value = (
-                    None
-                    if self.pd.isna(business_area["finance_admin_id"])
-                    else business_area["finance_admin_id"],
+                    (
+                        None
+                        if self.pd.isna(business_area["finance_admin_id"])
+                        else business_area["finance_admin_id"]
+                    ),
                 )
                 dc_value = (
-                    None
-                    if self.pd.isna(business_area["data_custodian_id"])
-                    else business_area["data_custodian_id"],
+                    (
+                        None
+                        if self.pd.isna(business_area["data_custodian_id"])
+                        else business_area["data_custodian_id"]
+                    ),
                 )
 
                 cursor.execute(
@@ -3371,19 +3604,26 @@ class Loader:
                         business_area["id"],  # old_id,
                         current_datetime,
                         current_datetime,
+                        None,
                         business_area["name"],
                         business_area["slug"],
-                        None
-                        if self.pd.isna(business_area["cost_center"])
-                        else business_area["cost_center"],
+                        (
+                            None
+                            if self.pd.isna(business_area["cost_center"])
+                            else business_area["cost_center"]
+                        ),
                         business_area["published"],
                         True,
-                        None
-                        if self.pd.isna(business_area["focus"])
-                        else business_area["focus"],
-                        None
-                        if self.pd.isna(business_area["introduction"])
-                        else business_area["introduction"],
+                        (
+                            None
+                            if self.pd.isna(business_area["focus"])
+                            else business_area["focus"]
+                        ),
+                        (
+                            None
+                            if self.pd.isna(business_area["introduction"])
+                            else business_area["introduction"]
+                        ),
                         dbca_id,
                         superuser_id,  # data custodian id
                         superuser_id,  # finance_admin_id
@@ -3407,17 +3647,23 @@ class Loader:
                         current_datetime,
                         business_area["name"],
                         business_area["slug"],
-                        None
-                        if self.pd.isna(business_area["cost_center"])
-                        else business_area["cost_center"],
+                        (
+                            None
+                            if self.pd.isna(business_area["cost_center"])
+                            else business_area["cost_center"]
+                        ),
                         business_area["published"],
                         True,
-                        None
-                        if self.pd.isna(business_area["focus"])
-                        else business_area["focus"],
-                        None
-                        if self.pd.isna(business_area["introduction"])
-                        else business_area["introduction"],
+                        (
+                            None
+                            if self.pd.isna(business_area["focus"])
+                            else business_area["focus"]
+                        ),
+                        (
+                            None
+                            if self.pd.isna(business_area["introduction"])
+                            else business_area["introduction"]
+                        ),
                         dbca_id,
                         superuser_id,  # data custodian id
                         superuser_id,  # finance_admin_id
@@ -4165,11 +4411,15 @@ class Loader:
                 new_name = (
                     "All NRM Regions"
                     if area["name"] == "All Regions" and area_type == "nrm"
-                    else "All DBCA Regions"
-                    if area["name"] == "All Regions" and area_type == "dbcaregion"
-                    else "All DBCA Districts"
-                    if area["name"] == "All DPaW Districts"
-                    else area["name"]
+                    else (
+                        "All DBCA Regions"
+                        if area["name"] == "All Regions" and area_type == "dbcaregion"
+                        else (
+                            "All DBCA Districts"
+                            if area["name"] == "All DPaW Districts"
+                            else area["name"]
+                        )
+                    )
                 )
                 cursor.execute(
                     sql,
@@ -4370,8 +4620,7 @@ class Loader:
                 "area_list_nrm_region",
             ]
         ]
-                        # "research_function_id",
-
+        # "research_function_id",
 
         # ======================================================================================
 
@@ -4604,25 +4853,35 @@ class Loader:
                         project["year"],
                         project["number"],
                         proj_title,
-                        None
-                        if self.pd.isna(project["comments"])
-                        else project["comments"],  # description
-                        None
-                        if self.pd.isna(project["tagline"])
-                        else project["tagline"],
-                        ""
-                        if self.pd.isna(project["keywords"])
-                        else project["keywords"],
+                        (
+                            None
+                            if self.pd.isna(project["comments"])
+                            else project["comments"]
+                        ),  # description
+                        (
+                            None
+                            if self.pd.isna(project["tagline"])
+                            else project["tagline"]
+                        ),
+                        (
+                            ""
+                            if self.pd.isna(project["keywords"])
+                            else project["keywords"]
+                        ),
                         start_date,
                         # else None,
-                        project["end_date"]
-                        if not self.pd.isna(project["end_date"])
-                        else start_date,
+                        (
+                            project["end_date"]
+                            if not self.pd.isna(project["end_date"])
+                            else start_date
+                        ),
                         # else None,
-                        remote_sensing_ba
-                        if str(project["year"]) == "2022"
-                        and str(project["number"]) == "18"
-                        else business_area_id,  # address a project without ba set
+                        (
+                            remote_sensing_ba
+                            if str(project["year"]) == "2022"
+                            and str(project["number"]) == "18"
+                            else business_area_id
+                        ),  # address a project without ba set
                         # image_id,
                     ),
                 )
@@ -4996,13 +5255,17 @@ class Loader:
                         new_time_allocation,
                         # 100,
                         new_position,
-                        None
-                        if self.pd.isna(member["short_code"])
-                        else member["short_code"],
+                        (
+                            None
+                            if self.pd.isna(member["short_code"])
+                            else member["short_code"]
+                        ),
                         is_leader_val,
-                        None
-                        if self.pd.isna(member["comments"])
-                        else member["comments"],
+                        (
+                            None
+                            if self.pd.isna(member["comments"])
+                            else member["comments"]
+                        ),
                     ),
                 )
             except psycopg2.IntegrityError as e:
@@ -5342,7 +5605,7 @@ class Loader:
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
-                        # research_function_id,
+        # research_function_id,
 
         # service_id,
 
@@ -5467,8 +5730,7 @@ class Loader:
                     # new_service_id,
                     old_output_program_id,
                 ),
-                                    # new_research_function_id,
-
+                # new_research_function_id,
             )
         except Exception as e:
             self.misc.nli(
@@ -5490,7 +5752,7 @@ class Loader:
                     {new_site_custodian_id}\n,\
                     {old_output_program_id}\n,"
             )
-                                # {new_research_function_id}\n, \
+            # {new_research_function_id}\n, \
             # Rollback the transaction
             connection.rollback()
 
@@ -5735,7 +5997,6 @@ class Loader:
         ]
 
         # Establish how status will be remapped (if necessary)
-  
 
         # Helper function to reallocate values to status based on statuses dict
         def set_new_status(old_status):
@@ -6062,9 +6323,11 @@ class Loader:
                 concept_plan["created"]
                 if not self.pd.isna(concept_plan["created"])
                 and self.pd.isna(concept_plan["modified"])
-                else concept_plan["modified"]
-                if not self.pd.isna(concept_plan["modified"])
-                else current_datetime
+                else (
+                    concept_plan["modified"]
+                    if not self.pd.isna(concept_plan["modified"])
+                    else current_datetime
+                )
             )
             status = set_new_status(
                 old_status=concept_plan["status"],
@@ -6330,9 +6593,11 @@ class Loader:
                 project_plan["created"]
                 if not self.pd.isna(project_plan["created"])
                 and self.pd.isna(project_plan["modified"])
-                else project_plan["modified"]
-                if not self.pd.isna(project_plan["modified"])
-                else current_datetime
+                else (
+                    project_plan["modified"]
+                    if not self.pd.isna(project_plan["modified"])
+                    else current_datetime
+                )
             )
             status = set_new_status(
                 old_status=project_plan["status"],
@@ -6805,9 +7070,11 @@ class Loader:
                 progress_report["created"]
                 if not self.pd.isna(progress_report["created"])
                 and self.pd.isna(progress_report["modified"])
-                else progress_report["modified"]
-                if not self.pd.isna(progress_report["modified"])
-                else current_datetime
+                else (
+                    progress_report["modified"]
+                    if not self.pd.isna(progress_report["modified"])
+                    else current_datetime
+                )
             )
             status = set_new_status(
                 old_status=progress_report["status"],
@@ -7102,9 +7369,11 @@ class Loader:
                 student_report["created"]
                 if not self.pd.isna(student_report["created"])
                 and self.pd.isna(student_report["modified"])
-                else student_report["modified"]
-                if not self.pd.isna(student_report["modified"])
-                else current_datetime
+                else (
+                    student_report["modified"]
+                    if not self.pd.isna(student_report["modified"])
+                    else current_datetime
+                )
             )
             status = set_new_status(
                 old_status=student_report["status"],
@@ -7345,9 +7614,11 @@ class Loader:
                 proj_closure["created"]
                 if not self.pd.isna(proj_closure["created"])
                 and self.pd.isna(proj_closure["modified"])
-                else proj_closure["modified"]
-                if not self.pd.isna(proj_closure["modified"])
-                else current_datetime
+                else (
+                    proj_closure["modified"]
+                    if not self.pd.isna(proj_closure["modified"])
+                    else current_datetime
+                )
             )
             status = set_new_status(
                 old_status=proj_closure["status"],
@@ -7371,7 +7642,9 @@ class Loader:
             )
 
             # Get project to check status
-            proj_status = self.spms_get_new_project_status(connection=connection, new_proj_id=new_proj_id)
+            proj_status = self.spms_get_new_project_status(
+                connection=connection, new_proj_id=new_proj_id
+            )
 
             # status = proj_closure["status"]
             kind = "projectclosure"
@@ -7594,8 +7867,10 @@ class Loader:
                         continue
 
     def spms_get_new_project_status(
-            self, connection, new_proj_id,
-    ): 
+        self,
+        connection,
+        new_proj_id,
+    ):
         try:
             cursor = connection.cursor()
 
@@ -7629,7 +7904,6 @@ class Loader:
                 f"{self.misc.bcolors.OKGREEN}Project Status ({status})!{self.misc.bcolors.ENDC}"
             )
             return status
-
 
     def spms_create_project_task(
         self,
@@ -7939,9 +8213,11 @@ class Loader:
                             document_id=document_id,
                             user_id=directorate,
                             task_name=f"Review {doc_type} for Final Approval",
-                            task_description=f"Decide on whether the {doc_type} for this project is okay to be included in the Annual Report. Project: {project['title']}"
-                            if doc_type == "Progress Report"
-                            else f"Decide on whether the {doc_type} for this project is satisfactory. Project: {project['title']}",
+                            task_description=(
+                                f"Decide on whether the {doc_type} for this project is okay to be included in the Annual Report. Project: {project['title']}"
+                                if doc_type == "Progress Report"
+                                else f"Decide on whether the {doc_type} for this project is satisfactory. Project: {project['title']}"
+                            ),
                         )
                     except Exception as e:
                         input(e)
@@ -8402,18 +8678,24 @@ class Loader:
                         new_modifier_id,
                         report["created"],
                         report["modified"],
-                        report["sds_intro"]
-                        if not self.pd.isna(report["sds_intro"])
-                        else None,
-                        report["research_intro"]
-                        if not self.pd.isna(report["research_intro"])
-                        else None,
-                        report["student_intro"]
-                        if not self.pd.isna(report["student_intro"])
-                        else None,
-                        report["pub"]
-                        if not self.pd.isna(report["pub"])
-                        else None,  # publications
+                        (
+                            report["sds_intro"]
+                            if not self.pd.isna(report["sds_intro"])
+                            else None
+                        ),
+                        (
+                            report["research_intro"]
+                            if not self.pd.isna(report["research_intro"])
+                            else None
+                        ),
+                        (
+                            report["student_intro"]
+                            if not self.pd.isna(report["student_intro"])
+                            else None
+                        ),
+                        (
+                            report["pub"] if not self.pd.isna(report["pub"]) else None
+                        ),  # publications
                         report["date_open"],
                         report["date_closed"],
                         report["year"],

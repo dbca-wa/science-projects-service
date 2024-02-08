@@ -50,6 +50,7 @@ class BranchAdmin(admin.ModelAdmin):
 class BusinessAreaAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "division",
         "focus",
         "leader",
     ]
