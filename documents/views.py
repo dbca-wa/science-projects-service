@@ -310,36 +310,45 @@ class DownloadAnnualReport(APIView):
 
 class BatchApprove(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.warning(msg=f"{req.user} is attempting to batch approve reports...")
-        if (req.user.is_superuser == False):
+        settings.LOGGER.warning(
+            msg=f"{req.user} is attempting to batch approve reports..."
+        )
+        if req.user.is_superuser == False:
             return Response(
-                {
-                    "error": "You don't have permission to do that!"
-                },
+                {"error": "You don't have permission to do that!"},
                 HTTP_401_UNAUTHORIZED,
             )
-        
+
         # Get the last report with the highest year
-        last_report = AnnualReport.objects.order_by('-year').first()
+        last_report = AnnualReport.objects.order_by("-year").first()
 
         # Handle the case where no report is found
         if not last_report:
             return Response(
-                {
-                    "error": "No annual report found!"
-                },
+                {"error": "No annual report found!"},
                 status=HTTP_404_NOT_FOUND,
             )
-        
-        relevant_docs_belonging_to_last_report_awaiting_final_approval = ProjectDocument.objects.filter(
-            Q(kind="studentreport") | Q(kind="progressreport"),
-            project_lead_approval_granted=True,
-            business_area_lead_approval_granted=True,
-            directorate_approval_granted=False,
-        ).exclude(
-            project__status__in=["suspended", "terminated", "completed", "closing", "closure_requested"],
-        ).all()
+
+        relevant_docs_belonging_to_last_report_awaiting_final_approval = (
+            ProjectDocument.objects.filter(
+                Q(kind="studentreport") | Q(kind="progressreport"),
+                project_lead_approval_granted=True,
+                business_area_lead_approval_granted=True,
+                directorate_approval_granted=False,
+            )
+            .exclude(
+                project__status__in=[
+                    "suspended",
+                    "terminated",
+                    "completed",
+                    "closing",
+                    "closure_requested",
+                ],
+            )
+            .all()
+        )
 
         try:
             for doc in relevant_docs_belonging_to_last_report_awaiting_final_approval:
@@ -349,7 +358,7 @@ class BatchApprove(APIView):
                     if sr_obj:
                         doc.directorate_approval_granted = True
                         doc.project.status = Project.StatusChoices.ACTIVE
-                        doc.save()                
+                        doc.save()
                 elif doc.kind == "progressreport":
                     pr_obj = ProgressReport.objects.filter(report=last_report).first()
                     if pr_obj:
@@ -364,42 +373,48 @@ class BatchApprove(APIView):
                 HTTP_400_BAD_REQUEST,
             )
         else:
-            settings.LOGGER.info(msg=f"Reports have been batch approved for year {last_report.year}")
+            settings.LOGGER.info(
+                msg=f"Reports have been batch approved for year {last_report.year}"
+            )
             return Response(
                 "Success",
                 HTTP_202_ACCEPTED,
             )
-        
+
+
 class BatchApproveOld(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.warning(msg=f"{req.user} is attempting to batch approve older reports...")
-        if (req.user.is_superuser == False):
+        settings.LOGGER.warning(
+            msg=f"{req.user} is attempting to batch approve older reports..."
+        )
+        if req.user.is_superuser == False:
             return Response(
-                {
-                    "error": "You don't have permission to do that!"
-                },
+                {"error": "You don't have permission to do that!"},
                 HTTP_401_UNAUTHORIZED,
             )
-        
+
         # Get the last report with the highest year
-        last_report = AnnualReport.objects.order_by('-year').first()
+        last_report = AnnualReport.objects.order_by("-year").first()
 
         # Handle the case where no report is found
         if not last_report:
             return Response(
-                {
-                    "error": "No annual reports found!"
-                },
+                {"error": "No annual reports found!"},
                 status=HTTP_404_NOT_FOUND,
             )
-        
-        relevant_docs_belonging_to_reports_other_than_last_report = ProjectDocument.objects.filter(
-            Q(kind="studentreport") | Q(kind="progressreport"),
-            directorate_approval_granted=False,
-        ).exclude(
-            project__status__in=["suspended", "terminated", "completed"],
-        ).all()
+
+        relevant_docs_belonging_to_reports_other_than_last_report = (
+            ProjectDocument.objects.filter(
+                Q(kind="studentreport") | Q(kind="progressreport"),
+                directorate_approval_granted=False,
+            )
+            .exclude(
+                project__status__in=["suspended", "terminated", "completed"],
+            )
+            .all()
+        )
 
         try:
             for doc in relevant_docs_belonging_to_reports_other_than_last_report:
@@ -409,7 +424,7 @@ class BatchApproveOld(APIView):
                     if sr_obj and sr_obj.report != last_report:
                         doc.directorate_approval_granted = True
                         doc.project.status = Project.StatusChoices.ACTIVE
-                        doc.save()                
+                        doc.save()
                 elif doc.kind == "progressreport":
                     pr_obj = ProgressReport.objects.filter(document=doc.id).first()
                     if pr_obj and pr_obj.report != last_report:
@@ -430,37 +445,40 @@ class BatchApproveOld(APIView):
                 HTTP_400_BAD_REQUEST,
             )
         else:
-            settings.LOGGER.info(msg=f"Reports have been batch approved for annual report documents before year: {last_report.year}")
+            settings.LOGGER.info(
+                msg=f"Reports have been batch approved for annual report documents before year: {last_report.year}"
+            )
             return Response(
                 "Success",
                 HTTP_202_ACCEPTED,
             )
 
+
 class BatchProgressReportCreation(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
         print(req.data)
         should_update = req.data["update"]
-        settings.LOGGER.warning(msg=f"{req.user} is attempting to batch create new progress reports for latest year {'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}...")
-        if (req.user.is_superuser == False):
+        should_email = req.data["send_emails"]
+        settings.LOGGER.warning(
+            msg=f"{req.user} is attempting to batch create new progress reports for latest year {'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}..."
+        )
+        if req.user.is_superuser == False:
             return Response(
-                {
-                    "error": "You don't have permission to do that!"
-                },
+                {"error": "You don't have permission to do that!"},
                 HTTP_401_UNAUTHORIZED,
             )
 
-        last_report = AnnualReport.objects.order_by('-year').first()
+        last_report = AnnualReport.objects.order_by("-year").first()
 
         # Handle the case where no report is found
         if not last_report:
             return Response(
-                {
-                    "error": "No annual report found!"
-                },
+                {"error": "No annual report found!"},
                 status=HTTP_404_NOT_FOUND,
             )
-        
+
         if should_update:
             eligible_projects = Project.objects.filter(
                 Q(
@@ -482,9 +500,9 @@ class BatchProgressReportCreation(APIView):
                 & Q(status="active")
             )
 
-        eligible_projects = eligible_projects.exclude(documents__progress_report_details__report__year=last_report.year)
-
-
+        eligible_projects = eligible_projects.exclude(
+            documents__progress_report_details__report__year=last_report.year
+        )
 
         if should_update:
             eligible_student_projects = Project.objects.filter(
@@ -493,17 +511,16 @@ class BatchProgressReportCreation(APIView):
             )
         else:
             eligible_student_projects = Project.objects.filter(
-                Q(status="active")
-                & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+                Q(status="active") & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
             )
-        
 
         eligible_student_projects = Project.objects.filter(
-            Q(status="active")
-            & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+            Q(status="active") & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
         )
-        
-        eligible_student_projects.exclude(documents__progress_report_details__report__year=last_report.year)
+
+        eligible_student_projects.exclude(
+            documents__progress_report_details__report__year=last_report.year
+        )
 
         # Combine the two querysets
         all_eligible_projects = eligible_projects | eligible_student_projects
@@ -553,7 +570,9 @@ class BatchProgressReportCreation(APIView):
                             project.status = Project.StatusChoices.UPDATING
                             project.save()
                         else:
-                            settings.LOGGER.error(msg=f"Error validating progress report: {progress_report.errors}")
+                            settings.LOGGER.error(
+                                msg=f"Error validating progress report: {progress_report.errors}"
+                            )
                             return Response(
                                 progress_report.errors, HTTP_400_BAD_REQUEST
                             )
@@ -576,21 +595,24 @@ class BatchProgressReportCreation(APIView):
                             project.status = Project.StatusChoices.UPDATING
                             project.save()
                         else:
-                            settings.LOGGER.error(msg=f"Error validating student report {student_report.errors}")
-                            return Response(
-                                student_report.errors, HTTP_400_BAD_REQUEST
+                            settings.LOGGER.error(
+                                msg=f"Error validating student report {student_report.errors}"
                             )
+                            return Response(student_report.errors, HTTP_400_BAD_REQUEST)
 
             else:
-                settings.LOGGER.error(msg=f"Error opening new cycle: {new_project_document.errors}")
+                settings.LOGGER.error(
+                    msg=f"Error opening new cycle: {new_project_document.errors}"
+                )
                 return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
-            
+
+        if should_email:
+            print("Emails should be sent here")
+            pass
+
         return Response(
             HTTP_202_ACCEPTED,
         )
-
-        
-
 
 
 class Reports(APIView):
@@ -612,7 +634,9 @@ class Reports(APIView):
     def create_reports_for_eligible_projects(self, report_id, user):
         report = AnnualReport.objects.get(pk=report_id)
 
-        settings.LOGGER.error(msg=f"{user} is BATCH Creating PROGRESS/STUDENT reports for eligible projects")
+        settings.LOGGER.error(
+            msg=f"{user} is BATCH Creating PROGRESS/STUDENT reports for eligible projects"
+        )
         # Create progress reports
         eligible_projects = Project.objects.filter(
             Q(status__in=Project.ACTIVE_ONLY)
@@ -711,7 +735,6 @@ class Reports(APIView):
                 settings.LOGGER.error(msg=f"{new_project_document.errors}")
                 return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
 
-
     def get_prepopulation_data_from_last_report(self, year):
 
         data_object = {
@@ -722,21 +745,24 @@ class Reports(APIView):
             "publications": "",
         }
 
-        # Use the year parameter to search for the first AnnualReport that comes prior to the given year. 
+        # Use the year parameter to search for the first AnnualReport that comes prior to the given year.
         # Whilst this sometimes may be the prior year, sometimes the prior year's report doesnt exist, so just get the year that is closest and which comes before.
         # If there is such a report, prepopulate the data object, otherwise leave it as is.
         # Use the year parameter to find the closest previous report
-        previous_year = AnnualReport.objects.filter(year__lt=year).aggregate(Max('year'))['year__max']
+        previous_year = AnnualReport.objects.filter(year__lt=year).aggregate(
+            Max("year")
+        )["year__max"]
 
         if previous_year is not None:
             # If there is a report from the previous year, fetch its data
             previous_report = AnnualReport.objects.get(year=previous_year)
             data_object["dm"] = previous_report.dm
-            data_object["service_delivery_intro"] = previous_report.service_delivery_intro
+            data_object["service_delivery_intro"] = (
+                previous_report.service_delivery_intro
+            )
             data_object["research_intro"] = previous_report.research_intro
             data_object["student_intro"] = previous_report.student_intro
             data_object["publications"] = previous_report.publications
-
 
         return data_object
 
@@ -762,7 +788,6 @@ class Reports(APIView):
         additional_data = self.get_prepopulation_data_from_last_report(year)
 
         creation_data.update(additional_data)
-
 
         ser = AnnualReportSerializer(
             data={**creation_data},
@@ -835,7 +860,7 @@ class ReportDetail(APIView):
     def put(self, req, pk):
         report = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating report {report}")
-        
+
         ser = AnnualReportSerializer(
             report,
             data=req.data,
@@ -1054,7 +1079,9 @@ class ProjectDocuments(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is Creating Project Document for project {req.data.get('project')}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is Creating Project Document for project {req.data.get('project')}"
+        )
         kind = req.data.get("kind")
         project_pk = req.data.get("project")
         document_serializer = ProjectDocumentCreateSerializer(
@@ -1076,21 +1103,30 @@ class ProjectDocuments(APIView):
                     concept_plan_data_object = {
                         "document": doc.pk,
                         "project": project,
-                        "aims": req.data.get("aims")
-                        if req.data.get("aims") is not None
-                        else "<p></p>",
-                        "outcome": req.data.get("outcome")
-                        if req.data.get("outcome") is not None
-                        else "<p></p>",
-                        "collaborations": req.data.get("collaborations")
-                        if req.data.get("collaborations") is not None
-                        else "<p></p>",
-                        "strategic_context": req.data.get("strategic_context")
-                        if req.data.get("strategic_context") is not None
-                        else "<p></p>",
-                        "staff_time_allocation": req.data.get("staff_time_allocation")
-                        if req.data.get("staff_time_allocation") is not None
-                        else '<table class="table-light">\
+                        "aims": (
+                            req.data.get("aims")
+                            if req.data.get("aims") is not None
+                            else "<p></p>"
+                        ),
+                        "outcome": (
+                            req.data.get("outcome")
+                            if req.data.get("outcome") is not None
+                            else "<p></p>"
+                        ),
+                        "collaborations": (
+                            req.data.get("collaborations")
+                            if req.data.get("collaborations") is not None
+                            else "<p></p>"
+                        ),
+                        "strategic_context": (
+                            req.data.get("strategic_context")
+                            if req.data.get("strategic_context") is not None
+                            else "<p></p>"
+                        ),
+                        "staff_time_allocation": (
+                            req.data.get("staff_time_allocation")
+                            if req.data.get("staff_time_allocation") is not None
+                            else '<table class="table-light">\
           <colgroup>\
             <col>\
             <col>\
@@ -1161,10 +1197,12 @@ class ProjectDocuments(APIView):
               <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
             </tr>\
           </tbody>\
-        </table>',
-                        "budget": req.data.get("budget")
-                        if req.data.get("budget") is not None
-                        else '<table class="table-light"><colgroup>\
+        </table>'
+                        ),
+                        "budget": (
+                            req.data.get("budget")
+                            if req.data.get("budget") is not None
+                            else '<table class="table-light"><colgroup>\
         <col>\
         <col>\
         <col>\
@@ -1214,7 +1252,8 @@ class ProjectDocuments(APIView):
           <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
         </tr>\
       </tbody>\
-    </table>',
+    </table>'
+                        ),
                     }
 
                     concept_plan_serializer = ConceptPlanCreateSerializer(
@@ -1243,27 +1282,40 @@ class ProjectDocuments(APIView):
                     project_plan_data_object = {
                         "document": doc.pk,
                         "project": project,
-                        "background": req.data.get("background")
-                        if req.data.get("background") is not None
-                        else "<p></p>",
-                        "methodology": req.data.get("methodology")
-                        if req.data.get("methodology") is not None
-                        else "<p></p>",
-                        "aims": req.data.get("aims")
-                        if req.data.get("aims") is not None
-                        else "<p></p>",
-                        "outcome": req.data.get("outcome")
-                        if req.data.get("outcome") is not None
-                        else "<p></p>",
-                        "knowledge_transfer": req.data.get("knowledge_transfer")
-                        if req.data.get("knowledge_transfer") is not None
-                        else "<p></p>",
-                        "listed_references": req.data.get("listed_references")
-                        if req.data.get("listed_references") is not None
-                        else "<p></p>",
-                        "operating_budget": req.data.get("operating_budget")
-                        if req.data.get("operating_budget") is not None
-                        else '<table class="table-light">\
+                        "background": (
+                            req.data.get("background")
+                            if req.data.get("background") is not None
+                            else "<p></p>"
+                        ),
+                        "methodology": (
+                            req.data.get("methodology")
+                            if req.data.get("methodology") is not None
+                            else "<p></p>"
+                        ),
+                        "aims": (
+                            req.data.get("aims")
+                            if req.data.get("aims") is not None
+                            else "<p></p>"
+                        ),
+                        "outcome": (
+                            req.data.get("outcome")
+                            if req.data.get("outcome") is not None
+                            else "<p></p>"
+                        ),
+                        "knowledge_transfer": (
+                            req.data.get("knowledge_transfer")
+                            if req.data.get("knowledge_transfer") is not None
+                            else "<p></p>"
+                        ),
+                        "listed_references": (
+                            req.data.get("listed_references")
+                            if req.data.get("listed_references") is not None
+                            else "<p></p>"
+                        ),
+                        "operating_budget": (
+                            req.data.get("operating_budget")
+                            if req.data.get("operating_budget") is not None
+                            else '<table class="table-light">\
           <colgroup>\
             <col>\
             <col>\
@@ -1364,12 +1416,12 @@ class ProjectDocuments(APIView):
               <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
             </tr>\
           </tbody>\
-        </table>',
-                        "operating_budget_external": req.data.get(
-                            "operating_budget_external"
-                        )
-                        if req.data.get("operating_budget_external") is not None
-                        else '<table class="table-light">\
+        </table>'
+                        ),
+                        "operating_budget_external": (
+                            req.data.get("operating_budget_external")
+                            if req.data.get("operating_budget_external") is not None
+                            else '<table class="table-light">\
           <colgroup>\
             <col>\
             <col>\
@@ -1470,10 +1522,13 @@ class ProjectDocuments(APIView):
               <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
             </tr>\
           </tbody>\
-        </table>',
-                        "related_projects": req.data.get("related_projects")
-                        if req.data.get("related_projects") is not None
-                        else "<p></p>",
+        </table>'
+                        ),
+                        "related_projects": (
+                            req.data.get("related_projects")
+                            if req.data.get("related_projects") is not None
+                            else "<p></p>"
+                        ),
                     }
                     project_plan_serializer = ProjectPlanCreateSerializer(
                         data=project_plan_data_object
@@ -1532,21 +1587,31 @@ class ProjectDocuments(APIView):
                         "project": project,
                         "intended_outcome": outcome,
                         "reason": reason,
-                        "scientific_outputs": req.data.get("scientific_outputs")
-                        if req.data.get("scientific_outputs") is not None
-                        else "<p></p>",
-                        "knowledge_transfer": req.data.get("knowledge_transfer")
-                        if req.data.get("knowledge_transfer") is not None
-                        else "<p></p>",
-                        "data_location": req.data.get("data_location")
-                        if req.data.get("data_location") is not None
-                        else "<p></p>",
-                        "hardcopy_location": req.data.get("hardcopy_location")
-                        if req.data.get("hardcopy_location") is not None
-                        else "<p></p>",
-                        "backup_location": req.data.get("backup_location")
-                        if req.data.get("backup_location") is not None
-                        else "<p></p>",
+                        "scientific_outputs": (
+                            req.data.get("scientific_outputs")
+                            if req.data.get("scientific_outputs") is not None
+                            else "<p></p>"
+                        ),
+                        "knowledge_transfer": (
+                            req.data.get("knowledge_transfer")
+                            if req.data.get("knowledge_transfer") is not None
+                            else "<p></p>"
+                        ),
+                        "data_location": (
+                            req.data.get("data_location")
+                            if req.data.get("data_location") is not None
+                            else "<p></p>"
+                        ),
+                        "hardcopy_location": (
+                            req.data.get("hardcopy_location")
+                            if req.data.get("hardcopy_location") is not None
+                            else "<p></p>"
+                        ),
+                        "backup_location": (
+                            req.data.get("backup_location")
+                            if req.data.get("backup_location") is not None
+                            else "<p></p>"
+                        ),
                     }
 
                     closure_serializer = ProjectClosureCreationSerializer(
@@ -1577,8 +1642,6 @@ class ProjectDocuments(APIView):
                     year = req.data.get("year")
                     project = req.data.get("project")
 
-
-
                     def get_prepopulation_data_from_last_report(year, project):
                         data_object = {
                             "context": "",
@@ -1590,14 +1653,20 @@ class ProjectDocuments(APIView):
 
                         # Use the year parameter to search for the first ProgressReport that comes prior to the given year.
                         # Whilst this sometimes may be the prior year, sometimes the prior year's report doesnt exist, so just get the year that is closest and which comes before.
-                        progress_reports_for_this_project = ProgressReport.objects.filter(project=project).all()
-                        previous_year = progress_reports_for_this_project.filter(year__lt=year).aggregate(Max('year'))['year__max']
+                        progress_reports_for_this_project = (
+                            ProgressReport.objects.filter(project=project).all()
+                        )
+                        previous_year = progress_reports_for_this_project.filter(
+                            year__lt=year
+                        ).aggregate(Max("year"))["year__max"]
 
                         print(previous_year)
 
                         if previous_year is not None:
                             # If there is a report from the previous year, fetch its data
-                            previous_report = progress_reports_for_this_project.get(year=previous_year)
+                            previous_report = progress_reports_for_this_project.get(
+                                year=previous_year
+                            )
                             print(previous_report)
                             data_object["context"] = previous_report.context
                             data_object["aims"] = previous_report.aims
@@ -1606,7 +1675,10 @@ class ProjectDocuments(APIView):
                             data_object["future"] = previous_report.future
 
                         return data_object
-                    last_reports_data = get_prepopulation_data_from_last_report(year, project)
+
+                    last_reports_data = get_prepopulation_data_from_last_report(
+                        year, project
+                    )
 
                     progress_report_data_object = {
                         "document": doc.pk,
@@ -1618,9 +1690,11 @@ class ProjectDocuments(APIView):
                         "future": last_reports_data["future"],
                         "progress": last_reports_data["progress"],
                         "aims": last_reports_data["aims"],
-                        "is_final_report": req.data.get("is_final_report")
-                        if req.data.get("is_final_report") is not None
-                        else False,
+                        "is_final_report": (
+                            req.data.get("is_final_report")
+                            if req.data.get("is_final_report") is not None
+                            else False
+                        ),
                     }
 
                     pr_serializer = ProgressReportCreateSerializer(
@@ -1652,7 +1726,6 @@ class ProjectDocuments(APIView):
                     report_id = req.data.get("report")
                     report = AnnualReport.objects.get(pk=report_id)
 
-
                     def get_prepopulation_data_from_last_report(year, project):
                         data_object = {
                             "progress_report": "",
@@ -1660,27 +1733,37 @@ class ProjectDocuments(APIView):
 
                         # Use the year parameter to search for the first ProgressReport that comes prior to the given year.
                         # Whilst this sometimes may be the prior year, sometimes the prior year's report doesnt exist, so just get the year that is closest and which comes before.
-                        student_reports_for_this_project = StudentReport.objects.filter(project=project).all()
-                        previous_year = student_reports_for_this_project.filter(year__lt=year).aggregate(Max('year'))['year__max']
+                        student_reports_for_this_project = StudentReport.objects.filter(
+                            project=project
+                        ).all()
+                        previous_year = student_reports_for_this_project.filter(
+                            year__lt=year
+                        ).aggregate(Max("year"))["year__max"]
 
                         print(previous_year)
 
                         if previous_year is not None:
                             # If there is a report from the previous year, fetch its data
-                            previous_report = student_reports_for_this_project.get(year=previous_year)
+                            previous_report = student_reports_for_this_project.get(
+                                year=previous_year
+                            )
                             print(previous_report)
-                            data_object["progress_report"] = previous_report.progress_report
+                            data_object["progress_report"] = (
+                                previous_report.progress_report
+                            )
 
                         return data_object
-                    
-                    last_reports_data = get_prepopulation_data_from_last_report(report.year, project)
+
+                    last_reports_data = get_prepopulation_data_from_last_report(
+                        report.year, project
+                    )
 
                     student_report_data_object = {
                         "document": doc.pk,
                         "report": report.pk,
                         "project": project,
                         "year": report.year,
-                        "progress_report": last_reports_data["progress_report"]
+                        "progress_report": last_reports_data["progress_report"],
                     }
                     print(student_report_data_object)
                     sr_serializer = StudentReportCreateSerializer(
@@ -1735,49 +1818,62 @@ class EndorsementsPendingMyAction(APIView):
         bm_input_required = []
         hc_input_required = []
 
-
         # Construct Q objects based on conditions
-        q_bm = Q(bm_endorsement_required=True, bm_endorsement_provided=False) & (Q(bm_endorsement_required=True) if is_bio or is_superuser else Q())
-        q_ae = Q(ae_endorsement_required=True, ae_endorsement_provided=False) & (Q(ae_endorsement_required=True) if is_aec or is_superuser else Q())
-        q_hc = Q(hc_endorsement_required=True, hc_endorsement_provided=False) & (Q(hc_endorsement_required=True) if is_hc or is_superuser else Q())
+        q_bm = Q(bm_endorsement_required=True, bm_endorsement_provided=False) & (
+            Q(bm_endorsement_required=True) if is_bio or is_superuser else Q()
+        )
+        q_ae = Q(ae_endorsement_required=True, ae_endorsement_provided=False) & (
+            Q(ae_endorsement_required=True) if is_aec or is_superuser else Q()
+        )
+        q_hc = Q(hc_endorsement_required=True, hc_endorsement_provided=False) & (
+            Q(hc_endorsement_required=True) if is_hc or is_superuser else Q()
+        )
 
         # Filter endorsements based on conditions
         filtered_endorsements = Endorsement.objects.filter(
-            q_bm | q_ae | q_hc,
-            project_plan__project__status__in=Project.ACTIVE_ONLY
+            q_bm | q_ae | q_hc, project_plan__project__status__in=Project.ACTIVE_ONLY
         )
 
         for endorsement in filtered_endorsements:
-            if endorsement.bm_endorsement_required and not endorsement.bm_endorsement_provided:
+            if (
+                endorsement.bm_endorsement_required
+                and not endorsement.bm_endorsement_provided
+            ):
                 documents.append(endorsement)
                 bm_input_required.append(endorsement)
 
-            if endorsement.ae_endorsement_required and not endorsement.ae_endorsement_provided:
+            if (
+                endorsement.ae_endorsement_required
+                and not endorsement.ae_endorsement_provided
+            ):
                 documents.append(endorsement)
                 aec_input_required.append(endorsement)
 
-            if endorsement.hc_endorsement_required and not endorsement.hc_endorsement_provided:
+            if (
+                endorsement.hc_endorsement_required
+                and not endorsement.hc_endorsement_provided
+            ):
                 documents.append(endorsement)
                 hc_input_required.append(endorsement)
 
         all_aec = MiniEndorsementSerializer(
-                aec_input_required if aec_input_required else [],
-                many=True,
-                context={"request": req},
-            ).data
-        
+            aec_input_required if aec_input_required else [],
+            many=True,
+            context={"request": req},
+        ).data
+
         all_bm = MiniEndorsementSerializer(
-                bm_input_required if bm_input_required else [],
-                many=True,
-                context={"request": req},
-            ).data
+            bm_input_required if bm_input_required else [],
+            many=True,
+            context={"request": req},
+        ).data
 
         all_hc = MiniEndorsementSerializer(
-                hc_input_required if hc_input_required else [],
-                many=True,
-                context={"request": req},
-            ).data
-        
+            hc_input_required if hc_input_required else [],
+            many=True,
+            context={"request": req},
+        ).data
+
         data = {
             "aec": all_aec,
             "bm": all_bm,
@@ -2084,71 +2180,87 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
         if small_user_object and small_user_object.work.business_area:
             # user_work = UserWork.objects.get(user=req.user.pk)
-            is_directorate = small_user_object.work.business_area.name = "Directorate" or req.user.is_superuser
+            is_directorate = small_user_object.work.business_area.name = (
+                "Directorate" or req.user.is_superuser
+            )
 
             active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
 
             # Check if the user is a leader of any business area
-            business_areas_led = small_user_object.business_areas_led.values_list('id', flat=True)
+            business_areas_led = small_user_object.business_areas_led.values_list(
+                "id", flat=True
+            )
             is_ba_leader = len(business_areas_led) >= 1
 
             if is_ba_leader:
                 # filter further for only projects which the user leads
-                ba_projects = active_projects.filter(business_area__pk__in=business_areas_led).all()
+                ba_projects = active_projects.filter(
+                    business_area__pk__in=business_areas_led
+                ).all()
 
                 # Extract project IDs for Business Area
-                ba_project_ids = ba_projects.values_list('id', flat=True)
+                ba_project_ids = ba_projects.values_list("id", flat=True)
 
                 # Fetch all documents requiring BA attention in a single query
-                docs_requiring_ba_attention = ProjectDocument.objects.exclude(
-                    status=ProjectDocument.StatusChoices.APPROVED
-                ).filter(
-                    project__in=ba_project_ids,
-                    project_lead_approval_granted=True,
-                    business_area_lead_approval_granted=False,
-                ).all()
+                docs_requiring_ba_attention = (
+                    ProjectDocument.objects.exclude(
+                        status=ProjectDocument.StatusChoices.APPROVED
+                    )
+                    .filter(
+                        project__in=ba_project_ids,
+                        project_lead_approval_granted=True,
+                        business_area_lead_approval_granted=False,
+                    )
+                    .all()
+                )
 
                 # Append the documents to the respective lists
                 documents.extend(docs_requiring_ba_attention)
                 ba_input_required.extend(docs_requiring_ba_attention)
 
-
-    
-
             # Directorate Filtering
             if is_directorate:
                 # Extract project IDs for Directorate
-                directorate_project_ids = active_projects.values_list('id', flat=True)
+                directorate_project_ids = active_projects.values_list("id", flat=True)
 
                 # Fetch all documents requiring Directorate attention in a single query
-                docs_requiring_directorate_attention = ProjectDocument.objects.exclude(
-                    status=ProjectDocument.StatusChoices.APPROVED
-                ).filter(
-                    project__in=directorate_project_ids,
-                    business_area_lead_approval_granted=True,
-                    directorate_approval_granted=False,
-                ).all()
+                docs_requiring_directorate_attention = (
+                    ProjectDocument.objects.exclude(
+                        status=ProjectDocument.StatusChoices.APPROVED
+                    )
+                    .filter(
+                        project__in=directorate_project_ids,
+                        business_area_lead_approval_granted=True,
+                        directorate_approval_granted=False,
+                    )
+                    .all()
+                )
 
                 # Append the documents to the respective lists
                 documents.extend(docs_requiring_directorate_attention)
                 directorate_input_required.extend(docs_requiring_directorate_attention)
 
-
             # Lead Filtering
             all_leader_memberships = ProjectMember.objects.filter(
                 project__in=active_projects, user=small_user_object, is_leader=True
-            ).select_related('project')
+            ).select_related("project")
 
             # Extract project IDs for projects where the user is a lead
-            lead_project_ids = [membership.project_id for membership in all_leader_memberships]
+            lead_project_ids = [
+                membership.project_id for membership in all_leader_memberships
+            ]
 
             # Fetch all documents requiring lead attention in a single query
-            docs_requiring_lead_attention = ProjectDocument.objects.exclude(
-                status=ProjectDocument.StatusChoices.APPROVED
-            ).filter(
-                project__in=lead_project_ids,
-                project_lead_approval_granted=False,
-            ).all()
+            docs_requiring_lead_attention = (
+                ProjectDocument.objects.exclude(
+                    status=ProjectDocument.StatusChoices.APPROVED
+                )
+                .filter(
+                    project__in=lead_project_ids,
+                    project_lead_approval_granted=False,
+                )
+                .all()
+            )
 
             # Separate the documents based on lead and member input
             for doc in docs_requiring_lead_attention:
@@ -2208,9 +2320,10 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             )
         else:
             data = {"all": [], "team": [], "lead": [], "ba": [], "directorate": []}
-            return Response (
-            data, status=HTTP_200_OK,
-        )
+            return Response(
+                data,
+                status=HTTP_200_OK,
+            )
 
 
 class ProjectDocumentDetail(APIView):
@@ -2966,7 +3079,7 @@ class DocApproval(APIView):
                 if document_serializer.is_valid():
                     with transaction.atomic():
                         projplanmaindoc = document_serializer.save()
-                                        # Create a project plan
+                        # Create a project plan
 
                         project_plan_data_object = {
                             "document": projplanmaindoc.pk,
@@ -2977,7 +3090,7 @@ class DocApproval(APIView):
                             "outcome": "<p></p>",
                             "knowledge_transfer": "<p></p>",
                             "listed_references": "<p></p>",
-                            "operating_budget":'<table class="table-light">\
+                            "operating_budget": '<table class="table-light">\
                 <colgroup>\
                 <col>\
                 <col>\
@@ -3227,12 +3340,13 @@ class DocApproval(APIView):
                             u_document.project.status = Project.StatusChoices.PENDING
                             u_document.project.save()
                         else:
-                            settings.LOGGER.error(msg=f"{project_plan_serializer.errors}")
+                            settings.LOGGER.error(
+                                msg=f"{project_plan_serializer.errors}"
+                            )
                             return Response(
                                 project_plan_serializer.errors,
                                 status=HTTP_400_BAD_REQUEST,
                             )
-
 
                 else:
                     settings.LOGGER.error(msg=f"{document_serializer.errors}")

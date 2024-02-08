@@ -278,7 +278,9 @@ class BusinessAreas(APIView):
                     #     new_bap_instance
                     # ).data
                 except Exception as e:
-                    settings.LOGGER.error(msg=f"Error on creating new BA Photo instance: {e}")
+                    settings.LOGGER.error(
+                        msg=f"Error on creating new BA Photo instance: {e}"
+                    )
                     new_business_area.delete()
                     response_data = {"error": str(e)}
                     return Response(
@@ -294,6 +296,35 @@ class BusinessAreas(APIView):
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class SetBusinessAreaActive(APIView):
+    def go(self, pk):
+        try:
+            business_area = BusinessArea.objects.get(pk=pk)
+        except BusinessArea.DoesNotExist:
+            raise NotFound
+        return business_area
+
+    def post(self, req, pk):
+        ba = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is changing active status of {ba}")
+        try:
+            ba.is_active = not ba.is_active
+            new = ba.save()
+            ser = BusinessAreaSerializer(new)
+            return Response(
+                ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        except Exception as e:
+            settings.LOGGER.error(
+                msg=f"Error setting active status of Business Area: {ser.errors}"
+            )
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
             )
 
 
@@ -591,7 +622,7 @@ class BusinessAreaDetail(APIView):
             selectedImageUrl = req.data.get("selectedImageUrl")
             if selectedImageUrl == "delete":
                 photo = BusinessAreaPhoto.objects.filter(business_area=pk).first()
-                if (photo):
+                if photo:
                     photo.delete()
 
         ba_data = {
@@ -711,7 +742,9 @@ class DepartmentalServiceDetail(APIView):
 
     def delete(self, req, pk):
         service = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting departmental service detail {service}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting departmental service detail {service}"
+        )
         service.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -719,7 +752,9 @@ class DepartmentalServiceDetail(APIView):
 
     def put(self, req, pk):
         service = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating departmental service detail {service}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating departmental service detail {service}"
+        )
         ser = DepartmentalServiceSerializer(
             service,
             data=req.data,
@@ -732,7 +767,7 @@ class DepartmentalServiceDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
