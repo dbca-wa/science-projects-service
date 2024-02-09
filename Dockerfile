@@ -69,7 +69,7 @@ RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     djangorestframework django psycopg2-binary python-dotenv python-dateutil \
     requests whitenoise[brotli] gunicorn pandas \
-    beautifulsoup4 docx2pdf lxml sentry-sdk[django]
+    beautifulsoup4 docx2pdf lxml sentry-sdk[django] html2text
 
 RUN poetry add pillow
 # dbca-utils
