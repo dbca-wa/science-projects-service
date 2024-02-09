@@ -720,6 +720,40 @@ class Loader:
             )
             return f"{first_name} {last_name}"
 
+    def spms_get_business_area_by_old_id(self, connection, cursor, old_id):
+        print(f"trying for old id: {old_id}")
+        try:
+            cursor = connection.cursor()
+
+            # Construct the SQL query
+            sql = """
+                SELECT id FROM agencies_businessarea WHERE old_id = %s
+            """
+
+            old_id = int(old_id)
+
+            # Execute the query with the user name
+            cursor.execute(sql, (old_id,))
+
+            # Fetch the result
+            result = cursor.fetchone()
+
+            if result:
+                ba_id = result[0]  # Return the user ID
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Error retrieving business area: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+            return None
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Business Area retrieved ({ba_id})!{self.misc.bcolors.ENDC}"
+            )
+            return ba_id
+
+
     def spms_get_user_by_old_id(self, connection, cursor, old_id):
         print(f"trying for old id: {old_id}")
         if old_id == 101073 or old_id == "101073":
@@ -2156,7 +2190,7 @@ class Loader:
         # # input("Create comments?")
         self.spms_create_document_comments()
         self.spms_create_superuser_todos()
-
+        self.spms_set_new_leaders()
         # # Majority of media photo uploads
         # self.spms_replace_photo_with_cf_file(from_table="agencyimage")
         # self.spms_replace_photo_with_cf_file(from_table="businessareaphoto")
@@ -2394,8 +2428,9 @@ class Loader:
             except Exception as e:
                 print("Error on RFMS:", e)
 
+
+            # Deactivate the business areas which are not in the list
             try:
-                # Deactivate the business areas which are not in the list, and set the new leaders
                 bas_to_deactivate = [
                     "Biodiversity and Climate Change Unit",
                     "Biogeography",
@@ -2404,11 +2439,10 @@ class Loader:
                     "Region Swan",
                     "Wetlands Conservation",
                 ]
+                deactivate_sql = "UPDATE agencies_businessarea SET is_active = False WHERE name = %s;"
 
                 for ba in bas_to_deactivate:
-                    sql = "UPDATE agencies_businessarea SET is_active = False WHERE name = %s;"
-
-                    cursor.execute(sql, (ba,))
+                    cursor.execute(deactivate_sql, (ba,))
                     connection.commit()
                     self.misc.nls(
                         f"{self.misc.bcolors.OKGREEN}Business area '{ba}' deactivated successfully.{self.misc.bcolors.ENDC}"
@@ -2422,6 +2456,50 @@ class Loader:
         finally:
             cursor.close()
             connection.close()
+
+
+    def spms_set_new_leaders(self):
+        (
+            cursor,
+            connection,
+        ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+        connection.autocommit = False
+        # FOR BCS, SET THE NEW BA LEADERS, DATA CUSTODIANS/FINANCIAL ADMINS BASED ON LIST FROM RORY
+        ba_to_leader = [
+            {"old_user_pk": 100934, "old_business_area_pk": 4}, #Directorate BCS Rory McAuley Rory McAuley
+            {"old_user_pk": 93, "old_business_area_pk":5 }, #Animal Science Program BCS Lesley Gibson Lesley Gibson
+            {"old_user_pk": 100936, "old_business_area_pk": 22}, #Biodiversity Information Office BCS Rob Cechner Rob Cechner
+            {"old_user_pk": 22, "old_business_area_pk": 7}, #Ecosystem Science Program BCS Adrian Pinder Adrian Pinder
+            {"old_user_pk": 100457, "old_business_area_pk": 21}, #Fire Science Program BCS Ben Miller Ben Miller
+            {"old_user_pk": 100462, "old_business_area_pk": 17}, #Kings Park Science Program BCS Jason Stevens Jason Stevens
+            {"old_user_pk": 156, "old_business_area_pk": 9}, #Marine Science Program BCS Tom Holmes Tom Holmes
+            {"old_user_pk": 101019, "old_business_area_pk": 18}, #Perth Zoo Science Program BCS Harriet Mills Harriet Mills
+            {"old_user_pk": 47, "old_business_area_pk": 6}, #Plant Science and Herbarium BCS Carl Gosper Carl Gosper
+            {"old_user_pk": 100448, "old_business_area_pk": 19}, #Remote Sensing and Spatial Analysis BCS Katherine Zdunic Katherine Zdunic
+            {"old_user_pk": 100458, "old_business_area_pk": 20}, #Rivers and Estuaries BCS Kerry Trayler Kerry Trayler
+            {"old_user_pk": 100749, "old_business_area_pk": 15}, #Species and Communities BCS Ruth Harvey Ruth Harvey
+        ]
+
+        ba_leader_update_sql = "UPDATE agencies_businessarea SET leader_id = %s, data_custodian_id = %s, finance_admin_id = %s WHERE id = %s;"
+        
+        for item in ba_to_leader:
+            # get the new leader id
+            try: 
+                leader_id = self.spms_get_user_by_old_id(connection=connection, cursor=cursor, old_id=item['old_user_pk'])
+                ba_id = self.spms_get_business_area_by_old_id(connection=connection, cursor=cursor, old_id=item['old_business_area_pk'])
+                cursor.execute(ba_leader_update_sql, (leader_id, leader_id, leader_id, ba_id))
+                connection.commit()
+                self.misc.nls(
+                    f"{self.misc.bcolors.OKGREEN}Business area '{item}' updated successfully.{self.misc.bcolors.ENDC}"
+                )
+                
+            except Exception as e:
+                connection.rollback()
+                self.misc.nli(
+                    f"{self.misc.bcolors.FAIL}Error while setting new ba leaders: {e}{self.misc.bcolors.ENDC}"
+                )
+
+
 
     def spms_create_users(self):
         self.misc.nls(
