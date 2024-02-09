@@ -3,6 +3,15 @@ from . import views
 
 urlpatterns = [
     # REST framework
+    path("review_document_email", views.ReviewDocumentEmail.as_view()),
+    path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
+    path("project_closure_email", views.ProjectClosureEmail.as_view()),
+    path("document_ready_email", views.DocumentReadyEmail.as_view()),
+    path("document_sent_back_email", views.DocumentSentBackEmail.as_view()),
+    path("document_approved_email", views.DocumentApprovedEmail.as_view()),
+    path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
+
+
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("opennewcycle", views.BatchProgressReportCreation.as_view()),

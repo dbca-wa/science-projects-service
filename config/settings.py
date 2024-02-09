@@ -1,3 +1,4 @@
+import base64
 import logging
 from logging import LogRecord
 from pathlib import Path
@@ -394,7 +395,24 @@ LOGGING = {
 
 LOGGER = logging.getLogger(__name__)
 
-# logger.error(f'')
-# logger.warning(f'')
-# logger.info(f'')
-# logger.debug(f'')
+
+EMAIL_HOST = 'mail-relay.lan.fyi'
+EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+
+# EMAIL_HOST_USER = 'no-reply@dbca.wa.gov.au'
+# EMAIL_HOST_PASSWORD = ''
+# EMAIL_USE_SSL = False
+
+ENVELOPE_EMAIL_RECIPIENTS = ['jarid.prince@dbca.wa.gov.au']
+ENVELOPE_USE_HTML_EMAIL = True
+# DEFAULT_FROM_EMAIL = '"SPMS" <SPMS-noreply@dbca.wa.gov.au>'
+DEFAULT_FROM_EMAIL = '"SPMS" <spms-noreply@dbca.wa.gov.au>'
+
+
+
+if DEBUG == True:
+    SITE_URL = "127.0.0.1:3000"
+else:
+    SITE_URL = "https://scienceprojects-test.dbca.wa.gov.au"
+
