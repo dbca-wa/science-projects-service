@@ -308,19 +308,137 @@ class GenerateProjectDocument(APIView):
             return Response(status=HTTP_200_OK, data=StudentReportSerializer(pc).data)
 
 
-# REPORTS ==========================================================
+# Latest Year's Reports
 
 
-class DownloadAnnualReport(APIView):
+class LatestYearsProgressReports(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, req):
-        settings.LOGGER.error(msg=f"{req.user} is downloading annual report")
-        pass
+
+        # Get the latest year's report
+        latest_report = AnnualReport.objects.order_by("-year").first()
+        if latest_report:
+            print(latest_report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            active_docs = ProgressReport.objects.filter(
+                report=latest_report, project__status="active"
+            ).all()
+            print(active_docs)
+            ser = ProgressReportSerializer(
+                active_docs, many=True, context={"request": req}
+            )
+            return Response(
+                ser.data,
+                HTTP_200_OK,
+            )
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
+
+class LatestYearsStudentReports(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+
+        # Get the latest year's report
+        latest_report = AnnualReport.objects.order_by("-year").first()
+        if latest_report:
+            print(latest_report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            active_docs = StudentReport.objects.filter(
+                report=latest_report, project__status="active"
+            ).all()
+            print(active_docs)
+            ser = StudentReportSerializer(
+                active_docs, many=True, context={"request": req}
+            )
+            return Response(
+                ser.data,
+                HTTP_200_OK,
+            )
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
+
+class LatestYearsInactiveReports(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+
+        # Get the latest year's report
+        latest_report = AnnualReport.objects.order_by("-year").first()
+        if latest_report:
+            print(latest_report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            inactive_srs = (
+                StudentReport.objects.filter(report=latest_report)
+                .exclude(project__status__in=["active"])
+                .all()
+            )
+            inactive_prs = (
+                ProgressReport.objects.filter(report=latest_report)
+                .exclude(project__status__in=["active"])
+                .all()
+            )
+
+            sr_ser = StudentReportSerializer(
+                inactive_srs, many=True, context={"request": req}
+            )
+            pr_ser = ProgressReportSerializer(
+                inactive_prs, many=True, context={"request": req}
+            )
+
+            res_dict = {
+                "student_reports": sr_ser.data,
+                "progress_reports": pr_ser.data,
+            }
+
+            return Response(
+                res_dict,
+                HTTP_200_OK,
+            )
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
+
+class FullLatestReport(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+
+        latest_report = AnnualReport.objects.order_by("-year").first()
+        if latest_report:
+            ser = AnnualReportSerializer(
+                latest_report,
+                context={"request": req},
+            )
+            return Response(
+                ser.data,
+                status=HTTP_200_OK,
+            )
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
+
+# EMAILS ==========================================================
 
 
 class ReviewDocumentEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (Review Document) for users {req.data['recipients_list']}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Review Document) for users {req.data['recipients_list']}"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -328,12 +446,11 @@ class ReviewDocumentEmail(APIView):
 
         # Get actioning user details (User causing email to be sent)
         actioning_user = User.objects.get(pk=req.user.pk)
-        actioning_user_name = f'{actioning_user.first_name} {actioning_user.last_name}'
-        actioning_user_email = f'{actioning_user.email}'
-
+        actioning_user_name = f"{actioning_user.first_name} {actioning_user.last_name}"
+        actioning_user_email = f"{actioning_user.email}"
 
         # Get recipient list
-        recipients_list_data = req.data["recipients_list"] # list of user pks
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
         recipients_list = []
 
         for recipient_pk in recipients_list_data:
@@ -343,34 +460,34 @@ class ReviewDocumentEmail(APIView):
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
 
-
         # Get project information
         project_pk = req.data["project_pk"]
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(html_project_title).strip() # nicely rendered html title
+            plain_project_name = html2text.html2text(
+                html_project_title
+            ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept":"Concept Plan",
-                "projectplan":"Project Plan",
-                "progressreport":"Progress Report",
-                "studentreport":"Student Report",
-                "projectclosure":"Project Closure",
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
-            
             for recipient in recipients_list:
-                if (recipient['pk'] == 101073):
+                if recipient["pk"] == 101073:
                     email_subject = f"SPMS: Review {document_kind_as_title}"
-                    to_email = [recipient['email']] 
+                    to_email = [recipient["email"]]
 
                     template_props = {
                         "email_subject": email_subject,
-                        "recipient_name": recipient["name"], 
+                        "recipient_name": recipient["name"],
                         "actioning_user_email": actioning_user_email,
                         "actioning_user_name": actioning_user_name,
                         "project_id": project_pk,
@@ -381,13 +498,12 @@ class ReviewDocumentEmail(APIView):
                         "dbca_image_path": get_encoded_image(),
                     }
 
-
                     template_content = render_to_string(templ, template_props)
 
                     try:
                         send_mail(
                             email_subject,
-                            template_content, #plain text
+                            template_content,  # plain text
                             from_email,
                             to_email,
                             fail_silently=False,  # Set this to False to see errors
@@ -400,16 +516,18 @@ class ReviewDocumentEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
-
 
 
 class NewCycleOpenEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -420,15 +538,21 @@ class NewCycleOpenEmail(APIView):
         # Get recipient list (active project leads)
         also_updating = req.data["include_projects_with_status_updating"]
         if also_updating == True or also_updating == "True":
-            active_project_leads = ProjectMember.objects.filter(
-                project__status__in=["active", "updating"],
-                is_leader=True
-            ).values_list('user__pk', flat=True).distinct()
+            active_project_leads = (
+                ProjectMember.objects.filter(
+                    project__status__in=["active", "updating"], is_leader=True
+                )
+                .values_list("user__pk", flat=True)
+                .distinct()
+            )
         else:
-            active_project_leads = ProjectMember.objects.filter(
-                project__status__in=["active"],
-                is_leader=True
-            ).values_list('user__pk', flat=True).distinct()
+            active_project_leads = (
+                ProjectMember.objects.filter(
+                    project__status__in=["active"], is_leader=True
+                )
+                .values_list("user__pk", flat=True)
+                .distinct()
+            )
 
         # Get combined recipient list, without duplicates
         recipients_list_data = list(ba_leads.union(active_project_leads))
@@ -444,19 +568,18 @@ class NewCycleOpenEmail(APIView):
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
 
-
         # Get FY information
         financial_year = req.data["financial_year"]
         financial_year_string = f"FY {int(financial_year-1)}-{int(financial_year)}"
-        
+
         for recipient in recipients_list:
-            if (recipient['pk'] == 101073):
+            if recipient["pk"] == 101073:
                 email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
-                to_email = [recipient['email']] 
+                to_email = [recipient["email"]]
 
                 template_props = {
                     "email_subject": email_subject,
-                    "recipient_name": recipient["name"], 
+                    "recipient_name": recipient["name"],
                     "site_url": settings.SITE_URL,
                     "dbca_image_path": get_encoded_image(),
                     "financial_year_string": financial_year_string,
@@ -467,7 +590,7 @@ class NewCycleOpenEmail(APIView):
                 try:
                     send_mail(
                         email_subject,
-                        template_content, #plain text
+                        template_content,  # plain text
                         from_email,
                         to_email,
                         fail_silently=False,  # Set this to False to see errors
@@ -480,15 +603,18 @@ class NewCycleOpenEmail(APIView):
                         status=HTTP_400_BAD_REQUEST,
                     )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
 
 
 class ProjectClosureEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (Project Closure) to the project lead of project with id {req.data['project_pk']}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Project Closure) to the project lead of project with id {req.data['project_pk']}"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -496,7 +622,9 @@ class ProjectClosureEmail(APIView):
 
         # Get recipient list (ba leads)
         project_pk = req.data["project_pk"]
-        project_leader = ProjectMember.objects.filter(project=project_pk, is_leader=True).first()
+        project_leader = ProjectMember.objects.filter(
+            project=project_pk, is_leader=True
+        ).first()
         print("PROJECT LEADER: ", project_leader)
         if project_leader:
             recipients_list = []
@@ -508,24 +636,23 @@ class ProjectClosureEmail(APIView):
 
             print(recipients_list)
 
-
             # Get Project information
             project = Project.objects.filter(pk=project_pk).first()
             print("PROJECT: ", project)
             if project:
                 html_project_title = project.title
-                plain_project_name = html2text.html2text(html_project_title).strip() # nicely rendered html title
+                plain_project_name = html2text.html2text(
+                    html_project_title
+                ).strip()  # nicely rendered html title
 
-
-                
                 for recipient in recipients_list:
-                    if (recipient['pk'] == 101073):
+                    if recipient["pk"] == 101073:
                         email_subject = f"SPMS: Project Closed"
-                        to_email = [recipient['email']] 
+                        to_email = [recipient["email"]]
 
                         template_props = {
                             "email_subject": email_subject,
-                            "recipient_name": recipient["name"], 
+                            "recipient_name": recipient["name"],
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
                             "plain_project_name": plain_project_name,
@@ -537,7 +664,7 @@ class ProjectClosureEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, #plain text
+                                template_content,  # plain text
                                 from_email,
                                 to_email,
                                 fail_silently=False,  # Set this to False to see errors
@@ -550,22 +677,25 @@ class ProjectClosureEmail(APIView):
                                 status=HTTP_400_BAD_REQUEST,
                             )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
 
 
 class DocumentReadyEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (Document Ready) for users {req.data['recipients_list']}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Document Ready) for users {req.data['recipients_list']}"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
         templ = "./email_templates/document_ready_email.html"
 
         # Get recipient list
-        recipients_list_data = req.data["recipients_list"] # list of user pks
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
         recipients_list = []
 
         for recipient_pk in recipients_list_data:
@@ -575,34 +705,34 @@ class DocumentReadyEmail(APIView):
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
 
-
         # Get project information
         project_pk = req.data["project_pk"]
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(html_project_title).strip() # nicely rendered html title
+            plain_project_name = html2text.html2text(
+                html_project_title
+            ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept":"Concept Plan",
-                "projectplan":"Project Plan",
-                "progressreport":"Progress Report",
-                "studentreport":"Student Report",
-                "projectclosure":"Project Closure",
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
-            
             for recipient in recipients_list:
-                if (recipient['pk'] == 101073):
+                if recipient["pk"] == 101073:
                     email_subject = f"SPMS: New {document_kind_as_title} Ready"
-                    to_email = [recipient['email']] 
+                    to_email = [recipient["email"]]
 
                     template_props = {
                         "email_subject": email_subject,
-                        "recipient_name": recipient["name"], 
+                        "recipient_name": recipient["name"],
                         "project_id": project_pk,
                         "plain_project_name": plain_project_name,
                         "document_type": document_kind,
@@ -611,13 +741,12 @@ class DocumentReadyEmail(APIView):
                         "dbca_image_path": get_encoded_image(),
                     }
 
-
                     template_content = render_to_string(templ, template_props)
 
                     try:
                         send_mail(
                             email_subject,
-                            template_content, #plain text
+                            template_content,  # plain text
                             from_email,
                             to_email,
                             fail_silently=False,  # Set this to False to see errors
@@ -630,24 +759,26 @@ class DocumentReadyEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
 
 
 class DocumentSentBackEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (Document Sent Back) for users {req.data['recipients_list']}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Document Sent Back) for users {req.data['recipients_list']}"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
         templ = "./email_templates/document_sent_back_email.html"
         stage = req.data["stage"]
 
-
         # Get recipient list
-        recipients_list_data = req.data["recipients_list"] # list of user pks
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
         recipients_list = []
 
         for recipient_pk in recipients_list_data:
@@ -657,35 +788,37 @@ class DocumentSentBackEmail(APIView):
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
 
-
         # Get project information
         project_pk = req.data["project_pk"]
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(html_project_title).strip() # nicely rendered html title
+            plain_project_name = html2text.html2text(
+                html_project_title
+            ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept":"Concept Plan",
-                "projectplan":"Project Plan",
-                "progressreport":"Progress Report",
-                "studentreport":"Student Report",
-                "projectclosure":"Project Closure",
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
-            
             for recipient in recipients_list:
-                if (recipient['pk'] == 101073):
+                if recipient["pk"] == 101073:
                     email_subject = f"SPMS: {document_kind_as_title} Sent Back"
-                    to_email = [recipient['email']] 
+                    to_email = [recipient["email"]]
 
                     template_props = {
                         "email_subject": email_subject,
-                        "recipient_name": recipient["name"], 
-                        "actioning_user_role": "directorate" if stage == 3 else "business area lead",
+                        "recipient_name": recipient["name"],
+                        "actioning_user_role": (
+                            "directorate" if stage == 3 else "business area lead"
+                        ),
                         "project_id": project_pk,
                         "plain_project_name": plain_project_name,
                         "document_type": document_kind,
@@ -694,13 +827,12 @@ class DocumentSentBackEmail(APIView):
                         "dbca_image_path": get_encoded_image(),
                     }
 
-
                     template_content = render_to_string(templ, template_props)
 
                     try:
                         send_mail(
                             email_subject,
-                            template_content, #plain text
+                            template_content,  # plain text
                             from_email,
                             to_email,
                             fail_silently=False,  # Set this to False to see errors
@@ -713,23 +845,25 @@ class DocumentSentBackEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
-
 
 
 class DocumentApprovedEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (Document Approved) for users {req.data['recipients_list']}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Document Approved) for users {req.data['recipients_list']}"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
         templ = "./email_templates/document_approved_email.html"
 
         # Get recipient list
-        recipients_list_data = req.data["recipients_list"] # list of user pks
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
         recipients_list = []
 
         for recipient_pk in recipients_list_data:
@@ -739,34 +873,34 @@ class DocumentApprovedEmail(APIView):
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
 
-
         # Get project information
         project_pk = req.data["project_pk"]
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(html_project_title).strip() # nicely rendered html title
+            plain_project_name = html2text.html2text(
+                html_project_title
+            ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept":"Concept Plan",
-                "projectplan":"Project Plan",
-                "progressreport":"Progress Report",
-                "studentreport":"Student Report",
-                "projectclosure":"Project Closure",
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
-            
             for recipient in recipients_list:
-                if (recipient['pk'] == 101073):
+                if recipient["pk"] == 101073:
                     email_subject = f"SPMS: {document_kind_as_title} Approved"
-                    to_email = [recipient['email']] 
+                    to_email = [recipient["email"]]
 
                     template_props = {
                         "email_subject": email_subject,
-                        "recipient_name": recipient["name"], 
+                        "recipient_name": recipient["name"],
                         "project_id": project_pk,
                         "plain_project_name": plain_project_name,
                         "document_type": document_kind,
@@ -775,13 +909,12 @@ class DocumentApprovedEmail(APIView):
                         "dbca_image_path": get_encoded_image(),
                     }
 
-
                     template_content = render_to_string(templ, template_props)
 
                     try:
                         send_mail(
                             email_subject,
-                            template_content, #plain text
+                            template_content,  # plain text
                             from_email,
                             to_email,
                             fail_silently=False,  # Set this to False to see errors
@@ -794,24 +927,25 @@ class DocumentApprovedEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
-
-
 
 
 class DocumentRecalledEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is attempting to send an email (Document Approved) for users {req.data['recipients_list']}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Document Approved) for users {req.data['recipients_list']}"
+        )
         print(req.data)
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
         templ = "./email_templates/document_recalled_email.html"
 
         # Get recipient list
-        recipients_list_data = req.data["recipients_list"] # list of user pks
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
         recipients_list = []
 
         for recipient_pk in recipients_list_data:
@@ -821,42 +955,46 @@ class DocumentRecalledEmail(APIView):
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
 
-
         # Get project information
         project_pk = req.data["project_pk"]
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(html_project_title).strip() # nicely rendered html title
+            plain_project_name = html2text.html2text(
+                html_project_title
+            ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept":"Concept Plan",
-                "projectplan":"Project Plan",
-                "progressreport":"Progress Report",
-                "studentreport":"Student Report",
-                "projectclosure":"Project Closure",
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
             actioning_user = User.objects.get(pk=req.user.pk)
-            actioning_user_name = f'{actioning_user.first_name} {actioning_user.last_name}'
-            actioning_user_email = f'{actioning_user.email}'
+            actioning_user_name = (
+                f"{actioning_user.first_name} {actioning_user.last_name}"
+            )
+            actioning_user_email = f"{actioning_user.email}"
             stage = req.data["stage"]
 
-
             for recipient in recipients_list:
-                if (recipient['pk'] == 101073):
+                if recipient["pk"] == 101073:
                     email_subject = f"SPMS: {document_kind_as_title} Recalled"
-                    to_email = [recipient['email']] 
+                    to_email = [recipient["email"]]
 
                     template_props = {
-                        "user_kind": "Project Lead" if stage == 2 else "Business Area Lead",
+                        "user_kind": (
+                            "Project Lead" if stage == 2 else "Business Area Lead"
+                        ),
                         "email_subject": email_subject,
                         "actioning_user_email": actioning_user_email,
                         "actioning_user_name": actioning_user_name,
-                        "recipient_name": recipient["name"], 
+                        "recipient_name": recipient["name"],
                         "project_id": project_pk,
                         "plain_project_name": plain_project_name,
                         "document_type": document_kind,
@@ -865,13 +1003,12 @@ class DocumentRecalledEmail(APIView):
                         "dbca_image_path": get_encoded_image(),
                     }
 
-
                     template_content = render_to_string(templ, template_props)
 
                     try:
                         send_mail(
                             email_subject,
-                            template_content, #plain text
+                            template_content,  # plain text
                             from_email,
                             to_email,
                             fail_silently=False,  # Set this to False to see errors
@@ -884,10 +1021,18 @@ class DocumentRecalledEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
         return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
         )
 
+
+# REPORTS ==========================================================
+
+
+class DownloadAnnualReport(APIView):
+    def get(self, req):
+        settings.LOGGER.error(msg=f"{req.user} is downloading annual report")
+        pass
 
 
 class BatchApprove(APIView):
@@ -918,7 +1063,6 @@ class BatchApprove(APIView):
                 Q(kind="studentreport") | Q(kind="progressreport"),
                 project_lead_approval_granted=True,
                 business_area_lead_approval_granted=True,
-                directorate_approval_granted=False,
             )
             .exclude(
                 project__status__in=[
@@ -939,14 +1083,21 @@ class BatchApprove(APIView):
                     sr_obj = StudentReport.objects.filter(report=last_report).first()
                     if sr_obj:
                         doc.directorate_approval_granted = True
-                        doc.project.status = Project.StatusChoices.ACTIVE
+                        doc.status = "approved"
                         doc.save()
+                        project = Project.objects.filter(pk=doc.project.pk).first()
+                        project.status = Project.StatusChoices.ACTIVE
+                        project.save()
+
                 elif doc.kind == "progressreport":
                     pr_obj = ProgressReport.objects.filter(report=last_report).first()
                     if pr_obj:
                         doc.directorate_approval_granted = True
-                        doc.project.status = Project.StatusChoices.ACTIVE
+                        doc.status = "approved"
                         doc.save()
+                        project = Project.objects.filter(pk=doc.project.pk).first()
+                        project.status = Project.StatusChoices.ACTIVE
+                        project.save()
 
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
@@ -990,7 +1141,8 @@ class BatchApproveOld(APIView):
         relevant_docs_belonging_to_reports_other_than_last_report = (
             ProjectDocument.objects.filter(
                 Q(kind="studentreport") | Q(kind="progressreport"),
-                directorate_approval_granted=False,
+                project_lead_approval_granted=True,
+                business_area_lead_approval_granted=True,
             )
             .exclude(
                 project__status__in=["suspended", "terminated", "completed"],
@@ -1004,22 +1156,35 @@ class BatchApproveOld(APIView):
                 if doc.kind == "studentreport":
                     sr_obj = StudentReport.objects.filter(document=doc.id).first()
                     if sr_obj and sr_obj.report != last_report:
-                        doc.directorate_approval_granted = True
-                        doc.project.status = Project.StatusChoices.ACTIVE
-                        doc.save()
+                        thedoc = sr_obj.document
+                        thedoc.project_lead_approval_granted = True
+                        thedoc.business_area_lead_approval_granted = True
+                        thedoc.directorate_approval_granted = True
+                        thedoc.status = "approved"
+                        thedoc.save()
+                        project = Project.objects.filter(pk=thedoc.project.pk).first()
+                        project.status = Project.StatusChoices.ACTIVE
+                        project.save()
+
                 elif doc.kind == "progressreport":
                     pr_obj = ProgressReport.objects.filter(document=doc.id).first()
                     if pr_obj and pr_obj.report != last_report:
-                        doc.directorate_approval_granted = True
-                        doc.project.status = Project.StatusChoices.ACTIVE
-                        doc.save()
+                        thedoc = pr_obj.document
+                        thedoc.project_lead_approval_granted = True
+                        thedoc.business_area_lead_approval_granted = True
+                        thedoc.directorate_approval_granted = True
+                        thedoc.status = "approved"
+                        thedoc.save()
+                        project = Project.objects.filter(pk=thedoc.project.pk).first()
+                        project.status = Project.StatusChoices.ACTIVE
+                        project.save()
 
-            for doc in relevant_docs_belonging_to_reports_other_than_last_report:
-                doc.project_lead_approval_granted = True
-                doc.business_area_lead_approval_granted = True
-                doc.directorate_approval_granted = True
-                doc.project.status = Project.StatusChoices.ACTIVE
-                doc.save()
+            # for doc in relevant_docs_belonging_to_reports_other_than_last_report:
+            #     doc.project_lead_approval_granted = True
+            #     doc.business_area_lead_approval_granted = True
+            #     doc.directorate_approval_granted = True
+            #     doc.project.status = Project.StatusChoices.ACTIVE
+            #     doc.save()
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
             return Response(

@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     path("report_medias", views.AnnualReportMedias.as_view()),
     path("report_medias/<int:pk>", views.AnnualReportMediaDetail.as_view()),
+    path("report_medias/latest/media", views.LatestReportMedia.as_view()),
     path("report_medias/<int:pk>/media", views.AnnualReportMediaUpload.as_view()),
     path(
         "report_medias/<int:pk>/media/<str:section>",
