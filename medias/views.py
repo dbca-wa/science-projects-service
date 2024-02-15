@@ -271,6 +271,26 @@ class AnnualReportMediaDetail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+class LatestReportMedia(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def get(self, req):
+        def go():
+            try:
+                latest = AnnualReport.objects.order_by("-year").first()
+                medias = AnnualReportMedia.objects.filter(report=latest).all()
+                return TinyAnnualReportMediaSerializer(medias, many=True)
+            except AnnualReportMedia.DoesNotExist:
+                raise NotFound
+            except Exception as e:
+                settings.LOGGER.error(msg=f"{e}")   
+                raise e
+            
+        this_reports_media = go()
+        return Response(
+            this_reports_media.data,
+            status=HTTP_200_OK,
+        )
+
 
 class AnnualReportMediaUpload(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
