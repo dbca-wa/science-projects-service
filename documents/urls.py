@@ -2,12 +2,20 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # PDF Generation & Downloads
+    # path("generateProjectDocument/<int:pk>", views.GenerateProjectDocument.as_view()),
+    path(
+        "conceptplans/<int:pk>/get_concept_plan_data",
+        views.GetConceptPlanData.as_view(),
+    ),
+    # path("conceptplans/<int:pk>/generate_concept_plan", views.GenerateConceptPlan.as_view()),
     # Latest Report's active PRs and SRs
     path("latest_active_progress_reports", views.LatestYearsProgressReports.as_view()),
     path("latest_active_student_reports", views.LatestYearsStudentReports.as_view()),
     path("latest_inactive_reports", views.LatestYearsInactiveReports.as_view()),
     path("reports/latest", views.FullLatestReport.as_view()),
     # REST framework
+    path("concept_plan_email", views.ConceptPlanEmail.as_view()),
     path("review_document_email", views.ReviewDocumentEmail.as_view()),
     path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
     path("project_closure_email", views.ProjectClosureEmail.as_view()),
@@ -75,7 +83,6 @@ urlpatterns = [
     path("publications", views.Publications.as_view()),
     path("publications/<int:pk>", views.PublicationDetail.as_view()),
     # Helper
-    path("generateProjectDocument/<int:pk>", views.GenerateProjectDocument.as_view()),
     path("downloadProjectDocument/<int:pk>", views.DownloadProjectDocument.as_view()),
     path("spawn", views.DocumentSpawner.as_view()),
     path("reports/download", views.DownloadAnnualReport.as_view()),
@@ -97,4 +104,5 @@ urlpatterns = [
     path("actions/reopen", views.DocReopenProject.as_view()),
     path("actions/recall", views.DocRecall.as_view()),
     path("actions/send_back", views.DocSendBack.as_view()),
+    path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
 ]

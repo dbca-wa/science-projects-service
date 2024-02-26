@@ -1,2 +1,0 @@
-\select@language {english}
-\contentsline {section}{Progress Report}{3}{section*.2}

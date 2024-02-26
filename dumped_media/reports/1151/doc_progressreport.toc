@@ -1,6 +1,0 @@
-\select@language {english}
-\contentsline {section}{Context Summary}{3}{section*.2}
-\contentsline {section}{Aims Summary}{3}{section*.3}
-\contentsline {section}{Progress}{3}{section*.4}
-\contentsline {section}{Management implications}{4}{section*.5}
-\contentsline {section}{Future directions}{4}{section*.6}

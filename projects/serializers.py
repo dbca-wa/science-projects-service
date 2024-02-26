@@ -3,6 +3,7 @@ from locations.models import Area
 from medias.models import ProjectPhoto
 from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
 from locations.serializers import TinyAreaSerializer
+from users.models import User
 from users.serializers import TinyUserSerializer
 from .models import (
     ExternalProjectDetails,
@@ -89,6 +90,7 @@ class TinyProjectSerializer(ModelSerializer):
             "status",
             "kind",
             "year",
+            "number",
             "business_area",
             "image",
         )
@@ -121,6 +123,34 @@ class ProjectAreaSerializer(serializers.ModelSerializer):
         representation["areas"] = area_serializer.data
 
         return representation
+
+class PkAndKindOnlyProjectSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields=['pk', 'kind']
+
+class MiniUserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "pk", "first_name", "last_name",
+            "email", "is_active", "is_staff",
+        ]
+
+
+class MiniProjectMemberSerializer(ModelSerializer):
+    user = MiniUserSerializer(read_only=True)
+    project = PkAndKindOnlyProjectSerializer(read_only=True)
+
+    class Meta:
+        model = ProjectMember
+        fields = [
+            "user",
+            "project",
+            "role",
+            "is_leader",
+            "position",
+        ]
 
 
 class TinyProjectMemberSerializer(ModelSerializer):

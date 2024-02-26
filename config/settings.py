@@ -6,6 +6,7 @@ import os
 import environ
 from datetime import timedelta
 import requests
+import socket
 
 import dj_database_url
 import sentry_sdk
@@ -17,7 +18,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 # DEBUG = False if env("DEBUG") == "False" else True
-DEBUG = os.environ.get("DJANGO_DEBUG") == "True"
+DEBUG = True if os.environ.get("DJANGO_DEBUG") != "False" else False
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 CF_IMAGES_TOKEN = env("CF_IMAGES_TOKEN")
@@ -108,7 +109,54 @@ INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
 ROOT_URLCONF = "config.urls"
 
-if not DEBUG:
+if DEBUG:
+    # Local postgres db
+    def get_host_ip():
+        try:
+            # Creating a socket object and connecting to an external server (like Google's DNS)
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            host_ip = s.getsockname()[0]
+            s.close()
+            return host_ip
+        except socket.error:
+            return None
+
+    host_ip = get_host_ip()
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": f"{env('DBNAME')}",
+            "USER": f"{env('PGUSER')}",
+            "PASSWORD": f"{env('PGPASS')}",
+            "OPTIONS": {
+                "options": "-c client_encoding=utf8",
+            },
+            "CONN_MAX_AGE": 600,
+            "HOST": os.environ.get("DB_HOST", host_ip),
+            "PORT": os.environ.get("DB_PORT", "5432"),
+        }
+    }
+
+    # # Local postgres db
+    # DATABASES = {
+    #     "default": {
+    #         "ENGINE": "django.db.backends.postgresql",
+    #         "NAME": env('DBNAME'),
+    #         "USER": env('PGUSER'),
+    #         "PASSWORD": env('PGPASS'),
+    #         # "HOST": env('DEFAULT_DB_HOST'),
+    #         # "PORT": env('DEFAULT_DB_PORT'),
+    #         "OPTIONS": {
+    #             "options": "-c client_encoding=utf8",
+    #         },
+    #         "CONN_MAX_AGE": 600,
+    #     }
+    # }
+
+
+else:
     # Azure db
     DATABASES = {
         "default": {
@@ -124,20 +172,7 @@ if not DEBUG:
             "CONN_MAX_AGE": 600,
         }
     }
-else:
-    # Local postgres db
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": f"{env('DBNAME')}",
-            "USER": f"{env('PGUSER')}",
-            "PASSWORD": f"{env('PGPASS')}",
-            "OPTIONS": {
-                "options": "-c client_encoding=utf8",
-            },
-            "CONN_MAX_AGE": 600,
-        }
-    }
+
 
 ALLOWED_HOSTS = [
     "scienceprojects-test-api.dbca.wa.gov.au",
@@ -396,7 +431,7 @@ LOGGING = {
 LOGGER = logging.getLogger(__name__)
 
 
-EMAIL_HOST = 'mail-relay.lan.fyi'
+EMAIL_HOST = "mail-relay.lan.fyi"
 EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
 
@@ -404,15 +439,13 @@ EMAIL_PORT = 587
 # EMAIL_HOST_PASSWORD = ''
 # EMAIL_USE_SSL = False
 
-ENVELOPE_EMAIL_RECIPIENTS = ['jarid.prince@dbca.wa.gov.au']
+ENVELOPE_EMAIL_RECIPIENTS = ["jarid.prince@dbca.wa.gov.au"]
 ENVELOPE_USE_HTML_EMAIL = True
 # DEFAULT_FROM_EMAIL = '"SPMS" <SPMS-noreply@dbca.wa.gov.au>'
 DEFAULT_FROM_EMAIL = '"SPMS" <spms-noreply@dbca.wa.gov.au>'
 
 
-
-if DEBUG == True:
+if DEBUG:
     SITE_URL = "127.0.0.1:3000"
 else:
     SITE_URL = "https://scienceprojects-test.dbca.wa.gov.au"
-

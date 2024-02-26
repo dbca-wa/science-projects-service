@@ -145,6 +145,106 @@ class Loader:
             return file
         return None
 
+    def get_empty_operating_budget_string(self):
+        return '<table class="table-light">\
+    <colgroup>\
+        <col>\
+        <col>\
+        <col>\
+        <col>\
+    </colgroup>\
+    <tbody>\
+        <tr>\
+        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+            <p class="editor-p-light" dir="ltr">\
+            <span style="white-space: pre-wrap;">Source</span>\
+            </p>\
+        </th>\
+        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+            <p class="editor-p-light" dir="ltr">\
+            <span style="white-space: pre-wrap;">Year 1</span>\
+            </p>\
+        </th>\
+        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+            <p class="editor-p-light" dir="ltr">\
+            <span style="white-space: pre-wrap;">Year 2</span>\
+            </p>\
+        </th>\
+        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+            <p class="editor-p-light" dir="ltr">\
+            <span style="white-space: pre-wrap;">Year 3</span>\
+            </p>\
+        </th>\
+        </tr>\
+        <tr>\
+        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+            <p class="editor-p-light" dir="ltr">\
+            <span style="white-space: pre-wrap;">Consolidated Funds (DBCA)</span>\
+            </p>\
+        </th>\
+        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+        </tr>\
+        <tr>\
+        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+            <p class="editor-p-light" dir="ltr">\
+            <span style="white-space: pre-wrap;">External Funding</span>\
+            </p>\
+        </th>\
+        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+        </tr>\
+    </tbody>\
+    </table>'
+
+
+    def replace_json_string_with_html_table(self, input_string):
+        # This function should generate a html table using a string in this format:
+        # [["Source", "Year 1", "Year 2", "Year 3"], ["Consolidated Funds (DBCA)", "", "", ""], ["External Funding", "", "", ""]]
+        # It should preserve the data values but should format things into a html table like the above
+        try:
+            # Attempt to parse the input JSON string
+            data = json.loads(input_string)
+        except json.JSONDecodeError:
+            # If parsing fails, return the original input string
+            return input_string
+
+        # Begin constructing the HTML table with additional styling
+        html_table = '<table class="table-light">\n  <colgroup>\n'
+        html_table += '    <col style="background-color: rgb(242, 243, 245);">\n'  # Style for the leftmost column
+
+        for _ in range(len(data[0])):
+            html_table += '    <col>\n'
+
+        html_table += '  </colgroup>\n  <tbody>\n'
+
+        for i, row in enumerate(data):
+            html_table += '    <tr>\n'
+            for j, cell in enumerate(row):
+                if i == 0:
+                    # Apply background color to the first row
+                    html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
+                elif j == 0:
+                    # Apply background color to the leftmost column
+                    html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
+                else:
+                    html_table += f'      <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;">\n'
+
+                html_table += f'        <p class="editor-p-light" dir="ltr">\n'
+                html_table += f'          <span style="white-space: pre-wrap;">{cell}</span>\n'
+                html_table += f'        </p>\n'
+                html_table += '      </' + ('th' if i == 0 else 'td') + '>\n'
+
+            html_table += '    </tr>\n'
+
+        # Close the table
+        html_table += '  </tbody>\n</table>'
+
+        return html_table
+
+
     def generate_boundary(self):
         # Generate a random boundary value
         boundary = "".join(random.choices(string.ascii_letters + string.digits, k=16))

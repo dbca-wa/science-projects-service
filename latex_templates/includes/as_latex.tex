@@ -1,5 +1,0 @@
-{% load texify %}
-{% if show_heading %}
-\{{ tag }}*{% templatetag openbrace %}{{ heading|texify }}}
-{% endif %}
-{{ text|html2latex|default:"NA" }}

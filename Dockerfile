@@ -3,19 +3,12 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV TZ="Australia/Perth"
 RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
-RUN echo "Installing Tex and System Utils." && apt-get update && apt-get install -y \
+RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     # Sys Utils
     openssh-client rsync vim ncdu wget systemctl \
     # Postgres
-    postgresql postgresql-client \
-    # Latex
-    texlive-xetex
-
-RUN echo "Installing pandoc" \
-    && wget https://github.com/jgm/pandoc/releases/download/3.1.8/pandoc-3.1.8-1-amd64.deb \
-    && dpkg -i pandoc-3.1.8-1-amd64.deb \
-    && rm pandoc-3.1.8-1-amd64.deb
+    postgresql postgresql-client 
 
 WORKDIR /usr/src/app
 RUN pip install --upgrade pip
@@ -69,15 +62,11 @@ RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     djangorestframework django psycopg2-binary python-dotenv python-dateutil \
     requests whitenoise[brotli] gunicorn pandas \
-    beautifulsoup4 docx2pdf lxml sentry-sdk[django] html2text
+    beautifulsoup4 sentry-sdk[django] weasyprint
 
 RUN poetry add pillow
-# dbca-utils
+RUN poetry add html2text
 
-# Other (jwt, pypandoc, selenium, beautifulsoup4, docx2pdf -> potentially move some to new pdf gen container)
-# RUN poetry add sentry-sdk[django] dbca-utils pypandoc selenium
-
-# RUN python manage.py collectstatic
 
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]

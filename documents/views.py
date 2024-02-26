@@ -1,4 +1,5 @@
 import datetime
+import json
 import logging
 import os
 import time
@@ -15,16 +16,23 @@ from projects.models import Project, ProjectMember
 from django.template.loader import render_to_string
 import html2text
 import base64
+from operator import attrgetter
 
 
 from email.mime.image import MIMEImage
 from config.helpers import get_encoded_image
 
-from medias.models import AECEndorsementPDF, AnnualReportPDF, ProjectDocumentPDF
+from medias.models import (
+    AECEndorsementPDF,
+    AnnualReportPDF,
+    ProjectDocumentPDF,
+    ProjectPhoto,
+)
 from medias.serializers import (
     AECPDFCreateSerializer,
     ProjectDocumentPDFSerializer,
     TinyAnnualReportPDFSerializer,
+    TinyProjectPhotoSerializer,
 )
 from users.models import User, UserWork
 from .models import (
@@ -101,9 +109,7 @@ from django.core.mail import send_mail, send_mass_mail
 
 import subprocess
 from django.http import HttpRequest, HttpResponse, QueryDict
-from docx2pdf import convert  # You can use docx2pdf to convert HTML to PDF
 
-# import pypandoc
 from django.template import Context
 from django.template.loader import get_template
 
@@ -132,180 +138,210 @@ class DownloadProjectDocument(APIView):
         )
 
 
-class GenerateProjectDocument(APIView):
-    # pypandoc.convert_text(
-    #                 filled_template, "pdf", format="latex", outputfile=pdf_file
-    #             )
+class GetConceptPlanData(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get_concept_plan(self, pk):
+    def go(self, pk):
         try:
-            obj = ConceptPlan.objects.filter(document=pk).first()
+            concept_plan_data = ConceptPlan.objects.get(pk=pk)  # document
         except ConceptPlan.DoesNotExist:
             raise NotFound
-        return obj
-
-    def get_project_plan(self, pk):
-        try:
-            obj = ProjectPlan.objects.filter(document=pk).first()
-        except ProjectPlan.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get_progress_report(self, pk):
-        try:
-            obj = ProgressReport.objects.filter(document=pk).first()
-        except ProgressReport.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get_student_report(self, pk):
-        try:
-            obj = StudentReport.objects.filter(document=pk).first()
-        except StudentReport.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get_project_closure(self, pk):
-        try:
-            obj = ProjectClosure.objects.filter(document=pk).first()
-        except ProjectClosure.DoesNotExist:
-            raise NotFound
-        return obj
+        return concept_plan_data
 
     def post(self, req, pk):
-        kind = req.data["kind"]
-        settings.LOGGER.info(
-            msg=f"{req.user} is trying to generate pdf for doc id: {pk}"
-        )
-        if kind == "conceptplan":
-            try:
-                cp = self.get_concept_plan(pk=pk)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                raise ValueError("Error in Finding Concept Plan")
-            # Perform latex pdf generation for Concept Plan
-            return Response(status=HTTP_200_OK, data=ConceptPlanSerializer(cp).data)
-        elif kind == "projectplan":
-            try:
-                pp = self.get_project_plan(pk=pk)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                raise ValueError("Error in Finding Project Plan")
-            # Perform latex pdf generation for progress report
-            return Response(status=HTTP_200_OK, data=ProjectPlanSerializer(pp).data)
-        elif kind == "progressreport":
-            try:
-                pr = self.get_progress_report(pk=pk)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                raise ValueError("Error in Finding Progress Report")
-        elif kind == "progressreport":
-            # Define the LaTeX template content with placeholders
-            template_path = os.path.join(
-                settings.BASE_DIR, "documents", "latex_templates", "progressreport.tex"
+
+        def timing_wrapper(func):
+            def wrapper(*args, **kwargs):
+                start_time = time.time()
+                result = func(*args, **kwargs)
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                print(f"{func.__name__} took {elapsed_time:.6f} seconds to run.")
+                return result
+
+            return wrapper
+
+        # STEP 1: Get Concept Plan Data
+        def get_concept_plan_data():
+            concept_plan_data = self.go(pk=pk)
+            print(concept_plan_data)
+
+            document_tag = f"CF-{concept_plan_data.project.year}-{concept_plan_data.project.number}"
+            project_title = concept_plan_data.project.title
+            project_status = concept_plan_data.project.status
+            business_area_name = concept_plan_data.project.business_area.name
+
+            def get_project_team(project_pk):
+                # Get the member objects
+                members = ProjectMember.objects.filter(project=project_pk).all()
+
+                # Separate leader and other members
+                leader = None
+                other_members = []
+
+                for member in members:
+                    if member.is_leader:
+                        leader = member
+                    else:
+                        other_members.append(member)
+
+                # Sort other members based on their position value
+                sorted_members = sorted(other_members, key=attrgetter("position"))
+
+                # Create team_name_array with leader at the beginning and then other members
+                team_name_array = []
+                if leader:
+                    team_name_array.append(
+                        f"{leader.user.first_name} {leader.user.last_name}"
+                    )
+
+                for member in sorted_members:
+                    team_name_array.append(
+                        f"{member.user.first_name} {member.user.last_name}"
+                    )
+
+                return team_name_array
+
+            project_team = get_project_team(concept_plan_data.project.pk)
+
+            def get_project_image(project_pk):
+                try:
+                    image = ProjectPhoto.objects.get(project=project_pk)
+                except ProjectPhoto.DoesNotExist:
+                    return None
+                return image
+
+            project_image = TinyProjectPhotoSerializer(
+                get_project_image(concept_plan_data.project.pk)
+            ).data
+
+            now = datetime.datetime.now()
+
+            # print({
+            #     "document_tag": document_tag,
+            #     "project_title": project_title,
+            #     "project_status": project_status,
+            #     "business_area_name": business_area_name,
+            #     "project_team": tuple(project_team),
+            #     "image": project_image,
+            #     "now": now
+            # })
+
+            project_lead_approval_granted = (
+                concept_plan_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                concept_plan_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                concept_plan_data.document.directorate_approval_granted
             )
 
-            with open(template_path, "r") as template_file:
-                latex_template = template_file.read()
-                # latex_template = latex_template.replace("{", "{{").replace("}", "}}")
+            # print({
+            #     "project_lead_approval_granted": project_lead_approval_granted,
+            #     "business_area_lead_approval_granted": business_area_lead_approval_granted,
+            #     "directorate_approval_granted": directorate_approval_granted
+            # })
 
-            filled_template = latex_template
+            # pdf_generation_in_progress = models.BooleanField(default=False)
 
-            # Create a dictionary with placeholders and their corresponding data
-            # data = {
-            #     "title": pypandoc.convert_text(
-            #         pr.document.project.title, "tex", format="html"
-            #     ),
-            #     "aims_html_data": pypandoc.convert_text(pr.aims, "tex", format="html"),
-            #     "context_html_data": pypandoc.convert_text(
-            #         pr.context, "tex", format="html"
-            #     ),
-            #     "future_html_data": pypandoc.convert_text(
-            #         pr.future, "tex", format="html"
-            #     ),
-            #     "implications_html_data": pypandoc.convert_text(
-            #         pr.implications, "tex", format="html"
-            #     ),
-            #     "progress_html_data": pypandoc.convert_text(
-            #         pr.progress, "tex", format="html"
-            #     ),
-            # }
+            def replace_json_string_with_html_table(input_string):
+                try:
+                    # Attempt to parse the input JSON string
+                    data = json.loads(input_string)
+                except json.JSONDecodeError:
+                    # If parsing fails, return the original input string
+                    return input_string
 
-            # Populate the LaTeX template with data
-            # filled_template = latex_template.format(**data)
-            # print(filled_template)
+                # Begin constructing the HTML table with additional styling
+                html_table = '<table class="table-light">\n  <colgroup>\n'
+                html_table += '    <col style="background-color: rgb(242, 243, 245);">\n'  # Style for the leftmost column
 
-            for key, value in data.items():
-                # Use the key (placeholder) and value (data) to replace the placeholders in the template
-                filled_template = filled_template.replace("{{" + key + "}}", value)
+                for _ in range(len(data[0])):
+                    html_table += "    <col>\n"
 
-            # Define the PDF file path
-            pdf_file = os.path.join(
-                settings.BASE_DIR,
-                "documents",
-                "latex_output",
-                f"progress_report_{pk}.pdf",
+                html_table += "  </colgroup>\n  <tbody>\n"
+
+                for i, row in enumerate(data):
+                    html_table += "    <tr>\n"
+                    for j, cell in enumerate(row):
+                        if i == 0:
+                            # Apply background color to the first row
+                            html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
+                        elif j == 0:
+                            # Apply background color to the leftmost column
+                            html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
+                        else:
+                            html_table += f'      <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;">\n'
+
+                        html_table += f'        <p class="editor-p-light" dir="ltr">\n'
+                        html_table += f'          <span style="white-space: pre-wrap;">{cell}</span>\n'
+                        html_table += f"        </p>\n"
+                        html_table += "      </" + ("th" if i == 0 else "td") + ">\n"
+
+                    html_table += "    </tr>\n"
+
+                # Close the table
+                html_table += "  </tbody>\n</table>"
+                print(html_table)
+
+                return html_table
+
+            background = concept_plan_data.background
+            aims = concept_plan_data.aims
+            expected_outcomes = concept_plan_data.outcome
+            collaborations = concept_plan_data.collaborations
+            strategic_context = concept_plan_data.strategic_context
+            staff_time_allocation = replace_json_string_with_html_table(
+                concept_plan_data.staff_time_allocation
+            )
+            indicative_operating_budget = replace_json_string_with_html_table(
+                concept_plan_data.budget
             )
 
-            # Create a dictionary with the task arguments and keyword arguments
-            task_args = {
-                # "data": filled_template,
-                "data": filled_template,
-                "pdf_file": pdf_file,
+            # print({
+            #     "background": background,
+            #     "aims": aims,
+            #     "expected_outcomes": expected_outcomes,
+            #     "collaborations": collaborations,
+            #     "strategic_context": strategic_context,
+            #     "staff_time_allocation": staff_time_allocation,
+            #     "indicative_operating_budget": indicative_operating_budget,
+            #     "project_pk": concept_plan_data.project.pk,
+            # })
+
+            return {
+                "concept_plan_data_pk": concept_plan_data.pk,
+                "document_pk": concept_plan_data.document.pk,
+                "project_pk": concept_plan_data.project.pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                "background": background,
+                "aims": aims,
+                "expected_outcomes": expected_outcomes,
+                "collaborations": collaborations,
+                "strategic_context": strategic_context,
+                "staff_time_allocation": staff_time_allocation,
+                "indicative_operating_budget": indicative_operating_budget,
             }
 
-            print(filled_template)
+        # data = get_concept_plan_data()
 
-            def generate_pdf(data, pdf_file):
-                # Perform the PDF generation as before
-                print("gen")
-                # pypandoc.convert_text(
-                #     data,
-                #     "pdf",
-                #     format="latex",
-                #     outputfile=pdf_file,
-                #     extra_args=["--pdf-engine=pdflatex"],
-                # )
+        timed_func = timing_wrapper(get_concept_plan_data)
+        data = timed_func()
 
-            generate_pdf(**task_args)
-
-            # generate_pdf.apply_async(kwargs=task_args)
-            return Response({"message": "PDF generation started."})
-
-            # Convert LaTeX content to PDF using pypandoc with an output file
-            # pypandoc.convert_text(
-            #     filled_template, "pdf", format="latex", outputfile=pdf_file
-            # )
-
-            # # Prepare the response with the generated PDF content
-            # response = HttpResponse(content_type="application/pdf")
-            # response[
-            #     "Content-Disposition"
-            # ] = 'attachment; filename="progress_report.pdf"'
-
-            # with open(pdf_file, "rb") as pdf_content:
-            #     response.write(pdf_content)
-
-            # return response
-
-            # return Response(status=HTTP_200_OK, data=ProgressReportSerializer(pr).data)
-        elif kind == "studentreport":
-            try:
-                sr = self.get_student_report(pk=pk)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                raise ValueError("Error in Finding Student Report")
-            # Perform latex pdf generation for student report  then return
-            return Response(status=HTTP_200_OK, data=StudentReportSerializer(sr).data)
-
-        elif kind == "projectclosure":
-            try:
-                pc = self.get_project_closure(pk=pk)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                raise ValueError("Error in Finding Project Closure")
-            # Perform latex pdf generation for progress closure then return
-            return Response(status=HTTP_200_OK, data=StudentReportSerializer(pc).data)
+        return Response(
+            data,
+            HTTP_200_OK,
+        )
 
 
 # Latest Year's Reports
@@ -315,6 +351,7 @@ class LatestYearsProgressReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"Getting Approved Progress Reports for current year")
 
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()
@@ -342,6 +379,7 @@ class LatestYearsStudentReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"Getting Approved Student Reports for current year")
 
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()
@@ -828,6 +866,89 @@ class DocumentSentBackEmail(APIView):
                     }
 
                     template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_mail(
+                            email_subject,
+                            template_content,  # plain text
+                            from_email,
+                            to_email,
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+        return Response(
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+class ConceptPlanEmail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Concept Plan) for users {req.data['recipients_list']}"
+        )
+        print(req.data)
+        # Preset info
+        from_email = settings.DEFAULT_FROM_EMAIL
+        templ = "./pdf_templates/conceptplan_web.html"
+
+        # Get recipient list
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
+        recipients_list = []
+
+        for recipient_pk in recipients_list_data:
+            user = User.objects.get(pk=recipient_pk)
+            user_name = f"{user.first_name} {user.last_name}"
+            user_email = f"{user.email}"
+            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
+            recipients_list.append(data_obj)
+
+        # Get project information
+        project_pk = req.data["project_pk"]
+        project = Project.objects.filter(pk=project_pk).first()
+        if project:
+            html_project_title = project.title
+            plain_project_name = html2text.html2text(
+                html_project_title
+            ).strip()  # nicely rendered html title
+
+            # Get document kind information
+            document_kind = req.data["document_kind"]
+            document_kind_dict = {
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
+            }
+            document_kind_as_title = document_kind_dict[document_kind]
+
+            for recipient in recipients_list:
+                if recipient["pk"] == 101073:
+                    email_subject = f"SPMS: Concept Plan Review"
+                    to_email = [recipient["email"]]
+
+                    template_props = {
+                        "email_subject": email_subject,
+                        "recipient_name": recipient["name"],
+                        "project_id": project_pk,
+                        "plain_project_name": plain_project_name,
+                        "document_type": document_kind,
+                        "document_type_title": document_kind_as_title,
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                    }
+
+                    # template_content = render_to_string(templ, template_props)
+                    template_content = render_to_string(templ)
 
                     try:
                         send_mail(
@@ -3574,6 +3695,41 @@ class ProgressReportDetail(APIView):
             )
 
 
+class UpdateStudentReport(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            report = StudentReport.objects.filter(document=pk).first()
+        except StudentReport.DoesNotExist:
+            raise NotFound
+        return report
+
+    def post(self, req):
+        report = self.go(pk=int(req.data["main_document_pk"]))
+        # report.progress_report = req.data["html"]
+        # report.save()
+        # ser = StudentReportSerializer(report)
+
+        ser = StudentReportSerializer(
+            report,
+            data={"progress_report": req.data["html"]},
+            partial=True,
+        )
+        if ser.is_valid():
+            updated = ser.save()
+            up_ser = StudentReportSerializer(updated)
+            return Response(
+                up_ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
 class StudentReportDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -4194,6 +4350,11 @@ class DocRecall(APIView):
             elif u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
                 u_document.project.status = Project.StatusChoices.UPDATING
                 u_document.project.save()
+
+            elif u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
                 status=HTTP_202_ACCEPTED,
