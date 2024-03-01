@@ -2853,12 +2853,12 @@ class ProjectDocuments(APIView):
                             endorsements = EndorsementCreationSerializer(
                                 data={
                                     "project_plan": projplan.pk,
-                                    "bm_endorsement_required": True,
-                                    "hc_endorsement_required": False,
+                                    # "bm_endorsement_required": True,
+                                    # "hc_endorsement_required": False,
                                     # "dm_endorsement_required": True,
                                     "ae_endorsement_required": False,
-                                    "bm_endorsement_provided": False,
-                                    "hc_endorsement_provided": False,
+                                    # "bm_endorsement_provided": False,
+                                    # "hc_endorsement_provided": False,
                                     "ae_endorsement_provided": False,
                                     # "dm_endorsement_provided": False,
                                     "data_management": "<p></p>",
@@ -3144,8 +3144,9 @@ class EndorsementsPendingMyAction(APIView):
 
         # Filter endorsements based on conditions
         filtered_endorsements = Endorsement.objects.filter(
-            # q_bm | q_hc | 
-            q_ae, project_plan__project__status__in=Project.ACTIVE_ONLY
+            # q_bm | q_hc |
+            q_ae,
+            project_plan__project__status__in=Project.ACTIVE_ONLY,
         )
 
         for endorsement in filtered_endorsements:
@@ -4693,12 +4694,12 @@ class DocApproval(APIView):
                                 endorsements = EndorsementCreationSerializer(
                                     data={
                                         "project_plan": projplan.pk,
-                                        "bm_endorsement_required": True,
-                                        "hc_endorsement_required": False,
+                                        # "bm_endorsement_required": True,
+                                        # "hc_endorsement_required": False,
                                         # "dm_endorsement_required": True,
                                         "ae_endorsement_required": False,
-                                        "bm_endorsement_provided": False,
-                                        "hc_endorsement_provided": False,
+                                        # "bm_endorsement_provided": False,
+                                        # "hc_endorsement_provided": False,
                                         "ae_endorsement_provided": False,
                                         # "dm_endorsement_provided": False,
                                         "data_management": "<p></p>",
@@ -5001,6 +5002,58 @@ class SeekEndorsement(APIView):
                             return Response(
                                 new_instance_serializer.errors, HTTP_400_BAD_REQUEST
                             )
+
+                updated_ser_data = EndorsementSerializer(updated).data
+
+                return Response(
+                    updated_ser_data,
+                    HTTP_202_ACCEPTED,
+                )
+        else:
+            settings.LOGGER.error(
+                msg=f"Endorsement serializer invalid: {end_ser.errors}"
+            )
+
+            return Response(
+                end_ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+class DeleteAECEndorsement(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = ProjectPlan.objects.get(pk=pk)
+        except ProjectPlan.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        project_plan = self.go(pk)
+        endorsement = Endorsement.objects.filter(project_plan=project_plan).first()
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting aec endorsement and pdf for project plan {project_plan} with db object {endorsement}"
+        )
+
+        # First update the endorsement to remove approved
+        end_ser = EndorsementSerializer(
+            endorsement,
+            data={"ae_endorsement_provided": False},
+            partial=True,
+        )
+
+        if end_ser.is_valid():
+            with transaction.atomic():
+                # Update
+                updated = end_ser.save()
+                # Next delete the pdf
+                pdf_obj = AECEndorsementPDF.objects.filter(
+                    endorsement=endorsement
+                ).first()
+                if pdf_obj:
+                    pdf_obj.delete()
 
                 updated_ser_data = EndorsementSerializer(updated).data
 

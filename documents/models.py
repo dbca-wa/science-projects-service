@@ -987,28 +987,28 @@ class Endorsement(models.Model):
         on_delete=models.CASCADE,
     )
 
-    bm_endorsement_required = models.BooleanField(
-        default=True,
-        help_text="Whether Biometrician Endorsement is Required.",
-    )
+    # bm_endorsement_required = models.BooleanField(
+    #     default=True,
+    #     help_text="Whether Biometrician Endorsement is Required.",
+    # )
 
-    bm_endorsement_provided = models.BooleanField(
-        default=False,
-        help_text="The Biometrician's endorsement of the methodology's statistical validity.",
-        # max_length=100,
-        # choices=EndorsementChoices.choices,
-        # default=EndorsementChoices.REQUIRED,
-    )
+    # bm_endorsement_provided = models.BooleanField(
+    #     default=False,
+    #     help_text="The Biometrician's endorsement of the methodology's statistical validity.",
+    #     # max_length=100,
+    #     # choices=EndorsementChoices.choices,
+    #     # default=EndorsementChoices.REQUIRED,
+    # )
 
-    hc_endorsement_required = models.BooleanField(
-        default=False,
-        help_text="Whether Herbarium Curator Endorsement is Required.",
-    )
+    # hc_endorsement_required = models.BooleanField(
+    #     default=False,
+    #     help_text="Whether Herbarium Curator Endorsement is Required.",
+    # )
 
-    hc_endorsement_provided = models.BooleanField(
-        default=False,
-        help_text="The Herbarium Curator's endorsement of the planned collection of voucher specimens.",
-    )
+    # hc_endorsement_provided = models.BooleanField(
+    #     default=False,
+    #     help_text="The Herbarium Curator's endorsement of the planned collection of voucher specimens.",
+    # )
 
     ae_endorsement_required = models.BooleanField(
         default=False,

@@ -7058,18 +7058,18 @@ class Loader:
                 BEGIN;
                 INSERT INTO documents_endorsement (
                     project_plan_id, 
-                    bm_endorsement_required, 
-                    bm_endorsement_provided,
-                    hc_endorsement_required,
-                    hc_endorsement_provided,
                     ae_endorsement_required, 
                     ae_endorsement_provided,
                     data_management,
                     no_specimens
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+                ) VALUES (%s, %s, %s, %s, %s);
                 COMMIT;
             """
-
+# %s, %s, %s, %s, 
+#             bm_endorsement_required, 
+#                     bm_endorsement_provided,
+#                     hc_endorsement_required,
+#                     hc_endorsement_provided,
             # Endorsement
 
             try:
@@ -7093,44 +7093,44 @@ class Loader:
                 #     if self.pd.isna(project_plan["involves_animals"])
                 #     else project_plan["involves_animals"]
                 # )
-                bm_endorsement_required = (
-                    False
-                    if (
-                        self.pd.isna(project_plan["bm_endorsement"])
-                        or project_plan["bm_endorsement"] == "not required"
-                    )
-                    else True
-                )
-                bm_endorsement_provided = (
-                    True
-                    if (
-                        (project_plan["bm_endorsement"] == "granted")
-                        or (
-                            bm_endorsement_required == True
-                            and project_plan["status"] == "approved"
-                        )
-                    )
-                    else False
-                )
-                hc_endorsement_required = (
-                    False
-                    if (
-                        self.pd.isna(project_plan["hc_endorsement"])
-                        or project_plan["hc_endorsement"] == "not required"
-                    )
-                    else True
-                )
-                hc_endorsement_provided = (
-                    True
-                    if (
-                        (project_plan["hc_endorsement"] == "granted")
-                        or (
-                            hc_endorsement_required == True
-                            and project_plan["status"] == "approved"
-                        )
-                    )
-                    else False
-                )
+                # bm_endorsement_required = (
+                #     False
+                #     if (
+                #         self.pd.isna(project_plan["bm_endorsement"])
+                #         or project_plan["bm_endorsement"] == "not required"
+                #     )
+                #     else True
+                # )
+                # bm_endorsement_provided = (
+                #     True
+                #     if (
+                #         (project_plan["bm_endorsement"] == "granted")
+                #         or (
+                #             bm_endorsement_required == True
+                #             and project_plan["status"] == "approved"
+                #         )
+                #     )
+                #     else False
+                # )
+                # hc_endorsement_required = (
+                #     False
+                #     if (
+                #         self.pd.isna(project_plan["hc_endorsement"])
+                #         or project_plan["hc_endorsement"] == "not required"
+                #     )
+                #     else True
+                # )
+                # hc_endorsement_provided = (
+                #     True
+                #     if (
+                #         (project_plan["hc_endorsement"] == "granted")
+                #         or (
+                #             hc_endorsement_required == True
+                #             and project_plan["status"] == "approved"
+                #         )
+                #     )
+                #     else False
+                # )
                 ae_endorsement_required = (
                     False
                     if (
@@ -7168,10 +7168,10 @@ class Loader:
                     (
                         project_plan_detail_id,
                         # new_proj_id,
-                        bm_endorsement_required,
-                        bm_endorsement_provided,
-                        hc_endorsement_required,
-                        hc_endorsement_provided,
+                        # bm_endorsement_required,
+                        # bm_endorsement_provided,
+                        # hc_endorsement_required,
+                        # hc_endorsement_provided,
                         ae_endorsement_required,
                         ae_endorsement_provided,
                         data_management,
@@ -7183,10 +7183,10 @@ class Loader:
                 print(
                     project_plan_detail_id,
                     # new_proj_id,
-                    bm_endorsement_required,
-                    bm_endorsement_provided,
-                    hc_endorsement_required,
-                    hc_endorsement_provided,
+                    # bm_endorsement_required,
+                    # bm_endorsement_provided,
+                    # hc_endorsement_required,
+                    # hc_endorsement_provided,
                     ae_endorsement_required,
                     ae_endorsement_provided,
                     data_management,
