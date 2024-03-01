@@ -804,7 +804,12 @@ class LatestYearsProgressReports(APIView):
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = ProgressReport.objects.filter(
                 report=latest_report, project__status="active"
-            ).all()
+            ).exclude(
+                Q(project__business_area__division__name__isnull=True)
+                | ~Q(
+                    project__business_area__division__name="Biodiversity and Conservation Science"
+                )
+            )
             print(active_docs)
             ser = ProgressReportSerializer(
                 active_docs, many=True, context={"request": req}
@@ -832,7 +837,12 @@ class LatestYearsStudentReports(APIView):
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = StudentReport.objects.filter(
                 report=latest_report, project__status="active"
-            ).all()
+            ).exclude(
+                Q(project__business_area__division__name__isnull=True)
+                | ~Q(
+                    project__business_area__division__name="Biodiversity and Conservation Science"
+                )
+            )
             print(active_docs)
             ser = StudentReportSerializer(
                 active_docs, many=True, context={"request": req}
@@ -860,11 +870,23 @@ class LatestYearsInactiveReports(APIView):
             inactive_srs = (
                 StudentReport.objects.filter(report=latest_report)
                 .exclude(project__status__in=["active"])
+                .exclude(
+                    Q(project__business_area__division__name__isnull=True)
+                    | ~Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                )
                 .all()
             )
             inactive_prs = (
                 ProgressReport.objects.filter(report=latest_report)
                 .exclude(project__status__in=["active"])
+                .exclude(
+                    Q(project__business_area__division__name__isnull=True)
+                    | ~Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                )
                 .all()
             )
 
