@@ -1,0 +1,309 @@
+<table align="center" width="100%" class="" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="max-width:190mm;border-radius:0.25rem;margin-top:40px;margin-bottom:40px;margin-left:auto;margin-right:auto;padding:20px">
+    <tbody>
+      <tr style="width:100%">
+        <td>
+          {% comment %} DATE {% endcomment %}
+          <p style="font-size:14px;line-height:24px;margin:16px 0;text-align:center;margin-top:2.5rem;margin-bottom:3.5rem">
+              Document Current as of {{current_date_time_string}}
+          </p>
+
+          {% comment %} PROJECT IMAGE {% endcomment %}
+          <img alt="Project Image" 
+          {% comment %} src="{{project_image_path}}"  {% endcomment %}
+          src="https://cdn.pixabay.com/photo/2023/10/31/16/38/ai-generated-8355516_640.png"
+          style="display:block;outline:none;border:none;text-decoration:none;margin-top:0px;margin-bottom:0px;margin-left:auto;margin-right:auto;border-radius:1rem" width="100%" />
+          
+          {% comment %} PROJECT TITLE {% endcomment %}
+          <h1 class="" style="color:rgb(0,0,0);font-size:24px;font-weight:400;text-align:center;padding:0px;margin-top:2.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">
+              {{project_title | safe}}
+          </h1>
+
+          {% comment %} PROJECT TAG {% endcomment %}
+          <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;text-align:center;padding:0px;margin-top:1rem;margin-bottom:30px;margin-left:0px;margin-right:0px">
+              {{project_tag}}
+          </h1>
+
+          {% comment %} BUSINESS AREA {% endcomment %}
+          <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;text-align:center;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">
+              {{business_area_name}}
+          </h1>
+
+          {% comment %} TEAM {% endcomment %}
+          <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;text-align:center;padding:0px;margin-top:5rem;margin-left:0px;margin-right:0px">
+              Team
+          </h1>
+          <h1 class="" style="color:rgb(0,0,0);font-size:14px;padding:0px;margin-top:2.5rem;margin-bottom:30px;text-align:center;margin-left:0px;margin-right:0px">
+              {{team_as_string}}
+          </h1>
+
+          {% comment %} APPROVALS {% endcomment %}
+          <table style="width:100%;margin-top:10rem">
+              {% comment %} PROJECT LEAD {% endcomment %}
+            <tr class="">
+              <td style="padding-top:0.5rem;padding-bottom:0.5rem">
+                <p style="font-size:14px;line-height:24px;margin:0px;color:rgb(0,0,0);font-weight:700;text-align:right">Project Lead Approval</p>
+              </td>
+              {% comment %} STATE {% endcomment %}
+              <td style="padding-top:0.5rem;padding-bottom:0.5rem;display:flex;align-items:center;justify-content:center">
+                  {% if project_lead_approval %}
+                  <!-- Green tick for true -->
+                  <div class="css-zov4ca">
+                      <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="#00C853" d="M24,6C14.1,6,6,14.1,6,24s8.1,18,18,18s18-8.1,18-18S33.9,6,24,6z M24,10c3.1,0,6,1.1,8.4,2.8L12.8,32.4 C11.1,30,10,27.1,10,24C10,16.3,16.3,10,24,10z M24,38c-3.1,0-6-1.1-8.4-2.8l19.6-19.6C36.9,18,38,20.9,38,24C38,31.7,31.7,38,24,38 z"></path>
+                      </svg>
+                  </div>
+              {% else %}
+                  <!-- Red cross for false -->
+                  <div class="css-zov4ca">
+                      <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="#D50000" d="M24,6C14.1,6,6,14.1,6,24s8.1,18,18,18s18-8.1,18-18S33.9,6,24,6z M24,10c3.1,0,6,1.1,8.4,2.8L12.8,32.4 C11.1,30,10,27.1,10,24C10,16.3,16.3,10,24,10z M24,38c-3.1,0-6-1.1-8.4-2.8l19.6-19.6C36.9,18,38,20.9,38,24C38,31.7,31.7,38,24,38 z"></path>
+                      </svg>
+                  </div>
+              {% endif %}
+              </td>
+            </tr>
+            <tr class="">
+              {% comment %} BA LEAD {% endcomment %}
+              <td style="padding-top:0.5rem;padding-bottom:0.5rem">
+                <p style="font-size:14px;line-height:24px;margin:0px;color:rgb(0,0,0);font-weight:700;text-align:right">Business Area Lead Approval</p>
+              </td>
+              {% comment %} STATE {% endcomment %}
+              <td style="padding-top:0.5rem;padding-bottom:0.5rem;display:flex;align-items:center;justify-content:center">
+                  {% if business_area_lead_approval %}
+                  <!-- Green tick for true -->
+                  <div class="css-zov4ca">
+                      <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="#00C853" d="M24,6C14.1,6,6,14.1,6,24s8.1,18,18,18s18-8.1,18-18S33.9,6,24,6z M24,10c3.1,0,6,1.1,8.4,2.8L12.8,32.4 C11.1,30,10,27.1,10,24C10,16.3,16.3,10,24,10z M24,38c-3.1,0-6-1.1-8.4-2.8l19.6-19.6C36.9,18,38,20.9,38,24C38,31.7,31.7,38,24,38 z"></path>
+                      </svg>
+                  </div>
+              {% else %}
+                  <!-- Red cross for false -->
+                  <div class="css-zov4ca">
+                      <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+                          <path fill="#D50000" d="M24,6C14.1,6,6,14.1,6,24s8.1,18,18,18s18-8.1,18-18S33.9,6,24,6z M24,10c3.1,0,6,1.1,8.4,2.8L12.8,32.4 C11.1,30,10,27.1,10,24C10,16.3,16.3,10,24,10z M24,38c-3.1,0-6-1.1-8.4-2.8l19.6-19.6C36.9,18,38,20.9,38,24C38,31.7,31.7,38,24,38 z"></path>
+                      </svg>
+                  </div>
+              {% endif %}
+              </td>
+            </tr>
+            <tr class="">
+              {% comment %} DIRECTORATE {% endcomment %}
+              <td style="padding-top:0.5rem;padding-bottom:0.5rem">
+                <p style="font-size:14px;line-height:24px;margin:0px;color:rgb(0,0,0);font-weight:700;text-align:right">Directorate Approval</p>
+              </td>
+              {% comment %} STATE {% endcomment %}
+              <td style="padding-top:0.5rem;padding-bottom:0.5rem;display:flex;align-items:center;justify-content:center">
+                  {% if directorate_approval %}
+                      <!-- Green tick for true -->
+                      <div class="css-zov4ca">
+                          <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+                              <path fill="#00C853" d="M24,6C14.1,6,6,14.1,6,24s8.1,18,18,18s18-8.1,18-18S33.9,6,24,6z M24,10c3.1,0,6,1.1,8.4,2.8L12.8,32.4 C11.1,30,10,27.1,10,24C10,16.3,16.3,10,24,10z M24,38c-3.1,0-6-1.1-8.4-2.8l19.6-19.6C36.9,18,38,20.9,38,24C38,31.7,31.7,38,24,38 z"></path>
+                          </svg>
+                      </div>
+                  {% else %}
+                      <!-- Red cross for false -->
+                      <div class="css-zov4ca">
+                          <svg stroke="currentColor" fill="currentColor" stroke-width="0" version="1" viewBox="0 0 48 48" enable-background="new 0 0 48 48" height="30px" width="30px" xmlns="http://www.w3.org/2000/svg">
+                              <path fill="#D50000" d="M24,6C14.1,6,6,14.1,6,24s8.1,18,18,18s18-8.1,18-18S33.9,6,24,6z M24,10c3.1,0,6,1.1,8.4,2.8L12.8,32.4 C11.1,30,10,27.1,10,24C10,16.3,16.3,10,24,10z M24,38c-3.1,0-6-1.1-8.4-2.8l19.6-19.6C36.9,18,38,20.9,38,24C38,31.7,31.7,38,24,38 z"></path>
+                          </svg>
+                      </div>
+                  {% endif %}
+              </td>
+            </tr>
+          </table>
+
+          {% comment %} BACKGROUND {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Background:</h1>
+                  <div>
+                      {{ background|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} AIMS {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Aims:</h1>
+                  <div>
+                      {{ aims|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} EXPECTED OUTCOMES {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Expected Outcomes:</h1>
+                  <div>
+                      {{ outcomes|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} STRATEGIC CONTEXT {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Strategic Context:</h1>
+                  <div>
+                      {{ context|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} EXPECTED COLLABORATIONS {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Expected Collaborations:</h1>
+                  <div>
+                      {{ collaborations|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} STAFF TIME ALLOCATION {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Staff Time Allocation:</h1>
+                  <div>
+                      {{ staff_time_allocation|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} BUDGET {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:32px;margin-bottom:32px;max-width:190mm">
+            <tbody>
+              <tr>
+                <td>
+                  <h1 class="" style="color:rgb(0,0,0);font-size:14px;font-weight:700;padding:0px;margin-top:0.5rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Budget:</h1>
+                  <div>
+                      {{ budget|safe }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {% comment %} VIEW PROJECT BUTTON {% endcomment %}
+          <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="text-align:right;margin-top:32px;margin-bottom:32px">
+            <tbody>
+              <tr>
+                <td><a href="/projects/{{project_id}}/concept" style="line-height:100%;text-decoration:none;display:inline-block;max-width:100%;background-color:rgb(0,0,0);border-radius:0.25rem;color:rgb(255,255,255);font-size:12px;font-weight:600;text-decoration-line:none;text-align:center;padding-left:1.25rem;padding-right:1.25rem;padding-top:0.75rem;padding-bottom:0.75rem;padding:12px 20px 12px 20px" target="_blank"><span><!--[if mso]><i style="letter-spacing: 20px;mso-font-width:-100%;mso-text-raise:18" hidden>&nbsp;</i><![endif]--></span><span style="max-width:100%;display:inline-block;line-height:120%;mso-padding-alt:0px;mso-text-raise:9px">View Project</span><span><!--[if mso]><i style="letter-spacing: 20px;mso-font-width:-100%" hidden>&nbsp;</i><![endif]--></span></a></td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+
+
+
+  
+  <!-- BACKGROUND -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Background:
+      </h1>
+      <div>
+          {{ background | safe }}
+      </div>
+  </div>
+
+  <!-- AIMS -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Aims:
+      </h1>
+      <div>
+          {{ aims | safe }}
+      </div>
+  </div>
+
+  <!-- EXPECTED OUTCOMES -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Expected Outcomes:
+      </h1>
+      <div>
+          {{ outcomes | safe }}
+      </div>
+  </div>
+
+  <!-- STRATEGIC CONTEXT -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Strategic Context:
+      </h1>
+      <div>
+          {{ context | safe }}
+      </div>
+  </div>
+
+  <!-- EXPECTED COLLABORATIONS -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Expected Collaborations:
+      </h1>
+      <div>
+          {{ collaborations | safe }}
+      </div>
+  </div>
+
+  <!-- STAFF TIME ALLOCATION -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Staff Time Allocation:
+      </h1>
+      <div>
+          {{ staff_time_allocation | safe }}
+      </div>
+  </div>
+
+  <!-- BUDGET -->
+  <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+      <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+          Budget:
+      </h1>
+      <div>
+          {{ budget | safe }}
+      </div>
+  </div>
+
+  <!-- VIEW PROJECT BUTTON -->
+  <div style="text-align: right; margin-top: 32px; margin-bottom: 32px;">
+      <a href="/projects/{{ project_id }}/concept"
+          style="line-height: 100%; text-decoration: none; display: inline-block; max-width: 100%; background-color: rgb(0, 0, 0); border-radius: 0.25rem; color: rgb(255, 255, 255); font-size: 12px; font-weight: 600; text-decoration-line: none; text-align: center; padding-left: 1.25rem; padding-right: 1.25rem; padding-top: 0.75rem; padding-bottom: 0.75rem; padding: 12px 20px 12px 20px;"
+          target="_blank">
+          <span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%; mso-text-raise: 18" hidden>&nbsp;</i><![endif]--></span><span
+              style="max-width: 100%; display: inline-block; line-height: 120%; mso-padding-alt: 0px; mso-text-raise: 9px;">View
+              Project</span><span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%" hidden>&nbsp;</i><![endif]--></span>
+      </a>
+  </div>

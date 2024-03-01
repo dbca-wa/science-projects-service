@@ -2,7 +2,10 @@ import datetime
 import json
 import logging
 import os
+import re
+import subprocess
 import time
+from bs4 import BeautifulSoup
 from django.shortcuts import render
 from agencies.models import BusinessArea
 from communications.models import Comment
@@ -107,16 +110,457 @@ from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail, send_mass_mail
 
-import subprocess
-from django.http import HttpRequest, HttpResponse, QueryDict
-
-from django.template import Context
 from django.template.loader import get_template
+
+
+from django.http import HttpResponse
+from django.template.loader import get_template
+from django.template import Context
+import xhtml2pdf.pisa as pisa
+from io import BytesIO
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+
 
 # PDF GENERATION ===================================================
 
-# class GenerateConceptPlan(APIView):
-#     def generate_pdf(req):
+
+class GenerateConceptPlan(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_main_doc(self, pk):
+        # Gets the primary document that the concept plan belongs to
+        try:
+            doc = ProjectDocument.objects.filter(pk=pk).first()
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return doc
+
+    def get_concept_plan(self, pk):
+        # Gets the actual concept plan, with all the html data
+        try:
+            cp = ConceptPlan.objects.filter(document=pk).first()
+        except ConceptPlan.DoesNotExist:
+            raise NotFound
+        return cp
+
+    def post(self, req, pk):
+        settings.LOGGER.info(msg=f"Generating Concept Plan PDF")
+
+        doc = self.get_main_doc(pk=pk)
+
+        def apply_title_styling_to_project_title(title):
+            # Parse the HTML content
+            soup = BeautifulSoup(title, "html.parser")
+
+            # Create a new h1 tag
+            h1_tag = soup.new_tag("h1")
+
+            # Apply the specified styles to h1 tag
+            h1_tag[
+                "style"
+            ] = """
+                color: rgb(0, 102, 204);
+                font-size: 24px; 
+                font-weight: 400; 
+                text-align: center; 
+                padding: 0px; 
+                margin-top: 2.5rem; 
+                margin-bottom: 30px; 
+                margin-left: 0px; 
+                margin-right: 0px;
+                cursor: pointer;
+            """
+
+            # Iterate through all b tags inside the p tag and set their style
+            for strong_tag in soup.p.find_all("strong"):
+                strong_tag[
+                    "style"
+                ] = """
+                    color: rgb(0, 102, 204);
+                """
+
+            # Transfer content from p tag to h1 tag
+            h1_tag.extend(soup.p.contents)
+
+            # Replace the original p tag with the new h1 tag
+            soup.p.replace_with(h1_tag)
+
+            # Return the modified HTML as a string
+            print(f"\n{str(soup)}")
+            return str(soup)
+
+        def get_concept_plan_data():
+            concept_plan_data = self.get_concept_plan(pk=pk)
+            # print(concept_plan_data)
+
+            document_tag = f"CF-{concept_plan_data.project.year}-{concept_plan_data.project.number}"
+            project_title = apply_title_styling_to_project_title(
+                concept_plan_data.project.title
+            )
+            project_status = concept_plan_data.project.status
+            business_area_name = concept_plan_data.project.business_area.name
+
+            def get_project_team(project_pk):
+                # Get the member objects
+                members = ProjectMember.objects.filter(project=project_pk).all()
+
+                # Separate leader and other members
+                leader = None
+                other_members = []
+
+                for member in members:
+                    if member.is_leader:
+                        leader = member
+                    else:
+                        other_members.append(member)
+
+                # Sort other members based on their position value
+                sorted_members = sorted(other_members, key=attrgetter("position"))
+
+                # Create team_name_array with leader at the beginning and then other members
+                team_name_array = []
+                if leader:
+                    team_name_array.append(
+                        f"{leader.user.first_name} {leader.user.last_name}"
+                    )
+
+                for member in sorted_members:
+                    team_name_array.append(
+                        f"{member.user.first_name} {member.user.last_name}"
+                    )
+
+                return team_name_array
+
+            project_team = get_project_team(concept_plan_data.project.pk)
+
+            def get_project_image(project_pk):
+                try:
+                    image = ProjectPhoto.objects.get(project=project_pk)
+                except ProjectPhoto.DoesNotExist:
+                    return None
+                return image
+
+            project_image_data = TinyProjectPhotoSerializer(
+                get_project_image(concept_plan_data.project.pk)
+            ).data
+
+            if "file" in project_image_data:
+                # project_image = os.path.join(
+                #     settings.BASE_DIR, project_image_data["file"]
+                # )
+                project_image = project_image_data["file"]
+            else:
+                project_image = ""
+
+            now = datetime.datetime.now()
+
+            project_lead_approval_granted = (
+                concept_plan_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                concept_plan_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                concept_plan_data.document.directorate_approval_granted
+            )
+
+            def replace_json_string_with_html_table(input_string):
+                print(f"INPUT: {input_string}")
+                try:
+                    # Attempt to parse the input JSON string
+                    data = json.loads(input_string)
+                except json.JSONDecodeError:
+                    # If parsing fails, return the original input string
+                    return input_string
+
+                # Begin constructing the HTML table with additional styling
+                html_table = '<table class="table-light">\n  <colgroup>\n'
+                html_table += '    <col style="background-color: rgb(242, 243, 245);">\n'  # Style for the leftmost column
+
+                for _ in range(len(data[0])):
+                    html_table += "    <col>\n"
+
+                html_table += "  </colgroup>\n  <tbody>\n"
+
+                for i, row in enumerate(data):
+                    html_table += "    <tr>\n"
+                    for j, cell in enumerate(row):
+                        if i == 0:
+                            # Apply background color to the first row
+                            html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
+                        elif j == 0:
+                            # Apply background color to the leftmost column
+                            html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
+                        else:
+                            html_table += f'      <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;">\n'
+
+                        html_table += f'        <p class="editor-p-light" dir="ltr">\n'
+                        html_table += f'          <span style="white-space: pre-wrap;">{cell}</span>\n'
+                        html_table += f"        </p>\n"
+                        html_table += "      </" + ("th" if i == 0 else "td") + ">\n"
+
+                    html_table += "    </tr>\n"
+
+                # Close the table
+                html_table += "  </tbody>\n</table>"
+                # Use regex to replace width value
+                html_table = re.sub(r"width:\s*175px;", "width: 100%;", html_table)
+                # print(html_table)
+                print(f"OUTPUT: {html_table}")
+                return html_table
+
+            background = concept_plan_data.background
+            aims = concept_plan_data.aims
+            expected_outcomes = concept_plan_data.outcome
+            collaborations = concept_plan_data.collaborations
+            strategic_context = concept_plan_data.strategic_context
+            staff_time_allocation = replace_json_string_with_html_table(
+                concept_plan_data.staff_time_allocation
+            )
+            indicative_operating_budget = replace_json_string_with_html_table(
+                concept_plan_data.budget
+            )
+            print(f"INDIC:", indicative_operating_budget)
+
+            return {
+                "concept_plan_data_pk": concept_plan_data.pk,
+                "document_pk": concept_plan_data.document.pk,
+                "project_pk": concept_plan_data.project.pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                "background": background,
+                "aims": aims,
+                "expected_outcomes": expected_outcomes,
+                "collaborations": collaborations,
+                "strategic_context": strategic_context,
+                "staff_time_allocation": staff_time_allocation,
+                "indicative_operating_budget": indicative_operating_budget,
+            }
+
+        cp_data = get_concept_plan_data()
+
+        doc.pdf_generation_in_progress = True
+        doc.save()
+
+        # PDF Gen logic here
+
+        def replace_dark_with_light(html_string):
+            # Replace 'dark' with 'light' in class attributes
+            modified_html = re.sub(
+                r'class\s*=\s*["\']([^"\']*dark[^"\']*)["\']',
+                lambda match: f'class="{match.group(1).replace("dark", "light")}"',
+                html_string,
+                flags=re.IGNORECASE,
+            )
+
+            # Add margin-left: 36px; to all <li> elements
+            final_html = re.sub(
+                r"<li", r'<li style="margin-left: 36px;"', modified_html
+            )
+
+            return final_html
+
+        def apply_styling(html_string):
+            html_string = replace_dark_with_light(html_string=html_string)
+
+            # # Read
+            # styles_file_path = os.path.join(settings.BASE_DIR, 'documents', 'rte_styles.css')
+            # with open(styles_file_path, 'r') as styles_file:
+            #     styles_content = styles_file.read()
+            #     print(styles_content)
+
+            # # Define a regular expression pattern to extract class and corresponding styles
+            # pattern = re.compile(r'\.([a-zA-Z0-9_-]+)\s*{\s*([^}]+)\s*}', re.MULTILINE)
+
+            # # Create a mapping of classes to styles
+            # styles_mapping = {match.group(1): match.group(2) for match in pattern.finditer(styles_content)}
+
+            # # Define a regular expression pattern to match HTML elements
+            # element_pattern = re.compile(r'<([^>]+)>')
+
+            # # Iterate over each HTML element in the string
+            # for match in element_pattern.finditer(html_string):
+            #     element = match.group(1)
+
+            #     # Extract existing classes and style from the element
+            #     class_match = re.search(r'class=["\']([^"\']*)["\']', element)
+            #     style_match = re.search(r'style=["\']([^"\']*)["\']', element)
+
+            #     existing_classes = class_match.group(1) if class_match else ''
+            #     existing_style = style_match.group(1) if style_match else ''
+
+            #     # Iterate over each class and apply the corresponding styles
+            #     for class_name in existing_classes.split():
+            #         if class_name in styles_mapping:
+            #             existing_style += f' {styles_mapping[class_name]}'
+
+            #     # Replace the style attribute in the HTML element
+            #     replacement = f'<{element.replace(existing_style, f"style='{existing_style}'")}>'
+            #     html_string = html_string.replace(f'<{element}>', replacement)
+
+            return html_string
+
+        def get_formatted_datetime(now):
+            # Format the date and time
+            day_with_suffix = "{:02d}".format(now.day) + (
+                "th"
+                if 10 <= now.day % 100 <= 20
+                else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
+            )
+
+            formatted_datetime = now.strftime(f"{day_with_suffix} %B, %Y @ %I:%M%p")
+
+            return formatted_datetime
+
+        styles_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+
+        print(f'\n{cp_data["project_image"]}')
+
+        dbca_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "BCSTransparent.png"
+        )
+        no_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "image_not_available.png"
+        )
+
+        # HTML content for the PDF
+        html_content = get_template("concept_plan.html").render(
+            {
+                # Styles & url
+                "styles_path": styles_path,
+                "dbca_image_path": dbca_image_path,
+                "no_image_path": no_image_path,
+                "server_url": (
+                    "http://127.0.0.1:8000"
+                    if settings.DEBUG == True
+                    else "http://scienceprojects-test.dbca.wa.gov.au"
+                ),
+                "frontend_url": (
+                    "http://127.0.0.1:3000"
+                    if settings.DEBUG == True
+                    else "http://scienceprojects-test.dbca.wa.gov.au"
+                ),
+                # Cover page
+                "current_date_time_string": get_formatted_datetime(cp_data["now"]),
+                "project_image_path": cp_data["project_image"],
+                "project_title": cp_data["project_title"],
+                "project_tag": cp_data["document_tag"],
+                "business_area_name": cp_data["business_area_name"],
+                "project_status": cp_data["project_status"],
+                "team_as_string": ", ".join(map(str, cp_data["project_team"])),
+                "project_lead_approval": cp_data["project_lead_approval_granted"],
+                "business_area_lead_approval": cp_data[
+                    "business_area_lead_approval_granted"
+                ],
+                "directorate_approval": cp_data["directorate_approval_granted"],
+                # Data
+                "project_id": cp_data["project_pk"],
+                "background": apply_styling(cp_data["background"]),
+                "aims": apply_styling(cp_data["aims"]),
+                "outcomes": apply_styling(cp_data["expected_outcomes"]),
+                "collaborations": apply_styling(cp_data["collaborations"]),
+                "context": apply_styling(cp_data["strategic_context"]),
+                "staff_time_allocation": apply_styling(
+                    cp_data["staff_time_allocation"]
+                ),
+                "budget": apply_styling(cp_data["indicative_operating_budget"]),
+            }
+        )
+
+        # Specify the file path where you want to save the HTML file on the server
+        html_file_path = os.path.join(
+            settings.BASE_DIR, "documents", f'concept_plan_{cp_data["project_pk"]}.html'
+        )
+        pdf_file_path = os.path.join(
+            settings.BASE_DIR,
+            "documents",
+            f'newer_concept_plan_{cp_data["project_pk"]}.pdf',
+        )
+        css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+
+        p = subprocess.Popen(
+            ["prince", "-", f"--style={css_path}"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        outs, errs = p.communicate(f"{html_content}".encode("utf-8"))
+
+        if p.returncode:
+            # Handle `errs`.
+            print(p.returncode)
+
+        else:
+            pdf = outs
+            print("PDF is " + str(len(pdf)) + " bytes in size")
+            # with open(pdf_file_path, "wb") as pdf_file:
+            #     pdf_file.write(outs)
+            #     print(f"Saved pdf file to {pdf_file_path}")
+            pdf_filename = f'__concept_plan_{cp_data["project_pk"]}.pdf'
+            file_content = ContentFile(pdf, name=pdf_filename)
+
+            doc.pdf_generation_in_progress = False
+            doc.save()
+            try:
+                # Update item if it exists
+                doc_pdf = ProjectDocumentPDF.objects.get(
+                    document=doc, project=doc.project
+                )
+
+                ser = ProjectDocumentPDFSerializer(
+                    doc_pdf,
+                    data={
+                        "file": file_content,
+                    },
+                    partial=True,
+                )
+                if ser.is_valid():
+                    # Delete the previous file
+                    pdfs_file_path = doc_pdf.file.path
+                    default_storage.delete(pdfs_file_path)
+                    doc_pdf = ser.save()
+                    return Response(
+                        ProjectDocumentPDFSerializer(doc_pdf).data,
+                        status=HTTP_202_ACCEPTED,
+                    )
+
+                else:
+                    print("error on try ser")
+                    print(ser.errors)
+
+            except ProjectDocumentPDF.DoesNotExist:
+                # If the item doesn't exist, create a new one
+                ser = ProjectDocumentPDFSerializer(
+                    data={
+                        "file": file_content,
+                        "document": doc.pk,
+                        "project": doc.project.pk,
+                    }
+                )
+                if ser.is_valid():
+                    doc_pdf = ser.save()
+                    return Response(
+                        ProjectDocumentPDFSerializer(doc_pdf).data,
+                        status=HTTP_201_CREATED,
+                    )
+                else:
+                    print("error on except ser")
+                    print(ser.errors)
+
+        return Response(
+            {"error": True},
+            status=HTTP_400_BAD_REQUEST,
+        )
 
 
 class DownloadProjectDocument(APIView):
@@ -2676,39 +3120,41 @@ class EndorsementsPendingMyAction(APIView):
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting endorsements pending action")
 
-        is_bio = req.user.is_biometrician
-        is_hc = req.user.is_herbarium_curator
+        # is_bio = req.user.is_biometrician
+        # is_hc = req.user.is_herbarium_curator
         is_aec = req.user.is_aec
         is_superuser = req.user.is_superuser
 
         documents = []
         aec_input_required = []
-        bm_input_required = []
-        hc_input_required = []
+        # bm_input_required = []
+        # hc_input_required = []
 
         # Construct Q objects based on conditions
-        q_bm = Q(bm_endorsement_required=True, bm_endorsement_provided=False) & (
-            Q(bm_endorsement_required=True) if is_bio or is_superuser else Q()
-        )
+        # q_bm = Q(bm_endorsement_required=True, bm_endorsement_provided=False) & (
+        #     Q(bm_endorsement_required=True) if is_bio or is_superuser else Q()
+        # )
+
+        # q_hc = Q(hc_endorsement_required=True, hc_endorsement_provided=False) & (
+        #     Q(hc_endorsement_required=True) if is_hc or is_superuser else Q()
+        # )
         q_ae = Q(ae_endorsement_required=True, ae_endorsement_provided=False) & (
             Q(ae_endorsement_required=True) if is_aec or is_superuser else Q()
-        )
-        q_hc = Q(hc_endorsement_required=True, hc_endorsement_provided=False) & (
-            Q(hc_endorsement_required=True) if is_hc or is_superuser else Q()
         )
 
         # Filter endorsements based on conditions
         filtered_endorsements = Endorsement.objects.filter(
-            q_bm | q_ae | q_hc, project_plan__project__status__in=Project.ACTIVE_ONLY
+            # q_bm | q_hc | 
+            q_ae, project_plan__project__status__in=Project.ACTIVE_ONLY
         )
 
         for endorsement in filtered_endorsements:
-            if (
-                endorsement.bm_endorsement_required
-                and not endorsement.bm_endorsement_provided
-            ):
-                documents.append(endorsement)
-                bm_input_required.append(endorsement)
+            # if (
+            #     endorsement.bm_endorsement_required
+            #     and not endorsement.bm_endorsement_provided
+            # ):
+            #     documents.append(endorsement)
+            #     bm_input_required.append(endorsement)
 
             if (
                 endorsement.ae_endorsement_required
@@ -2717,12 +3163,12 @@ class EndorsementsPendingMyAction(APIView):
                 documents.append(endorsement)
                 aec_input_required.append(endorsement)
 
-            if (
-                endorsement.hc_endorsement_required
-                and not endorsement.hc_endorsement_provided
-            ):
-                documents.append(endorsement)
-                hc_input_required.append(endorsement)
+            # if (
+            #     endorsement.hc_endorsement_required
+            #     and not endorsement.hc_endorsement_provided
+            # ):
+            #     documents.append(endorsement)
+            #     hc_input_required.append(endorsement)
 
         all_aec = MiniEndorsementSerializer(
             aec_input_required if aec_input_required else [],
@@ -2730,22 +3176,22 @@ class EndorsementsPendingMyAction(APIView):
             context={"request": req},
         ).data
 
-        all_bm = MiniEndorsementSerializer(
-            bm_input_required if bm_input_required else [],
-            many=True,
-            context={"request": req},
-        ).data
+        # all_bm = MiniEndorsementSerializer(
+        #     bm_input_required if bm_input_required else [],
+        #     many=True,
+        #     context={"request": req},
+        # ).data
 
-        all_hc = MiniEndorsementSerializer(
-            hc_input_required if hc_input_required else [],
-            many=True,
-            context={"request": req},
-        ).data
+        # all_hc = MiniEndorsementSerializer(
+        #     hc_input_required if hc_input_required else [],
+        #     many=True,
+        #     context={"request": req},
+        # ).data
 
         data = {
             "aec": all_aec,
-            "bm": all_bm,
-            "hc": all_hc,
+            # "bm": all_bm,
+            # "hc": all_hc,
         }
 
         return Response(data, status=HTTP_200_OK)
@@ -3730,6 +4176,43 @@ class UpdateStudentReport(APIView):
             )
 
 
+class UpdateProgressReport(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            report = ProgressReport.objects.filter(document=pk).first()
+        except ProgressReport.DoesNotExist:
+            raise NotFound
+        return report
+
+    def post(self, req):
+        report = self.go(pk=int(req.data["main_document_pk"]))
+        section = req.data["section"]
+        html_data = req.data["html"]
+        # report.progress_report = req.data["html"]
+        # report.save()
+        # ser = StudentReportSerializer(report)
+
+        ser = ProgressReportSerializer(
+            report,
+            data={f"{section}": html_data},
+            partial=True,
+        )
+        if ser.is_valid():
+            updated = ser.save()
+            up_ser = ProgressReportSerializer(updated)
+            return Response(
+                up_ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
 class StudentReportDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -4646,7 +5129,7 @@ class PublicationDetail(APIView):
         )
 
     def put(self, req, pk):
-        settings.LOGGER.error(msg=f"{req.user} is updating publication {pk}")
+        settings.LOGGER.info(msg=f"{req.user} is updating publication {pk}")
         publication = self.go(pk)
         ser = PublicationSerializer(
             publication,
@@ -4664,4 +5147,54 @@ class PublicationDetail(APIView):
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class GenerateReportPDF(APIView):
+
+    def go(self, report_pk):
+        try:
+            obj = AnnualReport.objects.get(pk=report_pk)
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, report_pk):
+        permission_classes = [IsAuthenticatedOrReadOnly]
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating a pdf for report with id {report_pk}"
+        )
+
+        report_id = report_pk
+        section = req.data["section"]
+        business_area = req.data.get("business_area", None)
+
+        report = self.go(report_pk=report_id)
+
+        def set_report_generation_status(report, is_generating: bool):
+            report.pdf_generation_in_progress = is_generating
+            report.save()
+
+        if section == "cover":
+            settings.LOGGER.info(msg=f"The section is Cover Page")
+            set_report_generation_status(report=report, is_generating=True)
+
+            set_report_generation_status(report=report, is_generating=False)
+
+            return Response(
+                HTTP_202_ACCEPTED,
+            )
+        # elif section == "progress":
+        #     if business_area is None or business_area == 0:
+        #         # Gen all ba area progress reports pdf here
+        #         pass
+        #     else:
+        #         # Gen selected business are progress reports pdf
+        #         pass
+        else:
+            settings.LOGGER.info(msg=f"No section selected for PDF gen!")
+
+            return Response(
+                {"msg": "No section selected for pdf gen"},
+                HTTP_400_BAD_REQUEST,
             )

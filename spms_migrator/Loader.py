@@ -199,7 +199,6 @@ class Loader:
     </tbody>\
     </table>'
 
-
     def replace_json_string_with_html_table(self, input_string):
         # This function should generate a html table using a string in this format:
         # [["Source", "Year 1", "Year 2", "Year 3"], ["Consolidated Funds (DBCA)", "", "", ""], ["External Funding", "", "", ""]]
@@ -216,12 +215,12 @@ class Loader:
         html_table += '    <col style="background-color: rgb(242, 243, 245);">\n'  # Style for the leftmost column
 
         for _ in range(len(data[0])):
-            html_table += '    <col>\n'
+            html_table += "    <col>\n"
 
-        html_table += '  </colgroup>\n  <tbody>\n'
+        html_table += "  </colgroup>\n  <tbody>\n"
 
         for i, row in enumerate(data):
-            html_table += '    <tr>\n'
+            html_table += "    <tr>\n"
             for j, cell in enumerate(row):
                 if i == 0:
                     # Apply background color to the first row
@@ -233,17 +232,18 @@ class Loader:
                     html_table += f'      <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;">\n'
 
                 html_table += f'        <p class="editor-p-light" dir="ltr">\n'
-                html_table += f'          <span style="white-space: pre-wrap;">{cell}</span>\n'
-                html_table += f'        </p>\n'
-                html_table += '      </' + ('th' if i == 0 else 'td') + '>\n'
+                html_table += (
+                    f'          <span style="white-space: pre-wrap;">{cell}</span>\n'
+                )
+                html_table += f"        </p>\n"
+                html_table += "      </" + ("th" if i == 0 else "td") + ">\n"
 
-            html_table += '    </tr>\n'
+            html_table += "    </tr>\n"
 
         # Close the table
-        html_table += '  </tbody>\n</table>'
+        html_table += "  </tbody>\n</table>"
 
         return html_table
-
 
     def generate_boundary(self):
         # Generate a random boundary value
@@ -852,7 +852,6 @@ class Loader:
                 f"{self.misc.bcolors.OKGREEN}Business Area retrieved ({ba_id})!{self.misc.bcolors.ENDC}"
             )
             return ba_id
-
 
     def spms_get_user_by_old_id(self, connection, cursor, old_id):
         print(f"trying for old id: {old_id}")
@@ -1491,10 +1490,11 @@ class Loader:
                 BEGIN;
                 INSERT INTO users_user (
                     id, username, email, first_name, last_name, password,
-                    is_superuser, is_biometrician, is_aec, is_herbarium_curator, is_staff, is_active, date_joined
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    is_superuser, is_aec, is_staff, is_active, date_joined
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
                 COMMIT;
             """
+            # %s, %s, is_biometrician, is_herbarium_curator
 
             # Execute the query with the user data
             cursor.execute(
@@ -1506,8 +1506,6 @@ class Loader:
                     env_fn,
                     env_ln,
                     hashed_password,
-                    True,
-                    True,
                     True,
                     True,
                     True,
@@ -2528,7 +2526,6 @@ class Loader:
             except Exception as e:
                 print("Error on RFMS:", e)
 
-
             # Deactivate the business areas which are not in the list
             try:
                 bas_to_deactivate = [
@@ -2557,7 +2554,6 @@ class Loader:
             cursor.close()
             connection.close()
 
-
     def spms_set_new_leaders(self):
         (
             cursor,
@@ -2566,40 +2562,82 @@ class Loader:
         connection.autocommit = False
         # FOR BCS, SET THE NEW BA LEADERS, DATA CUSTODIANS/FINANCIAL ADMINS BASED ON LIST FROM RORY
         ba_to_leader = [
-            {"old_user_pk": 100934, "old_business_area_pk": 4}, #Directorate BCS Rory McAuley Rory McAuley
-            {"old_user_pk": 93, "old_business_area_pk":5 }, #Animal Science Program BCS Lesley Gibson Lesley Gibson
-            {"old_user_pk": 100936, "old_business_area_pk": 22}, #Biodiversity Information Office BCS Rob Cechner Rob Cechner
-            {"old_user_pk": 22, "old_business_area_pk": 7}, #Ecosystem Science Program BCS Adrian Pinder Adrian Pinder
-            {"old_user_pk": 100457, "old_business_area_pk": 21}, #Fire Science Program BCS Ben Miller Ben Miller
-            {"old_user_pk": 100462, "old_business_area_pk": 17}, #Kings Park Science Program BCS Jason Stevens Jason Stevens
-            {"old_user_pk": 156, "old_business_area_pk": 9}, #Marine Science Program BCS Tom Holmes Tom Holmes
-            {"old_user_pk": 101019, "old_business_area_pk": 18}, #Perth Zoo Science Program BCS Harriet Mills Harriet Mills
-            {"old_user_pk": 47, "old_business_area_pk": 6}, #Plant Science and Herbarium BCS Carl Gosper Carl Gosper
-            {"old_user_pk": 100448, "old_business_area_pk": 19}, #Remote Sensing and Spatial Analysis BCS Katherine Zdunic Katherine Zdunic
-            {"old_user_pk": 100458, "old_business_area_pk": 20}, #Rivers and Estuaries BCS Kerry Trayler Kerry Trayler
-            {"old_user_pk": 100749, "old_business_area_pk": 15}, #Species and Communities BCS Ruth Harvey Ruth Harvey
+            {
+                "old_user_pk": 100934,
+                "old_business_area_pk": 4,
+            },  # Directorate BCS Rory McAuley Rory McAuley
+            {
+                "old_user_pk": 93,
+                "old_business_area_pk": 5,
+            },  # Animal Science Program BCS Lesley Gibson Lesley Gibson
+            {
+                "old_user_pk": 100936,
+                "old_business_area_pk": 22,
+            },  # Biodiversity Information Office BCS Rob Cechner Rob Cechner
+            {
+                "old_user_pk": 22,
+                "old_business_area_pk": 7,
+            },  # Ecosystem Science Program BCS Adrian Pinder Adrian Pinder
+            {
+                "old_user_pk": 100457,
+                "old_business_area_pk": 21,
+            },  # Fire Science Program BCS Ben Miller Ben Miller
+            {
+                "old_user_pk": 100462,
+                "old_business_area_pk": 17,
+            },  # Kings Park Science Program BCS Jason Stevens Jason Stevens
+            {
+                "old_user_pk": 156,
+                "old_business_area_pk": 9,
+            },  # Marine Science Program BCS Tom Holmes Tom Holmes
+            {
+                "old_user_pk": 101019,
+                "old_business_area_pk": 18,
+            },  # Perth Zoo Science Program BCS Harriet Mills Harriet Mills
+            {
+                "old_user_pk": 47,
+                "old_business_area_pk": 6,
+            },  # Plant Science and Herbarium BCS Carl Gosper Carl Gosper
+            {
+                "old_user_pk": 100448,
+                "old_business_area_pk": 19,
+            },  # Remote Sensing and Spatial Analysis BCS Katherine Zdunic Katherine Zdunic
+            {
+                "old_user_pk": 100458,
+                "old_business_area_pk": 20,
+            },  # Rivers and Estuaries BCS Kerry Trayler Kerry Trayler
+            {
+                "old_user_pk": 100749,
+                "old_business_area_pk": 15,
+            },  # Species and Communities BCS Ruth Harvey Ruth Harvey
         ]
 
         ba_leader_update_sql = "UPDATE agencies_businessarea SET leader_id = %s, data_custodian_id = %s, finance_admin_id = %s WHERE id = %s;"
-        
+
         for item in ba_to_leader:
             # get the new leader id
-            try: 
-                leader_id = self.spms_get_user_by_old_id(connection=connection, cursor=cursor, old_id=item['old_user_pk'])
-                ba_id = self.spms_get_business_area_by_old_id(connection=connection, cursor=cursor, old_id=item['old_business_area_pk'])
-                cursor.execute(ba_leader_update_sql, (leader_id, leader_id, leader_id, ba_id))
+            try:
+                leader_id = self.spms_get_user_by_old_id(
+                    connection=connection, cursor=cursor, old_id=item["old_user_pk"]
+                )
+                ba_id = self.spms_get_business_area_by_old_id(
+                    connection=connection,
+                    cursor=cursor,
+                    old_id=item["old_business_area_pk"],
+                )
+                cursor.execute(
+                    ba_leader_update_sql, (leader_id, leader_id, leader_id, ba_id)
+                )
                 connection.commit()
                 self.misc.nls(
                     f"{self.misc.bcolors.OKGREEN}Business area '{item}' updated successfully.{self.misc.bcolors.ENDC}"
                 )
-                
+
             except Exception as e:
                 connection.rollback()
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error while setting new ba leaders: {e}{self.misc.bcolors.ENDC}"
                 )
-
-
 
     def spms_create_users(self):
         self.misc.nls(
@@ -2679,14 +2717,15 @@ class Loader:
                 last_login, 
                 is_superuser, 
                 is_staff, 
-                is_herbarium_curator,
-                is_biometrician, 
                 is_aec,
                 date_joined, 
                 first_name, last_name, email, old_pk
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s,%s, %s, %s, %s, %s, %s, %s);
+            ) VALUES (%s, %s,  %s, %s, %s,%s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
+        #                 is_herbarium_curator,
+        # is_biometrician,
+        # %s, %s,
 
         contact_sql = """
                 BEGIN;
@@ -2765,8 +2804,8 @@ class Loader:
                             user["last_login"],
                             is_superuser_value,
                             is_staff_value,
-                            False,  # is_herbarium_curator,
-                            False,  # is_biometrician,
+                            # False,  # is_herbarium_curator,
+                            # False,  # is_biometrician,
                             False,  # is_aec,
                             user["date_joined"],
                             user["first_name"],
@@ -8807,8 +8846,9 @@ class Loader:
                 date_closed,
                 year, 
                 dm,
-                is_published
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                is_published,
+                pdf_generation_in_progress
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
             COMMIT;
         """
 
@@ -8879,6 +8919,7 @@ class Loader:
                         report["year"],
                         report["dm"] if not self.pd.isna(report["dm"]) else None,
                         is_published,
+                        False,
                     ),
                 )
             except Exception as e:

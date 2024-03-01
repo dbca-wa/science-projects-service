@@ -1,5 +1,10 @@
 from projects.models import Project, ProjectMember
-from projects.serializers import MiniProjectMemberSerializer, ProjectSerializer, TinyProjectMemberSerializer, TinyProjectSerializer
+from projects.serializers import (
+    MiniProjectMemberSerializer,
+    ProjectSerializer,
+    TinyProjectMemberSerializer,
+    TinyProjectSerializer,
+)
 from users.serializers import TinyUserSerializer
 from .models import (
     ConceptPlan,
@@ -40,6 +45,7 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
             "date_closed",
             "media",
             "pdf",
+            "pdf_generation_in_progress",
         ]
 
 
@@ -49,6 +55,7 @@ class MiniAnnualReportSerializer(serializers.ModelSerializer):
         fields = [
             "pk",
             "year",
+            "pdf_generation_in_progress",
         ]
 
 
@@ -98,11 +105,17 @@ class TinyConceptPlanSerializer(serializers.ModelSerializer):
             "budget",
         ]
 
+
 class SuperSmallProjSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["pk", "title", "kind",]
+        fields = [
+            "pk",
+            "title",
+            "kind",
+        ]
+
 
 class SuperSmallDocSerializer(serializers.ModelSerializer):
 
@@ -137,6 +150,7 @@ class TinyProjectPlanSerializer(serializers.ModelSerializer):
             "related_projects",
         ]
 
+
 class MiniEndorsementSerializer(serializers.ModelSerializer):
     project_plan = TinyProjectPlanSerializer(read_only=True)
 
@@ -146,7 +160,6 @@ class MiniEndorsementSerializer(serializers.ModelSerializer):
             "pk",
             "project_plan",
         ]
-
 
 
 class TinyEndorsementSerializer(serializers.ModelSerializer):
@@ -516,15 +529,22 @@ class ProgressReportSerializer(serializers.ModelSerializer):
     document = TinyProjectDocumentSerializer(read_only=True)
     report = TinyAnnualReportSerializer(read_only=True)
     project = TinyProjectSerializer(read_only=True)
-    team_members = TinyProjectMemberSerializer(read_only=True, many=True)
+    team_members = serializers.SerializerMethodField()
 
-    def get_team_members(self):
-        project = self.instance.project
+    def get_team_members(self, student_report):
+        # print('getting team')
+        project = student_report.project
         try:
             members = ProjectMember.objects.filter(project=project.pk).all()
+            serialized_members = []
+            for member in members:
+                ser = MiniProjectMemberSerializer(member)
+                serialized_members.append(ser.data)
         except ProjectMember.DoesNotExist:
+            print("error on team")
             raise NotFound
-        else: return members
+        else:
+            return serialized_members
 
     class Meta:
         model = ProgressReport
@@ -566,11 +586,10 @@ class StudentReportSerializer(serializers.ModelSerializer):
                 ser = MiniProjectMemberSerializer(member)
                 serialized_members.append(ser.data)
         except ProjectMember.DoesNotExist:
-            print('error on team')
+            print("error on team")
             raise NotFound
         else:
             return serialized_members
-
 
     class Meta:
         model = StudentReport
@@ -581,7 +600,7 @@ class StudentReportSerializer(serializers.ModelSerializer):
             "report",
             "progress_report",
             "year",
-            "team_members"
+            "team_members",
         ]
 
 

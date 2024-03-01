@@ -20,7 +20,7 @@ from django.contrib.auth import get_user_model
 
 @admin.register(AnnualReport)
 class AnnualReportAdmin(admin.ModelAdmin):
-    list_display = ("pk", "year", "is_published")
+    list_display = ("pk", "year", "is_published", "pdf_generation_in_progress")
 
     ordering = ["year"]
 
@@ -63,6 +63,7 @@ class ProjectDocumentAdmin(admin.ModelAdmin):
             return queryset
 
     list_filter = (
+        "pdf_generation_in_progress",
         YearFilter,
         "kind",
         "status",

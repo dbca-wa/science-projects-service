@@ -85,6 +85,8 @@ class AnnualReport(CommonModel):
         help_text="The date at which submissions are closed for this report",
     )
 
+    pdf_generation_in_progress = models.BooleanField(default=False)
+
     is_published = models.BooleanField(
         default=True,
     )

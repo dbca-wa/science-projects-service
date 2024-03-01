@@ -4,10 +4,6 @@ from . import views
 urlpatterns = [
     # PDF Generation & Downloads
     # path("generateProjectDocument/<int:pk>", views.GenerateProjectDocument.as_view()),
-    path(
-        "conceptplans/<int:pk>/get_concept_plan_data",
-        views.GetConceptPlanData.as_view(),
-    ),
     # path("conceptplans/<int:pk>/generate_concept_plan", views.GenerateConceptPlan.as_view()),
     # Latest Report's active PRs and SRs
     path("latest_active_progress_reports", views.LatestYearsProgressReports.as_view()),
@@ -105,4 +101,12 @@ urlpatterns = [
     path("actions/recall", views.DocRecall.as_view()),
     path("actions/send_back", views.DocSendBack.as_view()),
     path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
+    path("progress_reports/update", views.UpdateProgressReport.as_view()),
+    path("reports/<int:report_pk>/generate_pdf", views.GenerateReportPDF.as_view()),
+    # path("generate_cover_page/", views.generate_cover_page, name="generate_cover_page"),
+    path(
+        "conceptplans/<int:pk>/get_concept_plan_data",
+        views.GetConceptPlanData.as_view(),
+    ),
+    path("generate_concept_plan/<int:pk>", views.GenerateConceptPlan.as_view()),
 ]

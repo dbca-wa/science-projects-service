@@ -27,7 +27,9 @@ pillow = "^10.1.0"
 sqlparse = "^0.4.4"
 chardet = "^5.2.0"
 cssutils = "^2.9.0"
-weasyprint = "^61.0"
+html2text = "^2024.2.25"
+tqdm = "^4.66.2"
+xhtml2pdf = "^0.2.15"
 
 
 [build-system]

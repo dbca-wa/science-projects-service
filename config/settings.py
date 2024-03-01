@@ -111,22 +111,23 @@ ROOT_URLCONF = "config.urls"
 
 if DEBUG:
     # Local postgres db
-    def get_host_ip():
-        try:
-            # Creating a socket object and connecting to an external server (like Google's DNS)
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            host_ip = s.getsockname()[0]
-            s.close()
-            return host_ip
-        except socket.error:
-            return None
+    # def get_host_ip():
+    #     try:
+    #         # Creating a socket object and connecting to an external server (like Google's DNS)
+    #         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    #         s.connect(("8.8.8.8", 80))
+    #         host_ip = s.getsockname()[0]
+    #         s.close()
+    #         return host_ip
+    #     except socket.error:
+    #         return None
 
-    host_ip = get_host_ip()
+    # host_ip = get_host_ip()
 
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
+            # "ENGINE": "django.db.backends.postgresql",
+            "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": f"{env('DBNAME')}",
             "USER": f"{env('PGUSER')}",
             "PASSWORD": f"{env('PGPASS')}",
@@ -134,8 +135,8 @@ if DEBUG:
                 "options": "-c client_encoding=utf8",
             },
             "CONN_MAX_AGE": 600,
-            "HOST": os.environ.get("DB_HOST", host_ip),
-            "PORT": os.environ.get("DB_PORT", "5432"),
+            "HOST": "127.0.0.1",
+            "PORT": "5432",
         }
     }
 

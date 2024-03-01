@@ -34,6 +34,12 @@ class ProjectDocumentPDFSerializer(ModelSerializer):
         ]
 
 
+class ProjectDocumentPDFCreationSerializer(ModelSerializer):
+    class Meta:
+        model = ProjectDocumentPDF
+        fields = "__all__"
+
+
 class TinyAnnualReportMediaSerializer(ModelSerializer):
     report = SerializerMethodField(read_only=True)
 
@@ -137,7 +143,6 @@ class AnnualReportPDFCreateSerializer(ModelSerializer):
     def create(self, validated_data):
         cp = AnnualReportPDF.objects.create(**validated_data)
         return cp
-
 
 
 class AnnualReportPDFSerializer(ModelSerializer):

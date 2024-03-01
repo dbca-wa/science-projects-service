@@ -79,7 +79,7 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "first_name",
         "last_name",
-        "is_biometrician",
+        "is_aec",
         "is_staff",
         "is_superuser",
     ]

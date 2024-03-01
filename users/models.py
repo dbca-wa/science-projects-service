@@ -46,15 +46,15 @@ class User(AbstractUser):
         help_text="The primary key used in the outdated SPMS",
     )
 
-    is_biometrician = models.BooleanField(
-        default=False,
-        help_text="Whether this user can act as a biometrician if not an admin",
-    )
+    # is_biometrician = models.BooleanField(
+    #     default=False,
+    #     help_text="Whether this user can act as a biometrician if not an admin",
+    # )
 
-    is_herbarium_curator = models.BooleanField(
-        default=False,
-        help_text="Whether this user can act as a herbarium curator if not an admin",
-    )
+    # is_herbarium_curator = models.BooleanField(
+    #     default=False,
+    #     help_text="Whether this user can act as a herbarium curator if not an admin",
+    # )
 
     is_aec = models.BooleanField(
         default=False,
