@@ -45,10 +45,12 @@ import os
 from documents.serializers import (
     ConceptPlanCreateSerializer,
     ConceptPlanSerializer,
+    EndorsementCreationSerializer,
     ProgressReportSerializer,
     ProjectClosureSerializer,
     ProjectDocumentCreateSerializer,
     ProjectDocumentSerializer,
+    ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
     StudentReportSerializer,
     TinyConceptPlanSerializer,
@@ -470,6 +472,14 @@ class Projects(APIView):
         image_data = req.FILES.get("imageData")
         keywords_str = data.get("keywords")
 
+        is_external = data.get("isExternalSP")
+
+        if is_external:
+            if str(is_external).capitalize() == "True":
+                is_external = True
+            else:
+                is_external = False
+
         # Convert keywords to a string and then list.
         keywords_str = keywords_str.strip("[]").replace('"', "")
         keywords_list = keywords_str.split(",")
@@ -701,11 +711,11 @@ class Projects(APIView):
                 else:
                     # serialized_proj = ProjectSerializer(proj)
 
-                    # create document for concept plan data
+                    # create document for concept plan or project plan
                     document_serializer = ProjectDocumentCreateSerializer(
                         data={
                             "old_id": 1,
-                            "kind": "concept",
+                            "kind": "concept" if not is_external else "projectplan",
                             "status": "new",
                             "project": proj.pk,
                             "creator": req.user.pk,
@@ -723,26 +733,344 @@ class Projects(APIView):
                                     e,
                                     status=HTTP_400_BAD_REQUEST,
                                 )
-                            concept_plan_data_object = {
-                                "document": doc.pk,
-                                "project": proj.pk,
-                                "aims": req.data.get("aims")
-                                if req.data.get("aims") is not None
-                                else "<p></p>",
-                                "outcome": req.data.get("outcome")
-                                if req.data.get("outcome") is not None
-                                else "<p></p>",
-                                "collaborations": req.data.get("collaborations")
-                                if req.data.get("collaborations") is not None
-                                else "<p></p>",
-                                "strategic_context": req.data.get("strategic_context")
-                                if req.data.get("strategic_context") is not None
-                                else "<p></p>",
-                                "staff_time_allocation": req.data.get(
-                                    "staff_time_allocation"
+
+                            if not is_external:
+                                concept_plan_data_object = {
+                                    "document": doc.pk,
+                                    "project": proj.pk,
+                                    "aims": (
+                                        req.data.get("aims")
+                                        if req.data.get("aims") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "outcome": (
+                                        req.data.get("outcome")
+                                        if req.data.get("outcome") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "collaborations": (
+                                        req.data.get("collaborations")
+                                        if req.data.get("collaborations") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "strategic_context": (
+                                        req.data.get("strategic_context")
+                                        if req.data.get("strategic_context") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "staff_time_allocation": (
+                                        req.data.get("staff_time_allocation")
+                                        if req.data.get("staff_time_allocation")
+                                        is not None
+                                        else '<table class="table-light">\
+                                            <colgroup>\
+                                                <col>\
+                                                <col>\
+                                                <col>\
+                                                <col>\
+                                            </colgroup>\
+                                            <tbody>\
+                                                <tr>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Role</span>\
+                                                    </p>\
+                                                </th>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Year 1</span>\
+                                                    </p>\
+                                                </th>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Year 2</span>\
+                                                    </p>\
+                                                </th>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Year 3</span>\
+                                                    </p>\
+                                                </th>\
+                                                </tr>\
+                                                <tr>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Scientist</span>\
+                                                    </p>\
+                                                </th>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                </tr>\
+                                                <tr>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Technical</span>\
+                                                    </p>\
+                                                </th>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                </tr>\
+                                                <tr>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Volunteer</span>\
+                                                    </p>\
+                                                </th>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                </tr>\
+                                                <tr>\
+                                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                    <p class="editor-p-light" dir="ltr">\
+                                                    <span style="white-space: pre-wrap;">Collaborator</span>\
+                                                    </p>\
+                                                </th>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                </tr>\
+                                            </tbody>\
+                                            </table>'
+                                    ),
+                                    "budget": (
+                                        req.data.get("budget")
+                                        if req.data.get("budget") is not None
+                                        else '<table class="table-light"><colgroup>\
+                                    <col>\
+                                    <col>\
+                                    <col>\
+                                    <col>\
+                                </colgroup>\
+                                <tbody>\
+                                    <tr>\
+                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                        <p class="editor-p-light" dir="ltr">\
+                                        <span style="white-space: pre-wrap;">Source</span>\
+                                        </p>\
+                                    </th>\
+                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                        <p class="editor-p-light" dir="ltr">\
+                                        <span style="white-space: pre-wrap;">Year 1</span>\
+                                        </p>\
+                                    </th>\
+                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                        <p class="editor-p-light" dir="ltr">\
+                                        <span style="white-space: pre-wrap;">Year 2</span>\
+                                        </p>\
+                                    </th>\
+                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                        <p class="editor-p-light" dir="ltr">\
+                                        <span style="white-space: pre-wrap;">Year 3</span>\
+                                        </p>\
+                                    </th>\
+                                    </tr>\
+                                    <tr>\
+                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                        <p class="editor-p-light" dir="ltr">\
+                                        <span style="white-space: pre-wrap;">Consolidated Funds (DBCA)</span>\
+                                        </p>\
+                                    </th>\
+                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                    </tr>\
+                                    <tr>\
+                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                        <p class="editor-p-light" dir="ltr">\
+                                        <span style="white-space: pre-wrap;">External Funding</span>\
+                                        </p>\
+                                    </th>\
+                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                    </tr>\
+                                </tbody>\
+                                </table>'
+                                    ),
+                                }
+
+                                concept_plan_serializer = ConceptPlanCreateSerializer(
+                                    data=concept_plan_data_object
                                 )
-                                if req.data.get("staff_time_allocation") is not None
-                                else '<table class="table-light">\
+
+                                if concept_plan_serializer.is_valid():
+                                    try:
+                                        concept_plan_serializer.save()
+                                    except Exception as e:
+                                        settings.LOGGER.error(
+                                            msg=f"Concept Plan Error: {e}"
+                                        )
+                                        return Response(
+                                            e,
+                                            status=HTTP_400_BAD_REQUEST,
+                                        )
+                                else:
+                                    settings.LOGGER.error(
+                                        msg=f"Concept Plan Error: {concept_plan_serializer.errors}"
+                                    )
+                                    return Response(
+                                        concept_plan_serializer.errors,
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+                            else:
+                                # if external sp
+                                project_plan_data_object = {
+                                    "document": doc.pk,
+                                    "project": proj.pk,
+                                    "background": (
+                                        req.data.get("background")
+                                        if req.data.get("background") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "aims": (
+                                        req.data.get("aims")
+                                        if req.data.get("aims") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "outcome": (
+                                        req.data.get("outcomes")
+                                        if req.data.get("outcomes") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "project_tasks": (
+                                        req.data.get("project_tasks")
+                                        if req.data.get("project_tasks") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "knowledge_transfer": (
+                                        req.data.get("knowledge_transfer")
+                                        if req.data.get("knowledge_transfer")
+                                        is not None
+                                        else "<p></p>"
+                                    ),
+                                    "listed_references": (
+                                        req.data.get("references")
+                                        if req.data.get("references") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "methodology": (
+                                        req.data.get("methodology")
+                                        if req.data.get("methodology") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "methodology": (
+                                        req.data.get("methodology")
+                                        if req.data.get("methodology") is not None
+                                        else "<p></p>"
+                                    ),
+                                    "operating_budget": (
+                                        req.data.get("budget")
+                                        if req.data.get("budget") is not None
+                                        else '<table class="table-light">\
+                                                <colgroup>\
+                                                    <col>\
+                                                    <col>\
+                                                    <col>\
+                                                    <col>\
+                                                </colgroup>\
+                                                <tbody>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Source</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Year 1</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Year 2</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Year 3</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">FTE Scientist</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">FTE Technical</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Equipment</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Vehicle</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Travel</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Other</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                    <tr>\
+                                                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                        <p class="editor-p-light" dir="ltr">\
+                                                        <span style="white-space: pre-wrap;">Total</span>\
+                                                        </p>\
+                                                    </th>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                                    </tr>\
+                                                </tbody>\
+                                                </table>'
+                                    ),
+                                    "operating_external_budget": (
+                                        req.data.get("budget")
+                                        if req.data.get("budget") is not None
+                                        else '<table class="table-light">\
                                         <colgroup>\
                                             <col>\
                                             <col>\
@@ -753,7 +1081,7 @@ class Projects(APIView):
                                             <tr>\
                                             <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
                                                 <p class="editor-p-light" dir="ltr">\
-                                                <span style="white-space: pre-wrap;">Role</span>\
+                                                <span style="white-space: pre-wrap;">Source</span>\
                                                 </p>\
                                             </th>\
                                             <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
@@ -775,7 +1103,7 @@ class Projects(APIView):
                                             <tr>\
                                             <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
                                                 <p class="editor-p-light" dir="ltr">\
-                                                <span style="white-space: pre-wrap;">Scientist</span>\
+                                                <span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>\
                                                 </p>\
                                             </th>\
                                             <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
@@ -785,7 +1113,7 @@ class Projects(APIView):
                                             <tr>\
                                             <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
                                                 <p class="editor-p-light" dir="ltr">\
-                                                <span style="white-space: pre-wrap;">Technical</span>\
+                                                <span style="white-space: pre-wrap;">Overheads</span>\
                                                 </p>\
                                             </th>\
                                             <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
@@ -795,7 +1123,7 @@ class Projects(APIView):
                                             <tr>\
                                             <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
                                                 <p class="editor-p-light" dir="ltr">\
-                                                <span style="white-space: pre-wrap;">Volunteer</span>\
+                                                <span style="white-space: pre-wrap;">Equipment</span>\
                                                 </p>\
                                             </th>\
                                             <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
@@ -805,7 +1133,37 @@ class Projects(APIView):
                                             <tr>\
                                             <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
                                                 <p class="editor-p-light" dir="ltr">\
-                                                <span style="white-space: pre-wrap;">Collaborator</span>\
+                                                <span style="white-space: pre-wrap;">Vehicle</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Travel</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Other</span>\
+                                                </p>\
+                                            </th>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                                            </tr>\
+                                            <tr>\
+                                            <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                                                <p class="editor-p-light" dir="ltr">\
+                                                <span style="white-space: pre-wrap;">Total</span>\
                                                 </p>\
                                             </th>\
                                             <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
@@ -813,83 +1171,68 @@ class Projects(APIView):
                                             <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
                                             </tr>\
                                         </tbody>\
-                                        </table>',
-                                "budget": req.data.get("budget")
-                                if req.data.get("budget") is not None
-                                else '<table class="table-light"><colgroup>\
-                                <col>\
-                                <col>\
-                                <col>\
-                                <col>\
-                            </colgroup>\
-                            <tbody>\
-                                <tr>\
-                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                                    <p class="editor-p-light" dir="ltr">\
-                                    <span style="white-space: pre-wrap;">Source</span>\
-                                    </p>\
-                                </th>\
-                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                                    <p class="editor-p-light" dir="ltr">\
-                                    <span style="white-space: pre-wrap;">Year 1</span>\
-                                    </p>\
-                                </th>\
-                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                                    <p class="editor-p-light" dir="ltr">\
-                                    <span style="white-space: pre-wrap;">Year 2</span>\
-                                    </p>\
-                                </th>\
-                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                                    <p class="editor-p-light" dir="ltr">\
-                                    <span style="white-space: pre-wrap;">Year 3</span>\
-                                    </p>\
-                                </th>\
-                                </tr>\
-                                <tr>\
-                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                                    <p class="editor-p-light" dir="ltr">\
-                                    <span style="white-space: pre-wrap;">Consolidated Funds (DBCA)</span>\
-                                    </p>\
-                                </th>\
-                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                                </tr>\
-                                <tr>\
-                                <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                                    <p class="editor-p-light" dir="ltr">\
-                                    <span style="white-space: pre-wrap;">External Funding</span>\
-                                    </p>\
-                                </th>\
-                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                                <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                                </tr>\
-                            </tbody>\
-                            </table>',
-                            }
+                                        </table>'
+                                    ),
+                                    "related_projects": "<p></p>",
+                                }
 
-                            concept_plan_serializer = ConceptPlanCreateSerializer(
-                                data=concept_plan_data_object
-                            )
+                                project_plan_serializer = ProjectPlanCreateSerializer(
+                                    data=project_plan_data_object,
+                                )
 
-                            if concept_plan_serializer.is_valid():
-                                try:
-                                    concept_plan_serializer.save()
-                                except Exception as e:
-                                    settings.LOGGER.error(msg=f"Concept Plan Error: {e}")
+                                if project_plan_serializer.is_valid():
+                                    try:
+                                        updated = project_plan_serializer.save()
+                                    except Exception as e:
+                                        settings.LOGGER.error(
+                                            msg=f"Project Plan Error: {e}"
+                                        )
+                                        return Response(
+                                            e,
+                                            status=HTTP_400_BAD_REQUEST,
+                                        )
+                                    else:
+                                        # Create the endorsement
+                                        endorsements = EndorsementCreationSerializer(
+                                            data={
+                                                "project_plan": updated.pk,
+                                                # "bm_endorsement_required": True,
+                                                # "hc_endorsement_required": False,
+                                                # "dm_endorsement_required": True,
+                                                "ae_endorsement_required": False,
+                                                # "bm_endorsement_provided": False,
+                                                # "hc_endorsement_provided": False,
+                                                "ae_endorsement_provided": False,
+                                                # "dm_endorsement_provided": False,
+                                                "data_management": "<p></p>",
+                                                "no_specimens": "<p></p>",
+                                            }
+                                        )
+                                    if endorsements.is_valid():
+                                        endorsements.save()
+
+                                    else:
+                                        settings.LOGGER.error(
+                                            f"endorsement error: {endorsements.errors}"
+                                        )
+                                        return Response(
+                                            endorsements.errors,
+                                            HTTP_400_BAD_REQUEST,
+                                        )
+
+                                else:
+                                    settings.LOGGER.error(
+                                        msg=f"Project Plan Error: {project_plan_serializer.errors}"
+                                    )
                                     return Response(
-                                        e,
+                                        project_plan_serializer.errors,
                                         status=HTTP_400_BAD_REQUEST,
                                     )
-                            else:
-                                settings.LOGGER.error(msg=f"Concept Plan Error: {concept_plan_serializer.errors}")
-                                return Response(
-                                    concept_plan_serializer.errors,
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
+
                     else:
-                        settings.LOGGER.error(msg=f"Concept Plan Error: {document_serializer.errors}")
+                        settings.LOGGER.error(
+                            msg=f"Document Creation Error: {document_serializer.errors}"
+                        )
                         return Response(
                             document_serializer.errors,
                             status=HTTP_400_BAD_REQUEST,
@@ -936,16 +1279,20 @@ class ProjectDetails(APIView):
             "base": ProjectDetailViewSerializer(
                 base_details,
             ).data,
-            "student": StudentProjectDetailSerializer(
-                student_details,
-            ).data
-            if student_details != []
-            else [],
-            "external": ExternalProjectDetailSerializer(
-                external_details,
-            ).data
-            if external_details != []
-            else [],
+            "student": (
+                StudentProjectDetailSerializer(
+                    student_details,
+                ).data
+                if student_details != []
+                else []
+            ),
+            "external": (
+                ExternalProjectDetailSerializer(
+                    external_details,
+                ).data
+                if external_details != []
+                else []
+            ),
         }
 
         try:
@@ -972,23 +1319,31 @@ class ProjectDetails(APIView):
             project_closure = None
 
         documents = {
-            "concept_plan": ConceptPlanSerializer(concept_plan).data
-            if concept_plan != None
-            else None,
-            "project_plan": ProjectPlanSerializer(project_plan).data
-            if project_plan != None
-            else None,
-            "progress_reports": ProgressReportSerializer(
-                progress_reports, many=True
-            ).data
-            if progress_reports != None
-            else None,
-            "student_reports": StudentReportSerializer(student_reports, many=True).data
-            if student_reports != None
-            else None,
-            "project_closure": ProjectClosureSerializer(project_closure).data
-            if project_closure != None
-            else None,
+            "concept_plan": (
+                ConceptPlanSerializer(concept_plan).data
+                if concept_plan != None
+                else None
+            ),
+            "project_plan": (
+                ProjectPlanSerializer(project_plan).data
+                if project_plan != None
+                else None
+            ),
+            "progress_reports": (
+                ProgressReportSerializer(progress_reports, many=True).data
+                if progress_reports != None
+                else None
+            ),
+            "student_reports": (
+                StudentReportSerializer(student_reports, many=True).data
+                if student_reports != None
+                else None
+            ),
+            "project_closure": (
+                ProjectClosureSerializer(project_closure).data
+                if project_closure != None
+                else None
+            ),
         }
 
         try:
@@ -1085,8 +1440,6 @@ class ProjectDetails(APIView):
         start_date_str = req.data.get("startDate")
         end_date_str = req.data.get("endDate")
 
-
-
         # Check if start_date_str is not None and not empty
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
@@ -1144,18 +1497,24 @@ class ProjectDetails(APIView):
                 "level": level,
                 "organisation": organisation,
             }.items()
-            if level is not None and organisation is not None and (not isinstance(value, list) or value)
+            if level is not None
+            and organisation is not None
+            and (not isinstance(value, list) or value)
         }
 
         updated_external_project_data = {
             key: value
             for key, value in {
                 "description": external_description,
-                "aims": aims,                
+                "aims": aims,
                 "budget": budget,
                 "collaboration_with": collaboration_with,
             }.items()
-            if aims is not None and external_description is not None and budget is not None and collaboration_with is not None and (not isinstance(value, list) or value)
+            if aims is not None
+            and external_description is not None
+            and budget is not None
+            and collaboration_with is not None
+            and (not isinstance(value, list) or value)
         }
 
         if locations_str and locations_str != "[]":
@@ -1283,7 +1642,7 @@ class ProjectDetails(APIView):
                             area_ser.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
-                    
+
                 if updated_external_project_data:
                     project_details = ExternalProjectDetails.objects.get(project=proj)
                     external_ser = ExternalProjectDetailSerializer(
@@ -1315,7 +1674,7 @@ class ProjectDetails(APIView):
                             student_proj_detail_ser.errors,
                             status=HTTP_400_BAD_REQUEST,
                         )
-                    
+
                 return Response(
                     TinyProjectSerializer(uproj).data,
                     status=HTTP_202_ACCEPTED,
@@ -1455,7 +1814,9 @@ class StudentProjectAdditionalDetail(APIView):
 
     def delete(self, req, pk):
         details = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting student project details {details}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting student project details {details}"
+        )
         details.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -1463,7 +1824,9 @@ class StudentProjectAdditionalDetail(APIView):
 
     def put(self, req, pk):
         details = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating student project details: {details}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating student project details: {details}"
+        )
         ser = StudentProjectDetailSerializer(
             details,
             data=req.data,
@@ -1531,7 +1894,9 @@ class ExternalProjectAdditionalDetail(APIView):
 
     def delete(self, req, pk):
         details = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting external project details: {details}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting external project details: {details}"
+        )
         details.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -1539,7 +1904,9 @@ class ExternalProjectAdditionalDetail(APIView):
 
     def put(self, req, pk):
         details = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating external project details: {details}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating external project details: {details}"
+        )
         ser = ExternalProjectDetailSerializer(
             details,
             data=req.data,
@@ -1631,7 +1998,9 @@ class ProjectMembers(APIView):
         position = req.data.get("position")
         old_id = req.data.get("old_id")
 
-        settings.LOGGER.info(msg=f"{req.user} is updating project membership for {project}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating project membership for {project}"
+        )
 
         data_to_serialize = {
             "user": user,
@@ -1679,7 +2048,9 @@ class PromoteToLeader(APIView):
         project_id = req.data["project"]
         user_id = req.data["user"]
         user_to_become_leader_obj = self.go(user_id=user_id, project_id=project_id)
-        settings.LOGGER.info(msg=f"{req.user} is promoting {user_to_become_leader_obj} to leader")
+        settings.LOGGER.info(
+            msg=f"{req.user} is promoting {user_to_become_leader_obj} to leader"
+        )
 
         team = self.gteam(project_id=project_id)
 
@@ -1743,13 +2114,17 @@ class ProjectMemberDetail(APIView):
 
     def delete(self, req, user_id, project_id):
         team_member = self.go(user_id, project_id)
-        settings.LOGGER.info(msg=f"{req.user} is deleting project member {team_member} from project id {project_id}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting project member {team_member} from project id {project_id}"
+        )
         team_member.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
     def put(self, req, user_id, project_id):
         team = self.go(user_id, project_id)
-        settings.LOGGER.info(msg=f"{req.user} is updating project member {team} from project id {project_id}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating project member {team} from project id {project_id}"
+        )
         ser = ProjectMemberSerializer(
             team,
             data=req.data,
@@ -1767,7 +2142,6 @@ class ProjectMemberDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
-
 
 
 class MembersForProject(APIView):
@@ -1792,7 +2166,9 @@ class MembersForProject(APIView):
         )
 
     def put(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is reordering members for project id {pk}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is reordering members for project id {pk}"
+        )
         reordered_team = req.data.get("reordered_team")
 
         # Create a dictionary to keep track of positions
@@ -1946,7 +2322,9 @@ class AreasForProject(APIView):
 
     def put(self, req, pk):
         project_areas = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating areas for project area {project_areas}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating areas for project area {project_areas}"
+        )
         area_data = req.data.get("areas")
         data = {"areas": area_data}
 
@@ -2044,7 +2422,19 @@ class DownloadAllProjectsAsCSV(APIView):
             # NEEDS TO BECOME In this order
             # id, status, kind, year, title, ba, ba leader, team names (comma separated), cost_center, start_date, end_date
             # Define custom field names in the desired order
-            custom_field_names = ['ID', 'Status', 'Type', 'Year', 'Title', 'Business Area', 'Business Area Leader', 'Team Members', 'Cost Center ID', 'Start Date', 'End Date']
+            custom_field_names = [
+                "ID",
+                "Status",
+                "Type",
+                "Year",
+                "Title",
+                "Business Area",
+                "Business Area Leader",
+                "Team Members",
+                "Cost Center ID",
+                "Start Date",
+                "End Date",
+            ]
 
             # 'cost_center',
             # Write CSV headers
@@ -2059,11 +2449,18 @@ class DownloadAllProjectsAsCSV(APIView):
                     project.year,
                     project.title,
                     project.business_area,
-                    project.business_area.leader if project.business_area else "",  # Assuming business_area has a leader attribute
-                    ', '.join([f'{project_member.user.first_name} {project_member.user.last_name}' for project_member in project.members.all()]),  # Assuming team_names is a related field with ManyToMany relationship
+                    (
+                        project.business_area.leader if project.business_area else ""
+                    ),  # Assuming business_area has a leader attribute
+                    ", ".join(
+                        [
+                            f"{project_member.user.first_name} {project_member.user.last_name}"
+                            for project_member in project.members.all()
+                        ]
+                    ),  # Assuming team_names is a related field with ManyToMany relationship
                     project.business_area.cost_center if project.business_area else "",
                     project.start_date,
-                    project.end_date
+                    project.end_date,
                 ]
                 writer.writerow(row)
 

@@ -290,7 +290,7 @@ class ConceptPlan(models.Model):
               <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
             </tr>\
           </tbody>\
-        </table>'
+        </table>',
         # json.dumps(
         #     [
         #         ["Role", "Year 1", "Year 2", "Year 3"],
@@ -357,19 +357,18 @@ class ConceptPlan(models.Model):
           <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
         </tr>\
       </tbody>\
-    </table>'
-
+    </table>',
     )
 
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
-        soup = BeautifulSoup(html_string, 'html.parser')
+        soup = BeautifulSoup(html_string, "html.parser")
 
         # Extract the text content
-        inner_text = soup.get_text(separator=' ', strip=True)
+        inner_text = soup.get_text(separator=" ", strip=True)
 
         return inner_text
-    
+
     def __str__(self) -> str:
         title = self.document.project.title
         title = self.extract_inner_text(title)
@@ -443,7 +442,6 @@ class ProjectPlan(models.Model):
         null=True,
         help_text="Describe the study design and statistical analysis.",
     )
-
 
     operating_budget = models.TextField(
         blank=True,
@@ -550,8 +548,7 @@ class ProjectPlan(models.Model):
               <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
             </tr>\
           </tbody>\
-        </table>'
-
+        </table>',
         # default=json.dumps(
         #     [
         #         ["Source", "Year 1", "Year 2", "Year 3"],
@@ -672,7 +669,7 @@ class ProjectPlan(models.Model):
               <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
             </tr>\
           </tbody>\
-        </table>'
+        </table>',
         # default=json.dumps(
         #     [
         #         ["Source", "Year 1", "Year 2", "Year 3"],
@@ -694,7 +691,6 @@ class ProjectPlan(models.Model):
         help_text="Name related SPPs and the extent you have consulted with their project leaders",
     )
 
-
     # involves_plants = models.BooleanField(
     #     default=False,
     #     help_text="Tick to indicate that this project will collect plant specimens, which will require endorsement by the Herbarium Curator.",
@@ -705,23 +701,21 @@ class ProjectPlan(models.Model):
     #     help_text="Tick to indicate that this project will involve direct interaction with animals, which will require endorsement by the Animal Ethics Committee.",
     # )
 
-
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
-        soup = BeautifulSoup(html_string, 'html.parser')
+        soup = BeautifulSoup(html_string, "html.parser")
 
         # Extract the text content
-        inner_text = soup.get_text(separator=' ', strip=True)
+        inner_text = soup.get_text(separator=" ", strip=True)
 
         return inner_text
-    
+
     def __str__(self) -> str:
         title = self.document.project.title
         title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
         return f"(PROJECT PLAN) {title}"
-
 
     class Meta:
         verbose_name = "Project Plan"
@@ -792,15 +786,16 @@ class ProgressReport(models.Model):
         null=True,
         help_text="Future directions for the annual activity update. Aim for 100 to 150 words. One bullet point per direction.",
     )
+
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
-        soup = BeautifulSoup(html_string, 'html.parser')
+        soup = BeautifulSoup(html_string, "html.parser")
 
         # Extract the text content
-        inner_text = soup.get_text(separator=' ', strip=True)
+        inner_text = soup.get_text(separator=" ", strip=True)
 
         return inner_text
-    
+
     def __str__(self) -> str:
         title = self.document.project.title
         title = self.extract_inner_text(title)
@@ -856,13 +851,13 @@ class StudentReport(models.Model):
 
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
-        soup = BeautifulSoup(html_string, 'html.parser')
+        soup = BeautifulSoup(html_string, "html.parser")
 
         # Extract the text content
-        inner_text = soup.get_text(separator=' ', strip=True)
+        inner_text = soup.get_text(separator=" ", strip=True)
 
         return inner_text
-    
+
     def __str__(self) -> str:
         title = self.document.project.title
         title = self.extract_inner_text(title)
@@ -870,13 +865,10 @@ class StudentReport(models.Model):
             title = title[:50] + "..."
         return f"STUDENT REPORT ({self.year}) | {title}"
 
-
     class Meta:
         verbose_name = "Student Report"
         verbose_name_plural = "Student Reports"
         unique_together = ("report", "project")
-
-
 
 
 # Done
@@ -949,20 +941,19 @@ class ProjectClosure(models.Model):
 
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
-        soup = BeautifulSoup(html_string, 'html.parser')
+        soup = BeautifulSoup(html_string, "html.parser")
 
         # Extract the text content
-        inner_text = soup.get_text(separator=' ', strip=True)
+        inner_text = soup.get_text(separator=" ", strip=True)
 
         return inner_text
-    
+
     def __str__(self) -> str:
         title = self.document.project.title
         title = self.extract_inner_text(title)
         if len(title) > 50:
             title = title[:50] + "..."
         return f"(PROJECT CLOSURE) {title}"
-
 
     class Meta:
         verbose_name = "Project Closure"
@@ -1043,8 +1034,6 @@ class Endorsement(models.Model):
         null=True,
         help_text="Describe how and where data will be maintained, archived, cataloged. Read DBCA guideline 16.",
     )
-
-    
 
     def __str__(self) -> str:
         return f"ENDORSEMENTS - {self.project_plan}"
