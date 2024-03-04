@@ -112,13 +112,7 @@ from django.core.mail import send_mail, send_mass_mail
 
 from django.template.loader import get_template
 
-
-# from django.http import HttpResponse
 from django.template.loader import get_template
-
-# from django.template import Context
-# import xhtml2pdf.pisa as pisa
-# from io import BytesIO
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 
