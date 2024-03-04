@@ -109,7 +109,7 @@
             src="{% if not project_image_path or project_image_path is None %}
                 {{no_image_path}}
             {% else %}
-                {{ server_url }}{{ project_image_path }}
+                {{ base_url }}{{ project_image_path }}
             {% endif %}"
             style="
                 display: block; 

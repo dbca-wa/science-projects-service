@@ -26,7 +26,7 @@ RUN echo "Downloading Prince Package" \
 
 RUN echo "Installing Prince stuff" \
     && DEB_FILE=prince.deb \
-    && gdebi ${DEB_FILE}
+    && yes | gdebi ${DEB_FILE} 
 
 
 COPY . ./backend
@@ -79,6 +79,23 @@ RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     beautifulsoup4 sentry-sdk[django] html2text pillow tqdm
 
 # RUN poetry add weasyprint 
+
+ENV PATH="/opt/prince10/bin:${PATH}"
+RUN PRINCE_PATH=$(find / -type f -name prince 2>/dev/null) \
+    && if [ -n "$PRINCE_PATH" ]; then \
+    echo "Prince found at $PRINCE_PATH"; \
+    export PATH=$(dirname "$PRINCE_PATH"):$PATH; \
+    else \
+    echo "Prince not found"; \
+    fi
+
+ENV PATH="${PATH}:/usr/local/bin:/usr/bin:/bin"
+
+RUN find / -type f -iname "*prince*" -o -type d -iname "*prince*" 2>/dev/null
+
+ENV PATH="${PATH}:/usr/lib/prince/bin"
+
+RUN prince --version
 
 
 EXPOSE 8000

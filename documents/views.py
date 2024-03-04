@@ -448,6 +448,7 @@ class GenerateConceptPlan(APIView):
                     else "http://scienceprojects-test.dbca.wa.gov.au"
                 ),
                 # Cover page
+                "base_url": settings.BASE_DIR,
                 "current_date_time_string": get_formatted_datetime(cp_data["now"]),
                 "project_image_path": cp_data["project_image"],
                 "project_title": cp_data["project_title"],
