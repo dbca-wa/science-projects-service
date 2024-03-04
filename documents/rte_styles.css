@@ -1,15 +1,7 @@
-/* CSS Reset */
-body, h1, p, div {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
 
-@page {
-  size: A4;
-  margin: 2.5cm;
 
-}
+
+/* Text */
 
 
 .editor-bold-light {
@@ -48,6 +40,7 @@ text-decoration: underline line-through;
 .editor-p-light {
 font-size: 14px;
 color: #333;
+    /* background-color: black; */
     margin-bottom: 4px;
     position: relative;
 }
@@ -55,6 +48,7 @@ color: #333;
 .editor-project-title-overview {
 font-size: 22px;
 color: #62a0f2;
+    /* background-color: black; */
     margin-bottom: 8px;
     position: relative; 
 }
@@ -65,6 +59,10 @@ font-weight: bold;
 color: #62a0f2;
 cursor: pointer;
 text-decoration: none;
+
+&:hover {
+  text-decoration: underline;
+}
 
 }
 
@@ -86,11 +84,13 @@ text-shadow: "2px 2px 4px rgba(0, 0, 0, 0.3)";
 .editor-p-dark {
 font-size: 14px;
 color: #eee;
+    /* background-color: black; */
     margin-bottom: 4px;
     position: relative;
 }
 
 
+/* LISTS */
 
 
 .editor-ol1 {
@@ -199,22 +199,26 @@ border-width: 0 2px 2px 0;
 .editor-h1-light {
 font-size: 30px;
 
+  /* background-color: black; */
   color: #333;
 
 }
 .editor-h1-dark {
 font-size: 30px;
 
+  /* background-color: black; */
   color: #eee;
 
 }
 
 .editor-h2-light {
 font-size: 26px;
+  /* background-color: black; */
   color: #333;
 }
 .editor-h2-dark {
 font-size: 26px;
+  /* background-color: black; */
   color: #eee;
 }
 
@@ -222,11 +226,13 @@ font-size: 26px;
 .editor-h3-light {
 font-size: 22px;
 
+  /* background-color: black; */
   color: #333;
 }
 .editor-h3-dark {
 font-size: 22px;
 
+  /* background-color: black; */
   color: #eee;
 }
 
@@ -241,7 +247,15 @@ font-size: 22px;
   border-left-style: solid;
   padding-left: 16px;
 }
+/* 
+.editor-listitem {
+  margin: 8px 32px 8px 32px;
+}
 
+.editor-nested-listitem {
+list-style-type: none;
+}
+ */
 
 
 
@@ -294,7 +308,7 @@ font-size: 22px;
   text-overflow: ellipsis;
 }
 
-.link-editor .link-input  {
+.link-editor .link-input a:hover {
   text-decoration: underline;
 }
 
@@ -308,7 +322,7 @@ font-size: 22px;
   margin: 0 2px;
 }
 
-.link-editor {
+.link-editor .button.hovered {
   width: 20px;
   height: 20px;
   display: inline-block;
@@ -317,11 +331,13 @@ font-size: 22px;
 
 
 
+/* CSS for the tooltip container */
 .tooltip-container {
 position: relative;
 display: inline-block;
 }
 
+/* CSS for the tooltip text */
 .tooltip-text {
 visibility: hidden;
 width: 120px;
@@ -332,7 +348,7 @@ border-radius: 5px;
 padding: 5px;
 position: absolute;
 z-index: 1;
-bottom: 115%; 
+bottom: 115%; /* Position above the button */
 left: 50%;
 transform: translateX(-50%);
 opacity: 0;
@@ -342,26 +358,28 @@ backface-visibility: hidden;
 
 }
 
-.tooltip-text {
+/* Show the tooltip text on hover */
+.tooltip-container:hover .tooltip-text {
 visibility: visible;
 opacity: 1;
 }
 
 
 
+/* TABLE LIGHT MODE */
 
 .table-light {
-  border-collapse: collapse;
-  border-spacing: 0;
-  overflow-y: scroll;
-  overflow-x: scroll;
-  table-layout: fixed;
-  /* width: max-content; */
-  justify-self: center;
-  align-self: center;
-  width: 100%;
-  max-width: 190mm;
-  margin: 30px 0;
+border-collapse: collapse;
+border-spacing: 0;
+overflow-y: scroll;
+overflow-x: scroll;
+table-layout: fixed;
+/* width: max-content; */
+justify-self: center;
+align-self: center;
+width: 100%;
+/* max-width: 190mm; */
+margin: 30px 0;
 }
 .table-selection-light *::selection {
 background-color: transparent;
@@ -370,6 +388,7 @@ background-color: transparent;
 outline: 2px solid rgb(60, 132, 244);
 }
 .table-cell-light {
+/* border: 1px solid #bbb; */
 border: 1px solid #575757;
 background-color: #ffffff;
 
@@ -382,7 +401,9 @@ position: relative;
 outline: none;
 }
 
-.table-cell-dark p {
+.table-cell-light p {
+text-wrap: balance;
+/* background: red; */
 color: black;
 }
 
@@ -451,7 +472,9 @@ width: 100%;
 height: 100%;
 opacity: 0.4;
 }
-
+.table-add-columns-light:hover {
+background-color: #c9dbf0;
+}
 .table-add-rows-light {
 position: absolute;
 bottom: -25px;
@@ -477,7 +500,17 @@ width: 100%;
 height: 100%;
 opacity: 0.4;
 }
-
+.table-add-rows-light:hover {
+background-color: #c9dbf0;
+}
+@keyframes table-controls {
+0% {
+  opacity: 0;
+}
+100% {
+  opacity: 1;
+}
+}
 .table-cell-resize-ruler-light {
 display: block;
 position: absolute;
@@ -505,8 +538,12 @@ height: 20px;
 color: #222;
 cursor: pointer;
 }
+.table-action-button-light:hover {
+background-color: #ddd;
+}
 
 
+/* TABLE DARK MODE */
 
 .table-dark {
 border-collapse: collapse;
@@ -514,6 +551,7 @@ border-spacing: 0;
 overflow-y: scroll;
 overflow-x: scroll;
 table-layout: fixed;
+/* width: max-content; */
 width: 100%;
 margin: 30px 0;
 }
@@ -536,6 +574,7 @@ background-color: #2d3748;
 
 }
 .table-cell-dark p {
+/* background: red; */
 color: white;
 }
 .table-cell-sorted-indicator-dark {
@@ -559,6 +598,8 @@ top: 0;
 }
 .table-cell-header-dark {
 background-color: #1a202c;
+/* background: red; */
+
 text-align: start;
 }
 .table-cell-selected-dark {
@@ -603,7 +644,9 @@ width: 100%;
 height: 100%;
 opacity: 0.4;
 }
-
+.table-add-columns-dark:hover {
+background-color: #c9dbf0;
+}
 .table-add-rows-dark {
 position: absolute;
 bottom: -25px;
@@ -629,8 +672,17 @@ width: 100%;
 height: 100%;
 opacity: 0.4;
 }
-
-
+.table-add-rows-dark:hover {
+background-color: #c9dbf0;
+}
+@keyframes table-controls {
+0% {
+  opacity: 0;
+}
+100% {
+  opacity: 1;
+}
+}
 .table-cell-resize-ruler-dark {
 display: block;
 position: absolute;
@@ -658,6 +710,9 @@ height: 20px;
 color: #222;
 cursor: pointer;
 }
+.table-action-button-dark:hover {
+background-color: #ddd;
+}
 
 
 .editor-strikethrough-light {
@@ -678,13 +733,28 @@ padding: 0;
 margin: 0;
 display: flex;
 flex-direction: column;
+/* list-style-type: none; */
 }
 
 ul li {
+/* background-color: red; */
+/* display: inline-block; */
 list-style-position: outside;
 }
 
+/* .editor-list-ul {
+padding: 0;
+margin: 0;
+margin-left: 16px;
+}
 
+.editor-listitem {
+margin: 8px 32px 8px 32px;
+}
+
+.editor-nested-listitem {
+list-style-type: none;
+} */
 
 
 .editor-nested-list-item {
@@ -736,6 +806,7 @@ list-style-position: inside;
 }
 
 .editor-li-light {
+/* display: flex; */
 font-size: 14px;
 padding: 0;
 margin: 0;
@@ -746,16 +817,21 @@ color: #333;
 }
 
 .editor-li-dark {
+/* display: flex; */
 font-size: 14px;
 padding: 0;
 margin: 0;
 margin-bottom: 4px;
 margin-left: 22px;
+/* color: #723; */
 color: #eee;
 
 }
 
 
+
+
+/* Style for ordered list container */
 .editor-ol1,
 .editor-ol2,
 .editor-ol3 {
@@ -766,6 +842,7 @@ list-style-position: outside;
 
 
 
+/* Style for ordered list container */
 .editor-ul1,
 .editor-ul2,
 .editor-ul3 {
@@ -806,6 +883,7 @@ font-weight: bold;
 }
 
 ol.editor-ol1 li {
+/* background-color: red; */
 margin-left: 15px;  
 padding-left: 10px;
 }
@@ -813,6 +891,7 @@ ol.editor-ol1 li::marker {
 font-weight: bold; 
 }
 ol.editor-ol2 li {
+/* background-color: red; */
 margin-left: 15px;  
 padding-left: 6px;
 }
@@ -823,6 +902,7 @@ font-weight: bold;
 
 
 ol.editor-ol3 li {
+/* background-color: red; */
 margin-left: 15px;  
 padding-left: 6px;
 }
@@ -834,4 +914,60 @@ font-weight: bold;
 
 ol.editor-ol1 li::after {
 background-color: orange;
+/* margin-left: 15px; */
 }
+
+
+/* ul.editor-ul1 > li.editor-li-dark.editor-nested-list-item li.editor-li-dark.editor-nested-list-item,
+ul.editor-ul1 > li.editor-li-light.editor-nested-list-item li.editor-li-light.editor-nested-list-item
+{
+color: "pink";
+margin-right: 10px;
+} */
+
+/* 
+ul.editor-ul1 .editor-li-dark::before, ul.editor-ul1 .editor-li-light::before {
+content: '\2022'; 
+font-size: 1.25em;
+margin-top: 0px;
+margin-right: 12.5px;
+display: inline-block;
+flex-direction: row;
+vertical-align: middle;
+line-height: 1;
+}
+ul.editor-ul2 .editor-li-dark::before, ul.editor-ul2 .editor-li-light::before {
+content: '\006F'; 
+font-size: 0.9em;
+margin-top: 3px;
+display: inline-block;
+vertical-align: middle;
+line-height: 1;
+}
+ul.editor-ul3 .editor-li-dark::before, ul.editor-ul3 .editor-li-light::before {
+content: '\25A0'; 
+font-size: 0.5em;
+margin-top: 7px;
+margin-right: 12.5px;
+display: inline-block;
+vertical-align: middle;
+line-height: 1;
+} */
+
+
+
+/* ul.editor-ul1 > li.editor-li-dark.editor-nested-list-item::before {
+content: none;
+} */
+
+/* ul.editor-ul1 > li.editor-li-light.editor-nested-list-item li.editor-li-light.editor-nested-list-item::before,
+ul.editor-ul1 > li.editor-li-dark.editor-nested-list-item li.editor-li-dark.editor-nested-list-item::before,
+ul.editor-ul1 > li.editor-li-dark.editor-nested-list-item::before,
+ul.editor-ul1 > li.editor-li-light.editor-nested-list-item::before,
+ul.editor-ul1 > li.editor-li-dark.editor-nested-list-item > ul::before,
+ul.editor-ul1 > li.editor-li-light.editor-nested-list-item > ul::before 
+{
+content: none;
+} */
+
+

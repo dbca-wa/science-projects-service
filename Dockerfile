@@ -1,4 +1,4 @@
-FROM python:3.11.6
+FROM python:3.11.4
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV TZ="Australia/Perth"
@@ -10,10 +10,24 @@ RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     # Postgres
     postgresql postgresql-client 
 
+RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
+    gdebi
+
 WORKDIR /usr/src/app
 RUN pip install --upgrade pip
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/etc/poetry python3 -
 ENV PATH="${PATH}:/etc/poetry/bin"
+
+RUN echo "Downloading Prince Package" \
+    && DEB_FILE=prince.deb \
+    && wget -O ${DEB_FILE} \
+    https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
+# https://www.princexml.com/download/prince_15.3-1_ubuntu22.04_amd64.deb
+
+RUN echo "Installing Prince stuff" \
+    && DEB_FILE=prince.deb \
+    && gdebi ${DEB_FILE}
+
 
 COPY . ./backend
 WORKDIR /usr/src/app/backend

@@ -354,20 +354,23 @@ class GenerateConceptPlan(APIView):
         # PDF Gen logic here
 
         def replace_dark_with_light(html_string):
-            # Replace 'dark' with 'light' in class attributes
-            modified_html = re.sub(
-                r'class\s*=\s*["\']([^"\']*dark[^"\']*)["\']',
-                lambda match: f'class="{match.group(1).replace("dark", "light")}"',
-                html_string,
-                flags=re.IGNORECASE,
-            )
+            if html_string != None:
+                # Replace 'dark' with 'light' in class attributes
+                modified_html = re.sub(
+                    r'class\s*=\s*["\']([^"\']*dark[^"\']*)["\']',
+                    lambda match: f'class="{match.group(1).replace("dark", "light")}"',
+                    html_string,
+                    flags=re.IGNORECASE,
+                )
 
-            # Add margin-left: 36px; to all <li> elements
-            final_html = re.sub(
-                r"<li", r'<li style="margin-left: 36px;"', modified_html
-            )
+                # Add margin-left: 36px; to all <li> elements
+                final_html = re.sub(
+                    r"<li", r'<li style="margin-left: 36px;"', modified_html
+                )
 
-            return final_html
+                return final_html
+            else:
+                return html_string
 
         def apply_styling(html_string):
             html_string = replace_dark_with_light(html_string=html_string)
@@ -478,8 +481,13 @@ class GenerateConceptPlan(APIView):
 
         # Specify the file path where you want to save the HTML file on the server
         html_file_path = os.path.join(
-            settings.BASE_DIR, "documents", f'concept_plan_{cp_data["project_pk"]}.html'
+            settings.BASE_DIR,
+            "documents",
+            f'newer_concept_plan_{cp_data["project_pk"]}.html',
         )
+        with open(html_file_path, "w", encoding="utf-8") as html_file:
+            html_file.write(html_content)
+
         pdf_file_path = os.path.join(
             settings.BASE_DIR,
             "documents",
@@ -1003,6 +1011,21 @@ class ReviewDocumentEmail(APIView):
                     }
 
                     template_content = render_to_string(templ, template_props)
+                    print(
+                        {
+                            "to_email": to_email,
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "actioning_user_email": actioning_user_email,
+                            "actioning_user_name": actioning_user_name,
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+                    )
 
                     try:
                         send_mail(
@@ -1014,7 +1037,9 @@ class ReviewDocumentEmail(APIView):
                             html_message=template_content,
                         )
                     except Exception as e:
-                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
                         return Response(
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
@@ -1101,7 +1126,9 @@ class NewCycleOpenEmail(APIView):
                         html_message=template_content,
                     )
                 except Exception as e:
-                    settings.LOGGER.error(msg=f"Email Error: {e}")
+                    settings.LOGGER.error(
+                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                    )
                     return Response(
                         {"error": str(e)},
                         status=HTTP_400_BAD_REQUEST,
@@ -1175,7 +1202,9 @@ class ProjectClosureEmail(APIView):
                                 html_message=template_content,
                             )
                         except Exception as e:
-                            settings.LOGGER.error(msg=f"Email Error: {e}")
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
                             return Response(
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
@@ -1257,7 +1286,9 @@ class DocumentReadyEmail(APIView):
                             html_message=template_content,
                         )
                     except Exception as e:
-                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
                         return Response(
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
@@ -1343,7 +1374,9 @@ class DocumentSentBackEmail(APIView):
                             html_message=template_content,
                         )
                     except Exception as e:
-                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
                         return Response(
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
@@ -1398,7 +1431,9 @@ class ConceptPlanEmail(APIView):
             document_kind_as_title = document_kind_dict[document_kind]
 
             for recipient in recipients_list:
-                if recipient["pk"] == 101073:
+                if (
+                    recipient["pk"] == 101073
+                ):  # Change to if settings.DEBUG == True mass replace
                     email_subject = f"SPMS: Concept Plan Review"
                     to_email = [recipient["email"]]
 
@@ -1426,7 +1461,9 @@ class ConceptPlanEmail(APIView):
                             html_message=template_content,
                         )
                     except Exception as e:
-                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
                         return Response(
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
@@ -1508,7 +1545,9 @@ class DocumentApprovedEmail(APIView):
                             html_message=template_content,
                         )
                     except Exception as e:
-                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
                         return Response(
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
@@ -1602,7 +1641,9 @@ class DocumentRecalledEmail(APIView):
                             html_message=template_content,
                         )
                     except Exception as e:
-                        settings.LOGGER.error(msg=f"Email Error: {e}")
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
                         return Response(
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
@@ -4438,6 +4479,8 @@ class DocApproval(APIView):
             return Response(status=HTTP_400_BAD_REQUEST)
 
         document = self.get_document(pk=document_pk)
+        # document_kind = document.kind
+
         settings.LOGGER.info(msg=f"{req.user} is approving {document}")
         if int(stage) == 1:
             data = {
@@ -4445,6 +4488,7 @@ class DocApproval(APIView):
                 "modifier": req.user.pk,
                 "status": "inapproval",
             }
+
         elif int(stage) == 2:
             data = {
                 "business_area_lead_approval_granted": True,
@@ -4469,6 +4513,8 @@ class DocApproval(APIView):
         )
         if ser.is_valid():
             u_document = ser.save()
+
+            # If stage 3
             if u_document.kind == "concept" and (stage == 3 or stage == "3"):
                 # Create a fresh document with type of project plan =====================
                 # Get the project id
@@ -4782,6 +4828,47 @@ class DocApproval(APIView):
                 #     outcome = "completed"
                 u_document.project.status = outcome
                 u_document.project.save()
+
+            # Send Emails
+            should_send_email = req.data["shouldSendEmail"]
+
+            if should_send_email:
+                # if settings.DEBUG == False:
+                if u_document.kind == "concept":
+                    if stage == 1:
+                        pass
+                    if stage == 2:
+                        pass
+                    if stage == 3:
+                        pass
+                elif u_document.kind == "projectplan":
+                    if stage == 1:
+                        pass
+                    if stage == 2:
+                        pass
+                    if stage == 3:
+                        pass
+                elif u_document.kind == "progressreport":
+                    if stage == 1:
+                        pass
+                    if stage == 2:
+                        pass
+                    if stage == 3:
+                        pass
+                elif u_document.kind == "studentreport":
+                    if stage == 1:
+                        pass
+                    if stage == 2:
+                        pass
+                    if stage == 3:
+                        pass
+                elif u_document.kind == "projectclosure":
+                    if stage == 1:
+                        pass
+                    if stage == 2:
+                        pass
+                    if stage == 3:
+                        pass
 
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
