@@ -293,19 +293,15 @@ class BeginProjectDocGeneration(APIView):
 
             table_rows = "".join(
                 [
-                  
                     f"<tr>{"".join(
                         [
                             f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} "
-                            + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}'"
-                            + ">"
-                            # + f" style='border: 1px solid black;'>" THE BORDER IS ALREADY IN STYLE (SEE HTML FILE), JUST NOT INTERPRETED BY PRINCE
+                            + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}>'"
                             + f"{col}"
                             + f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
                             for col_index, col in enumerate(row)
                         ]
                     )}</tr>"
-                    
                     for row_index, row in enumerate(table_data)
                 ]
             )
@@ -1345,8 +1341,8 @@ class BeginProjectDocGeneration(APIView):
             "documents",
             f'{document_type}_{doc_data["project_pk"]}.html',
         )
-        # with open(html_file_path, "w", encoding="utf-8") as html_file:
-        #     html_file.write(html_content)
+        with open(html_file_path, "w", encoding="utf-8") as html_file:
+            html_file.write(html_content)
 
         # pdf_file_path = os.path.join(
         #     settings.BASE_DIR,
