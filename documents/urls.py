@@ -112,5 +112,9 @@ urlpatterns = [
         "conceptplans/<int:pk>/get_concept_plan_data",
         views.GetConceptPlanData.as_view(),
     ),
-    path("generate_concept_plan/<int:pk>", views.GenerateConceptPlan.as_view()),
+    # path("generate_concept_plan/<int:pk>", views.GenerateConceptPlan.as_view()),
+    path(
+        "generate_project_document/<int:pk>", views.BeginProjectDocGeneration.as_view()
+    ),
+    path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
 ]

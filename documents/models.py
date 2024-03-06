@@ -402,30 +402,35 @@ class ProjectPlan(models.Model):
     background = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="Describe project background (SPP C16) including a literature review",
     )
 
     aims = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="List project aims",
     )
 
     outcome = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="Describe expected project outcome",
     )
 
     knowledge_transfer = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="Anticipated users of the knowledge to be gained, and technology transfer strategy",
     )
 
     project_tasks = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="Major tasks, milestones and outputs. Indicate delivery time frame for each task.",
     )
 
@@ -433,6 +438,7 @@ class ProjectPlan(models.Model):
         models.TextField(  # changed from references as it is a reserved word
             blank=True,
             null=True,
+            default="<p></p>",
             help_text="Paste in the bibliography of your literature research",
         )
     )
@@ -440,6 +446,7 @@ class ProjectPlan(models.Model):
     methodology = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="Describe the study design and statistical analysis.",
     )
 
@@ -549,19 +556,6 @@ class ProjectPlan(models.Model):
             </tr>\
           </tbody>\
         </table>',
-        # default=json.dumps(
-        #     [
-        #         ["Source", "Year 1", "Year 2", "Year 3"],
-        #         ["FTE Scientist", "", "", ""],
-        #         ["FTE Technical", "", "", ""],
-        #         ["Equipment", "", "", ""],
-        #         ["Vehicle", "", "", ""],
-        #         ["Travel", "", "", ""],
-        #         ["Other", "", "", ""],
-        #         ["Total", "", "", ""],
-        #     ],
-        #     cls=DjangoJSONEncoder,
-        # ),
     )
 
     operating_budget_external = models.TextField(
@@ -670,24 +664,12 @@ class ProjectPlan(models.Model):
             </tr>\
           </tbody>\
         </table>',
-        # default=json.dumps(
-        #     [
-        #         ["Source", "Year 1", "Year 2", "Year 3"],
-        #         ["Salaries, Wages, Overtime", "", "", ""],
-        #         ["Overheads", "", "", ""],
-        #         ["Equipment", "", "", ""],
-        #         ["Vehicle", "", "", ""],
-        #         ["Travel", "", "", ""],
-        #         ["Other", "", "", ""],
-        #         ["Total", "", "", ""],
-        #     ],
-        #     cls=DjangoJSONEncoder,
-        # ),
     )
 
     related_projects = models.TextField(
         blank=True,
         null=True,
+        default="<p></p>",
         help_text="Name related SPPs and the extent you have consulted with their project leaders",
     )
 

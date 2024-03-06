@@ -1,3 +1,4 @@
+# Python downgraded to suit Prince libs (from 3.11.6)
 FROM python:3.11.4
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -10,25 +11,32 @@ RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     # Postgres
     postgresql postgresql-client 
 
+# Installer for Prince
 RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
     gdebi
 
 WORKDIR /usr/src/app
+
+# Poetry
 RUN pip install --upgrade pip
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/etc/poetry python3 -
 ENV PATH="${PATH}:/etc/poetry/bin"
 
+# Prince .deb file download and install
 RUN echo "Downloading Prince Package" \
     && DEB_FILE=prince.deb \
     && wget -O ${DEB_FILE} \
+    # Latest version that suits Python image
     https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
 # https://www.princexml.com/download/prince_15.3-1_ubuntu22.04_amd64.deb
 
 RUN echo "Installing Prince stuff" \
     && DEB_FILE=prince.deb \
-    && yes | gdebi ${DEB_FILE} 
+    && yes | gdebi ${DEB_FILE}  \
+    && echo "Cleaning up" \
+    && rm -f ${DEB_FILE}
 
-
+# Move local files over
 COPY . ./backend
 WORKDIR /usr/src/app/backend
 
@@ -66,37 +74,22 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias connectold="PGPASSWORD=$OLD_PASSWORD psql -h $OLD_HOST -d $OLD_DB_NAME -U $OLD_USERNAME"\n' \
     'settz\n'>> ~/.bashrc
 
+# Configure Poetry
 RUN poetry config virtualenvs.create false
-# RUN echo -e "3.12" | poetry init
 RUN poetry init
-# Necessary to fix pandas/numpy installation issues on 3.12 with poetry
+# Necessary to fix pandas/numpy installation issues on 3.11-12 with poetry
 RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
 
-# Base
+# Base django app dependencies
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     djangorestframework django psycopg2-binary python-dotenv python-dateutil \
     requests whitenoise[brotli] gunicorn pandas \
     beautifulsoup4 sentry-sdk[django] html2text pillow tqdm
 
-# RUN poetry add weasyprint 
-
-ENV PATH="/opt/prince10/bin:${PATH}"
-RUN PRINCE_PATH=$(find / -type f -name prince 2>/dev/null) \
-    && if [ -n "$PRINCE_PATH" ]; then \
-    echo "Prince found at $PRINCE_PATH"; \
-    export PATH=$(dirname "$PRINCE_PATH"):$PATH; \
-    else \
-    echo "Prince not found"; \
-    fi
-
-ENV PATH="${PATH}:/usr/local/bin:/usr/bin:/bin"
-
-RUN find / -type f -iname "*prince*" -o -type d -iname "*prince*" 2>/dev/null
-
+# Ensure prince is in path so it can be called in command line 
 ENV PATH="${PATH}:/usr/lib/prince/bin"
-
 RUN prince --version
 
-
+# Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]

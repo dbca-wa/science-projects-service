@@ -73,10 +73,15 @@
     line-height: 12px; 
     margin: 16px 0; 
     text-align: center; 
-
     ">
-        Document Current as of {{ current_date_time_string }}
+        {{document_kind_string}} 
+        {% if financial_year_string %}
+            ({{ financial_year_string }})
+        {% endif %}
+        current as of {{ current_date_time_string }}
     </p>
+
+    
 
    <!-- PROJECT TITLE -->
    <h1 
@@ -257,84 +262,22 @@
 
     
 
-  
-  <!-- BACKGROUND -->
-  <div style="margin-top: 0px; margin-bottom: 32px; max-width: 190mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Background:
-    </h1>
-    <div
-    style="text-align: left;"
-    >
-        {{ background | safe }}
+<!-- Iterate over items in html_data_items dictionary -->
+{% for key, value in html_data_items.items %}
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            {{ value.title }}:
+        </h1>
+        <div style="text-align: left;">
+            {{ value.data | safe }}
+        </div>
     </div>
-</div>
+{% endfor %}
 
-<!-- AIMS -->
-<div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Aims:
-    </h1>
-    <div
-    style="text-align: left;"
-    >
-        {{ aims | safe }}
-    </div>
-</div>
-
-<!-- EXPECTED OUTCOMES -->
-<div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Expected Outcomes:
-    </h1>
-    <div>
-        {{ outcomes | safe }}
-    </div>
-</div>
-
-<!-- STRATEGIC CONTEXT -->
-<div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Strategic Context:
-    </h1>
-    <div>
-        {{ context | safe }}
-    </div>
-</div>
-
-<!-- EXPECTED COLLABORATIONS -->
-<div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Expected Collaborations:
-    </h1>
-    <div>
-        {{ collaborations | safe }}
-    </div>
-</div>
-
-<!-- STAFF TIME ALLOCATION -->
-<div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Staff Time Allocation:
-    </h1>
-    <div>
-        {{ staff_time_allocation | safe }}
-    </div>
-</div>
-
-<!-- BUDGET -->
-<div style="margin-top: 32px; margin-bottom: 32px; max-width: 100mm;">
-    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
-        Budget:
-    </h1>
-    <div style="width: 100mm;">
-        {{ budget | safe }}
-    </div>
-</div>
 
 <!-- VIEW PROJECT BUTTON -->
 <div style="text-align: right; margin-top: 32px; margin-bottom: 32px;">
-    <a href="{{frontend_url}}/projects/{{ project_id }}/concept"
+    <a href="{{frontend_url}}/projects/{{ project_id }}/{{document_kind_url}}"
         style="line-height: 100%; text-decoration: none; display: inline-block; max-width: 100%; background-color: rgb(0, 0, 0); border-radius: 0.25rem; color: rgb(255, 255, 255); font-size: 12px; font-weight: 600; text-decoration-line: none; text-align: center; padding-left: 1.25rem; padding-right: 1.25rem; padding-top: 0.75rem; padding-bottom: 0.75rem; padding: 12px 20px 12px 20px;"
         target="_blank">
         <span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%; mso-text-raise: 18" hidden>&nbsp;</i><![endif]--></span><span

@@ -1,3 +1,4 @@
+from medias.models import ProjectDocumentPDF
 from projects.models import Project, ProjectMember
 from projects.serializers import (
     MiniProjectMemberSerializer,
@@ -266,50 +267,20 @@ class ProjectDocumentCreateSerializer(serializers.ModelSerializer):
         return projdoc
 
 
+class ProjectDocPDFFileDisplaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectDocumentPDF
+        fields = ("file",)
+
+
 class ProjectDocumentSerializer(serializers.ModelSerializer):
-    # details = serializers.Serializer()
 
     project = TinyProjectSerializer(read_only=True)
+    pdf = ProjectDocPDFFileDisplaySerializer(required=False)
 
     class Meta:
         model = ProjectDocument
         fields = "__all__"
-
-    # def get_details(self, obj):
-    #     kind = obj.kind
-
-    #     if kind == "concept_plan":
-    #         concept_plan_details = obj.concept_plan_details.first()
-    #         if concept_plan_details:
-    #             return TinyConceptPlanSerializer(
-    #                 concept_plan_details, context=self.context
-    #             ).data
-    #     elif kind == "project_plan":
-    #         project_plan_details = obj.project_plan_details.first()
-    #         if project_plan_details:
-    #             return TinyProjectPlanSerializer(
-    #                 project_plan_details, context=self.context
-    #             ).data
-    #     elif kind == "progressreport":
-    #         progress_report_details = obj.progress_report_details.first()
-    #         if progress_report_details:
-    #             return TinyProgressReportSerializer(
-    #                 progress_report_details, context=self.context
-    #             ).data
-    #     elif kind == "studentreport":
-    #         student_report_details = obj.student_report_details.first()
-    #         if student_report_details:
-    #             return TinyStudentReportSerializer(
-    #                 student_report_details, context=self.context
-    #             ).data
-    #     elif kind == "projectclosure":
-    #         project_closure_details = obj.project_closure_details.first()
-    #         if project_closure_details:
-    #             return TinyProjectClosureSerializer(
-    #                 project_closure_details, context=self.context
-    #             ).data
-
-    #     return None
 
 
 class ConceptPlanCreateSerializer(serializers.ModelSerializer):
@@ -331,26 +302,6 @@ class ConceptPlanCreateSerializer(serializers.ModelSerializer):
         # Create a new ConceptPlan with the provided document primary key
         concept_plan = ConceptPlan.objects.create(**validated_data)
         return concept_plan
-
-
-class ConceptPlanSerializer(serializers.ModelSerializer):
-    document = ProjectDocumentSerializer()
-    project = TinyProjectSerializer(read_only=True)
-
-    class Meta:
-        model = ConceptPlan
-        fields = [
-            "pk",
-            "document",
-            "project",
-            "background",
-            "aims",
-            "outcome",
-            "collaborations",
-            "strategic_context",
-            "staff_time_allocation",
-            "budget",
-        ]
 
 
 class ProgressReportCreateSerializer(serializers.ModelSerializer):
@@ -435,43 +386,6 @@ class ProjectPlanCreateSerializer(serializers.ModelSerializer):
         return project_plan
 
 
-class ProjectPlanSerializer(serializers.ModelSerializer):
-    document = ProjectDocumentSerializer()
-    # endorsements = EndorsementSerializerForProjectPlanView(read_only=True)
-
-    endorsements = serializers.SerializerMethodField(
-        read_only=True, source="documents.Endorsement"
-    )
-    project = TinyProjectSerializer(read_only=True)
-
-    class Meta:
-        model = ProjectPlan
-        fields = [
-            "pk",
-            "document",
-            "project",
-            "endorsements",
-            "background",
-            "project_tasks",
-            "methodology",
-            "aims",
-            "outcome",
-            "knowledge_transfer",
-            "listed_references",
-            # "involves_plants",
-            # "involves_animals",
-            "operating_budget",
-            "operating_budget_external",
-            "related_projects",
-        ]
-
-    def get_endorsements(self, obj):
-        print(obj)
-        project_plan = obj
-        endorsements = Endorsement.objects.get(project_plan=project_plan)
-        return EndorsementSerializerForProjectPlanView(endorsements).data
-
-
 class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
     aec_pdf = AECPDFSerializer(read_only=True)
 
@@ -525,10 +439,73 @@ class EndorsementSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class StudentReportCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentReport
+        fields = "__all__"
+
+
+class ConceptPlanSerializer(serializers.ModelSerializer):
+    document = TinyProjectDocumentSerializer()
+    # project = TinyProjectSerializer(read_only=True)
+
+    class Meta:
+        model = ConceptPlan
+        fields = [
+            "pk",
+            "document",
+            # "project",
+            "background",
+            "aims",
+            "outcome",
+            "collaborations",
+            "strategic_context",
+            "staff_time_allocation",
+            "budget",
+        ]
+
+
+class ProjectPlanSerializer(serializers.ModelSerializer):
+    document = TinyProjectDocumentSerializer()
+    # endorsements = EndorsementSerializerForProjectPlanView(read_only=True)
+
+    endorsements = serializers.SerializerMethodField(
+        read_only=True, source="documents.Endorsement"
+    )
+    # project = TinyProjectSerializer(read_only=True)
+
+    class Meta:
+        model = ProjectPlan
+        fields = [
+            "pk",
+            "document",
+            # "project",
+            "endorsements",
+            "background",
+            "project_tasks",
+            "methodology",
+            "aims",
+            "outcome",
+            "knowledge_transfer",
+            "listed_references",
+            # "involves_plants",
+            # "involves_animals",
+            "operating_budget",
+            "operating_budget_external",
+            "related_projects",
+        ]
+
+    def get_endorsements(self, obj):
+        print(obj)
+        project_plan = obj
+        endorsements = Endorsement.objects.get(project_plan=project_plan)
+        return EndorsementSerializerForProjectPlanView(endorsements).data
+
+
 class ProgressReportSerializer(serializers.ModelSerializer):
     document = TinyProjectDocumentSerializer(read_only=True)
     report = TinyAnnualReportSerializer(read_only=True)
-    project = TinyProjectSerializer(read_only=True)
+    # project = TinyProjectSerializer(read_only=True)
     team_members = serializers.SerializerMethodField()
 
     def get_team_members(self, student_report):
@@ -551,7 +528,7 @@ class ProgressReportSerializer(serializers.ModelSerializer):
         fields = [
             "pk",
             "document",
-            "project",
+            # "project",
             "report",
             "year",
             "is_final_report",
@@ -564,16 +541,10 @@ class ProgressReportSerializer(serializers.ModelSerializer):
         ]
 
 
-class StudentReportCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StudentReport
-        fields = "__all__"
-
-
 class StudentReportSerializer(serializers.ModelSerializer):
     document = TinyProjectDocumentSerializer(read_only=True)
     report = TinyAnnualReportSerializer(read_only=True)
-    project = TinyProjectSerializer(read_only=True)
+    # project = TinyProjectSerializer(read_only=True)
     team_members = serializers.SerializerMethodField()
 
     def get_team_members(self, student_report):
@@ -595,7 +566,7 @@ class StudentReportSerializer(serializers.ModelSerializer):
         model = StudentReport
         fields = [
             "pk",
-            "project",
+            # "project",
             "document",
             "report",
             "progress_report",

@@ -120,7 +120,7 @@ from django.core.files.storage import default_storage
 # PDF GENERATION ===================================================
 
 
-class GenerateConceptPlan(APIView):
+class BeginProjectDocGeneration(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_main_doc(self, pk):
@@ -139,11 +139,47 @@ class GenerateConceptPlan(APIView):
             raise NotFound
         return cp
 
+    def get_project_plan(self, pk):
+        # Gets the actual project plan, with all the html data
+        try:
+            pp = ProjectPlan.objects.filter(document=pk).first()
+        except ProjectPlan.DoesNotExist:
+            raise NotFound
+        return pp
+
+    def get_project_closure(self, pk):
+        # Gets the actual project closure, with all the html data
+        try:
+            pc = ProjectClosure.objects.filter(document=pk).first()
+        except ProjectClosure.DoesNotExist:
+            raise NotFound
+        return pc
+
+    def get_progress_report(self, pk):
+        # Gets the actual progress report, with all the html data
+        try:
+            pr = ProgressReport.objects.filter(document=pk).first()
+        except ProgressReport.DoesNotExist:
+            raise NotFound
+        return pr
+
+    def get_student_report(self, pk):
+        # Gets the actual student report, with all the html data
+        try:
+            sr = StudentReport.objects.filter(document=pk).first()
+        except StudentReport.DoesNotExist:
+            raise NotFound
+        return sr
+
     def post(self, req, pk):
-        settings.LOGGER.info(msg=f"Generating Concept Plan PDF")
+        settings.LOGGER.info(msg=f"Generating PDF")
+
+        print(req.data)
 
         doc = self.get_main_doc(pk=pk)
+        document_type = doc.kind
 
+        # General Helper Funcs
         def apply_title_styling_to_project_title(title):
             # Parse the HTML content
             soup = BeautifulSoup(title, "html.parser")
@@ -185,169 +221,155 @@ class GenerateConceptPlan(APIView):
             print(f"\n{str(soup)}")
             return str(soup)
 
-        def get_concept_plan_data():
-            concept_plan_data = self.get_concept_plan(pk=pk)
-            # print(concept_plan_data)
+        def get_project_team(project_pk):
+            # Get the member objects
+            members = ProjectMember.objects.filter(project=project_pk).all()
 
-            document_tag = f"CF-{concept_plan_data.project.year}-{concept_plan_data.project.number}"
-            project_title = apply_title_styling_to_project_title(
-                concept_plan_data.project.title
+            # Separate leader and other members
+            leader = None
+            other_members = []
+
+            for member in members:
+                if member.is_leader:
+                    leader = member
+                else:
+                    other_members.append(member)
+
+            # Sort other members based on their position value
+            sorted_members = sorted(other_members, key=attrgetter("position"))
+
+            # Create team_name_array with leader at the beginning and then other members
+            team_name_array = []
+            if leader:
+                team_name_array.append(
+                    f"{leader.user.first_name} {leader.user.last_name}"
+                )
+
+            for member in sorted_members:
+                team_name_array.append(
+                    f"{member.user.first_name} {member.user.last_name}"
+                )
+
+            return team_name_array
+
+        def get_project_image(project_pk):
+            try:
+                image = ProjectPhoto.objects.get(project=project_pk)
+            except ProjectPhoto.DoesNotExist:
+                return None
+            return image
+
+        def extract_html_table_data(html_data):
+            # Extract relevant information from HTML table data and convert it to a list of lists using BeautifulSoup
+            soup = BeautifulSoup(html_data, 'html.parser')
+            
+            table_data = []
+            for row in soup.find_all('tr'):
+                row_data = [cell.text.strip() for cell in row.find_all(['th', 'td'])]
+                table_data.append(row_data)
+            
+            return table_data
+
+
+        def generate_html_table_from_json_data(table_data):
+            # Example of how data looks when json like:
+            # [["Role", "Year 1", "Year 2", "Year 3"], ["Scientist", "", "", ""], ["Technical", "", "", ""], ["Volunteer", "", "", ""], ["Collaborator", "", "", ""]]
+            
+            if isinstance(table_data, str) and table_data.startswith("[[") and table_data.endswith("]]"):
+                # Convert the string to a list using eval (Note: use eval cautiously)
+                table_data = eval(table_data)
+            elif isinstance(table_data, str) and table_data.startswith("<table") and table_data.endswith("</table>"):
+                # If HTML data received, extract relevant information
+                table_data = extract_html_table_data(table_data)
+            elif isinstance(table_data, str):
+                # If a string contains a table but doesn't both start and end with <table> tags, try to extract relevant information
+                extracted_table_data = extract_html_table_data(table_data)
+                if extracted_table_data:
+                    table_data = extracted_table_data
+            elif not all(isinstance(row, list) for row in table_data):
+                # If neither JSON-like nor HTML-like data is received, raise an error
+                raise ValueError(f"Input must be a list of lists or a valid string representation of a list of lists or HTML table.\nProvided Input: {table_data}")
+
+
+            table_rows = "".join(
+                [
+                  
+                    f"<tr>{"".join(
+                        [
+                            f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} "
+                            + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}'"
+                            + ">"
+                            # + f" style='border: 1px solid black;'>" THE BORDER IS ALREADY IN STYLE (SEE HTML FILE), JUST NOT INTERPRETED BY PRINCE
+                            + f"{col}"
+                            + f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
+                            for col_index, col in enumerate(row)
+                        ]
+                    )}</tr>"
+                    
+                    for row_index, row in enumerate(table_data)
+                ]
             )
-            project_status = concept_plan_data.project.status
-            business_area_name = concept_plan_data.project.business_area.name
 
-            def get_project_team(project_pk):
-                # Get the member objects
-                members = ProjectMember.objects.filter(project=project_pk).all()
+            # Complete the HTML table
+            replaced_data = f'<table class="table-light">\
+                <colgroup>\
+                    {" ".join("<col>" for _ in range(len(table_data[0])))}\
+                </colgroup>\
+                <tbody>{table_rows}</tbody>\
+            </table>'
 
-                # Separate leader and other members
-                leader = None
-                other_members = []
+            print(f"\nTABLE RAW DATA: {table_data}\n\nTABLE REPLACED DATA: {replaced_data}")
 
-                for member in members:
-                    if member.is_leader:
-                        leader = member
-                    else:
-                        other_members.append(member)
+            return replaced_data
 
-                # Sort other members based on their position value
-                sorted_members = sorted(other_members, key=attrgetter("position"))
+        def replace_table_in_html_string(html_data):
 
-                # Create team_name_array with leader at the beginning and then other members
-                team_name_array = []
-                if leader:
-                    team_name_array.append(
-                        f"{leader.user.first_name} {leader.user.last_name}"
-                    )
+            def gen_html_table_from_list_structure(table_data):
+                table_rows = "".join(
+                    [
+                    
+                        f"<tr>{"".join(
+                            [
+                                f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} "
+                                + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}'"
+                                + ">"
+                                # + f" style='border: 1px solid black;'>" THE BORDER IS ALREADY IN STYLE (SEE HTML FILE), JUST NOT INTERPRETED BY PRINCE
+                                + f"{col}"
+                                + f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
+                                for col_index, col in enumerate(row)
+                            ]
+                        )}</tr>"
+                        
+                        for row_index, row in enumerate(table_data)
+                    ]
+                )
 
-                for member in sorted_members:
-                    team_name_array.append(
-                        f"{member.user.first_name} {member.user.last_name}"
-                    )
+                # Complete the HTML table
+                replaced_data = f'<table class="table-light">\
+                    <colgroup>\
+                        {" ".join("<col>" for _ in range(len(table_data[0])))}\
+                    </colgroup>\
+                    <tbody>{table_rows}</tbody>\
+                </table>'
 
-                return team_name_array
+                print(f"\nTABLE RAW DATA: {table_data}\n\nTABLE REPLACED DATA: {replaced_data}")
 
-            project_team = get_project_team(concept_plan_data.project.pk)
+                return replaced_data
 
-            def get_project_image(project_pk):
-                try:
-                    image = ProjectPhoto.objects.get(project=project_pk)
-                except ProjectPhoto.DoesNotExist:
-                    return None
-                return image
 
-            project_image_data = TinyProjectPhotoSerializer(
-                get_project_image(concept_plan_data.project.pk)
-            ).data
+            print("DATA TO SOUP", html_data)
+            soup = BeautifulSoup(html_data, 'html.parser')
 
-            if "file" in project_image_data:
-                # project_image = os.path.join(
-                #     settings.BASE_DIR, project_image_data["file"]
-                # )
-                project_image = project_image_data["file"]
-            else:
-                project_image = ""
+            for table_tag in soup.find_all('table'):
+                table_data = extract_html_table_data(str(table_tag))
+                if table_data:
+                    new_table = gen_html_table_from_list_structure(table_data)
+                    table_tag.replace_with(BeautifulSoup(new_table, 'html.parser'))
 
-            now = datetime.datetime.now()
+            print("SOUP:", soup)
+            return str(soup)
 
-            project_lead_approval_granted = (
-                concept_plan_data.document.project_lead_approval_granted
-            )
-            business_area_lead_approval_granted = (
-                concept_plan_data.document.business_area_lead_approval_granted
-            )
-            directorate_approval_granted = (
-                concept_plan_data.document.directorate_approval_granted
-            )
-
-            def replace_json_string_with_html_table(input_string):
-                print(f"INPUT: {input_string}")
-                try:
-                    # Attempt to parse the input JSON string
-                    data = json.loads(input_string)
-                except json.JSONDecodeError:
-                    # If parsing fails, return the original input string
-                    return input_string
-
-                # Begin constructing the HTML table with additional styling
-                html_table = '<table class="table-light">\n  <colgroup>\n'
-                html_table += '    <col style="background-color: rgb(242, 243, 245);">\n'  # Style for the leftmost column
-
-                for _ in range(len(data[0])):
-                    html_table += "    <col>\n"
-
-                html_table += "  </colgroup>\n  <tbody>\n"
-
-                for i, row in enumerate(data):
-                    html_table += "    <tr>\n"
-                    for j, cell in enumerate(row):
-                        if i == 0:
-                            # Apply background color to the first row
-                            html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
-                        elif j == 0:
-                            # Apply background color to the leftmost column
-                            html_table += f'      <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\n'
-                        else:
-                            html_table += f'      <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;">\n'
-
-                        html_table += f'        <p class="editor-p-light" dir="ltr">\n'
-                        html_table += f'          <span style="white-space: pre-wrap;">{cell}</span>\n'
-                        html_table += f"        </p>\n"
-                        html_table += "      </" + ("th" if i == 0 else "td") + ">\n"
-
-                    html_table += "    </tr>\n"
-
-                # Close the table
-                html_table += "  </tbody>\n</table>"
-                # Use regex to replace width value
-                html_table = re.sub(r"width:\s*175px;", "width: 100%;", html_table)
-                # print(html_table)
-                print(f"OUTPUT: {html_table}")
-                return html_table
-
-            background = concept_plan_data.background
-            aims = concept_plan_data.aims
-            expected_outcomes = concept_plan_data.outcome
-            collaborations = concept_plan_data.collaborations
-            strategic_context = concept_plan_data.strategic_context
-            staff_time_allocation = replace_json_string_with_html_table(
-                concept_plan_data.staff_time_allocation
-            )
-            indicative_operating_budget = replace_json_string_with_html_table(
-                concept_plan_data.budget
-            )
-            print(f"INDIC:", indicative_operating_budget)
-
-            return {
-                "concept_plan_data_pk": concept_plan_data.pk,
-                "document_pk": concept_plan_data.document.pk,
-                "project_pk": concept_plan_data.project.pk,
-                "document_tag": document_tag,
-                "project_title": project_title,
-                "project_status": project_status,
-                "business_area_name": business_area_name,
-                "project_team": tuple(project_team),
-                "project_image": project_image,
-                "now": now,
-                "project_lead_approval_granted": project_lead_approval_granted,
-                "business_area_lead_approval_granted": business_area_lead_approval_granted,
-                "directorate_approval_granted": directorate_approval_granted,
-                "background": background,
-                "aims": aims,
-                "expected_outcomes": expected_outcomes,
-                "collaborations": collaborations,
-                "strategic_context": strategic_context,
-                "staff_time_allocation": staff_time_allocation,
-                "indicative_operating_budget": indicative_operating_budget,
-            }
-
-        cp_data = get_concept_plan_data()
-
-        doc.pdf_generation_in_progress = True
-        doc.save()
-
-        # PDF Gen logic here
-
+    
         def replace_dark_with_light(html_string):
             if html_string != None:
                 # Replace 'dark' with 'light' in class attributes
@@ -369,7 +391,7 @@ class GenerateConceptPlan(APIView):
 
         def apply_styling(html_string):
             html_string = replace_dark_with_light(html_string=html_string)
-
+            html_string = replace_table_in_html_string(html_string)
             # # Read
             # styles_file_path = os.path.join(settings.BASE_DIR, 'documents', 'rte_styles.css')
             # with open(styles_file_path, 'r') as styles_file:
@@ -419,9 +441,518 @@ class GenerateConceptPlan(APIView):
 
             return formatted_datetime
 
-        styles_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        # Doc Data Get Funcs
+        def return_proj_type_tag(document):
+            kind = document.project.kind
+            kind_dict = {
+                "science": ["science", "SP"],
+                "student": ["student", "STP"],
+                "external": ["external", "EXT"],
+                "core_function": ["core_function", "CF"],
+            }
 
-        print(f'\n{cp_data["project_image"]}')
+            return kind_dict[kind]
+
+        def return_document_type_url(document, data_document=None):
+            kind = document.kind
+            if data_document:
+                doc_year = data_document.year
+                kind_dict = {
+                    "concept": [
+                        "concept",
+                        "Concept Plan",
+                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                    ],
+                    "projectplan": [
+                        "project",
+                        "Project Plan",
+                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                    ],
+                    "progressreport": [
+                        "progress",
+                        "Progress Report",
+                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                    ],
+                    "studentreport": [
+                        "student",
+                        "Student Report",
+                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                    ],
+                    "projectclosure": [
+                        "closure",
+                        "Project Closure",
+                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                    ],
+                }
+            else:
+                kind_dict = {
+                    "concept": ["concept", "Concept Plan"],
+                    "projectplan": ["project", "Project Plan"],
+                    "progressreport": ["progress", "Progress Report"],
+                    "studentreport": ["student", "Student Report"],
+                    "projectclosure": ["closure", "Project Closure"],
+                }
+
+            # If optional_arg is not provided, return 2 items
+            print(f"DOC KIND: {kind}\nDOC STRING: {kind_dict[kind]}")
+            return kind_dict[kind]
+
+        # Concept Plan
+        def get_concept_plan_data():
+            concept_plan_data = self.get_concept_plan(pk=pk)
+            # print(concept_plan_data)
+            project_kind, project_kind_tag = return_proj_type_tag(
+                document=concept_plan_data.document
+            )
+            doc_kind_url, doc_kind_str = return_document_type_url(
+                document=concept_plan_data.document
+            )
+
+            document_tag = f"{project_kind_tag}-{concept_plan_data.project.year}-{concept_plan_data.project.number}"
+            project_title = apply_title_styling_to_project_title(
+                concept_plan_data.project.title
+            )
+            project_status = concept_plan_data.project.status
+            business_area_name = concept_plan_data.project.business_area.name
+
+            project_team = get_project_team(concept_plan_data.project.pk)
+
+            project_image_data = TinyProjectPhotoSerializer(
+                get_project_image(concept_plan_data.project.pk)
+            ).data
+
+            if "file" in project_image_data:
+                project_image = project_image_data["file"]
+            else:
+                project_image = ""
+
+            now = datetime.datetime.now()
+
+            project_lead_approval_granted = (
+                concept_plan_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                concept_plan_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                concept_plan_data.document.directorate_approval_granted
+            )
+
+            background = concept_plan_data.background
+            aims = concept_plan_data.aims
+            expected_outcomes = concept_plan_data.outcome
+            collaborations = concept_plan_data.collaborations
+            strategic_context = concept_plan_data.strategic_context
+            staff_time_allocation = concept_plan_data.staff_time_allocation
+            indicative_operating_budget = concept_plan_data.budget
+
+            data_document_pk = concept_plan_data.pk
+            main_document_pk = concept_plan_data.document.pk
+            project_pk = concept_plan_data.project.pk
+
+            return {
+                "project_kind": project_kind,
+                "document_kind_url": doc_kind_url,
+                "document_kind_string": doc_kind_str,
+                "doc_kind_url": doc_kind_url,
+                "document_data_pk": data_document_pk,
+                "document_pk": main_document_pk,
+                "project_pk": project_pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                # Specific
+                "background": background,
+                "aims": aims,
+                "expected_outcomes": expected_outcomes,
+                "collaborations": collaborations,
+                "strategic_context": strategic_context,
+                "staff_time_allocation": staff_time_allocation,
+                "indicative_operating_budget": indicative_operating_budget,
+            }
+
+        # Project Plan
+        def get_project_plan_data():
+            project_plan_data = self.get_project_plan(pk=pk)
+            project_kind, project_kind_tag = return_proj_type_tag(
+                document=project_plan_data.document
+            )
+            doc_kind_url, doc_kind_str = return_document_type_url(
+                document=project_plan_data.document
+            )
+
+            document_tag = f"{project_kind_tag}-{project_plan_data.project.year}-{project_plan_data.project.number}"
+
+            project_title = apply_title_styling_to_project_title(
+                project_plan_data.project.title
+            )
+            project_status = project_plan_data.project.status
+            business_area_name = project_plan_data.project.business_area.name
+
+            project_team = get_project_team(project_plan_data.project.pk)
+
+            project_image_data = TinyProjectPhotoSerializer(
+                get_project_image(project_plan_data.project.pk)
+            ).data
+
+            if "file" in project_image_data:
+                project_image = project_image_data["file"]
+            else:
+                project_image = ""
+
+            now = datetime.datetime.now()
+
+            project_lead_approval_granted = (
+                project_plan_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                project_plan_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                project_plan_data.document.directorate_approval_granted
+            )
+
+            background = project_plan_data.background
+            aims = project_plan_data.aims
+            expected_outcomes = project_plan_data.outcome
+
+            knowledge_transfer = project_plan_data.knowledge_transfer
+            project_tasks = project_plan_data.project_tasks
+            listed_references = project_plan_data.listed_references
+            methodology = project_plan_data.methodology
+            consolidated_funds = project_plan_data.operating_budget
+            external_funds = project_plan_data.operating_budget_external
+            related_projects = project_plan_data.related_projects
+
+            # strategic_context = project_plan_data.strategic_context
+            # staff_time_allocation = replace_json_string_with_html_table(
+            #     project_plan_data.staff_time_allocation
+            # )
+            # indicative_operating_budget = replace_json_string_with_html_table(
+            #     project_plan_data.budget
+            # )
+
+            # Get the endorsement specific items
+            endorsements = Endorsement.objects.filter(
+                project_plan=project_plan_data.pk
+            ).first()
+            specimens = endorsements.no_specimens
+            data_management = endorsements.data_management
+
+            data_document_pk = project_plan_data.pk
+            main_document_pk = project_plan_data.document.pk
+            project_pk = project_plan_data.project.pk
+
+            return {
+                "project_kind": project_kind,
+                "document_kind_url": doc_kind_url,
+                "document_kind_string": doc_kind_str,
+                "doc_kind_url": doc_kind_url,
+                "document_data_pk": data_document_pk,
+                "document_pk": main_document_pk,
+                "project_pk": project_pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                # Specific
+                "background": background,
+                "aims": aims,
+                "expected_outcomes": expected_outcomes,
+                "knowledge_transfer": knowledge_transfer,
+                "project_tasks": project_tasks,
+                "listed_references": listed_references,
+                "methodology": methodology,
+                "specimens": specimens,
+                "data_management": data_management,
+                "external_funds": external_funds,
+                "consolidated_funds": consolidated_funds,
+                "related_projects": related_projects,
+            }
+
+        # Progress Report
+        def get_progress_report_data():
+            progress_report_data = self.get_progress_report(pk=pk)
+            project_kind, project_kind_tag = return_proj_type_tag(
+                document=progress_report_data.document
+            )
+            doc_kind_url, doc_kind_str, financial_year_string = (
+                return_document_type_url(
+                    document=progress_report_data.document,
+                    data_document=progress_report_data,
+                )
+            )
+            document_tag = f"{project_kind_tag}-{progress_report_data.project.year}-{progress_report_data.project.number}"
+
+            project_title = apply_title_styling_to_project_title(
+                progress_report_data.project.title
+            )
+            project_status = progress_report_data.project.status
+            business_area_name = progress_report_data.project.business_area.name
+
+            project_team = get_project_team(progress_report_data.project.pk)
+
+            project_image_data = TinyProjectPhotoSerializer(
+                get_project_image(progress_report_data.project.pk)
+            ).data
+
+            if "file" in project_image_data:
+                project_image = project_image_data["file"]
+            else:
+                project_image = ""
+
+            now = datetime.datetime.now()
+
+            project_lead_approval_granted = (
+                progress_report_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                progress_report_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                progress_report_data.document.directorate_approval_granted
+            )
+
+            context = progress_report_data.context
+            aims = progress_report_data.aims
+            progress = progress_report_data.progress
+            implications = progress_report_data.implications
+            future = progress_report_data.future
+
+            # strategic_context = project_plan_data.strategic_context
+            # staff_time_allocation = replace_json_string_with_html_table(
+            #     project_plan_data.staff_time_allocation
+            # )
+            # indicative_operating_budget = replace_json_string_with_html_table(
+            #     project_plan_data.budget
+            # )
+
+            data_document_pk = progress_report_data.pk
+            main_document_pk = progress_report_data.document.pk
+            project_pk = progress_report_data.project.pk
+
+            return {
+                "project_kind": project_kind,
+                "document_kind_url": doc_kind_url,
+                "document_kind_string": doc_kind_str,
+                "doc_kind_url": doc_kind_url,
+                "document_data_pk": data_document_pk,
+                "document_pk": main_document_pk,
+                "financial_year_string": financial_year_string,
+                "project_pk": project_pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                # Specific
+                "context": context,
+                "aims": aims,
+                "progress": progress,
+                "implications": implications,
+                "future": future,
+            }
+
+        # Student Report
+        def get_student_report_data():
+            student_report_data = self.get_student_report(pk=pk)
+            project_kind, project_kind_tag = return_proj_type_tag(
+                document=student_report_data.document
+            )
+            doc_kind_url, doc_kind_str, financial_year_string = (
+                return_document_type_url(
+                    document=student_report_data.document,
+                    data_document=student_report_data,
+                )
+            )
+            document_tag = f"{project_kind_tag}-{student_report_data.project.year}-{student_report_data.project.number}"
+
+            project_title = apply_title_styling_to_project_title(
+                student_report_data.project.title
+            )
+            project_status = student_report_data.project.status
+            business_area_name = student_report_data.project.business_area.name
+
+            project_team = get_project_team(student_report_data.project.pk)
+
+            project_image_data = TinyProjectPhotoSerializer(
+                get_project_image(student_report_data.project.pk)
+            ).data
+
+            if "file" in project_image_data:
+                project_image = project_image_data["file"]
+            else:
+                project_image = ""
+
+            now = datetime.datetime.now()
+
+            project_lead_approval_granted = (
+                student_report_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                student_report_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                student_report_data.document.directorate_approval_granted
+            )
+
+            # strategic_context = project_plan_data.strategic_context
+            # staff_time_allocation = replace_json_string_with_html_table(
+            #     project_plan_data.staff_time_allocation
+            # )
+            # indicative_operating_budget = replace_json_string_with_html_table(
+            #     project_plan_data.budget
+            # )
+            progress_report = student_report_data.progress_report
+
+            data_document_pk = student_report_data.pk
+            main_document_pk = student_report_data.document.pk
+            project_pk = student_report_data.project.pk
+
+            return {
+                "project_kind": project_kind,
+                "document_kind_url": doc_kind_url,
+                "document_kind_string": doc_kind_str,
+                "doc_kind_url": doc_kind_url,
+                "document_data_pk": data_document_pk,
+                "document_pk": main_document_pk,
+                "financial_year_string": financial_year_string,
+                "project_pk": project_pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                # Specific
+                "progress_report": progress_report,
+            }
+
+        # Project Closure
+        def get_project_closure_data():
+            project_closure_data = self.get_project_closure(pk=pk)
+            project_kind, project_kind_tag = return_proj_type_tag(
+                document=project_closure_data.document
+            )
+            doc_kind_url, doc_kind_str = return_document_type_url(
+                document=project_closure_data.document
+            )
+
+            document_tag = f"{project_kind_tag}-{project_closure_data.project.year}-{project_closure_data.project.number}"
+
+            project_title = apply_title_styling_to_project_title(
+                project_closure_data.project.title
+            )
+            project_status = project_closure_data.project.status
+            business_area_name = project_closure_data.project.business_area.name
+
+            project_team = get_project_team(project_closure_data.project.pk)
+
+            project_image_data = TinyProjectPhotoSerializer(
+                get_project_image(project_closure_data.project.pk)
+            ).data
+
+            if "file" in project_image_data:
+                project_image = project_image_data["file"]
+            else:
+                project_image = ""
+
+            now = datetime.datetime.now()
+
+            project_lead_approval_granted = (
+                project_closure_data.document.project_lead_approval_granted
+            )
+            business_area_lead_approval_granted = (
+                project_closure_data.document.business_area_lead_approval_granted
+            )
+            directorate_approval_granted = (
+                project_closure_data.document.directorate_approval_granted
+            )
+
+            reason = project_closure_data.reason
+            knowledge_transfer = project_closure_data.knowledge_transfer
+            data_location = project_closure_data.data_location
+            hardcopy_location = project_closure_data.hardcopy_location
+            backup_location = project_closure_data.backup_location
+            scientific_outputs = project_closure_data.scientific_outputs
+            intended_outcome = project_closure_data.intended_outcome
+
+            # strategic_context = project_plan_data.strategic_context
+            # staff_time_allocation = replace_json_string_with_html_table(
+            #     project_plan_data.staff_time_allocation
+            # )
+            # indicative_operating_budget = replace_json_string_with_html_table(
+            #     project_plan_data.budget
+            # )
+
+            data_document_pk = project_closure_data.pk
+            main_document_pk = project_closure_data.document.pk
+            project_pk = project_closure_data.project.pk
+
+            return {
+                "project_kind": project_kind,
+                "document_kind_url": doc_kind_url,
+                "document_kind_string": doc_kind_str,
+                "doc_kind_url": doc_kind_url,
+                "document_data_pk": data_document_pk,
+                "document_pk": main_document_pk,
+                "project_pk": project_pk,
+                "document_tag": document_tag,
+                "project_title": project_title,
+                "project_status": project_status,
+                "business_area_name": business_area_name,
+                "project_team": tuple(project_team),
+                "project_image": project_image,
+                "now": now,
+                "project_lead_approval_granted": project_lead_approval_granted,
+                "business_area_lead_approval_granted": business_area_lead_approval_granted,
+                "directorate_approval_granted": directorate_approval_granted,
+                # Specific
+                "reason": reason,
+                "knowledge_transfer": knowledge_transfer,
+                "data_location": data_location,
+                "hardcopy_location": hardcopy_location,
+                "backup_location": backup_location,
+                "scientific_outputs": scientific_outputs,
+                "intended_outcome": intended_outcome,
+            }
+
+        # Doc Wide Variables
+
+        css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+
+        # Used the received css file to populate the backend css file
+        css_content = req.data["css_content"]
+        print(css_content)
+        formatted_css = css_content.replace('\\r\\n', '\n').replace('\\"', '"').strip()
+        formatted_css = formatted_css.strip('"')
+        print(formatted_css)
+
+        if css_content:
+            with open(css_path, "w") as saved_css_file:
+                saved_css_file.write(formatted_css)
 
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
@@ -430,66 +961,398 @@ class GenerateConceptPlan(APIView):
             settings.BASE_DIR, "documents", "image_not_available.png"
         )
 
-        # HTML content for the PDF
-        html_content = get_template("concept_plan.html").render(
-            {
-                # Styles & url
-                "styles_path": styles_path,
-                "dbca_image_path": dbca_image_path,
-                "no_image_path": no_image_path,
-                "server_url": (
-                    "http://127.0.0.1:8000"
-                    if settings.DEBUG == True
-                    else "http://scienceprojects-test.dbca.wa.gov.au"
-                ),
-                "frontend_url": (
-                    "http://127.0.0.1:3000"
-                    if settings.DEBUG == True
-                    else "http://scienceprojects-test.dbca.wa.gov.au"
-                ),
-                # Cover page
-                "base_url": settings.BASE_DIR,
-                "current_date_time_string": get_formatted_datetime(cp_data["now"]),
-                "project_image_path": cp_data["project_image"],
-                "project_title": cp_data["project_title"],
-                "project_tag": cp_data["document_tag"],
-                "business_area_name": cp_data["business_area_name"],
-                "project_status": cp_data["project_status"],
-                "team_as_string": ", ".join(map(str, cp_data["project_team"])),
-                "project_lead_approval": cp_data["project_lead_approval_granted"],
-                "business_area_lead_approval": cp_data[
-                    "business_area_lead_approval_granted"
-                ],
-                "directorate_approval": cp_data["directorate_approval_granted"],
-                # Data
-                "project_id": cp_data["project_pk"],
-                "background": apply_styling(cp_data["background"]),
-                "aims": apply_styling(cp_data["aims"]),
-                "outcomes": apply_styling(cp_data["expected_outcomes"]),
-                "collaborations": apply_styling(cp_data["collaborations"]),
-                "context": apply_styling(cp_data["strategic_context"]),
-                "staff_time_allocation": apply_styling(
-                    cp_data["staff_time_allocation"]
-                ),
-                "budget": apply_styling(cp_data["indicative_operating_budget"]),
-            }
-        )
+        # Begin
+
+        doc.pdf_generation_in_progress = True
+        doc.save()
+
+        if document_type == "concept":
+            doc_data = get_concept_plan_data()
+            # HTML content for the PDF
+            html_content = get_template("project_document.html").render(
+                {
+                    # Styles & url
+                    "css_path": css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    # Cover page
+                    "base_url": settings.BASE_DIR,
+                    "current_date_time_string": get_formatted_datetime(doc_data["now"]),
+                    "project_image_path": doc_data["project_image"],
+                    "project_title": doc_data["project_title"],
+                    "project_tag": doc_data["document_tag"],
+                    "business_area_name": doc_data["business_area_name"],
+                    "project_status": doc_data["project_status"],
+                    "team_as_string": ", ".join(map(str, doc_data["project_team"])),
+                    "project_lead_approval": doc_data["project_lead_approval_granted"],
+                    "business_area_lead_approval": doc_data[
+                        "business_area_lead_approval_granted"
+                    ],
+                    "directorate_approval": doc_data["directorate_approval_granted"],
+                    # Data
+                    "document_kind_url": doc_data["document_kind_url"],
+                    "document_kind_string": doc_data["document_kind_string"],
+                    "project_kind": doc_data["project_kind"],
+                    "project_id": doc_data["project_pk"],
+                    "html_data_items": {
+                        "background": {
+                            "title": "Background",
+                            "data": apply_styling(doc_data["background"]),
+                        },
+                        "aims": {
+                            "title": "Aims",
+                            "data": apply_styling(doc_data["aims"]),
+                        },
+                        "outcomes": {
+                            "title": "Expected Outcomes",
+                            "data": apply_styling(doc_data["expected_outcomes"]),
+                        },
+                        "context": {
+                            "title": "Strategic Context",
+                            "data": apply_styling(doc_data["strategic_context"]),
+                        },
+                        "collaborations": {
+                            "title": "Expected Collaborations",
+                            "data": apply_styling(doc_data["collaborations"]),
+                        },
+                        "staff_time_allocation": {
+                            "title": "Staff Time Allocation",
+                            "data": 
+                            generate_html_table_from_json_data(
+                                apply_styling(
+                                    doc_data["staff_time_allocation"]
+                                )
+                            )
+                            ,
+                        },
+                        "indicative_operating_budget": {
+                            "title": "Budget",
+                            "data": 
+                            generate_html_table_from_json_data(
+                                apply_styling(
+                                    doc_data["indicative_operating_budget"]
+                                )
+                            )
+                        },
+                    },
+                }
+            )
+
+        elif document_type == "projectplan":
+            doc_data = get_project_plan_data()
+            print(doc_data)
+            # HTML content for the PDF
+            html_content = get_template("project_document.html").render(
+                {
+                    # Styles & url
+                    "css_path": css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    # Cover page
+                    "base_url": settings.BASE_DIR,
+                    "current_date_time_string": get_formatted_datetime(doc_data["now"]),
+                    "project_image_path": doc_data["project_image"],
+                    "project_title": doc_data["project_title"],
+                    "project_tag": doc_data["document_tag"],
+                    "business_area_name": doc_data["business_area_name"],
+                    "project_status": doc_data["project_status"],
+                    "team_as_string": ", ".join(map(str, doc_data["project_team"])),
+                    "project_lead_approval": doc_data["project_lead_approval_granted"],
+                    "business_area_lead_approval": doc_data[
+                        "business_area_lead_approval_granted"
+                    ],
+                    "directorate_approval": doc_data["directorate_approval_granted"],
+                    # Data
+                    "document_kind_url": doc_data["document_kind_url"],
+                    "document_kind_string": doc_data["document_kind_string"],
+                    "project_kind": doc_data["project_kind"],
+                    "project_id": doc_data["project_pk"],
+                    "html_data_items": {
+                        "background": {
+                            "title": "Background",
+                            "data": apply_styling(doc_data["background"]),
+                        },
+                        "aims": {
+                            "title": "Aims",
+                            "data": apply_styling(doc_data["aims"]),
+                        },
+                        "outcomes": {
+                            "title": "Expected Outcomes",
+                            "data": apply_styling(doc_data["expected_outcomes"]),
+                        },
+                        "knowledge_transfer": {
+                            "title": "Knowledge Transfer",
+                            "data": apply_styling(doc_data["knowledge_transfer"]),
+                        },
+                        "project_tasks": {
+                            "title": "Tasks and Milestones",
+                            "data": apply_styling(doc_data["project_tasks"]),
+                        },
+                        "listed_references": {
+                            "title": "References",
+                            "data": apply_styling(doc_data["listed_references"]),
+                        },
+                        "methodology": {
+                            "title": "Methodology",
+                            "data": apply_styling(doc_data["methodology"]),
+                        },
+                        "specimens": {
+                            "title": "Number of Voucher Specimens",
+                            "data": apply_styling(doc_data["specimens"]),
+                        },
+                        "data_management": {
+                            "title": "Data Management",
+                            "data": apply_styling(doc_data["data_management"]),
+                        },
+                        "related_projects": {
+                            "title": "Related Science Projects",
+                            "data": apply_styling(doc_data["related_projects"]),
+                        },
+                        "consolidated_funds": {
+                            "title": "Consolidated Funds",
+                            "data": 
+                            generate_html_table_from_json_data(
+                                apply_styling(
+                                    doc_data["consolidated_funds"]
+                                )
+                            )
+                        },
+                        "external_funds": {
+                            "title": "External Funds",
+                            "data": 
+                            generate_html_table_from_json_data(
+                                apply_styling(
+                                    doc_data["external_funds"]
+                                )
+                            )
+                        },
+                    },
+                }
+            )
+
+        elif document_type == "progressreport":
+            doc_data = get_progress_report_data()
+            print(doc_data)
+            # HTML content for the PDF
+            html_content = get_template("project_document.html").render(
+                {
+                    "financial_year_string": doc_data["financial_year_string"],
+                    # Styles & url
+                    "css_path": css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    # Cover page
+                    "base_url": settings.BASE_DIR,
+                    "current_date_time_string": get_formatted_datetime(doc_data["now"]),
+                    "project_image_path": doc_data["project_image"],
+                    "project_title": doc_data["project_title"],
+                    "project_tag": doc_data["document_tag"],
+                    "business_area_name": doc_data["business_area_name"],
+                    "project_status": doc_data["project_status"],
+                    "team_as_string": ", ".join(map(str, doc_data["project_team"])),
+                    "project_lead_approval": doc_data["project_lead_approval_granted"],
+                    "business_area_lead_approval": doc_data[
+                        "business_area_lead_approval_granted"
+                    ],
+                    "directorate_approval": doc_data["directorate_approval_granted"],
+                    # Data
+                    "document_kind_url": doc_data["document_kind_url"],
+                    "document_kind_string": doc_data["document_kind_string"],
+                    "project_kind": doc_data["project_kind"],
+                    "project_id": doc_data["project_pk"],
+                    "html_data_items": {
+                        "context": {
+                            "title": "Context",
+                            "data": apply_styling(doc_data["context"]),
+                        },
+                        "aims": {
+                            "title": "Aims",
+                            "data": apply_styling(doc_data["aims"]),
+                        },
+                        "progress": {
+                            "title": "Progress",
+                            "data": apply_styling(doc_data["progress"]),
+                        },
+                        "implications": {
+                            "title": "Management Implications",
+                            "data": apply_styling(doc_data["implications"]),
+                        },
+                        "future": {
+                            "title": "Future Directions",
+                            "data": apply_styling(doc_data["future"]),
+                        },
+                    },
+                }
+            )
+        elif document_type == "studentreport":
+            doc_data = get_student_report_data()
+            print(doc_data)
+            # HTML content for the PDF
+            html_content = get_template("project_document.html").render(
+                {
+                    "financial_year_string": doc_data["financial_year_string"],
+                    # Styles & url
+                    "css_path": css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    # Cover page
+                    "base_url": settings.BASE_DIR,
+                    "current_date_time_string": get_formatted_datetime(doc_data["now"]),
+                    "project_image_path": doc_data["project_image"],
+                    "project_title": doc_data["project_title"],
+                    "project_tag": doc_data["document_tag"],
+                    "business_area_name": doc_data["business_area_name"],
+                    "project_status": doc_data["project_status"],
+                    "team_as_string": ", ".join(map(str, doc_data["project_team"])),
+                    "project_lead_approval": doc_data["project_lead_approval_granted"],
+                    "business_area_lead_approval": doc_data[
+                        "business_area_lead_approval_granted"
+                    ],
+                    "directorate_approval": doc_data["directorate_approval_granted"],
+                    # Data
+                    "document_kind_url": doc_data["document_kind_url"],
+                    "document_kind_string": doc_data["document_kind_string"],
+                    "project_kind": doc_data["project_kind"],
+                    "project_id": doc_data["project_pk"],
+                    "html_data_items": {
+                        "progress_report": {
+                            "title": "Progress Report",
+                            "data": apply_styling(doc_data["progress_report"]),
+                        },
+                    },
+                }
+            )
+        elif document_type == "projectclosure":
+            doc_data = get_project_closure_data()
+            print(doc_data)
+            # HTML content for the PDF
+            html_content = get_template("project_document.html").render(
+                {
+                    # Styles & url
+                    "css_path": css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    # Cover page
+                    "base_url": settings.BASE_DIR,
+                    "current_date_time_string": get_formatted_datetime(doc_data["now"]),
+                    "project_image_path": doc_data["project_image"],
+                    "project_title": doc_data["project_title"],
+                    "project_tag": doc_data["document_tag"],
+                    "business_area_name": doc_data["business_area_name"],
+                    "project_status": doc_data["project_status"],
+                    "team_as_string": ", ".join(map(str, doc_data["project_team"])),
+                    "project_lead_approval": doc_data["project_lead_approval_granted"],
+                    "business_area_lead_approval": doc_data[
+                        "business_area_lead_approval_granted"
+                    ],
+                    "directorate_approval": doc_data["directorate_approval_granted"],
+                    # Data
+                    "document_kind_url": doc_data["document_kind_url"],
+                    "document_kind_string": doc_data["document_kind_string"],
+                    "project_kind": doc_data["project_kind"],
+                    "project_id": doc_data["project_pk"],
+                    "html_data_items": {
+                        "reason": {
+                            "title": "Reason",
+                            "data": apply_styling(doc_data["reason"]),
+                        },
+                        "knowledge_transfer": {
+                            "title": "Knowledge Transfer",
+                            "data": apply_styling(doc_data["knowledge_transfer"]),
+                        },
+                        "data_location": {
+                            "title": "Data Location",
+                            "data": apply_styling(doc_data["data_location"]),
+                        },
+                        "hardcopy_location": {
+                            "title": "Hardcopy Location",
+                            "data": apply_styling(doc_data["hardcopy_location"]),
+                        },
+                        "backup_location": {
+                            "title": "Backup Location",
+                            "data": apply_styling(doc_data["backup_location"]),
+                        },
+                        "scientific_outputs": {
+                            "title": "Scientific Outputs",
+                            "data": apply_styling(doc_data["scientific_outputs"]),
+                        },
+                        "intended_outcome": {
+                            "title": "Intended Outcome",
+                            "data": apply_styling(doc_data["intended_outcome"]),
+                        },
+                    },
+                }
+            )
+        else:
+            return Response(
+                {"err": "Invalid project type"},
+                HTTP_400_BAD_REQUEST,
+            )
 
         # Specify the file path where you want to save the HTML file on the server
         html_file_path = os.path.join(
             settings.BASE_DIR,
             "documents",
-            f'newer_concept_plan_{cp_data["project_pk"]}.html',
+            f'{document_type}_{doc_data["project_pk"]}.html',
         )
-        with open(html_file_path, "w", encoding="utf-8") as html_file:
-            html_file.write(html_content)
+        # with open(html_file_path, "w", encoding="utf-8") as html_file:
+        #     html_file.write(html_content)
 
-        pdf_file_path = os.path.join(
-            settings.BASE_DIR,
-            "documents",
-            f'newer_concept_plan_{cp_data["project_pk"]}.pdf',
-        )
-        css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        # pdf_file_path = os.path.join(
+        #     settings.BASE_DIR,
+        #     "documents",
+        #     f'{document_type}_{doc_data["project_pk"]}.pdf',
+        # )
 
         p = subprocess.Popen(
             ["prince", "-", f"--style={css_path}"],
@@ -510,7 +1373,17 @@ class GenerateConceptPlan(APIView):
             # with open(pdf_file_path, "wb") as pdf_file:
             #     pdf_file.write(outs)
             #     print(f"Saved pdf file to {pdf_file_path}")
-            pdf_filename = f'__concept_plan_{cp_data["project_pk"]}.pdf'
+            document_kind_dict = {
+                "concept": "Concept Plan",
+                "projectplan": "Project Plan",
+                "progressreport": "Progress Report",
+                "studentreport": "Student Report",
+                "projectclosure": "Project Closure",
+            }
+            if (document_type == "progressreport" or document_type == "studentreport"):
+                pdf_filename = f'{doc_data["project_pk"]}_{document_kind_dict[document_type]} ({doc_data["financial_year_string"]}).pdf'
+            else:
+                pdf_filename = f'{doc_data["project_pk"]}_{document_kind_dict[document_type]}.pdf'
             file_content = ContentFile(pdf, name=pdf_filename)
 
             doc.pdf_generation_in_progress = False
@@ -565,6 +1438,44 @@ class GenerateConceptPlan(APIView):
             {"error": True},
             status=HTTP_400_BAD_REQUEST,
         )
+
+
+class CancelProjectDocGeneration(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_main_doc(self, pk):
+        # Gets the primary document that the concept plan belongs to
+        try:
+            doc = ProjectDocument.objects.filter(pk=pk).first()
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return doc
+
+    def post(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is canceling PDF GEN for document {pk}")
+        doc = self.get_main_doc(pk=pk)
+        # doc.pdf_generation_in_progress = False
+        # updated = doc.save()
+
+        ser = ProjectDocumentSerializer(
+            doc,
+            data={"pdf_generation_in_progress": False},
+            partial=True,
+        )
+        if ser.is_valid():
+            updated = ser.save()
+            ser = ProjectDocumentSerializer(updated)
+            settings.LOGGER.info(msg=f"Cancel Success")
+            return Response(
+                ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        else:
+            print(ser.errors)
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
 
 
 class DownloadProjectDocument(APIView):
