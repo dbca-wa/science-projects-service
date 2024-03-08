@@ -21,6 +21,7 @@ import html2text
 import base64
 from operator import attrgetter
 
+from django.core.serializers.json import DjangoJSONEncoder
 
 from email.mime.image import MIMEImage
 from config.helpers import get_encoded_image
@@ -33,6 +34,7 @@ from medias.models import (
 )
 from medias.serializers import (
     AECPDFCreateSerializer,
+    AnnualReportPDFSerializer,
     ProjectDocumentPDFSerializer,
     TinyAnnualReportPDFSerializer,
     TinyProjectPhotoSerializer,
@@ -271,10 +273,33 @@ class BeginProjectDocGeneration(APIView):
             return table_data
 
 
-        def generate_html_table_from_json_data(table_data):
-            # Example of how data looks when json like:
-            # [["Role", "Year 1", "Year 2", "Year 3"], ["Scientist", "", "", ""], ["Technical", "", "", ""], ["Volunteer", "", "", ""], ["Collaborator", "", "", ""]]
+        def iterate_rows_in_json_table(data_as_list):
+
+            table_innards = []
             
+            for row_index, row in enumerate(data_as_list):
+                row_contents = ''.join(
+                    [
+                        f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} " + 
+                        f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}'>" + 
+                        f"{col}" + 
+                        f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
+                        for col_index, col in enumerate(row)
+                    ]
+                )
+                row_data = f"<tr>{row_contents}</tr>"
+                table_innards.append(row_data)
+            
+            return_table = f'<table class="table-light">\
+                <colgroup>\
+                    {" ".join("<col>" for _ in range(len(data_as_list[0])))}\
+                </colgroup>\
+                <tbody>{"".join(table_innards)}</tbody>\
+            </table>'
+            return return_table
+
+
+        def generate_html_table_from_json_data(table_data):
             if isinstance(table_data, str) and table_data.startswith("[[") and table_data.endswith("]]"):
                 # Convert the string to a list using eval (Note: use eval cautiously)
                 table_data = eval(table_data)
@@ -290,33 +315,12 @@ class BeginProjectDocGeneration(APIView):
                 # If neither JSON-like nor HTML-like data is received, raise an error
                 raise ValueError(f"Input must be a list of lists or a valid string representation of a list of lists or HTML table.\nProvided Input: {table_data}")
 
+            html = iterate_rows_in_json_table(eval(f'{table_data}'))
 
-            table_rows = "".join(
-                [
-                    f"<tr>{"".join(
-                        [
-                            f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} "
-                            + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}>'"
-                            + f"{col}"
-                            + f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
-                            for col_index, col in enumerate(row)
-                        ]
-                    )}</tr>"
-                    for row_index, row in enumerate(table_data)
-                ]
-            )
 
-            # Complete the HTML table
-            replaced_data = f'<table class="table-light">\
-                <colgroup>\
-                    {" ".join("<col>" for _ in range(len(table_data[0])))}\
-                </colgroup>\
-                <tbody>{table_rows}</tbody>\
-            </table>'
+            # print(f"\nTABLE RAW DATA: {table_data}\n\nTABLE REPLACED DATA: {replaced_data}")
 
-            print(f"\nTABLE RAW DATA: {table_data}\n\nTABLE REPLACED DATA: {replaced_data}")
-
-            return replaced_data
+            return html
 
         def replace_table_in_html_string(html_data):
 
@@ -328,14 +332,16 @@ class BeginProjectDocGeneration(APIView):
                             [
                                 f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} "
                                 + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}'"
-                                + ">"
+                                # + ">"
                                 # + f" style='border: 1px solid black;'>" THE BORDER IS ALREADY IN STYLE (SEE HTML FILE), JUST NOT INTERPRETED BY PRINCE
-                                + f"{col}"
+                                + f">{col}"
                                 + f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
+
+                                
                                 for col_index, col in enumerate(row)
                             ]
                         )}</tr>"
-                        
+
                         for row_index, row in enumerate(table_data)
                     ]
                 )
@@ -353,17 +359,25 @@ class BeginProjectDocGeneration(APIView):
                 return replaced_data
 
 
-            print("DATA TO SOUP", html_data)
-            soup = BeautifulSoup(html_data, 'html.parser')
+            print(f"DATA TO SOUP ({type(html_data)})", html_data,)
+            if html_data is None:
+                return '<p></p>'
+            if isinstance(html_data, str) and html_data.startswith("[[") and html_data.endswith("]]"):
+                # Convert the string to a list using eval and pass to the function
+                html_data = iterate_rows_in_json_table(eval(html_data))
+                print("NEW HTML DATA: ", html_data)
+                return html_data
+            elif isinstance(html_data, str):
+                soup = BeautifulSoup(html_data, 'html.parser')
 
-            for table_tag in soup.find_all('table'):
-                table_data = extract_html_table_data(str(table_tag))
-                if table_data:
-                    new_table = gen_html_table_from_list_structure(table_data)
-                    table_tag.replace_with(BeautifulSoup(new_table, 'html.parser'))
+                for table_tag in soup.find_all('table'):
+                    table_data = extract_html_table_data(str(table_tag))
+                    if table_data:
+                        new_table = gen_html_table_from_list_structure(table_data)
+                        table_tag.replace_with(BeautifulSoup(new_table, 'html.parser'))
 
-            print("SOUP:", soup)
-            return str(soup)
+                # print("SOUP:", soup)
+                return str(soup)
 
     
         def replace_dark_with_light(html_string):
@@ -388,41 +402,6 @@ class BeginProjectDocGeneration(APIView):
         def apply_styling(html_string):
             html_string = replace_dark_with_light(html_string=html_string)
             html_string = replace_table_in_html_string(html_string)
-            # # Read
-            # styles_file_path = os.path.join(settings.BASE_DIR, 'documents', 'rte_styles.css')
-            # with open(styles_file_path, 'r') as styles_file:
-            #     styles_content = styles_file.read()
-            #     print(styles_content)
-
-            # # Define a regular expression pattern to extract class and corresponding styles
-            # pattern = re.compile(r'\.([a-zA-Z0-9_-]+)\s*{\s*([^}]+)\s*}', re.MULTILINE)
-
-            # # Create a mapping of classes to styles
-            # styles_mapping = {match.group(1): match.group(2) for match in pattern.finditer(styles_content)}
-
-            # # Define a regular expression pattern to match HTML elements
-            # element_pattern = re.compile(r'<([^>]+)>')
-
-            # # Iterate over each HTML element in the string
-            # for match in element_pattern.finditer(html_string):
-            #     element = match.group(1)
-
-            #     # Extract existing classes and style from the element
-            #     class_match = re.search(r'class=["\']([^"\']*)["\']', element)
-            #     style_match = re.search(r'style=["\']([^"\']*)["\']', element)
-
-            #     existing_classes = class_match.group(1) if class_match else ''
-            #     existing_style = style_match.group(1) if style_match else ''
-
-            #     # Iterate over each class and apply the corresponding styles
-            #     for class_name in existing_classes.split():
-            #         if class_name in styles_mapping:
-            #             existing_style += f' {styles_mapping[class_name]}'
-
-            #     # Replace the style attribute in the HTML element
-            #     replacement = f'<{element.replace(existing_style, f"style='{existing_style}'")}>'
-            #     html_string = html_string.replace(f'<{element}>', replacement)
-
             return html_string
 
         def get_formatted_datetime(now):
@@ -456,12 +435,12 @@ class BeginProjectDocGeneration(APIView):
                 kind_dict = {
                     "concept": [
                         "concept",
-                        "Concept Plan",
+                        "Science Concept Plan",
                         f"FY {int(doc_year-1)}-{int(doc_year)}",
                     ],
                     "projectplan": [
                         "project",
-                        "Project Plan",
+                        "Science Project Plan",
                         f"FY {int(doc_year-1)}-{int(doc_year)}",
                     ],
                     "progressreport": [
@@ -482,8 +461,8 @@ class BeginProjectDocGeneration(APIView):
                 }
             else:
                 kind_dict = {
-                    "concept": ["concept", "Concept Plan"],
-                    "projectplan": ["project", "Project Plan"],
+                    "concept": ["concept", "Science Concept Plan"],
+                    "projectplan": ["project", "Science Project Plan"],
                     "progressreport": ["progress", "Progress Report"],
                     "studentreport": ["student", "Student Report"],
                     "projectclosure": ["closure", "Project Closure"],
@@ -935,9 +914,11 @@ class BeginProjectDocGeneration(APIView):
                 "intended_outcome": intended_outcome,
             }
 
-        # Doc Wide Variables
 
-        css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        # Doc Wide Variables
+        rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        prince_css_path = os.path.join(settings.BASE_DIR, "documents", "prince_project_document_styles.css")
+
 
         # Used the received css file to populate the backend css file
         css_content = req.data["css_content"]
@@ -947,7 +928,7 @@ class BeginProjectDocGeneration(APIView):
         print(formatted_css)
 
         if css_content:
-            with open(css_path, "w") as saved_css_file:
+            with open(rte_css_path, "w") as saved_css_file:
                 saved_css_file.write(formatted_css)
 
         dbca_image_path = os.path.join(
@@ -958,7 +939,6 @@ class BeginProjectDocGeneration(APIView):
         )
 
         # Begin
-
         doc.pdf_generation_in_progress = True
         doc.save()
 
@@ -968,7 +948,8 @@ class BeginProjectDocGeneration(APIView):
             html_content = get_template("project_document.html").render(
                 {
                     # Styles & url
-                    "css_path": css_path,
+                    "rte_css_path": rte_css_path,
+                    "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
@@ -1051,7 +1032,8 @@ class BeginProjectDocGeneration(APIView):
             html_content = get_template("project_document.html").render(
                 {
                     # Styles & url
-                    "css_path": css_path,
+                    "rte_css_path": rte_css_path,
+                    "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
@@ -1127,19 +1109,19 @@ class BeginProjectDocGeneration(APIView):
                         "consolidated_funds": {
                             "title": "Consolidated Funds",
                             "data": 
-                            generate_html_table_from_json_data(
+                            # generate_html_table_from_json_data(
                                 apply_styling(
                                     doc_data["consolidated_funds"]
                                 )
-                            )
+                            # )
                         },
                         "external_funds": {
                             "title": "External Funds",
                             "data": 
                             generate_html_table_from_json_data(
-                                apply_styling(
+                                # apply_styling(
                                     doc_data["external_funds"]
-                                )
+                                # )
                             )
                         },
                     },
@@ -1154,7 +1136,8 @@ class BeginProjectDocGeneration(APIView):
                 {
                     "financial_year_string": doc_data["financial_year_string"],
                     # Styles & url
-                    "css_path": css_path,
+                    "rte_css_path": rte_css_path,
+                    "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
@@ -1218,7 +1201,8 @@ class BeginProjectDocGeneration(APIView):
                 {
                     "financial_year_string": doc_data["financial_year_string"],
                     # Styles & url
-                    "css_path": css_path,
+                    "rte_css_path": rte_css_path,
+                    "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
@@ -1265,7 +1249,8 @@ class BeginProjectDocGeneration(APIView):
             html_content = get_template("project_document.html").render(
                 {
                     # Styles & url
-                    "css_path": css_path,
+                    "rte_css_path": rte_css_path,
+                    "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
@@ -1350,8 +1335,11 @@ class BeginProjectDocGeneration(APIView):
         #     f'{document_type}_{doc_data["project_pk"]}.pdf',
         # )
 
+        # Combine all stylesheet paths into a single string separated by commas
+        all_css_paths = ",".join([rte_css_path, prince_css_path])
+
         p = subprocess.Popen(
-            ["prince", "-", f"--style={css_path}"],
+            ["prince", "-", f"--style={all_css_paths}"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -1370,8 +1358,8 @@ class BeginProjectDocGeneration(APIView):
             #     pdf_file.write(outs)
             #     print(f"Saved pdf file to {pdf_file_path}")
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -1436,6 +1424,38 @@ class BeginProjectDocGeneration(APIView):
         )
 
 
+
+class BeginReportDocGeneration(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = AnnualReport.objects.get(pk=pk)
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating a pdf for report with id {pk}"
+        )
+
+        report = self.go(pk=pk)
+
+        def set_report_generation_status(report, is_generating: bool):
+            report.pdf_generation_in_progress = is_generating
+            report.save()
+
+        set_report_generation_status(report=report, is_generating=True)
+
+        # set_report_generation_status(report=report, is_generating=False)
+
+        return Response(
+            {"msg": "ok"},
+            HTTP_202_ACCEPTED,
+        )
+
+
 class CancelProjectDocGeneration(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -1472,6 +1492,45 @@ class CancelProjectDocGeneration(APIView):
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
+
+class CancelReportDocGeneration(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_main_doc(self, pk):
+        # Gets the primary document that the concept plan belongs to
+        try:
+            doc = AnnualReport.objects.filter(pk=pk).first()
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return doc
+
+    def post(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is canceling PDF GEN for Annual Report {pk}")
+        doc = self.get_main_doc(pk=pk)
+        # doc.pdf_generation_in_progress = False
+        # updated = doc.save()
+
+        ser = AnnualReportSerializer(
+            doc,
+            data={"pdf_generation_in_progress": False},
+            partial=True,
+        )
+        if ser.is_valid():
+            updated = ser.save()
+            ser = AnnualReportSerializer(updated)
+            settings.LOGGER.info(msg=f"Cancel Success")
+            return Response(
+                ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        else:
+            print(ser.errors)
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
 
 
 class DownloadProjectDocument(APIView):
@@ -1701,6 +1760,21 @@ class GetConceptPlanData(APIView):
 
 # Latest Year's Reports
 
+class BeginAnnualReportDocGeneration(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            report = AnnualReport.objects.get(pk=pk)
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return report
+    
+    def post(self, req, pk):
+        report_object = self.go(pk=pk)
+
+
+
 
 class LatestYearsProgressReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -1887,8 +1961,8 @@ class ReviewDocumentEmail(APIView):
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -2153,8 +2227,8 @@ class DocumentReadyEmail(APIView):
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -2238,8 +2312,8 @@ class DocumentSentBackEmail(APIView):
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -2325,8 +2399,8 @@ class ConceptPlanEmail(APIView):
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -2412,8 +2486,8 @@ class DocumentApprovedEmail(APIView):
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -2496,8 +2570,8 @@ class DocumentRecalledEmail(APIView):
             # Get document kind information
             document_kind = req.data["document_kind"]
             document_kind_dict = {
-                "concept": "Concept Plan",
-                "projectplan": "Project Plan",
+                "concept": "Science Concept Plan",
+                "projectplan": "Science Project Plan",
                 "progressreport": "Progress Report",
                 "studentreport": "Student Report",
                 "projectclosure": "Project Closure",
@@ -3265,6 +3339,33 @@ class GetWithoutPDFs(APIView):
             return Response(serializer.data, status=HTTP_200_OK)
         else:
             return None
+
+class GetReportPDF(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            report_pdf_obj = AnnualReportPDF.objects.get(report=pk)
+        except AnnualReportPDF.DoesNotExist:
+            raise NotFound
+        return report_pdf_obj
+
+    def get(self, req, pk):
+        pdf_object = self.go(pk=pk)
+        ser = AnnualReportPDFSerializer(
+            pdf_object,
+        )
+        # pdf_data = ser.data.get('pdf_data')
+        # Convert the serialized data to a dictionary
+        serialized_data = json.loads(json.dumps(ser.data, cls=DjangoJSONEncoder))
+        print(serialized_data)
+
+        # Include the PDF data in the serialized response
+        serialized_data['pdf_data'] = ser.data.get('pdf_data')
+        return Response(
+            serialized_data,
+            HTTP_200_OK,
+        )
 
 
 class GetWithPDFs(APIView):
@@ -6214,52 +6315,3 @@ class PublicationDetail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
-
-class GenerateReportPDF(APIView):
-
-    def go(self, report_pk):
-        try:
-            obj = AnnualReport.objects.get(pk=report_pk)
-        except AnnualReport.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req, report_pk):
-        permission_classes = [IsAuthenticatedOrReadOnly]
-        settings.LOGGER.info(
-            msg=f"{req.user} is generating a pdf for report with id {report_pk}"
-        )
-
-        report_id = report_pk
-        section = req.data["section"]
-        business_area = req.data.get("business_area", None)
-
-        report = self.go(report_pk=report_id)
-
-        def set_report_generation_status(report, is_generating: bool):
-            report.pdf_generation_in_progress = is_generating
-            report.save()
-
-        if section == "cover":
-            settings.LOGGER.info(msg=f"The section is Cover Page")
-            set_report_generation_status(report=report, is_generating=True)
-
-            set_report_generation_status(report=report, is_generating=False)
-
-            return Response(
-                HTTP_202_ACCEPTED,
-            )
-        # elif section == "progress":
-        #     if business_area is None or business_area == 0:
-        #         # Gen all ba area progress reports pdf here
-        #         pass
-        #     else:
-        #         # Gen selected business are progress reports pdf
-        #         pass
-        else:
-            settings.LOGGER.info(msg=f"No section selected for PDF gen!")
-
-            return Response(
-                {"msg": "No section selected for pdf gen"},
-                HTTP_400_BAD_REQUEST,
-            )

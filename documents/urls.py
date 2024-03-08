@@ -97,6 +97,7 @@ urlpatterns = [
     ),
     path("reports/withoutPDF", views.GetWithoutPDFs.as_view()),
     path("reports/withPDF", views.GetWithPDFs.as_view()),
+    path("reports/pdf/<int:pk>", views.GetReportPDF.as_view()),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
     # Actions (PROGRESS REPORT)
@@ -106,15 +107,20 @@ urlpatterns = [
     path("actions/send_back", views.DocSendBack.as_view()),
     path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
     path("progress_reports/update", views.UpdateProgressReport.as_view()),
-    path("reports/<int:report_pk>/generate_pdf", views.GenerateReportPDF.as_view()),
     # path("generate_cover_page/", views.generate_cover_page, name="generate_cover_page"),
     path(
         "conceptplans/<int:pk>/get_concept_plan_data",
         views.GetConceptPlanData.as_view(),
     ),
-    # path("generate_concept_plan/<int:pk>", views.GenerateConceptPlan.as_view()),
+    # Project Doc Gen
     path(
         "generate_project_document/<int:pk>", views.BeginProjectDocGeneration.as_view()
     ),
     path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
+    # Annual Report Gen
+    path("reports/<int:pk>/generate_pdf", views.BeginReportDocGeneration.as_view()),
+    path(
+        "reports/<int:pk>/cancel_doc_gen",
+        views.CancelReportDocGeneration.as_view(),
+    ),
 ]

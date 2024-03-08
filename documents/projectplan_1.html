@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="rte_styles.css">
+    <link rel="stylesheet" href="C:\Users\jprin\Documents\GitHub\science-projects-service\documents\rte_styles.css">
+    <style>
+        @page {
+            @top-left {
+                border-bottom: 0.25pt solid #666;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                font-size: 10pt;
+                margin: 0 0 0.3cm 0;
+                padding: 0;
+                
+            }
+            @bottom-left {
+                border-top: 0.25pt solid #666;
+                content: string(doctitle);
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                font-size: 10pt;
+                margin: 1cm 0 0 0;
+                padding: 0;
+                
+            }
+            @bottom-right {
+                border-top: 0.25pt solid #666;
+                content: "Page " counter(page) " of " counter(pages);
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+                font-size: 10pt;
+                margin: 1cm 0 0 0;
+                padding: 0;
+            }
+        }
+        .footer-image {
+            bottom: 0;
+            left: 0;
+            display: block;
+            width: 200px; 
+            height: auto; 
+            margin-right: 5px; 
+        }
+
+        .header-text {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+            font-size: 10pt;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+
+
+
+<body style="max-width: 190mm;">
+  <div style="max-width: 190mm; border-radius: 0.25rem;">
+
+    <!-- DATE -->
+    <p style="
+    font-size: 12px; 
+    line-height: 12px; 
+    margin: 16px 0; 
+    text-align: center; 
+    ">
+        Project Plan 
+        
+        current as of 06th March, 2024 @ 02:44PM
+    </p>
+
+    
+
+   <!-- PROJECT TITLE -->
+   <h1 
+    style="
+    color: rgb(0, 102, 204);
+    font-size: 24px; 
+    font-weight: 400; 
+    text-align: center; 
+    padding: 0px; 
+    margin-top: 2.5rem; 
+    margin-bottom: 30px; 
+    margin-left: 0px; 
+    margin-right: 0px;
+    cursor: pointer;
+    "
+   > 
+   <h1 style="
+                color: rgb(0, 102, 204);
+                font-size: 24px; 
+                font-weight: 400; 
+                text-align: center; 
+                padding: 0px; 
+                margin-top: 2.5rem; 
+                margin-bottom: 30px; 
+                margin-left: 0px; 
+                margin-right: 0px;
+                cursor: pointer;
+            ">Orchid conservation and recovery</h1>
+    </h1>
+
+    <!-- PROJECT IMAGE -->
+    <div style="
+    width: 500px; 
+    height: 300px;
+    overflow: hidden; 
+    border-radius: 25px; 
+    margin: 0 auto;
+    position: relative;
+    ">
+        <img 
+            alt="Project Image" 
+            src="
+                C:\Users\jprin\Documents\GitHub\science-projects-service/files/projects/Cbuss.jpg
+            "
+            style="
+                display: block; 
+                outline: none; 
+                border: none; 
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            "
+        />
+    </div>
+    <!-- PROJECT TAG -->
+    <h1 style="
+    color: rgb(0, 0, 0); 
+    font-size: 14px; 
+    font-weight: 700; 
+    text-align: center; 
+    padding: 0px; margin-top: 50px; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+        CF-2018-60
+    </h1>
+
+    <!-- BUSINESS AREA -->
+    <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; text-align: center; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+        Kings Park Science
+    </h1>
+
+    <!-- TEAM -->
+    <h1 style="
+        color: rgb(0, 0, 0); 
+        font-size: 14px; 
+        font-weight: 700; 
+        text-align: center; 
+        text-wrap: balance;
+        padding: 0px; 
+        margin-top: 5rem; 
+        margin-left: 0px; 
+        margin-right: 0px;
+        "
+    >
+        Team
+    </h1>
+
+    <h1 style="
+        color: rgb(0, 0, 0); 
+        font-size: 14px; 
+        font-weight: 400; 
+        text-align: center;
+        text-wrap: balance;
+        padding: 0px; 
+        margin-top: 2.5rem; 
+        margin-bottom: 30px; 
+        margin-left: 0px; 
+        margin-right: 0px;
+    ">
+        Jason Stevens, Belinda Davis
+    </h1>
+
+    <!-- APPROVALS -->
+    <div style="width: 100%; margin-top: 3rem;">
+
+        <!-- PROJECT LEAD -->
+    
+        <div style="display: flex; align-items: center; justify-content: right;">
+            <p style="font-size: 12px; line-height: 24px; margin: 0px; color: rgb(0, 0, 0); font-weight: 700; text-align: right;">
+                Project Lead Approval
+            </p>
+            <div class="css-zov4ca" style="margin-left: 8px;">
+
+            
+                <!-- Green tick for true -->
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 30 30" version="1.1">
+                    <g id="surface1">
+                    <path style=" stroke:none;fill-rule:nonzero;fill:rgb(26.27451%,62.745098%,27.843137%);fill-opacity:1;" d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 "/>
+                    </g>
+                </svg>
+            
+            
+        </div>
+
+        </div>
+
+        <!-- BA LEAD -->
+        <div style="display: flex; align-items: center; justify-content: right;">
+            <p style="font-size: 12px; line-height: 24px; margin: 0px; color: rgb(0, 0, 0); font-weight: 700; text-align: right;">
+                Business Area Lead Approval
+            </p>
+            <div class="css-zov4ca" style="margin-left: 8px;">
+
+            
+                <!-- Green tick for true -->
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 30 30" version="1.1">
+                    <g id="surface1">
+                    <path style=" stroke:none;fill-rule:nonzero;fill:rgb(26.27451%,62.745098%,27.843137%);fill-opacity:1;" d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 "/>
+                    </g>
+                </svg>
+            
+            
+        </div>
+
+        </div>
+        <!-- DIRECTORATE -->
+  
+        <div style="display: flex; align-items: center; justify-content: right;">
+            <p style="font-size: 12px; line-height: 24px; margin: 0px; color: rgb(0, 0, 0); font-weight: 700; text-align: right;">
+                Directorate Approval
+            </p>
+            <div class="css-zov4ca" style="margin-left: 8px;">
+
+            
+                <!-- Green tick for true -->
+                <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="30px" height="30px" viewBox="0 0 30 30" version="1.1">
+                    <g id="surface1">
+                    <path style=" stroke:none;fill-rule:nonzero;fill:rgb(26.27451%,62.745098%,27.843137%);fill-opacity:1;" d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 "/>
+                    </g>
+                </svg>
+            
+            
+        </div>
+
+        </div>
+    </div>
+
+    
+
+<!-- Iterate over items in html_data_items dictionary -->
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Background:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Aims:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Expected Outcomes:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Knowledge Transfer:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Tasks and Milestones:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            References:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Methodology:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Number of Voucher Specimens:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Data Management:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Related Science Projects:
+        </h1>
+        <div style="text-align: left;">
+            <p></p>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            Consolidated Funds:
+        </h1>
+        <div style="text-align: left;">
+            <table class="table-light">                <colgroup>                    <col> <col> <col> <col>                </colgroup>                <tbody><tr><th class='table-cell-light table-cell-header-light>'Source</th><th class='table-cell-light table-cell-header-light>'Year 1</th><th class='table-cell-light table-cell-header-light>'Year 2</th><th class='table-cell-light table-cell-header-light>'Year 3</th></tr><tr><th class='table-cell-light table-cell-header-light>'FTE Scientist</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'FTE Technical</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Equipment</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Vehicle</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Travel</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Other</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Total</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr></tbody>            </table>
+        </div>
+    </div>
+
+    <div style="margin-top: 32px; margin-bottom: 32px; max-width: 190mm;">
+        <h1 style="color: rgb(0, 0, 0); font-size: 14px; font-weight: 700; padding: 0px; margin-top: 0.5rem; margin-bottom: 30px; margin-left: 0px; margin-right: 0px;">
+            External Funds:
+        </h1>
+        <div style="text-align: left;">
+            <table class="table-light">                <colgroup>                    <col> <col> <col> <col>                </colgroup>                <tbody><tr><th class='table-cell-light table-cell-header-light>'Source</th><th class='table-cell-light table-cell-header-light>'Year 1</th><th class='table-cell-light table-cell-header-light>'Year 2</th><th class='table-cell-light table-cell-header-light>'Year 3</th></tr><tr><th class='table-cell-light table-cell-header-light>'Salaries, Wages, Overtime</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Overheads</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Equipment</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Vehicle</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Travel</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Other</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr><tr><th class='table-cell-light table-cell-header-light>'Total</th><td class='table-cell-light>'</td><td class='table-cell-light>'</td><td class='table-cell-light>'</td></tr></tbody>            </table>
+        </div>
+    </div>
+
+
+
+<!-- VIEW PROJECT BUTTON -->
+<div style="text-align: right; margin-top: 32px; margin-bottom: 32px;">
+    <a href="http://127.0.0.1:3000/projects/1/project"
+        style="line-height: 100%; text-decoration: none; display: inline-block; max-width: 100%; background-color: rgb(0, 0, 0); border-radius: 0.25rem; color: rgb(255, 255, 255); font-size: 12px; font-weight: 600; text-decoration-line: none; text-align: center; padding-left: 1.25rem; padding-right: 1.25rem; padding-top: 0.75rem; padding-bottom: 0.75rem; padding: 12px 20px 12px 20px;"
+        target="_blank">
+        <span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%; mso-text-raise: 18" hidden>&nbsp;</i><![endif]--></span><span
+            style="max-width: 100%; display: inline-block; line-height: 120%; mso-padding-alt: 0px; mso-text-raise: 9px;">View
+            Project</span><span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%" hidden>&nbsp;</i><![endif]--></span>
+    </a>
+</div>
+
+</div>
+</body>
+</html>

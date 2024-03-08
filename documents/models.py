@@ -92,7 +92,7 @@ class AnnualReport(CommonModel):
     )
 
     def __str__(self) -> str:
-        return f"ARAR - {self.year}"
+        return f"(ID: {self.pk}) ARAR - {self.year}"
 
     class Meta:
         verbose_name = "Annual Report"

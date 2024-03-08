@@ -67,6 +67,7 @@ class AECEndorsementPDFAdmin(admin.ModelAdmin):
 @admin.register(AnnualReportPDF)
 class AnnualReportPDFAdmin(admin.ModelAdmin):
     list_display = [
+        "pk",
         "report",
         # "old_file",
         "file",

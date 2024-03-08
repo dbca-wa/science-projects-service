@@ -7,7 +7,7 @@ from django.db.models import UniqueConstraint
 
 
 class ProjectDocumentPDF(CommonModel):
-    
+
     file = models.FileField(upload_to="project_documents/", null=True, blank=True)
     document = models.OneToOneField(
         "documents.ProjectDocument",
@@ -138,7 +138,6 @@ class AECEndorsementPDF(CommonModel):  #  The latest pdf for a given annual repo
 
 # DONE
 class BusinessAreaPhoto(CommonModel):
-
     """
     Model Definition for BusinessArea Photos
     """

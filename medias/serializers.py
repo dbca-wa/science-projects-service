@@ -1,3 +1,4 @@
+import base64
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
@@ -147,6 +148,7 @@ class AnnualReportPDFCreateSerializer(ModelSerializer):
 
 class AnnualReportPDFSerializer(ModelSerializer):
     report = SerializerMethodField(read_only=True)
+    pdf_data = SerializerMethodField(read_only=True)
 
     class Meta:
         model = AnnualReportPDF
@@ -158,7 +160,16 @@ class AnnualReportPDFSerializer(ModelSerializer):
             return {
                 "id": report.id,
                 "year": report.year,
+                "pdf_generation_in_progress": report.pdf_generation_in_progress,
             }
+        return None
+
+    def get_pdf_data(self, obj):
+        if obj.file:
+            with open(obj.file.path, "rb") as file:
+                pdf_data = file.read()
+                return base64.b64encode(pdf_data).decode("utf-8")
+
         return None
 
 
