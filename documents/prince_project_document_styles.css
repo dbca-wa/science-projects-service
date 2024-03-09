@@ -50,6 +50,10 @@ th, td, tr {
     text-align: center; 
 }
 
+.project_document_title_link {
+    text-decoration: none;
+}
+
 .project_document_title_h1 {
     color: rgb(0, 102, 204);
     font-size: 28px; 
@@ -194,28 +198,39 @@ th, td, tr {
     break-before: page;
 }
 
+
+.project_document_section_data_container {
+    text-align: left;
+    margin-bottom: 50px;
+    margin-bottom: 50px;
+    page-break-inside: avoid; /* Avoid breaking inside the elements */
+
+}
+
+
+.project_document_section_data_container *
+{
+    font-size: 16px; 
+
+}
+
+.project_document_section_title_container {
+    page-break-inside: avoid; /* Prevent splitting the hr and title */
+}
+
 .project_document_section_h1_title {
     color: rgb(0, 0, 0); 
     font-size: 20px; 
     font-weight: 700; 
-    padding: 0px; 
-    margin-bottom: 20px; 
-    margin-left: 0px; 
-    margin-right: 0px;
 }
 
 .project_document_section_h1_title_hr {
     margin-bottom: 30px;
 }
 
-.project_document_section_data_container {
-    text-align: left;
-    margin-bottom: 50px;
-}
+.project_document_section_content_container {
+    page-break-before: auto; 
 
-.project_document_section_data_container *
-{
-    font-size: 16px; 
 }
 
 .project_document_view_project_container {

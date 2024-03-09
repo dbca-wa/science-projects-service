@@ -69,10 +69,13 @@
 
 
    <!-- PROJECT TITLE -->
+   <a 
+   class="project_document_title_link"
+   href="{{frontend_url}}/projects/{{ project_id }}/{{document_kind_url}}">
    <h1 class="project_document_title_h1">
    {{ project_title | safe }}
     </h1>
-
+    </a>
 
     <!-- PROJECT IMAGE -->
     <div class="project_document_project_image_container">
@@ -234,20 +237,24 @@
 <!-- Iterate over items in html_data_items dictionary -->
 <div class="project_document_data_container">
 {% for key, value in html_data_items.items %}
-<h1 class="project_document_section_h1_title">
-    {{ value.title }}
-        </h1>
-        <hr class="project_document_section_h1_title_hr">
 
         <div class="project_document_section_data_container">
-            {{ value.data | safe }}
+            <div class="project_document_section_title_container">
+                <h1 class="project_document_section_h1_title">
+                    {{ value.title }}
+                </h1>
+                <hr class="project_document_section_h1_title_hr">    
+            </div>
+            <div class="project_document_section_content_container">
+                {{ value.data | safe }}
+            </div>
         </div>
 {% endfor %}
 </div>
 
 
 <!-- VIEW PROJECT BUTTON -->
-<div style="text-align: right; margin-top: 32px; margin-bottom: 32px;">
+{% comment %} <div style="text-align: right; margin-top: 32px; margin-bottom: 32px;">
     <a href="{{frontend_url}}/projects/{{ project_id }}/{{document_kind_url}}"
         style="line-height: 100%; text-decoration: none; display: inline-block; max-width: 100%; background-color: rgb(0, 0, 0); border-radius: 0.25rem; color: rgb(255, 255, 255); font-size: 12px; font-weight: 600; text-decoration-line: none; text-align: center; padding-left: 1.25rem; padding-right: 1.25rem; padding-top: 0.75rem; padding-bottom: 0.75rem; padding: 12px 20px 12px 20px;"
         target="_blank">
@@ -255,7 +262,7 @@
             style="max-width: 100%; display: inline-block; line-height: 120%; mso-padding-alt: 0px; mso-text-raise: 9px;">View
             Project</span><span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%" hidden>&nbsp;</i><![endif]--></span>
     </a>
-</div>
+</div> {% endcomment %}
 
 </body>
 </html>

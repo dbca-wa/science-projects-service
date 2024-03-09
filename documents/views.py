@@ -121,6 +121,237 @@ from django.core.files.storage import default_storage
 
 # PDF GENERATION ===================================================
 
+class BeginReportDocGeneration(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = AnnualReport.objects.get(pk=pk)
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating a pdf for report with id {pk}"
+        )
+
+        report = self.go(pk=pk)
+
+        def set_report_generation_status(report, is_generating: bool):
+            report.pdf_generation_in_progress = is_generating
+            report.save()
+
+        set_report_generation_status(report=report, is_generating=True)
+
+        # Handle Generation
+                # Doc Wide Variables
+        rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        prince_css_path = os.path.join(settings.BASE_DIR, "documents", "prince_ar_document_styles.css")
+
+
+        # Used the received css file to populate the backend css file
+        css_content = req.data["css_content"]
+        print(css_content)
+        formatted_css = css_content.replace('\\r\\n', '\n').replace('\\"', '"').strip()
+        formatted_css = formatted_css.strip('"')
+        print(formatted_css)
+
+        if css_content:
+            with open(rte_css_path, "w") as saved_css_file:
+                saved_css_file.write(formatted_css)
+
+        dbca_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "BCSTransparent.png"
+        )
+        no_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "image_not_available.png"
+        )
+
+
+        # HTML content for the PDF
+        def get_formatted_datetime(now):
+            # Format the date and time
+            day_with_suffix = "{:02d}".format(now.day) + (
+                "th"
+                if 10 <= now.day % 100 <= 20
+                else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
+            )
+
+            formatted_datetime = now.strftime(f"{day_with_suffix} %B, %Y @ %I:%M%p")
+
+            return formatted_datetime
+
+        # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
+
+
+        cover_html_content = get_template("ar_cover.html").render(
+            {
+                # Styles & url
+                "rte_css_path": rte_css_path,
+                "prince_css_path": prince_css_path,
+                "dbca_image_path": dbca_image_path,
+                "no_image_path": no_image_path,
+                "server_url": (
+                    "http://127.0.0.1:8000"
+                    if settings.DEBUG == True
+                    else settings.SITE_URL
+                ),
+                "frontend_url": (
+                    "http://127.0.0.1:3000"
+                    if settings.DEBUG == True
+                    else settings.SITE_URL
+                ),
+                # Cover page
+                "base_url": settings.BASE_DIR,
+                "financial_year_string": f"FY {int(report.year-1)}-{int(report.year)}",
+            }
+        )
+        
+
+        # Specify the file path where you want to save the HTML file on the server
+        html_file_path = os.path.join(
+            settings.BASE_DIR,
+            "documents",
+            f'_Annual_Report_{report.pk}.html',
+        )
+        with open(html_file_path, "w", encoding="utf-8") as html_file:
+            html_file.write(cover_html_content)
+
+        # pdf_file_path = os.path.join(
+        #     settings.BASE_DIR,
+        #     "documents",
+        #     f'{document_type}_{doc_data["project_pk"]}.pdf',
+        # )
+
+        # Combine all stylesheet paths into a single string separated by commas
+        all_css_paths = ",".join([rte_css_path, prince_css_path])
+
+        p = subprocess.Popen(
+            ["prince", "-", f"--style={all_css_paths}"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        outs, errs = p.communicate(f"{cover_html_content}".encode("utf-8"))
+
+        if p.returncode:
+            # Handle `errs`.
+            print(p.returncode)
+
+        else:
+            pdf = outs
+            print("PDF is " + str(len(pdf)) + " bytes in size")
+            # with open(pdf_file_path, "wb") as pdf_file:
+            #     pdf_file.write(outs)
+            #     print(f"Saved pdf file to {pdf_file_path}")
+            
+            pdf_filename = f'_Annual_Report_{report.pk}.pdf'
+            file_content = ContentFile(pdf, name=pdf_filename)
+
+            set_report_generation_status(report=report, is_generating=False)
+
+            try:
+                # Update item if it exists
+                doc_pdf = AnnualReportPDF.objects.get(
+                    report=report,
+                )
+
+                ser = AnnualReportPDFSerializer(
+                    doc_pdf,
+                    data={
+                        "file": file_content,
+                    },
+                    partial=True,
+                )
+                if ser.is_valid():
+                    # Delete the previous file
+                    pdfs_file_path = doc_pdf.file.path
+                    default_storage.delete(pdfs_file_path)
+                    doc_pdf = ser.save()
+                    return Response(
+                        AnnualReportPDFSerializer(doc_pdf).data,
+                        status=HTTP_202_ACCEPTED,
+                    )
+
+                else:
+                    print("error on try ser")
+                    print(ser.errors)
+
+            except AnnualReportPDF.DoesNotExist:
+                # If the item doesn't exist, create a new one
+                ser = AnnualReportPDFSerializer(
+                    data={
+                        "file": file_content,
+                        "report": report.pk,
+                        "creator": req.user.pk,
+                    }
+                )
+                if ser.is_valid():
+                    doc_pdf = ser.save()
+                    return Response(
+                        AnnualReportPDFSerializer(doc_pdf).data,
+                        status=HTTP_201_CREATED,
+                    )
+                else:
+                    print("error on except ser")
+                    print(ser.errors)
+
+        return Response(
+            {"error": True},
+            status=HTTP_400_BAD_REQUEST,
+        )
+
+
+        # set_report_generation_status(report=report, is_generating=False)
+
+        return Response(
+            {"msg": "ok"},
+            HTTP_202_ACCEPTED,
+        )
+
+
+class CancelReportDocGeneration(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_main_doc(self, pk):
+        # Gets the primary document that the concept plan belongs to
+        try:
+            doc = AnnualReport.objects.filter(pk=pk).first()
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return doc
+
+    def post(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is canceling PDF GEN for Annual Report {pk}")
+        doc = self.get_main_doc(pk=pk)
+        # doc.pdf_generation_in_progress = False
+        # updated = doc.save()
+
+        ser = AnnualReportSerializer(
+            doc,
+            data={"pdf_generation_in_progress": False},
+            partial=True,
+        )
+        if ser.is_valid():
+            updated = ser.save()
+            ser = AnnualReportSerializer(updated)
+            settings.LOGGER.info(msg=f"Cancel Success")
+            return Response(
+                ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        else:
+            print(ser.errors)
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+
+
 
 class BeginProjectDocGeneration(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -174,7 +405,7 @@ class BeginProjectDocGeneration(APIView):
         return sr
 
     def post(self, req, pk):
-        settings.LOGGER.info(msg=f"Generating PDF")
+        settings.LOGGER.info(msg=f"Generating Project Doc PDF")
 
         print(req.data)
 
@@ -938,6 +1169,24 @@ class BeginProjectDocGeneration(APIView):
             settings.BASE_DIR, "documents", "image_not_available.png"
         )
 
+        # Get innerhtml of element
+        def get_inner_html(html_content, html_tag):
+            # Parse the HTML content using BeautifulSoup
+            soup = BeautifulSoup(html_content, 'html.parser')
+
+            # Find the element by its tag
+            element = soup.find(html_tag)
+
+            # Check if the element is found
+            if element:
+                # Get the inner HTML of the element
+                inner_html = str(element.decode_contents())
+
+                return inner_html
+            else:
+                return None
+
+
         # Begin
         doc.pdf_generation_in_progress = True
         doc.save()
@@ -966,7 +1215,7 @@ class BeginProjectDocGeneration(APIView):
                     "base_url": settings.BASE_DIR,
                     "current_date_time_string": get_formatted_datetime(doc_data["now"]),
                     "project_image_path": doc_data["project_image"],
-                    "project_title": doc_data["project_title"],
+                    "project_title": get_inner_html(doc_data["project_title"], 'h1'),
                     "project_tag": doc_data["document_tag"],
                     "business_area_name": doc_data["business_area_name"],
                     "project_status": doc_data["project_status"],
@@ -1050,7 +1299,7 @@ class BeginProjectDocGeneration(APIView):
                     "base_url": settings.BASE_DIR,
                     "current_date_time_string": get_formatted_datetime(doc_data["now"]),
                     "project_image_path": doc_data["project_image"],
-                    "project_title": doc_data["project_title"],
+                    "project_title": get_inner_html(doc_data["project_title"], 'h1'),
                     "project_tag": doc_data["document_tag"],
                     "business_area_name": doc_data["business_area_name"],
                     "project_status": doc_data["project_status"],
@@ -1154,7 +1403,7 @@ class BeginProjectDocGeneration(APIView):
                     "base_url": settings.BASE_DIR,
                     "current_date_time_string": get_formatted_datetime(doc_data["now"]),
                     "project_image_path": doc_data["project_image"],
-                    "project_title": doc_data["project_title"],
+                    "project_title": get_inner_html(doc_data["project_title"], 'h1'),
                     "project_tag": doc_data["document_tag"],
                     "business_area_name": doc_data["business_area_name"],
                     "project_status": doc_data["project_status"],
@@ -1219,7 +1468,7 @@ class BeginProjectDocGeneration(APIView):
                     "base_url": settings.BASE_DIR,
                     "current_date_time_string": get_formatted_datetime(doc_data["now"]),
                     "project_image_path": doc_data["project_image"],
-                    "project_title": doc_data["project_title"],
+                    "project_title": get_inner_html(doc_data["project_title"], 'h1'),
                     "project_tag": doc_data["document_tag"],
                     "business_area_name": doc_data["business_area_name"],
                     "project_status": doc_data["project_status"],
@@ -1267,7 +1516,7 @@ class BeginProjectDocGeneration(APIView):
                     "base_url": settings.BASE_DIR,
                     "current_date_time_string": get_formatted_datetime(doc_data["now"]),
                     "project_image_path": doc_data["project_image"],
-                    "project_title": doc_data["project_title"],
+                    "project_title": get_inner_html(doc_data["project_title"], 'h1'),
                     "project_tag": doc_data["document_tag"],
                     "business_area_name": doc_data["business_area_name"],
                     "project_status": doc_data["project_status"],
@@ -1424,38 +1673,6 @@ class BeginProjectDocGeneration(APIView):
         )
 
 
-
-class BeginReportDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def go(self, pk):
-        try:
-            obj = AnnualReport.objects.get(pk=pk)
-        except AnnualReport.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req, pk):
-        settings.LOGGER.info(
-            msg=f"{req.user} is generating a pdf for report with id {pk}"
-        )
-
-        report = self.go(pk=pk)
-
-        def set_report_generation_status(report, is_generating: bool):
-            report.pdf_generation_in_progress = is_generating
-            report.save()
-
-        set_report_generation_status(report=report, is_generating=True)
-
-        # set_report_generation_status(report=report, is_generating=False)
-
-        return Response(
-            {"msg": "ok"},
-            HTTP_202_ACCEPTED,
-        )
-
-
 class CancelProjectDocGeneration(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -1492,45 +1709,6 @@ class CancelProjectDocGeneration(APIView):
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
-
-class CancelReportDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_main_doc(self, pk):
-        # Gets the primary document that the concept plan belongs to
-        try:
-            doc = AnnualReport.objects.filter(pk=pk).first()
-        except AnnualReport.DoesNotExist:
-            raise NotFound
-        return doc
-
-    def post(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is canceling PDF GEN for Annual Report {pk}")
-        doc = self.get_main_doc(pk=pk)
-        # doc.pdf_generation_in_progress = False
-        # updated = doc.save()
-
-        ser = AnnualReportSerializer(
-            doc,
-            data={"pdf_generation_in_progress": False},
-            partial=True,
-        )
-        if ser.is_valid():
-            updated = ser.save()
-            ser = AnnualReportSerializer(updated)
-            settings.LOGGER.info(msg=f"Cancel Success")
-            return Response(
-                ser.data,
-                HTTP_202_ACCEPTED,
-            )
-        else:
-            print(ser.errors)
-            return Response(
-                ser.errors,
-                HTTP_400_BAD_REQUEST,
-            )
-
-
 
 
 class DownloadProjectDocument(APIView):
