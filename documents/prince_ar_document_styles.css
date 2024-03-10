@@ -36,6 +36,114 @@ th, td, tr {
 }
 
 
-
 /* ANNUAL REPORT COVER PAGE */
 
+.cover_title_container {
+
+}
+
+.cover_dept_text_1 {
+
+}
+
+.cover_dept_text_2 {
+
+}
+
+.cover_dept_text_3 {
+
+}
+
+.cover_year_text {
+
+}
+
+.cover_logo_container {
+
+}
+
+
+/* Doc Sections */
+.section_container {
+
+}
+
+.section_content_container {
+
+}
+
+.sds_chart_image_container {
+
+}
+
+.table_of_contents_container {
+
+}
+
+.directors_message_container {
+
+}
+
+
+
+/* Chapters */
+.chapter_container {
+
+}
+
+.chapter_title_container {
+
+}
+
+.chapter_image_container {
+
+}
+
+.chapter_image {
+
+}
+
+.chapter_title {
+
+}
+
+/* BA Progress Report Section */
+.ba_chapter_container {
+
+}
+.ba_chapter_title_container {
+
+}
+.ba_chapter_image_container {
+
+}
+.ba_chapter_image {
+
+}
+.ba_chapter_title {
+
+}
+.progress_report_container {
+
+}
+.progress_report_top_container {
+
+}
+.pr_img_container {
+
+}
+.pr_image {
+
+}
+.pr_title_container {
+
+}
+.pr_member_container {
+
+}
+.pr_member_string {
+
+}
+.progress_report_bottom_container {
+
+}

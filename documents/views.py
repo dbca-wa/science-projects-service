@@ -28,6 +28,7 @@ from config.helpers import get_encoded_image
 
 from medias.models import (
     AECEndorsementPDF,
+    AnnualReportMedia,
     AnnualReportPDF,
     ProjectDocumentPDF,
     ProjectPhoto,
@@ -61,6 +62,7 @@ from .serializers import (
     EndorsementSerializer,
     MiniAnnualReportSerializer,
     MiniEndorsementSerializer,
+    ProgressReportAnnualReportSerializer,
     ProgressReportCreateSerializer,
     ProgressReportSerializer,
     ProjectClosureCreationSerializer,
@@ -130,32 +132,204 @@ class BeginReportDocGeneration(APIView):
         except AnnualReport.DoesNotExist:
             raise NotFound
         return obj
+    
+    def get_ar_media(self, pk, kind):
+        try:
+            obj = AnnualReportMedia.objects.get(report=pk, kind=kind)
+        except AnnualReportMedia.DoesNotExist:
+            print(f"AR MEDIA OF TYPE {kind} DOES NOT EXIST FOR AR {pk}")
+            return None
+        return obj
+
+    def get_approved_reports_for_ar(self, report):
+        settings.LOGGER.info(msg=f"Getting Approved Student & Progress Reports for current year")
+        if report:
+            # print(report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            active_sr_docs = StudentReport.objects.filter(
+                report=report, project__status="active"
+            ).exclude(
+                Q(project__business_area__division__name__isnull=True)
+                | ~Q(
+                    project__business_area__division__name="Biodiversity and Conservation Science"
+                )
+            )
+
+            active_pr_docs = ProgressReport.objects.filter(
+                report=report, project__status="active"
+            ).exclude(
+                Q(project__business_area__division__name__isnull=True)
+                | ~Q(
+                    project__business_area__division__name="Biodiversity and Conservation Science"
+                )
+            )
+         
+         
+            sr_ser = StudentReportSerializer(
+                active_sr_docs, many=True,
+            )
+            pr_ser = ProgressReportAnnualReportSerializer(
+                active_pr_docs, many=True,
+            )
+
+            # print(active_pr_docs)
+            # print(active_sr_docs)
+            data_object = {
+                "student_reports": sr_ser.data,
+                "progress_reports": pr_ser.data,
+            }
+            # print(data_object)
+            return data_object
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
 
     def post(self, req, pk):
         settings.LOGGER.info(
             msg=f"{req.user} is generating a pdf for report with id {pk}"
         )
 
-        report = self.go(pk=pk)
 
         def set_report_generation_status(report, is_generating: bool):
             report.pdf_generation_in_progress = is_generating
             report.save()
 
+        # Fetch Data for the templates
+        report = self.go(pk=pk)
+        # Return if already generating for report
+        if report.pdf_generation_in_progress == True:
+            return Response({"error": "PDF Generation already in progress"},
+                            HTTP_400_BAD_REQUEST,)
         set_report_generation_status(report=report, is_generating=True)
+        start_time = time.time()
 
+        # Director's Message
+        directors_message_data = report.dm
+
+        # Publications
+        publications_data = report.publications
+
+        # Service Delivery Structure, ch img and chart
+        chart_image_obj = self.get_ar_media(pk=report.pk, kind="sdchart")
+        sds_chapter_image_obj = self.get_ar_media(pk=report.pk, kind="service_delivery")
+        sds_data = {
+            "intro": report.service_delivery_intro,
+            "chart": chart_image_obj.file.url if chart_image_obj else "",
+            "chapter_image": sds_chapter_image_obj.file.url if sds_chapter_image_obj else "",
+        }
+        # print(sds_data)
+
+        # Other Chapter Images & Covers
+        settings.LOGGER.info(msg=f"Fetching Annual Report Media...")
+        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
+        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
+
+        research_chapter_image = self.get_ar_media(pk=report.pk, kind="research")
+        partnerships_chapter_image = self.get_ar_media(pk=report.pk, kind="partnerships")
+        collaborations_chapter_image = self.get_ar_media(pk=report.pk, kind="collaborations")
+        student_projects_chapter_image = self.get_ar_media(pk=report.pk, kind="student_projects")
+        publications_chapter_image = self.get_ar_media(pk=report.pk, kind="publications")
+
+        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
+        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
+
+        research_chapter_image = research_chapter_image.file.url if research_chapter_image else ""
+        partnerships_chapter_image = partnerships_chapter_image.file.url if partnerships_chapter_image else ""
+        collaborations_chapter_image = collaborations_chapter_image.file.url if collaborations_chapter_image else ""
+        student_projects_chapter_image = student_projects_chapter_image.file.url if student_projects_chapter_image else ""
+        publications_chapter_image = publications_chapter_image.file.url if publications_chapter_image else ""
+
+        cover_chapter_image = cover_chapter_image.file.url if cover_chapter_image else ""
+        rear_cover_chapter_image = rear_cover_chapter_image.file.url if rear_cover_chapter_image else ""
+
+        # Participating Reports (Dict in format of student_reports, progress_reports)
+        participating_reports = self.get_approved_reports_for_ar(report=report)
+        # print(participating_reports["student_reports"])
+        # print(participating_reports["progress_reports"])
+        
+        # Business Areas with Participating Projects
+        bas = []
+        for pr in participating_reports["progress_reports"]:
+            document = pr["document"]
+            project = document["project"]
+            ba = project["business_area"]
+            bas.append(ba)
+        # print(bas)
+        # order alphabetically
+        sorted_bas = sorted(bas, key=lambda x: x["name"])
+        def get_user_full_name(pk):
+            try:
+                u = User.objects.get(pk=pk)
+            except User.DoesNotExist:
+                return ""
+            return f'{u.first_name} {u.last_name}'
+  
+        def get_distilled_title(html_string):
+            # Parse the HTML using BeautifulSoup
+            soup = BeautifulSoup(html_string, 'html.parser')
+
+            # Extract the text content
+            inner_text = soup.get_text(separator=" ", strip=True)
+
+            return inner_text
+            
+
+        sorted_ba_data = []
+        for ba in sorted_bas:
+            ba_object = {
+                "ba_name": ba["name"],
+                "ba_image": ba["image"] if ba["image"] else "",
+                "ba_leader": get_user_full_name(ba["leader"]),
+                "ba_focus": ba["focus"],
+                "progress_reports": sorted(
+                    [
+                        report
+                        for report in participating_reports["progress_reports"]
+                        if report["document"]["project"]["business_area"]["name"] == ba["name"]
+                    ],
+                    key=lambda x: get_distilled_title(x["document"]["project"]["title"])  # Sort by project name
+                ),
+            }
+            sorted_ba_data.append(ba_object)
+        # Prep sections for each ba with the relevant projects
+        # print(sorted_ba_data)
+  
+        sorted_srs = sorted(
+            [
+            report 
+            for report in participating_reports["student_reports"] 
+            if report["document"]["project"]
+
+            ],
+            key=lambda x: get_distilled_title(x["document"]["project"]["title"])
+        )
+
+        external_partnerships_table_data = []
+        #  Partners, Project Title, External Funding, Departmental Involvement (team)
+        # (Alphabetical)
+
+        student_projects_table_data = []
+        # DBCA Officer, Student - student (level), Academic, Project Title, Duration, Page
+        # (Alphabetical)
+
+        research_projects_table_data = []
+        # Use pre-existing data
+        # BA, DBCA Region, IBRA/IMCRA, NRM Region, Project Title, Page
+        # (Alphabetical BA Section & Project Title per section)
+         
         # Handle Generation
-                # Doc Wide Variables
         rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
         prince_css_path = os.path.join(settings.BASE_DIR, "documents", "prince_ar_document_styles.css")
 
 
         # Used the received css file to populate the backend css file
         css_content = req.data["css_content"]
-        print(css_content)
+        # print(css_content)
         formatted_css = css_content.replace('\\r\\n', '\n').replace('\\"', '"').strip()
         formatted_css = formatted_css.strip('"')
-        print(formatted_css)
+        # print(formatted_css)
 
         if css_content:
             with open(rte_css_path, "w") as saved_css_file:
@@ -172,7 +346,7 @@ class BeginReportDocGeneration(APIView):
         # HTML content for the PDF
         def get_formatted_datetime(now):
             # Format the date and time
-            day_with_suffix = "{:02d}".format(now.day) + (
+            day_with_suffix = "{}".format(now.day) + (
                 "th"
                 if 10 <= now.day % 100 <= 20
                 else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
@@ -182,10 +356,11 @@ class BeginReportDocGeneration(APIView):
 
             return formatted_datetime
 
+
         # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
 
-
-        cover_html_content = get_template("ar_cover.html").render(
+        settings.LOGGER.warn(msg=f"Annual Report Data Rendering to Template...")
+        html_content = get_template("annual_report.html").render(
             {
                 # Styles & url
                 "rte_css_path": rte_css_path,
@@ -202,9 +377,35 @@ class BeginReportDocGeneration(APIView):
                     if settings.DEBUG == True
                     else settings.SITE_URL
                 ),
-                # Cover page
                 "base_url": settings.BASE_DIR,
+                # Chapter Images
+                "cover_chapter_image": cover_chapter_image,
+                "rear_cover_chapter_image": rear_cover_chapter_image,
+                "research_chapter_image": research_chapter_image,
+                "partnerships_chapter_image": partnerships_chapter_image,
+                "collaborations_chapter_image": collaborations_chapter_image,
+                "student_projects_chapter_image": student_projects_chapter_image,
+                "publications_chapter_image": publications_chapter_image,
+                "generic_chapter_image_path": os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.png") if os.path.exists(os.path.join(settings.BASE_DIR, "documents", "chapter_image.png")) else "",
+                # Cover page
                 "financial_year_string": f"FY {int(report.year-1)}-{int(report.year)}",
+                # ED Message
+                "directors_message_data": directors_message_data,
+                # TABLE CONTENTS
+                # SDS
+                "sds_data": sds_data,
+                # BA & Progress Reports
+                "sorted_ba_data_and_pr_dict": sorted_ba_data,
+                # External Partnerships Table
+                "external_partnerships_table_data": external_partnerships_table_data,
+                # Student Report Table
+                "student_projects_table_data": student_projects_table_data,
+                # Student Reports
+                "sorted_student_report_array": sorted_srs,
+                # Publications and Reports
+                "publications_data": publications_data,
+                # Summary of Research Projects
+                "research_projects_table_data": research_projects_table_data,
             }
         )
         
@@ -216,7 +417,7 @@ class BeginReportDocGeneration(APIView):
             f'_Annual_Report_{report.pk}.html',
         )
         with open(html_file_path, "w", encoding="utf-8") as html_file:
-            html_file.write(cover_html_content)
+            html_file.write(html_content)
 
         # pdf_file_path = os.path.join(
         #     settings.BASE_DIR,
@@ -234,7 +435,7 @@ class BeginReportDocGeneration(APIView):
             stderr=subprocess.PIPE,
         )
 
-        outs, errs = p.communicate(f"{cover_html_content}".encode("utf-8"))
+        outs, errs = p.communicate(f"{html_content}".encode("utf-8"))
 
         if p.returncode:
             # Handle `errs`.
@@ -242,7 +443,6 @@ class BeginReportDocGeneration(APIView):
 
         else:
             pdf = outs
-            print("PDF is " + str(len(pdf)) + " bytes in size")
             # with open(pdf_file_path, "wb") as pdf_file:
             #     pdf_file.write(outs)
             #     print(f"Saved pdf file to {pdf_file_path}")
@@ -251,6 +451,12 @@ class BeginReportDocGeneration(APIView):
             file_content = ContentFile(pdf, name=pdf_filename)
 
             set_report_generation_status(report=report, is_generating=False)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            megabytes_size = len(pdf) / (1024 ** 2)
+            formatted_size = "{:.2f}".format(megabytes_size)
+            settings.LOGGER.info(msg=f"PDF is " + str(formatted_size) + " MB in size")
+            settings.LOGGER.info(msg=f"Annual Report PDF generated in {elapsed_time:.6f} seconds.")
 
             try:
                 # Update item if it exists
@@ -407,7 +613,7 @@ class BeginProjectDocGeneration(APIView):
     def post(self, req, pk):
         settings.LOGGER.info(msg=f"Generating Project Doc PDF")
 
-        print(req.data)
+        # print(req.data)
 
         doc = self.get_main_doc(pk=pk)
         document_type = doc.kind
@@ -451,7 +657,7 @@ class BeginProjectDocGeneration(APIView):
             soup.p.replace_with(h1_tag)
 
             # Return the modified HTML as a string
-            print(f"\n{str(soup)}")
+            # print(f"\n{str(soup)}")
             return str(soup)
 
         def get_project_team(project_pk):
@@ -585,18 +791,18 @@ class BeginProjectDocGeneration(APIView):
                     <tbody>{table_rows}</tbody>\
                 </table>'
 
-                print(f"\nTABLE RAW DATA: {table_data}\n\nTABLE REPLACED DATA: {replaced_data}")
+                # print(f"\nTABLE RAW DATA: {table_data}\n\nTABLE REPLACED DATA: {replaced_data}")
 
                 return replaced_data
 
 
-            print(f"DATA TO SOUP ({type(html_data)})", html_data,)
+            # print(f"DATA TO SOUP ({type(html_data)})", html_data,)
             if html_data is None:
                 return '<p></p>'
             if isinstance(html_data, str) and html_data.startswith("[[") and html_data.endswith("]]"):
                 # Convert the string to a list using eval and pass to the function
                 html_data = iterate_rows_in_json_table(eval(html_data))
-                print("NEW HTML DATA: ", html_data)
+                # print("NEW HTML DATA: ", html_data)
                 return html_data
             elif isinstance(html_data, str):
                 soup = BeautifulSoup(html_data, 'html.parser')
@@ -637,7 +843,7 @@ class BeginProjectDocGeneration(APIView):
 
         def get_formatted_datetime(now):
             # Format the date and time
-            day_with_suffix = "{:02d}".format(now.day) + (
+            day_with_suffix = "{}".format(now.day) + (
                 "th"
                 if 10 <= now.day % 100 <= 20
                 else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
@@ -646,6 +852,7 @@ class BeginProjectDocGeneration(APIView):
             formatted_datetime = now.strftime(f"{day_with_suffix} %B, %Y @ %I:%M%p")
 
             return formatted_datetime
+
 
         # Doc Data Get Funcs
         def return_proj_type_tag(document):
@@ -700,11 +907,12 @@ class BeginProjectDocGeneration(APIView):
                 }
 
             # If optional_arg is not provided, return 2 items
-            print(f"DOC KIND: {kind}\nDOC STRING: {kind_dict[kind]}")
+            # print(f"DOC KIND: {kind}\nDOC STRING: {kind_dict[kind]}")
             return kind_dict[kind]
 
         # Concept Plan
         def get_concept_plan_data():
+            print("Gettin CP DATA")
             concept_plan_data = self.get_concept_plan(pk=pk)
             # print(concept_plan_data)
             project_kind, project_kind_tag = return_proj_type_tag(
@@ -1153,10 +1361,10 @@ class BeginProjectDocGeneration(APIView):
 
         # Used the received css file to populate the backend css file
         css_content = req.data["css_content"]
-        print(css_content)
+        # print(css_content)
         formatted_css = css_content.replace('\\r\\n', '\n').replace('\\"', '"').strip()
         formatted_css = formatted_css.strip('"')
-        print(formatted_css)
+        # print(formatted_css)
 
         if css_content:
             with open(rte_css_path, "w") as saved_css_file:
@@ -3536,7 +3744,7 @@ class GetReportPDF(APIView):
         # pdf_data = ser.data.get('pdf_data')
         # Convert the serialized data to a dictionary
         serialized_data = json.loads(json.dumps(ser.data, cls=DjangoJSONEncoder))
-        print(serialized_data)
+        # print(serialized_data)
 
         # Include the PDF data in the serialized response
         serialized_data['pdf_data'] = ser.data.get('pdf_data')
