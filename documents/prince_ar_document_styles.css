@@ -33,39 +33,71 @@ th, td, tr {
 
 .page_body {
     max-width: 190mm;
+    margin: 0 auto; /* Center the content horizontally */
 }
 
 
 /* ANNUAL REPORT COVER PAGE */
 
 .cover_title_container {
-
+    margin-top: 120px;
+    text-align: center; /* Center the text horizontally */
 }
 
-.cover_dept_text_1 {
+.cover_dept_text_1,
+.cover_dept_text_2,
+.cover_dept_text_3,
+.cover_year_text {
+    margin: 0; /* Remove default paragraph margin */
+}
 
+
+.cover_dept_text_1 {
+    font-weight: 700;
+    font-size: 20px;
 }
 
 .cover_dept_text_2 {
-
+    font-weight: 900;
+    font-size: 35px;
 }
 
 .cover_dept_text_3 {
+    font-weight: 300;
+    font-size: 18px;
+    margin-top: 30px;
 
 }
 
 .cover_year_text {
-
+    font-weight: 700;
+    font-size: 22px;
+    margin-top: 30px;
 }
 
-.cover_logo_container {
 
+.cover_logo_container {
+    position: absolute;
+    bottom: 0;
+    left: 0; 
+    right: 0; 
+    padding: 20px;
+    text-align: center; /* Center the content horizontally */
+    -prince-float: bottom; 
+    -prince-float-reference: page;
+}
+
+.cover_logo {
+    width: 150mm;
+    height: auto; /* Maintain aspect ratio */
+    display: block; /* Remove any default inline spacing */
+    margin: 0 auto; /* Center the image horizontally */
 }
 
 
 /* Doc Sections */
 .section_container {
-
+    break-after: page;
 }
 
 .section_content_container {
