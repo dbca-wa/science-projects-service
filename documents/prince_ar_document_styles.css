@@ -37,6 +37,23 @@ th, td, tr {
 }
 
 
+p {
+    font-family: 'NimbusSanL-Regular', sans-serif; 
+}
+
+/* Italic p tags */
+p[style*="italic"] {
+  font-family: 'NimbusSanL-Italic', sans-serif; 
+  font-style: italic;
+}
+
+/* Bold p tags */
+p[style*="bold"] {
+  font-family: 'NimbusSanL-Bold', sans-serif;
+  font-weight: bold;
+}
+
+
 /* ANNUAL REPORT COVER PAGE */
 
 .cover_title_container {
@@ -95,9 +112,34 @@ th, td, tr {
 }
 
 
+/* Director's Message */
+.directors_message_section_title_container {
+    text-align: center;
+}
+
+
+.directors_message_section_title {
+    margin-top: 80px;
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'NimbusSanL-Bold', sans-serif; 
+    letter-spacing: 1px; 
+}
+
+
+.directors_message_container {
+    margin-top: 30px;
+    font-size: 12px;
+    text-align: justify;
+}
+
+.directors_message_container p {
+    text-indent: 20px;
+}
+
 /* Doc Sections */
 .section_container {
-    break-after: page;
+    break-before: page;
 }
 
 .section_content_container {
@@ -112,9 +154,6 @@ th, td, tr {
 
 }
 
-.directors_message_container {
-
-}
 
 
 

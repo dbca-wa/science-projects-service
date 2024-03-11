@@ -408,7 +408,11 @@ class BeginReportDocGeneration(APIView):
                 "research_projects_table_data": research_projects_table_data,
             }
         )
-        
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
+
 
         # Specify the file path where you want to save the HTML file on the server
         html_file_path = os.path.join(
