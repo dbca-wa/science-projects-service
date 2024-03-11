@@ -36,22 +36,85 @@ th, td, tr {
     margin: 0 auto; /* Center the content horizontally */
 }
 
+/* Doc Sections */
+.section_container {
+    break-before: page;
+}
 
-p {
+.section_content_container {
+
+}
+
+/* Chapters */
+
+.chapter_container {
+    width: 100%;
+}
+
+.chapter_title_container {
+    width: 100%;
+    height: 33vh;
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Ensure the title container is above the image */
+}
+
+.chapter_image_container {
+    width: 100%;
+    position: absolute;
+    height: 33vh;
+    z-index: 1;
+}
+
+.chapter_image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+.chapter_title_text_container {
+    width: 80%;
+    border: 3px solid #376294;
+    border-radius: 30px 0 0 30px;
+    border-right: none;
+    position: absolute; 
+    z-index: 2; 
+    bottom: 35px;
+    right: 0;
+    background-color: rgba(215,204,223, 0.7); 
+}
+
+.chapter_title_text {
+    width: 100%;
+    font-weight: 700;
+    font-family: 'NimbusSanL-Bold', sans-serif; 
+    font-size: 28px;
+    padding-left: 20px;
+    z-index: 2; 
+}
+
+
+* {
     font-family: 'NimbusSanL-Regular', sans-serif; 
 }
 
-/* Italic p tags */
-p[style*="italic"] {
-  font-family: 'NimbusSanL-Italic', sans-serif; 
-  font-style: italic;
+/* Italic elements */
+*[style*="italic"] {
+    font-family: 'NimbusSanL-Italic', sans-serif; 
+    font-style: italic;
 }
 
-/* Bold p tags */
-p[style*="bold"] {
-  font-family: 'NimbusSanL-Bold', sans-serif;
-  font-weight: bold;
+/* Bold elements */
+*[style*="bold"] {
+    font-family: 'NimbusSanL-Bold', sans-serif;
+    font-weight: bold;
 }
+
+
 
 
 /* ANNUAL REPORT COVER PAGE */
@@ -123,7 +186,7 @@ p[style*="bold"] {
     font-size: 28px;
     font-weight: 700;
     font-family: 'NimbusSanL-Bold', sans-serif; 
-    letter-spacing: 1px; 
+    /* letter-spacing: 1px;  */
 }
 
 
@@ -137,18 +200,24 @@ p[style*="bold"] {
     text-indent: 20px;
 }
 
-/* Doc Sections */
-.section_container {
-    break-before: page;
-}
 
-.section_content_container {
-
-}
-
+/* SDS Intro */
 .sds_chart_image_container {
-
+    height: 65vh;
+    margin-top: 10px;
 }
+
+.sds_chart_image {
+    height: 100%;
+}
+
+
+.sds_intro_container {
+    
+}
+
+
+
 
 .table_of_contents_container {
 
@@ -156,44 +225,11 @@ p[style*="bold"] {
 
 
 
-
-/* Chapters */
-.chapter_container {
-
-}
-
-.chapter_title_container {
-
-}
-
-.chapter_image_container {
-
-}
-
-.chapter_image {
-
-}
-
-.chapter_title {
-
-}
-
 /* BA Progress Report Section */
 .ba_chapter_container {
 
 }
-.ba_chapter_title_container {
 
-}
-.ba_chapter_image_container {
-
-}
-.ba_chapter_image {
-
-}
-.ba_chapter_title {
-
-}
 .progress_report_container {
 
 }

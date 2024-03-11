@@ -212,12 +212,14 @@ class BeginReportDocGeneration(APIView):
         publications_data = report.publications
 
         # Service Delivery Structure, ch img and chart
+
+        generic_chapter_image = os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.jpg") if os.path.exists(os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.jpg")) else ""
         chart_image_obj = self.get_ar_media(pk=report.pk, kind="sdchart")
         sds_chapter_image_obj = self.get_ar_media(pk=report.pk, kind="service_delivery")
         sds_data = {
             "intro": report.service_delivery_intro,
             "chart": chart_image_obj.file.url if chart_image_obj else "",
-            "chapter_image": sds_chapter_image_obj.file.url if sds_chapter_image_obj else "",
+            "chapter_image": sds_chapter_image_obj.file.url if sds_chapter_image_obj else generic_chapter_image,
         }
         # print(sds_data)
 
@@ -235,14 +237,14 @@ class BeginReportDocGeneration(APIView):
         cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
         rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
 
-        research_chapter_image = research_chapter_image.file.url if research_chapter_image else ""
-        partnerships_chapter_image = partnerships_chapter_image.file.url if partnerships_chapter_image else ""
-        collaborations_chapter_image = collaborations_chapter_image.file.url if collaborations_chapter_image else ""
-        student_projects_chapter_image = student_projects_chapter_image.file.url if student_projects_chapter_image else ""
-        publications_chapter_image = publications_chapter_image.file.url if publications_chapter_image else ""
+        research_chapter_image = research_chapter_image.file.url if research_chapter_image else generic_chapter_image
+        partnerships_chapter_image = partnerships_chapter_image.file.url if partnerships_chapter_image else generic_chapter_image
+        collaborations_chapter_image = collaborations_chapter_image.file.url if collaborations_chapter_image else generic_chapter_image
+        student_projects_chapter_image = student_projects_chapter_image.file.url if student_projects_chapter_image else generic_chapter_image
+        publications_chapter_image = publications_chapter_image.file.url if publications_chapter_image else generic_chapter_image
 
-        cover_chapter_image = cover_chapter_image.file.url if cover_chapter_image else ""
-        rear_cover_chapter_image = rear_cover_chapter_image.file.url if rear_cover_chapter_image else ""
+        cover_chapter_image = cover_chapter_image.file.url if cover_chapter_image else generic_chapter_image
+        rear_cover_chapter_image = rear_cover_chapter_image.file.url if rear_cover_chapter_image else generic_chapter_image
 
         # Participating Reports (Dict in format of student_reports, progress_reports)
         participating_reports = self.get_approved_reports_for_ar(report=report)
@@ -276,25 +278,49 @@ class BeginReportDocGeneration(APIView):
             return inner_text
             
 
+        # Create a dictionary to group progress reports by business area pk
+        progress_reports_by_ba = {}
+
+        # Group progress reports based on business area pk
+        for item in participating_reports["progress_reports"]:
+            ba_pk = item["document"]["project"]["business_area"]["pk"]
+            
+            if ba_pk not in progress_reports_by_ba:
+                progress_reports_by_ba[ba_pk] = []
+            
+            progress_reports_by_ba[ba_pk].append(item)
+
+
         sorted_ba_data = []
+        existing_ba_names = set()  # To keep track of existing ba_names
+
+        # For each business area
         for ba in sorted_bas:
-            ba_object = {
-                "ba_name": ba["name"],
-                "ba_image": ba["image"] if ba["image"] else "",
-                "ba_leader": get_user_full_name(ba["leader"]),
-                "ba_focus": ba["focus"],
-                "progress_reports": sorted(
-                    [
-                        report
-                        for report in participating_reports["progress_reports"]
-                        if report["document"]["project"]["business_area"]["name"] == ba["name"]
-                    ],
-                    key=lambda x: get_distilled_title(x["document"]["project"]["title"])  # Sort by project name
-                ),
-            }
-            sorted_ba_data.append(ba_object)
+            ba_name = ba["name"]
+            # Check if an object with the same ba_name already exists
+            if ba_name not in existing_ba_names:
+                # Create an object
+                ba_object = {
+                    "ba_name": ba_name,
+                    "ba_image": ba["image"] if ba["image"] else "",
+                    "ba_leader": get_user_full_name(ba["leader"]),
+                    "ba_focus": ba["focus"],
+                    # Prepare progress reports that match the business area's pk
+                    "progress_reports": sorted(
+                        progress_reports_by_ba.get(ba["pk"], []),
+                        key=lambda x: get_distilled_title(x["document"]["project"]["title"]),
+                    ),
+                }
+                # Append the new ba_object
+                sorted_ba_data.append(ba_object)
+
+                # Add the ba_name to the set of existing ba_names
+                existing_ba_names.add(ba_name)
         # Prep sections for each ba with the relevant projects
         # print(sorted_ba_data)
+            
+        for item in sorted_ba_data:
+            print(f"\n {item['ba_name']}\n{item['progress_reports'][0]['document']['project']['title']}")
   
         sorted_srs = sorted(
             [
@@ -386,7 +412,7 @@ class BeginReportDocGeneration(APIView):
                 "collaborations_chapter_image": collaborations_chapter_image,
                 "student_projects_chapter_image": student_projects_chapter_image,
                 "publications_chapter_image": publications_chapter_image,
-                "generic_chapter_image_path": os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.png") if os.path.exists(os.path.join(settings.BASE_DIR, "documents", "chapter_image.png")) else "",
+                "generic_chapter_image_path": generic_chapter_image,
                 # Cover page
                 "financial_year_string": f"FY {int(report.year-1)}-{int(report.year)}",
                 # ED Message
