@@ -304,7 +304,7 @@ class BeginReportDocGeneration(APIView):
                     "ba_name": ba_name,
                     "ba_image": ba["image"] if ba["image"] else "",
                     "ba_leader": get_user_full_name(ba["leader"]),
-                    "ba_focus": ba["focus"],
+                    "ba_introduction": ba["introduction"],
                     # Prepare progress reports that match the business area's pk
                     "progress_reports": sorted(
                         progress_reports_by_ba.get(ba["pk"], []),
@@ -389,7 +389,8 @@ class BeginReportDocGeneration(APIView):
         html_content = get_template("annual_report.html").render(
             {
                 # Styles & url
-                "rte_css_path": rte_css_path,
+                # "rte_css_path": rte_css_path,
+                "time_generated": get_formatted_datetime(datetime.datetime.now()),
                 "prince_css_path": prince_css_path,
                 "dbca_image_path": dbca_image_path,
                 "no_image_path": no_image_path,
@@ -432,6 +433,7 @@ class BeginReportDocGeneration(APIView):
                 "publications_data": publications_data,
                 # Summary of Research Projects
                 "research_projects_table_data": research_projects_table_data,
+                "population_time": f"{float(time.time() - start_time):.3f}",
             }
         )
 
@@ -446,6 +448,7 @@ class BeginReportDocGeneration(APIView):
             "documents",
             f'_Annual_Report_{report.pk}.html',
         )
+
         with open(html_file_path, "w", encoding="utf-8") as html_file:
             html_file.write(html_content)
 

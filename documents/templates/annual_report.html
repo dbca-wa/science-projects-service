@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{rte_css_path}}">
+    {% comment %} <link rel="stylesheet" href="{{rte_css_path}}"> {% endcomment %}
     <link rel="stylesheet" href="{{prince_css_path}}">
     <style>
         @page {
@@ -35,6 +35,12 @@
             }
         }
 
+        @page ba-animal-science {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
         .footer-image {
             bottom: 0;
             left: 0;
@@ -55,7 +61,8 @@
 
 <body class="page_body"> 
     <div class="prince_blocker">
-
+        <p>Generated {{time_generated}}</p>
+        <p>Template populated in {{population_time}} seconds</p>
     </div>
     {% comment %} COVER {% endcomment %}
     <div class="section_container">
@@ -141,6 +148,15 @@
                         <p class="chapter_title_text">{{ba.ba_name}}</p>
                     </div>
                 </div>
+
+                <div class="ba_lead_text_container">
+                    <span>
+                        <p class="ba_leader_text">Business Area Leader: {{ba.ba_leader}}</p>
+                        <div class="ba_introduction_text_container">
+                            {{ ba.ba_introduction|safe }}
+                        </div>
+                    </span>
+                </div>
     
                 <div class="section_content_container"> 
                     {% for report in ba.progress_reports %}
@@ -152,21 +168,35 @@
                                         src="{{server_url}}{{report.document.project.image.file}}"
                                     />
                                 </div>
-                                <div class="pr_title_container">
-                                    {{report.document.project.title | safe}}
-                                </div>
-                                <div class="pr_member_container">
-                                    <p class="pr_member_string">
-                                        {% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
-                                    </p>
+                                <div class="pr_rhs">
+                                    <div class="pr_title_container">
+                                        {{report.document.project.title | safe}}
+                                    </div>
+                                    <div class="project_tag_container">
+                                        <p class="project_tag_text">Tag: {% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
+                                    </div>
+                                    <div class="pr_member_container">
+                                        <p class="pr_member_string">Team: {% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="progress_report_bottom_container">
-                                {{report.context | safe}}
-                                {{report.aims | safe}}
-                                {{report.progress | safe}}
-                                {{report.implications | safe}}
-                                {{report.context | safe}}
+                                <div class="pr_subsection">
+                                    {{report.context | safe}}
+                                </div>
+                                <div class="pr_subsection">
+                                    {{report.aims | safe}}
+                                </div>
+                                <div class="pr_subsection">
+                                    {{report.progress | safe}}
+                                </div>
+                                <div class="pr_subsection">
+                                    {{report.implications | safe}}
+                                </div>
+                                <div class="pr_subsection">
+                                    {{report.context | safe}}
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -229,27 +259,32 @@
                                     src="{{server_url}}{{report.document.project.image.file}}"
                                 />
                             </div>
-                            <div class="pr_title_container">
-                                {{report.document.project.title | safe}}
-                            </div>
-                            <div class="project_tag_container">
-                                <p class="project_tag_text">{{project_tag}}</p>
-                            </div>
-                            <div class="pr_member_container">
-                                <p class="pr_member_string">
-                                    Scientist(s): {% for item in report.team_members %}{% if not item.role == "academicsuper" and not item.role == "student" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
-                                </p>
-                                <p class="pr_member_string">
-                                    Student: {% for item in report.team_members %}{% if item.role == "student" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
-                                </p>
-                                <p class="pr_member_string">
-                                    Academic(s): {% for item in report.team_members %}{% if item.role == "academicsuper" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
-                                </p>
-                                
+                            <div class="pr_rhs">
+                                <div class="pr_title_container">
+                                    {{report.document.project.title | safe}}
+                                </div>
+                                <div class="project_tag_container">
+                                    <p class="project_tag_text">{{project_tag}}</p>
+                                </div>
+                                <div class="pr_member_container">
+                                    <p class="pr_member_string">
+                                        Scientist(s): {% for item in report.team_members %}{% if not item.role == "academicsuper" and not item.role == "student" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
+                                    </p>
+                                    <p class="pr_member_string">
+                                        Student: {% for item in report.team_members %}{% if item.role == "student" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
+                                    </p>
+                                    <p class="pr_member_string">
+                                        Academic(s): {% for item in report.team_members %}{% if item.role == "academicsuper" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
+                                    </p>
+                                    
+                                </div>
+    
                             </div>
                         </div>
                         <div class="progress_report_bottom_container">
-                            {{report.progress_report | safe}}
+                            <div class="pr_subsection">
+                                {{report.progress_report | safe}}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
@@ -291,7 +326,7 @@
                 <p class="chapter_title">Summary of Research Projects</p>
             </div>
             <div class="section_content_container"> 
-                {{research_projects_table_data | safe}}
+                    {{research_projects_table_data | safe}}
             </div>
         </div>
 </body>
