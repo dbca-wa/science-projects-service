@@ -32,12 +32,14 @@ from medias.models import (
     AnnualReportPDF,
     ProjectDocumentPDF,
     ProjectPhoto,
+    ProjectPlanMethodologyPhoto,
 )
 from medias.serializers import (
     AECPDFCreateSerializer,
     AnnualReportPDFSerializer,
     ProjectDocumentPDFSerializer,
     TinyAnnualReportPDFSerializer,
+    TinyMethodologyImageSerializer,
     TinyProjectPhotoSerializer,
 )
 from users.models import User, UserWork
@@ -730,6 +732,13 @@ class BeginProjectDocGeneration(APIView):
             except ProjectPhoto.DoesNotExist:
                 return None
             return image
+        
+        def get_methodology_image(project_pk):
+            try:
+                image = ProjectPlanMethodologyPhoto.objects.get(project_plan__project=project_pk)
+            except ProjectPlanMethodologyPhoto.DoesNotExist:
+                return None
+            return image
 
         def extract_html_table_data(html_data):
             # Extract relevant information from HTML table data and convert it to a list of lists using BeautifulSoup
@@ -1054,6 +1063,16 @@ class BeginProjectDocGeneration(APIView):
             else:
                 project_image = ""
 
+            methodology_image_data = TinyMethodologyImageSerializer(
+                get_methodology_image(project_plan_data.project.pk)
+            ).data
+
+            if "file" in methodology_image_data:
+                methodology_image = methodology_image_data["file"]
+            else:
+                methodology_image = ""
+
+
             now = datetime.datetime.now()
 
             project_lead_approval_granted = (
@@ -1111,6 +1130,7 @@ class BeginProjectDocGeneration(APIView):
                 "business_area_name": business_area_name,
                 "project_team": tuple(project_team),
                 "project_image": project_image,
+                "methodology_image": methodology_image,
                 "now": now,
                 "project_lead_approval_granted": project_lead_approval_granted,
                 "business_area_lead_approval_granted": business_area_lead_approval_granted,
@@ -1517,7 +1537,7 @@ class BeginProjectDocGeneration(APIView):
 
         elif document_type == "projectplan":
             doc_data = get_project_plan_data()
-            print(doc_data)
+            # print(doc_data)
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
@@ -1555,6 +1575,7 @@ class BeginProjectDocGeneration(APIView):
                     "document_kind_string": doc_data["document_kind_string"],
                     "project_kind": doc_data["project_kind"],
                     "project_id": doc_data["project_pk"],
+                    "methodology_image": doc_data["methodology_image"],
                     "html_data_items": {
                         "background": {
                             "title": "Background",
@@ -1620,7 +1641,7 @@ class BeginProjectDocGeneration(APIView):
 
         elif document_type == "progressreport":
             doc_data = get_progress_report_data()
-            print(doc_data)
+            # print(doc_data)
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
@@ -1685,7 +1706,7 @@ class BeginProjectDocGeneration(APIView):
             )
         elif document_type == "studentreport":
             doc_data = get_student_report_data()
-            print(doc_data)
+            # print(doc_data)
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
@@ -1734,7 +1755,7 @@ class BeginProjectDocGeneration(APIView):
             )
         elif document_type == "projectclosure":
             doc_data = get_project_closure_data()
-            print(doc_data)
+            # print(doc_data)
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
@@ -1886,7 +1907,7 @@ class BeginProjectDocGeneration(APIView):
                     )
 
                 else:
-                    print("error on try ser")
+                    print("Error saving PDF (try ser invalid)")
                     print(ser.errors)
 
             except ProjectDocumentPDF.DoesNotExist:
@@ -1905,7 +1926,7 @@ class BeginProjectDocGeneration(APIView):
                         status=HTTP_201_CREATED,
                     )
                 else:
-                    print("error on except ser")
+                    print("Error saving PDF (except ser invalid)")
                     print(ser.errors)
 
         return Response(

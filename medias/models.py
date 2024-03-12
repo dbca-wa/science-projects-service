@@ -201,6 +201,33 @@ class ProjectPhoto(CommonModel):  # Includes student projects
         verbose_name_plural = "Project Images"
 
 
+class ProjectPlanMethodologyPhoto(CommonModel):  # Includes student projects
+    """
+    Model Definition for Project Plan Methodology Photos
+    """
+
+    file = models.ImageField(upload_to="methodology_images/", blank=True, null=True)
+    project_plan = models.OneToOneField(
+        "documents.ProjectPlan",
+        on_delete=models.CASCADE,
+        related_name="methodology_image",
+    )
+    uploader = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="methodology_photos_uploaded",
+    )
+
+    def __str__(self) -> str:
+        return f"Methodology Image File: {self.file}"
+
+    class Meta:
+        verbose_name = "Methodology Image File"
+        verbose_name_plural = "Methodology Image Files"
+
+
 #! DONE
 class AgencyImage(CommonModel):
     """

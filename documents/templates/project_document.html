@@ -247,10 +247,24 @@
             </div>
             <div class="project_document_section_content_container">
                 {{ value.data | safe }}
+
+                {% if value.title == "Methodology" and methodology_image and methodology_image != "" %}
+                    <div
+                        class="meth_image_container"
+                    >
+                        <img 
+                        class="meth_image"
+                        src="{{base_url}}{{methodology_image}}"
+                        alt="Methodology Image"
+                        />
+                    </div>
+                {% endif %}
             </div>
         </div>
 {% endfor %}
 </div>
+
+
 
 
 <!-- VIEW PROJECT BUTTON -->

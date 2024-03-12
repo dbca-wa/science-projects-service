@@ -13,6 +13,7 @@ from .models import (
     AnnualReportPDF,
     BusinessAreaPhoto,
     ProjectDocumentPDF,
+    ProjectPlanMethodologyPhoto,
     UserAvatar,
     AgencyImage,
     ProjectPhoto,
@@ -244,6 +245,37 @@ class TinyProjectPhotoSerializer(ModelSerializer):
             }
 
 
+class TinyMethodologyImageSerializer(ModelSerializer):
+    project_plan = SerializerMethodField(read_only=True)
+    uploader = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProjectPlanMethodologyPhoto
+        fields = [
+            "pk",
+            # "old_file",
+            "file",
+            "project_plan",
+            "uploader",
+        ]
+
+    def get_project_plan(self, obj):
+        project_plan = obj.project_plan
+        if project_plan:
+            return {
+                "id": project_plan.id,
+                # "title": project_plan.title,
+            }
+
+    def get_uploader(self, obj):
+        uploader = obj.uploader
+        if uploader:
+            return {
+                "id": uploader.id,
+                "username": uploader.username,
+            }
+
+
 class ProjectPhotoSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
     uploader = SerializerMethodField(read_only=True)
@@ -273,6 +305,37 @@ class ProjectPhotoSerializer(ModelSerializer):
     #     old_file = obj.old_file
     #     # if old_file:
     #     return old_file
+
+
+class MethodologyImageCreateSerializer(ModelSerializer):
+    class Meta:
+        model = ProjectPlanMethodologyPhoto
+        fields = "__all__"
+
+
+class MethodologyImageSerializer(ModelSerializer):
+    project_plan = SerializerMethodField(read_only=True)
+    uploader = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProjectPlanMethodologyPhoto
+        fields = "__all__"
+
+    def get_project_plan(self, obj):
+        project_plan = obj.project_plan
+        if project_plan:
+            return {
+                "id": project_plan.id,
+                # "title": project_plan.title,
+            }
+
+    def get_uploader(self, obj):
+        uploader = obj.uploader
+        if uploader:
+            return {
+                "id": uploader.id,
+                "username": uploader.username,
+            }
 
 
 class TinyAgencyPhotoSerializer(ModelSerializer):

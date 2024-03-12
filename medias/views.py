@@ -34,6 +34,7 @@ from .models import (
     BusinessAreaPhoto,
     ProjectDocumentPDF,
     ProjectPhoto,
+    ProjectPlanMethodologyPhoto,
     UserAvatar,
 )
 from .serializers import (
@@ -43,12 +44,15 @@ from .serializers import (
     AnnualReportPDFCreateSerializer,
     AnnualReportPDFSerializer,
     BusinessAreaPhotoSerializer,
+    MethodologyImageCreateSerializer,
+    MethodologyImageSerializer,
     ProjectDocumentPDFSerializer,
     ProjectPhotoSerializer,
     TinyAgencyPhotoSerializer,
     TinyAnnualReportMediaSerializer,
     TinyAnnualReportPDFSerializer,
     TinyBusinessAreaPhotoSerializer,
+    TinyMethodologyImageSerializer,
     TinyProjectPhotoSerializer,
     TinyUserAvatarSerializer,
     UserAvatarSerializer,
@@ -77,7 +81,7 @@ class ProjectDocPDFS(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting a project document pdf")   
+        settings.LOGGER.info(msg=f"{req.user} is posting a project document pdf")
         ser = ProjectDocumentPDFSerializer(
             data=req.data,
         )
@@ -88,7 +92,7 @@ class ProjectDocPDFS(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -113,7 +117,7 @@ class AnnualReportPDFs(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting an annual report pdf")   
+        settings.LOGGER.info(msg=f"{req.user} is posting an annual report pdf")
         file = req.FILES.get("file")
         report_id = req.data.get("report")
 
@@ -130,7 +134,7 @@ class AnnualReportPDFs(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.error(msg=f"{new_instance.errors}")   
+            settings.LOGGER.error(msg=f"{new_instance.errors}")
             return Response(
                 new_instance.errors,
                 HTTP_400_BAD_REQUEST,
@@ -160,7 +164,9 @@ class AnnualReportPDFDetail(APIView):
 
     def delete(self, req, pk):
         reportmedia = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting annual report media detail {reportmedia}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting annual report media detail {reportmedia}"
+        )
         reportmedia.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -168,7 +174,9 @@ class AnnualReportPDFDetail(APIView):
 
     def put(self, req, pk):
         reportmedia = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating annual report media detail {reportmedia}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating annual report media detail {reportmedia}"
+        )
         ser = AnnualReportPDFSerializer(
             reportmedia,
             data=req.data,
@@ -181,7 +189,7 @@ class AnnualReportPDFDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -204,7 +212,7 @@ class AnnualReportMedias(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting annual report media")   
+        settings.LOGGER.info(msg=f"{req.user} is posting annual report media")
         ser = AnnualReportMediaSerializer(
             data=req.data,
         )
@@ -215,7 +223,7 @@ class AnnualReportMedias(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -244,7 +252,9 @@ class AnnualReportMediaDetail(APIView):
 
     def delete(self, req, pk):
         reportmedia = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting annual report media detail {reportmedia}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting annual report media detail {reportmedia}"
+        )
         reportmedia.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
@@ -252,7 +262,9 @@ class AnnualReportMediaDetail(APIView):
 
     def put(self, req, pk):
         reportmedia = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating annual report media detail {reportmedia}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating annual report media detail {reportmedia}"
+        )
         ser = AnnualReportMediaSerializer(
             reportmedia,
             data=req.data,
@@ -265,14 +277,16 @@ class AnnualReportMediaDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
 
+
 class LatestReportMedia(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, req):
         def go():
             try:
@@ -282,9 +296,9 @@ class LatestReportMedia(APIView):
             except AnnualReportMedia.DoesNotExist:
                 raise NotFound
             except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")   
+                settings.LOGGER.error(msg=f"{e}")
                 raise e
-            
+
         this_reports_media = go()
         return Response(
             this_reports_media.data,
@@ -303,7 +317,7 @@ class AnnualReportMediaUpload(APIView):
             except AnnualReportMedia.DoesNotExist:
                 raise NotFound
             except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")   
+                settings.LOGGER.error(msg=f"{e}")
                 raise e
 
         this_reports_media = go(pk)
@@ -313,16 +327,17 @@ class AnnualReportMediaUpload(APIView):
         )
 
     def post(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is posting a report media upload")   
+        settings.LOGGER.info(msg=f"{req.user} is posting a report media upload")
+
         def get_report(pk):
             try:
                 report = get_object_or_404(AnnualReport, pk=pk)
                 return report
             except AnnualReport.DoesNotExist:
-                settings.LOGGER.error(msg=f"{e}")   
+                settings.LOGGER.error(msg=f"{e}")
                 raise NotFound
             except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")   
+                settings.LOGGER.error(msg=f"{e}")
                 raise e
 
         def get_image_of_section(section, report):
@@ -359,7 +374,7 @@ class AnnualReportMediaUpload(APIView):
                 ser = AnnualReportMediaSerializer(updated).data
                 return Response(ser, HTTP_201_CREATED)
             else:
-                settings.LOGGER.error(msg=f"{serializer.errors}")   
+                settings.LOGGER.error(msg=f"{serializer.errors}")
                 return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -374,7 +389,9 @@ class AnnualReportMediaDelete(APIView):
         return object
 
     def delete(self, req, pk, section):
-        settings.LOGGER.info(msg=f"{req.user} is deleting annual report media with pk {pk}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting annual report media with pk {pk}"
+        )
         object = self.go(pk, section)
         object.delete()
         return Response(
@@ -401,7 +418,7 @@ class BusinessAreaPhotos(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting a business area photo")   
+        settings.LOGGER.info(msg=f"{req.user} is posting a business area photo")
         ser = BusinessAreaPhotoSerializer(
             data=req.data,
         )
@@ -412,7 +429,7 @@ class BusinessAreaPhotos(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -441,11 +458,15 @@ class BusinessAreaPhotoDetail(APIView):
 
     def delete(self, req, pk):
         business_photo = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting a business area photo {business_photo}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting a business area photo {business_photo}"
+        )
 
         # Check if the user is an admin or the uploader of the photo
         if not (business_photo.uploader == req.user or req.user.is_superuser):
-            settings.LOGGER.warning(msg=f"{req.user} doesn't have permission to delete {business_photo}")   
+            settings.LOGGER.warning(
+                msg=f"{req.user} doesn't have permission to delete {business_photo}"
+            )
             raise PermissionDenied
 
         business_photo.delete()
@@ -455,11 +476,15 @@ class BusinessAreaPhotoDetail(APIView):
 
     def put(self, req, pk):
         business_photo = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating a business area photo {business_photo}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating a business area photo {business_photo}"
+        )
 
         # Check if the user is an admin or the uploader of the photo
         if not (business_photo.uploader == req.user or req.user.is_superuser):
-            settings.LOGGER.warning(msg=f"{req.user} deosn't have permission to update {business_photo}")   
+            settings.LOGGER.warning(
+                msg=f"{req.user} deosn't have permission to update {business_photo}"
+            )
             raise PermissionDenied
 
         ser = BusinessAreaPhotoSerializer(
@@ -474,7 +499,7 @@ class BusinessAreaPhotoDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -500,7 +525,7 @@ class ProjectPhotos(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting a project photo")   
+        settings.LOGGER.info(msg=f"{req.user} is posting a project photo")
         ser = ProjectPhotoSerializer(
             data=req.data,
         )
@@ -511,7 +536,7 @@ class ProjectPhotos(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.info(msg=f"{ser.errors}")      
+            settings.LOGGER.info(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -540,11 +565,15 @@ class ProjectPhotoDetail(APIView):
 
     def delete(self, req, pk):
         project_photo = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting project photo {project_photo}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting project photo {project_photo}"
+        )
 
         # Check if the user is an admin or the uploader of the photo
         if not (project_photo.uploader == req.user or req.user.is_superuser):
-            settings.LOGGER.warning(msg=f"{req.user} is not allowed to delete project photo {project_photo}")   
+            settings.LOGGER.warning(
+                msg=f"{req.user} is not allowed to delete project photo {project_photo}"
+            )
             raise PermissionDenied
 
         project_photo.delete()
@@ -554,11 +583,15 @@ class ProjectPhotoDetail(APIView):
 
     def put(self, req, pk):
         project_photo = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating project photo {project_photo}")   
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating project photo {project_photo}"
+        )
 
         # Check if the user is an admin or the uploader of the photo
         if not (project_photo.uploader == req.user or req.user.is_superuser):
-            settings.LOGGER.warning(msg=f"{req.user} is not allowed to update project photo {project_photo}")   
+            settings.LOGGER.warning(
+                msg=f"{req.user} is not allowed to update project photo {project_photo}"
+            )
             raise PermissionDenied
 
         ser = ProjectPhotoSerializer(
@@ -573,11 +606,121 @@ class ProjectPhotoDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class MethodologyPhotos(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        all = ProjectPlanMethodologyPhoto.objects.all()
+        ser = TinyMethodologyImageSerializer(
+            all,
+            many=True,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is uploading a newmethodology photo")
+
+        project_plan = req.data["pk"]
+        file = req.data["file"]
+
+        ser = MethodologyImageCreateSerializer(
+            data={
+                "project_plan": int(project_plan),
+                "file": file,
+                "uploader": req.user.pk,
+            },
+        )
+        if ser.is_valid():
+            ba_photo = ser.save()
+            return Response(
+                TinyMethodologyImageSerializer(ba_photo).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            settings.LOGGER.info(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+class MethodologyPhotoDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = ProjectPlanMethodologyPhoto.objects.get(project_plan=pk)
+        except ProjectPlanMethodologyPhoto.DoesNotExist:
+            return None
+        return obj
+
+    def get(self, req, pk):
+        obj = self.go(pk=pk)
+        ser = MethodologyImageSerializer(
+            obj,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def put(self, req, pk):
+        obj = self.go(pk=pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating methodology photo {obj}")
+
+        # Check if the user is an admin or the uploader of the photo
+        if not (obj.uploader == req.user or req.user.is_superuser):
+            settings.LOGGER.warning(
+                msg=f"{req.user} is not allowed to update methodology photo {obj}"
+            )
+            raise PermissionDenied
+
+        ser = MethodologyImageSerializer(
+            obj,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_photo = ser.save()
+            return Response(
+                TinyMethodologyImageSerializer(u_photo).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+    def delete(self, req, pk):
+        obj = self.go(pk=pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting methodology photo {obj}")
+
+        # Check if the user is an admin or the uploader of the photo
+        if not (obj.uploader == req.user or req.user.is_superuser):
+            settings.LOGGER.warning(
+                msg=f"{req.user} is not allowed to delete project photo {obj}"
+            )
+            raise PermissionDenied
+
+        obj.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
 
 
 # AGENCIES ==================================================================================================
@@ -599,7 +742,7 @@ class AgencyPhotos(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting an agency photo")   
+        settings.LOGGER.info(msg=f"{req.user} is posting an agency photo")
         ser = AgencyPhotoSerializer(
             data=req.data,
         )
@@ -611,7 +754,7 @@ class AgencyPhotos(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -640,11 +783,13 @@ class AgencyPhotoDetail(APIView):
 
     def delete(self, req, pk):
         agency_photo = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting agency photo {agency_photo}")   
+        settings.LOGGER.info(msg=f"{req.user} is deleting agency photo {agency_photo}")
 
         # Check if the user is an admin or the uploader of the photo
         if not (req.user.is_superuser):
-            settings.LOGGER.warning(msg=f"{req.user} cannot delete {agency_photo} as they are not a superuser")   
+            settings.LOGGER.warning(
+                msg=f"{req.user} cannot delete {agency_photo} as they are not a superuser"
+            )
             raise PermissionDenied
 
         agency_photo.delete()
@@ -654,11 +799,13 @@ class AgencyPhotoDetail(APIView):
 
     def put(self, req, pk):
         agency_photo = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating agency photo {agency_photo}")   
+        settings.LOGGER.info(msg=f"{req.user} is updating agency photo {agency_photo}")
 
         # Check if the user is an admin or the uploader of the photo
         if not (req.user.is_superuser):
-            settings.LOGGER.warning(msg=f"{req.user} cannot udpate {agency_photo} as they are not a superuser")   
+            settings.LOGGER.warning(
+                msg=f"{req.user} cannot udpate {agency_photo} as they are not a superuser"
+            )
             raise PermissionDenied
 
         ser = AgencyPhotoSerializer(
@@ -673,7 +820,7 @@ class AgencyPhotoDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -699,7 +846,7 @@ class UserAvatars(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting a user avatar")   
+        settings.LOGGER.info(msg=f"{req.user} is posting a user avatar")
         ser = UserAvatarSerializer(
             data=req.data,
         )
@@ -710,7 +857,7 @@ class UserAvatars(APIView):
                 status=HTTP_201_CREATED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 HTTP_400_BAD_REQUEST,
             )
@@ -739,11 +886,13 @@ class UserAvatarDetail(APIView):
 
     def delete(self, req, pk):
         user_avatar = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting user avatar {user_avatar}")   
+        settings.LOGGER.info(msg=f"{req.user} is deleting user avatar {user_avatar}")
 
         # Check if the user is an admin or the uploader of the photo
         if not (req.user.is_superuser or req.user == user_avatar.user):
-            settings.LOGGER.warning(msg=f"Permission denied as {req.user} is not superuser and isn't the avatar owner of {user_avatar}")   
+            settings.LOGGER.warning(
+                msg=f"Permission denied as {req.user} is not superuser and isn't the avatar owner of {user_avatar}"
+            )
             raise PermissionDenied
 
         user_avatar.delete()
@@ -753,11 +902,13 @@ class UserAvatarDetail(APIView):
 
     def put(self, req, pk):
         user_avatar = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating user avatar {user_avatar}")   
+        settings.LOGGER.info(msg=f"{req.user} is updating user avatar {user_avatar}")
 
         # Check if the user is an admin or the uploader of the photo
         if not (req.user.is_superuser or req.user == user_avatar.user):
-            settings.LOGGER.warning(msg=f"Permission denied as {req.user} is not superuser and isn't the avatar owner of {user_avatar}")   
+            settings.LOGGER.warning(
+                msg=f"Permission denied as {req.user} is not superuser and isn't the avatar owner of {user_avatar}"
+            )
             raise PermissionDenied
 
         ser = UserAvatarSerializer(
@@ -772,7 +923,7 @@ class UserAvatarDetail(APIView):
                 status=HTTP_202_ACCEPTED,
             )
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")   
+            settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,

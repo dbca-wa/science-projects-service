@@ -1,4 +1,4 @@
-from medias.models import ProjectDocumentPDF
+from medias.models import ProjectDocumentPDF, ProjectPlanMethodologyPhoto
 from projects.models import Project, ProjectMember
 from projects.serializers import (
     MiniProjectMemberSerializer,
@@ -25,6 +25,7 @@ from medias.serializers import (
     TinyAnnualReportMediaSerializer,
     AnnualReportMediaSerializer,
     TinyAnnualReportPDFSerializer,
+    TinyMethodologyImageSerializer,
 )
 
 from rest_framework import serializers
@@ -505,9 +506,18 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
     # endorsements = EndorsementSerializerForProjectPlanView(read_only=True)
 
     endorsements = serializers.SerializerMethodField(
-        read_only=True, source="documents.Endorsement"
+        read_only=True,
+        source="documents.Endorsement",
     )
     # project = TinyProjectSerializer(read_only=True)
+    methodology_image = serializers.SerializerMethodField(
+        read_only=True,
+        source="medias.ProjectPlanMethodologyPhoto",
+    )
+    # TinyMethodologyImageSerializer(
+    #     read_only=True,
+    #     source="medias.ProjectPlanMethodologyPhoto",
+    # )
 
     class Meta:
         model = ProjectPlan
@@ -519,6 +529,7 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
             "background",
             "project_tasks",
             "methodology",
+            "methodology_image",
             "aims",
             "outcome",
             "knowledge_transfer",
@@ -535,6 +546,15 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
         project_plan = obj
         endorsements = Endorsement.objects.get(project_plan=project_plan)
         return EndorsementSerializerForProjectPlanView(endorsements).data
+
+    def get_methodology_image(self, obj):
+        print(obj)
+        project_plan = obj
+        try:
+            image = ProjectPlanMethodologyPhoto.objects.get(project_plan=project_plan)
+        except ProjectPlanMethodologyPhoto.DoesNotExist:
+            return None
+        return TinyMethodologyImageSerializer(image).data
 
 
 class ProgressReportAnnualReportSerializer(serializers.ModelSerializer):

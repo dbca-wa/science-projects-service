@@ -16,6 +16,8 @@ urlpatterns = [
     path("business_area_photos/<int:pk>", views.BusinessAreaPhotoDetail.as_view()),
     path("project_photos", views.ProjectPhotos.as_view()),
     path("project_photos/<int:pk>", views.ProjectPhotoDetail.as_view()),
+    path("methodology_photos", views.MethodologyPhotos.as_view()),
+    path("methodology_photos/<int:pk>", views.MethodologyPhotoDetail.as_view()),
     path("agency_photos", views.AgencyPhotos.as_view()),
     path("agency_photos/<int:pk>", views.AgencyPhotoDetail.as_view()),
     path("user_avatars", views.UserAvatars.as_view()),

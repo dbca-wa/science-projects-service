@@ -2639,7 +2639,6 @@ class Loader:
                     f"{self.misc.bcolors.FAIL}Error while setting new ba leaders: {e}{self.misc.bcolors.ENDC}"
                 )
 
-
     def spms_create_users(self):
         self.misc.nls(
             f"{self.misc.bcolors.OKBLUE}Creating Base Users...{self.misc.bcolors.ENDC}"
@@ -7066,11 +7065,11 @@ class Loader:
                 ) VALUES (%s, %s, %s, %s, %s);
                 COMMIT;
             """
-# %s, %s, %s, %s, 
-#             bm_endorsement_required, 
-#                     bm_endorsement_provided,
-#                     hc_endorsement_required,
-#                     hc_endorsement_provided,
+            # %s, %s, %s, %s,
+            #             bm_endorsement_required,
+            #                     bm_endorsement_provided,
+            #                     hc_endorsement_required,
+            #                     hc_endorsement_provided,
             # Endorsement
 
             try:

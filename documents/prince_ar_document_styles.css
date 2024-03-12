@@ -69,9 +69,8 @@ ul li {
     position: relative;
     top: 0;
     left: 0;
-    z-index: 1; /* Ensure the title container is above the image */
+    z-index: 1; 
     margin: -2cm -2cm 2cm -2cm;
-
 }
 
 .chapter_image_container {

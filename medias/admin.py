@@ -8,6 +8,7 @@ from .models import (
     AgencyImage,
     ProjectDocumentPDF,
     AECEndorsementPDF,
+    ProjectPlanMethodologyPhoto,
 )
 
 from django import forms
@@ -111,6 +112,15 @@ class ProjectPhotoAdmin(admin.ModelAdmin):
     list_display = (
         "project",
         # "old_file",
+        "file",
+        "uploader",
+    )
+
+
+@admin.register(ProjectPlanMethodologyPhoto)
+class ProjectPlanMethodologyPhotoAdmin(admin.ModelAdmin):
+    list_display = (
+        "project_plan",
         "file",
         "uploader",
     )
