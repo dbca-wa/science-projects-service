@@ -1832,13 +1832,13 @@ class BeginProjectDocGeneration(APIView):
             )
 
         # Specify the file path where you want to save the HTML file on the server
-        html_file_path = os.path.join(
-            settings.BASE_DIR,
-            "documents",
-            f'{document_type}_{doc_data["project_pk"]}.html',
-        )
-        with open(html_file_path, "w", encoding="utf-8") as html_file:
-            html_file.write(html_content)
+        # html_file_path = os.path.join(
+        #     settings.BASE_DIR,
+        #     "documents",
+        #     f'{document_type}_{doc_data["project_pk"]}.html',
+        # )
+        # with open(html_file_path, "w", encoding="utf-8") as html_file:
+        #     html_file.write(html_content)
 
         # pdf_file_path = os.path.join(
         #     settings.BASE_DIR,

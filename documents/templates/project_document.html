@@ -246,8 +246,11 @@
                 <hr class="project_document_section_h1_title_hr">    
             </div>
             <div class="project_document_section_content_container">
+                {% if value.data %}
                 {{ value.data | safe }}
-
+                {% else %}
+                <p>None</p>
+                {% endif %}
                 {% if value.title == "Methodology" and methodology_image and methodology_image != "" %}
                     <div
                         class="meth_image_container"
