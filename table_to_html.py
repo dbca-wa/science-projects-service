@@ -5,56 +5,42 @@ from django.core.files.base import ContentFile
 
 
 non_html_data = {
-    "concept_staff_time_allocation": [
-        ["Role", "Year 1", "Year 2", "Year 3"],
-        ["Scientist", "", "", ""],
-        ["Technical", "", "", ""],
-        ["Volunteer", "", "", ""],
-        ["Collaborator", "", "", ""],
-    ],
-    "concept_budget": [
+    "concept_staff_time_allocation": """[
+        ["\n   \n  ","\n  Year 1\n  ","\n  Year 2\n  ","\n  Year 3\n  ","\n  Year 4\n  ","\n  Year 5\n  "],
+        ["\n  Senior Research Scientist (REV)\n  ","\n  0.5\n  ","\n  1\n  ","\n  1\n  ","\n  1\n  ","\n  0.5\n  "],
+        ["\n  Research Scientist (MMO)\n  ","\n  -\n  ","\n  0.1\n  ","\n  0.1\n  ","\n  0.1\n  ","\n  0.1\n  "],
+        ["\n  Technical Officer\n  ","\n  -\n  ","\n  0.1\n  ","\n  0.1\n  ","\n  0.1\n  ","\n  0.05\n  "],
+        ["","","","",null,null]
+    ]""",
+    "concept_budget": """[
         ["Source", "Year 1", "Year 2", "Year 3"],
-        ["Consolidated Funds (DPaW)", "", "", ""],
-        ["External Funding", "", "", ""],
-    ],
-    "project_plan_operating_budget": [
+        ["Consolidated Funds (DPaW)", "asdasdasd", "", "asdadasd"],
+        ["External Funding", "", "", "asdasdasdad"],
+    ]""",
+    "project_plan_operating_budget": """[
         ["Source", "Year 1", "Year 2", "Year 3"],
         ["FTE Scientist", "", "", ""],
-        ["FTE Technical", "", "", ""],
+        ["FTE Technical", "asdasdasd", "", ""],
         ["Equipment", "", "", ""],
         ["Vehicle", "", "", ""],
         ["Travel", "", "", ""],
         ["Other", "", "", ""],
-        ["Total", "", "", ""],
-    ],
-    "project_plan_external_budget": [
+        ["Total", "", "", "asdasdas"],
+    ]""",
+    "project_plan_external_budget": """[
         ["Source", "Year 1", "Year 2", "Year 3"],
         ["Salaries, Wages, OVertime", "", "", ""],
         ["Overheads", "", "", ""],
         ["Equipment", "", "", ""],
         ["Vehicle", "", "", ""],
-        ["Travel", "", "", ""],
+        ["Travel", "", "", "asdasdd"],
         ["Other", "", "", ""],
         ["Total", "", "", ""],
-    ],
+    ]""",
 }
 
 
 def iterate_rows_in_json_table(data_as_list):
-    # Desired Structure
-    #  <table class="table-dark">
-    #       <colgroup>
-    #         <col>
-    #         <col>
-    #         <col>
-    #         <col>
-    #         <col>
-    #       </colgroup>
-    #       <tbody>
-    #         ${tableRows}
-    #       </tbody>
-    #     </table>
-
     table_innards = []
 
     for row_index, row in enumerate(data_as_list):
@@ -80,14 +66,19 @@ def iterate_rows_in_json_table(data_as_list):
 
 
 def convert_to_html_table(data):
-    value = data[0]
-    if isinstance(data, str) and data.startswith("[[") and data.endswith("]]"):
-        table_data = eval(data)
-    elif isinstance(data, list):
-        pass
+    if isinstance(data, str) and data.startswith("[") and data.endswith("]"):
+        print("is string")
+
+        # Remove newline characters
+        cleaned_data = data.replace("\n", "")
+
+        # Replace null with None
+        cleaned_data = cleaned_data.replace("null", "None")
+        print(cleaned_data)
+        table_data = eval(cleaned_data)
     else:
         print(
-            "ERR: The data you passed does not start and end with [[]] either as a string or a list"
+            "\nERR: The data you passed does not start and end with [] or is not a string"
         )
         print(type(data), data)
         return ""
@@ -135,7 +126,7 @@ def create_prince_html_file(html_content):
 
 if __name__ == "__main__":
     html_for_prince = ""
-    for section in non_html_data:
-        table_html_data = convert_to_html_table(section)
+    for key, value in non_html_data.items():
+        table_html_data = convert_to_html_table(value)
         html_for_prince += table_html_data
     print(html_for_prince)

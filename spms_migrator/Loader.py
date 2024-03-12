@@ -6475,6 +6475,406 @@ class Loader:
         cursor.close()
         connection.close()
 
+    def iterate_rows_in_json_table(self, data_as_list):
+        table_innards = []
+
+        for row_index, row in enumerate(data_as_list):
+            row_contents = "".join(
+                [
+                    f"<{'th' if (row_index == 0 or col_index == 0) else 'td'} "
+                    + f"class='table-cell-light{' table-cell-header-light' if row_index == 0 or col_index == 0 else ''}'>"
+                    + f"{col}"
+                    + f"</{'th' if (row_index == 0 or col_index == 0) else 'td'}>"
+                    for col_index, col in enumerate(row)
+                ]
+            )
+            row_data = f"<tr>{row_contents}</tr>"
+            table_innards.append(row_data)
+
+        return_table = f'<table class="table-light">\
+            <colgroup>\
+                {" ".join("<col>" for _ in range(len(data_as_list[0])))}\
+            </colgroup>\
+            <tbody>{"".join(table_innards)}</tbody>\
+        </table>'
+        return return_table
+
+    def update_table_data(self, data, kind):
+        # assign data to none if empty list structure or html table version if in nested json like list
+        if (
+            data == None
+            or data
+            == '[["Role", "Year 1", "Year 2", "Year 3"], ["Scientist", "", "", ""], ["Technical", "", "", ""], ["Volunteer", "", "", ""], ["Collaborator", "", "", ""]]'
+            or data
+            == '[["Source", "Year 1", "Year 2", "Year 3"], ["Consolidated Funds (DPaW)", "", "", ""], ["External Funding", "", "", ""]]'
+            or data
+            == '[["Source", "Year 1", "Year 2", "Year 3"], ["FTE Scientist", "", "", ""], ["FTE Technical", "", "", ""], ["Equipment", "", "", ""], ["Vehicle", "", "", ""], ["Travel", "", "", ""], ["Other", "", "", ""], ["Total", "", "", ""]]'
+            or data
+            == '[["Source", "Year 1", "Year 2", "Year 3"], ["Salaries, Wages, OVertime", "", "", ""], ["Overheads", "", "", ""], ["Equipment", "", "", ""], ["Vehicle", "", "", ""], ["Travel", "", "", ""], ["Other", "", "", ""], ["Total", "", "", ""]]'
+        ):
+            data = None
+        else:
+            if isinstance(data, str) and data.startswith("[") and data.endswith("]"):
+                # Remove newline characters
+                cleaned_data = data.replace("\n", "")
+
+                # Replace null with None
+                cleaned_data = cleaned_data.replace("null", "None")
+
+                table_data = eval(cleaned_data)
+            else:
+                print(
+                    "ERR: The data you passed does not start and end with [] or isnt a string "
+                )
+                print(type(data), data)
+                return ""
+            html = self.iterate_rows_in_json_table(eval(f"{table_data}"))
+            # print(f"\nDATA: {data}\n")
+            # print(f"\nHTML: {html}\n")
+            return html
+
+        if data == None:
+            if kind == "pp_external_funds":
+                table_data = '<table class="table-light"> \
+            <colgroup> \
+                <col> \
+                <col> \
+                <col> \
+                <col> \
+            </colgroup> \
+            <tbody> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Source</span> \
+                    </p> \
+                </th> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Year 1</span> \
+                    </p> \
+                </th> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Year 2</span> \
+                    </p> \
+                </th> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Year 3</span> \
+                    </p> \
+                </th> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Salaries, Wages, OVertime</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Overheads</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Equipment</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Vehicle</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Travel</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Other</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Total</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+            </tbody> \
+        </table>'
+            elif kind == "pp_consolidated_funds":
+                table_data = '<table class="table-light"> \
+            <colgroup> \
+                <col> \
+                <col> \
+                <col> \
+                <col> \
+            </colgroup> \
+            <tbody> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Source</span> \
+                    </p> \
+                </th> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Year 1</span> \
+                    </p> \
+                </th> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Year 2</span> \
+                    </p> \
+                </th> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Year 3</span> \
+                    </p> \
+                </th> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">FTE Scientist</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">FTE Technical</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Equipment</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Vehicle</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Travel</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Other</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+                <tr> \
+                <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);"> \
+                    <p class="editor-p-light" dir="ltr"> \
+                    <span style="white-space: pre-wrap;">Total</span> \
+                    </p> \
+                </th> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td> \
+                </tr> \
+            </tbody> \
+        </table>'
+            elif kind == "cp_ste":
+                table_data = """
+                    <table class="table-light">
+                    <colgroup>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Role</span>
+                            </p>
+                        </th>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 1</span>
+                            </p>
+                        </th>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 2</span>
+                            </p>
+                        </th>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 3</span>
+                            </p>
+                        </th>
+                        </tr>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Scientist</span>
+                            </p>
+                        </th>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        </tr>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Technical</span>
+                            </p>
+                        </th>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        </tr>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Volunteer</span>
+                            </p>
+                        </th>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        </tr>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Collaborator</span>
+                            </p>
+                        </th>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        </tr>
+                    </tbody>
+                    </table>
+                    """
+            elif kind == "cp_operating_budget":
+                table_data = """
+                    <table class="table-light">
+                    <colgroup>
+                        <col>
+                        <col>
+                        <col>
+                        <col>
+                    </colgroup>
+                    <tbody>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Source</span>
+                            </p>
+                        </th>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 1</span>
+                            </p>
+                        </th>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 2</span>
+                            </p>
+                        </th>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 3</span>
+                            </p>
+                        </th>
+                        </tr>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Consolidated Funds (DPaW)</span>
+                            </p>
+                        </th>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        </tr>
+                        <tr>
+                        <th class="table-cell-light table-cell-header-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                            <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">External Funding</span>
+                            </p>
+                        </th>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        <td class="table-cell-light" style="width: 175px; border: 1px solid black; vertical-align: top; text-align: start;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                """
+
+        print(f"\DATA: {data}\n")
+        print(f"\nTABLE DATA: {table_data}\n")
+        return table_data
+
     def spms_concept_plan_setter(
         self,
         dataframe,
@@ -6674,16 +7074,25 @@ class Loader:
                     if self.pd.isna(concept_plan["strategic"])
                     else concept_plan["strategic"]
                 )
-                staff_time_allocation = (
-                    None
-                    if self.pd.isna(concept_plan["staff"])
-                    else concept_plan["staff"]
+                print("\nSETTIN STA\n")
+                staff_time_allocation = self.update_table_data(
+                    data=(
+                        None
+                        if self.pd.isna(concept_plan["staff"])
+                        else concept_plan["staff"]
+                    ),
+                    kind="cp_ste",
                 )
-                budget = (
-                    None
-                    if self.pd.isna(concept_plan["budget"])
-                    else concept_plan["budget"]
+                print("\nSETTIN BUDGET\n")
+                budget = self.update_table_data(
+                    data=(
+                        None
+                        if self.pd.isna(concept_plan["budget"])
+                        else concept_plan["budget"]
+                    ),
+                    kind="cp_operating_budget",
                 )
+                print("\nEXECUTING\n")
 
                 cursor.execute(
                     concept_plan_sql,
@@ -6707,7 +7116,9 @@ class Loader:
                 print(outcome)
                 print(collaborations)
                 print(strategic_context)
+                print(concept_plan["staff"])
                 print(staff_time_allocation)
+                print(concept_plan["budget"])
                 print(budget)
                 self.misc.nli(
                     f"{self.misc.bcolors.FAIL}Error creating Concept Plan Details (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
@@ -6971,16 +7382,22 @@ class Loader:
                     else project_plan["methodology"]
                 )
 
-                operating_budget = (
-                    None
-                    if self.pd.isna(project_plan["operating_budget"])
-                    else project_plan["operating_budget"]
+                operating_budget = self.update_table_data(
+                    data=(
+                        None
+                        if self.pd.isna(project_plan["operating_budget"])
+                        else project_plan["operating_budget"]
+                    ),
+                    kind="pp_consolidated_funds",
                 )
 
-                operating_budget_external = (
-                    None
-                    if self.pd.isna(project_plan["operating_budget_external"])
-                    else project_plan["operating_budget_external"]
+                operating_budget_external = self.update_table_data(
+                    data=(
+                        None
+                        if self.pd.isna(project_plan["operating_budget_external"])
+                        else project_plan["operating_budget_external"]
+                    ),
+                    kind="pp_external_funds",
                 )
 
                 related_projects = (
