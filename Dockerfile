@@ -27,9 +27,9 @@ RUN echo "Downloading Prince Package" \
     && DEB_FILE=prince.deb \
     && wget -O ${DEB_FILE} \
     # Latest version that suits Python image
-    https://www.princexml.com/download/prince-books_20220701-1_debian11_amd64.deb
-# https://www.princexml.com/download/prince-books_20220701-1_ubuntu22.04_amd64.deb
-# https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
+    # https://www.princexml.com/download/prince-books_20220701-1_debian11_amd64.deb
+    # https://www.princexml.com/download/prince-books_20220701-1_ubuntu22.04_amd64.deb
+    https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
 # https://www.princexml.com/download/prince_15.3-1_ubuntu22.04_amd64.deb
 
 RUN echo "Installing Prince stuff" \
