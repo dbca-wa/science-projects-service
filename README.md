@@ -1,6 +1,3 @@
 The Django-based backend for the science projects app.
 
-
-Running locally:
-- poetry shell
-- python manage.py runserver
+Based on original SPMS by Florian Mayer https://github.com/dbca-wa/sdis
