@@ -949,7 +949,7 @@ class BeginProjectDocGeneration(APIView):
                 # print("SOUP:", soup)
                 return str(soup)
 
-        def replace_dark_with_light(html_string):
+        def replace_dark_with_light_style(html_string):
             if html_string != None:
                 # Replace 'dark' with 'light' in class attributes
                 modified_html = re.sub(
@@ -969,7 +969,7 @@ class BeginProjectDocGeneration(APIView):
                 return html_string
 
         def apply_styling(html_string):
-            html_string = replace_dark_with_light(html_string=html_string)
+            html_string = replace_dark_with_light_style(html_string=html_string)
             html_string = replace_table_in_html_string(html_string)
             return html_string
 

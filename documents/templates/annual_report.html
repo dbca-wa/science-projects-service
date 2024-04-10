@@ -173,29 +173,46 @@
                                         {{report.document.project.title | safe}}
                                     </div>
                                     <div class="project_tag_container">
-                                        <p class="project_tag_text">Tag: {% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
+                                        <p class="project_text_section_title">Tag:</p>
+                                        <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                     </div>
                                     <div class="pr_member_container">
-                                        <p class="pr_member_string">Team: {% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
+                                        <p class="project_text_section_title">Team:</p>
+                                        <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                             <div class="progress_report_bottom_container">
                                 <div class="pr_subsection">
-                                    {{report.context | safe}}
+                                    <p class="pr_subsection_title">Context</p>
+                                    <div class="pr_subsection_content_container">
+                                        {{report.context | safe}}
+                                    </div>
                                 </div>
                                 <div class="pr_subsection">
+                                    <p class="pr_subsection_title">Aims</p>
+                                    <div class="pr_subsection_content_container">
                                     {{report.aims | safe}}
+                                    </div>
                                 </div>
                                 <div class="pr_subsection">
+                                    <p class="pr_subsection_title">Progress</p>
+                                    <div class="pr_subsection_content_container">
                                     {{report.progress | safe}}
+                                    </div>
                                 </div>
                                 <div class="pr_subsection">
+                                    <p class="pr_subsection_title">Implications</p>
+                                    <div class="pr_subsection_content_container">
                                     {{report.implications | safe}}
+                                    </div>
                                 </div>
                                 <div class="pr_subsection">
-                                    {{report.context | safe}}
+                                    <p class="pr_subsection_title">Future Directions</p>
+                                    <div class="pr_subsection_content_container">
+                                        {{report.future | safe}}
+                                    </div>
                                 </div>
                             </div>
                         </div>
