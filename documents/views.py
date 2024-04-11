@@ -593,6 +593,7 @@ class BeginReportDocGeneration(APIView):
                     print("error on except ser")
                     print(ser.errors)
 
+        set_report_generation_status(report=report, is_generating=False)
         return Response(
             {"error": True},
             status=HTTP_400_BAD_REQUEST,

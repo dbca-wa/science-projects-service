@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -91,6 +93,7 @@
     {% comment %} TABLE OF CONTENTS {% endcomment %}
     <div class="section_container">
         <div class="table_of_contents_container">
+                <p class="directors_message_section_title">Contents</p>
             {% comment %} PRINCE GEN {% endcomment %}
         </div>
     </div> 
@@ -162,13 +165,18 @@
                     {% for report in ba.progress_reports %}
                         <div class="progress_report_container">
                             <div class="progress_report_top_container">
-                                <div class="pr_img_container">
+                                {% if not forloop.counter|divisibleby:2 %}
+
+                                <div class="pr_img_container_lhs">
                                     <img class="pr_image"
                                         alt="{{report.document.project.title}} Image"
                                         src="{{server_url}}{{report.document.project.image.file}}"
                                     />
                                 </div>
-                                <div class="pr_rhs">
+                                <div class="pr_data_rhs">
+                                {% else %}
+                                    <div class="pr_data_lhs">
+                                {% endif %}
                                     <div class="pr_title_container">
                                         {{report.document.project.title | safe}}
                                     </div>
@@ -182,6 +190,15 @@
                                         </p>
                                     </div>
                                 </div>
+                                {% if forloop.counter|divisibleby:2 %}
+                                    <div class="pr_img_container_lhs">
+                                        <img class="pr_image"
+                                            alt="{{report.document.project.title}} Image"
+                                            src="{{server_url}}{{report.document.project.image.file}}"
+                                        />
+                                    </div>
+                                {% endif %}
+                
                             </div>
                             <div class="progress_report_bottom_container">
                                 <div class="pr_subsection">
@@ -191,9 +208,9 @@
                                     </div>
                                 </div>
                                 <div class="pr_subsection">
-                                    <p class="pr_subsection_title">Aims</p>
                                     <div class="pr_subsection_content_container">
-                                    {{report.aims | safe}}
+                                        <p class="pr_subsection_title">Aims</p>
+                                        {{report.aims | safe}}
                                     </div>
                                 </div>
                                 <div class="pr_subsection">
@@ -226,16 +243,21 @@
     {% comment %} EXTERNAL PARTNERSHIPS CHAPTER{% endcomment %}
     <div class="section_container">
         <div class="chapter_container">
+
+
             <div class="chapter_title_container">
                 <div class="chapter_image_container">
                     <img 
                         class="chapter_image"
-                        alt="External Partnerships Image" 
-                        src="{{generic_chapter_image_path}}"
+                        alt="Service Delivery Structure Chapter Image" 
+                        src="{{sds_data.chapter_image}}"
                     />
                 </div>
-                <p class="chapter_title">External Partnerships</p>
+                <div class="chapter_title_text_container">
+                    <p class="chapter_title_text">External Partnerships</p>
+                </div>
             </div>
+
             <div class="section_content_container"> 
                 {{external_partnerships_table_data | safe}}
             </div>
@@ -245,6 +267,7 @@
     {% comment %} STUDENT PROJECTS CHAPTER (TABLE) {% endcomment %}
     <div class="section_container">
         <div class="chapter_container">
+
             <div class="chapter_title_container">
                 <div class="chapter_image_container">
                     <img 
@@ -253,7 +276,9 @@
                         src="{{generic_chapter_image_path}}"
                     />
                 </div>
-                <p class="chapter_title">Student Projects</p>
+                <div class="chapter_title_text_container">
+                    <p class="chapter_title_text">Student Projects</p>
+                </div>
             </div>
             <div class="section_content_container"> 
                 {{student_projects_table_data | safe}}
@@ -266,34 +291,61 @@
     {% comment %} STUDENT REPORTS CHAPTER {% endcomment %}
     <div class="section_container">
         <div class="ba_chapter_container">
+            <div class="chapter_title_container">
+                <div class="chapter_image_container">
+                    <img 
+                        class="chapter_image"
+                        alt="Student Project Reports" 
+                        src="{{generic_chapter_image_path}}"
+                    />
+                </div>
+                <div class="chapter_title_text_container">
+                    <p class="chapter_title_text">Student Project Reports</p>
+                </div>
+            </div>
             <div class="section_content_container"> 
                 {% for report in sorted_student_report_array %}
                     <div class="progress_report_container">
                         <div class="progress_report_top_container">
-                            <div class="pr_img_container">
+                            <div class="pr_img_container_lhs">
                                 <img class="pr_image"
                                     alt="{{report.document.project.title}} Image"
                                     src="{{server_url}}{{report.document.project.image.file}}"
                                 />
                             </div>
-                            <div class="pr_rhs">
+                            <div class="pr_data_rhs">
                                 <div class="pr_title_container">
                                     {{report.document.project.title | safe}}
                                 </div>
                                 <div class="project_tag_container">
-                                    <p class="project_tag_text">{{project_tag}}</p>
+                                    <p class="project_text_section_title">Tag:</p>
+                                    <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                 </div>
-                                <div class="pr_member_container">
+
+                                <div class="student_pr_member_container">
+                        
+                                    <p class="project_text_section_title">Student:</p>
                                     <p class="pr_member_string">
-                                        Scientist(s): {% for item in report.team_members %}{% if not item.role == "academicsuper" and not item.role == "student" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
+                                        {% with students=report.team_members|filter_by_role:"student" %}
+                                            {% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}
+                                        {% endwith %}
                                     </p>
+                                </div>
+                                <div class="student_pr_member_container">
+                                    <p class="project_text_section_title">Academic(s):</p>
                                     <p class="pr_member_string">
-                                        Student: {% for item in report.team_members %}{% if item.role == "student" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
+                                        {% with academics=report.team_members|filter_by_role:"academicsuper" %}
+                                            {% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}
+                                        {% endwith %}
                                     </p>
+                                </div>
+                                <div class="student_pr_member_container">
+                                    <p class="project_text_section_title">Scientist(s):</p>
                                     <p class="pr_member_string">
-                                        Academic(s): {% for item in report.team_members %}{% if item.role == "academicsuper" %}{% if not forloop.first %}, {% endif %}{{item.user.first_name}} {{item.user.last_name}}{% endif %}{% endfor %}
+                                        {% with scientists=report.team_members|get_scientists %}
+                                            {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}
+                                        {% endwith %}
                                     </p>
-                                    
                                 </div>
     
                             </div>
@@ -312,6 +364,7 @@
     {% comment %} PUBLICATIONS CHAPTER {% endcomment %}
     <div class="section_container">
         <div class="chapter_container">
+
             <div class="chapter_title_container">
                 <div class="chapter_image_container">
                     <img 
@@ -320,7 +373,9 @@
                         src="{{generic_chapter_image_path}}"
                     />
                 </div>
-                <p class="chapter_title">Publications</p>
+                <div class="chapter_title_text_container">
+                    <p class="chapter_title_text">Publications</p>
+                </div>
             </div>
             <div class="section_content_container"> 
                 {{publications_data | safe}}
@@ -340,7 +395,9 @@
                         src="{{generic_chapter_image_path}}"
                     />
                 </div>
-                <p class="chapter_title">Summary of Research Projects</p>
+                <div class="chapter_title_text_container">
+                    <p class="chapter_title_text">Summary of Research Projects</p>
+                </div>
             </div>
             <div class="section_content_container"> 
                     {{research_projects_table_data | safe}}
