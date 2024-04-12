@@ -8,40 +8,253 @@
     <link rel="stylesheet" href="{{prince_css_path}}">
     <style>
         @page {
-            @top-left {
-                border-bottom: 0.25pt solid #666;
-                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-size: 10pt;
-                margin: 0 0 0.3cm 0;
-                padding: 0;
+            @top-left {padding: 0;
+                margin-top: 1cm;
+            }
 
+            @top-right {
+                padding: 0;
+                margin-top: 1cm;
             }
 
             @bottom-left {
-                border-top: 0.25pt solid #666;
-                content: string(doctitle);
-                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-size: 10pt;
-                margin: 1cm 0 0 0;
                 padding: 0;
-
+                margin-bottom: 1cm;
             }
 
             @bottom-right {
-                border-top: 0.25pt solid #666;
-                content: "Page " counter(page) " of " counter(pages);
-                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-size: 10pt;
-                margin: 1cm 0 0 0;
                 padding: 0;
+                margin-bottom: 1cm;
+            }
+
+            border-bottom: 0.25pt solid #666;
+            margin-bottom: 2cm;
+            padding-bottom: 0.6cm;
+
+            border-top: 0.25pt solid #666;
+            margin-top: 2cm;            
+        }
+        {% comment %} content: string(doctitle);
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+        font-size: 10pt; {% endcomment %}
+
+        {% comment %} PRINCE PAGE BLOCK {% endcomment %}
+        @page prince {
+            @bottom-right {
+                content: normal
+            }
+            @bottom-left {
+                content: normal
+            }
+            @top-right {
+                content: normal
+            }
+            @top-left {
+                content: normal
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+            border-top: none;
+            border-bottom: none;
+            margin-top: 0cm;
+            padding-top: 0cm;
+        }
+
+        {% comment %} COVERPAGE {% endcomment %}
+        @page coverpage {
+            @bottom-right {
+                content: normal
+            }
+            @bottom-left {
+                content: normal
+            }
+            @top-right {
+                content: normal
+            }
+            @top-left {
+                content: normal
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+            border-top: none;
+            border-bottom: none;
+            margin-top: 0cm;
+            padding-top: 0cm;
+        }
+
+        {% comment %} DM {% endcomment %}
+        @page dm {
+            @bottom-right {
+                content: normal
+            }
+            @bottom-left {
+                content: normal
+            }
+            @top-right {
+                content: normal
+            }
+            @top-left {
+                content: normal
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+            border-top: none;
+            border-bottom: none;
+            margin-top: 0cm;
+            padding-top: 0cm;
+        }
+
+        {% comment %} TOC PAGES {% endcomment %}
+        @page toc_pages {
+            @bottom-right {
+                content: normal
+            }
+            @bottom-left {
+                content: normal
+            }
+            @top-right {
+                content: normal
+            }
+            @top-left {
+                content: normal
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+            border-top: none;
+            {% comment %} margin-top: 0cm;
+            padding-top: 0cm; {% endcomment %}
+        }
+
+        @page toc_pages:left {
+            @bottom-left {
+                content: counter(page, lower-roman);
+            }
+            @bottom-right {
+                content: "Table of Contents"
             }
         }
 
-        @page ba-animal-science {
-            position: absolute;
-            top: 0;
-            left: 0;
+        @page toc_pages:right {
+            @bottom-right {
+                content: counter(page, lower-roman);
+            }
+
+            @bottom-left {
+                content: "Table of Contents"
+            }
         }
+
+        {% comment %} ALL PAGES AFTER PREAMBLE {% endcomment %}
+        @page main_pages {
+            @bottom-left {
+                content: " ";
+            }
+            @bottom-right {
+                content: " ";
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+        }
+        
+        @page main_pages:left {
+            @bottom-left {
+                content: counter(page, decimal);
+            }
+            @bottom-right {
+                content: "Right"
+            }
+            
+            @top-left {
+                font-weight: bold;
+                content: "Annual Report {{financial_year_string}}";
+            }
+            @top-right {
+                width: 200px;
+                height: 45px;
+                background-image: url('{{ dbca_cropped_image_path|escape_special_characters }}');
+                background-size: cover;    
+                margin-bottom: 0.10583333334cm;
+            }
+        }
+        
+        @page main_pages:right {
+            @bottom-right {
+                content: counter(page, decimal);
+            }
+
+            @bottom-left {
+                content: "Left"
+            }
+            
+            @top-right {
+                font-weight: bold;
+                content: "Annual Report {{financial_year_string}}";
+            }
+            @top-left {
+                width: 200px;
+                height: 45px;
+                background-image: url('{{ dbca_cropped_image_path|escape_special_characters }}');
+                background-size: cover;    
+                margin-bottom: 0.10583333334cm;
+            }
+        }
+
+        {% comment %} SDS {% endcomment %}
+        @page sds {
+            @bottom-left {
+                content: " ";
+            }
+            @bottom-right {
+                content: " ";
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+            
+        }
+
+        @page sds:left {
+            @bottom-left {
+                content: counter(page, decimal);
+            }
+            @bottom-right {
+                content: "Service Delivery Structure"
+            }
+        }
+
+        @page sds:right {
+            @bottom-right {
+                content: counter(page, decimal);
+            }
+            @bottom-left {
+                content: "Service Delivery Structure"
+            }
+        }
+
+        
 
         .footer-image {
             bottom: 0;
@@ -58,30 +271,155 @@
             margin: 0;
             padding: 0;
         }
+
+        
+        {% comment %} #toc li { 
+            list-style-type: none 
+        }
+        #toc a::after {
+            content: leader('.') target-counter(attr(href), page);
+        } {% endcomment %}
+
     </style>
 </head>
 
-<body class="page_body"> 
-    <div class="prince_blocker">
-        <p>Generated {{time_generated}}</p>
-        <p>Template populated in {{population_time}} seconds</p>
-    </div>
-    {% comment %} COVER {% endcomment %}
-    <div class="section_container">
-        <div class="cover_title_container">
-            <p class="cover_dept_text_1">Department of </p>
-            <p class="cover_dept_text_2">Biodiversity, Conservation and Attractions</p>
-            <p class="cover_dept_text_3">Biodiversity and Conservation Science<br/>Annual Report</p>
-            <p class="cover_year_text">{{financial_year_string}}</p>    
+<script>
+
+    // Function to get subheadings between given heading indices
+    function findSubheadingsBetween(headings, startIndex, endIndex) {
+        const subheadings = [];
+    
+        // headings is the array of headings
+        // startIndex is the index of current heading
+        // endIndex is the index of last heading (if there is one)
+
+        if (headings[-1] === headings[startIndex])
+        {
+            // get the subheadings until end of document
+            // without relying on endIndex
+        } else {
+            const currentHeading = headings[startIndex];
+            let nextItem = currentHeading.nextElementSibling;
+            while (nextItem && nextItem !== headings[endIndex]) {
+                // Check if the heading is a subheading
+                if (nextItem.classList.contains("project_title"))  {
+                    subheadings.push(heading);
+                }
+                nextItem = nextItem.nextElementSibling;
+            }
+    
+        }
+
+    
+        return subheadings;
+    }
+    
+        // Function to generate the table of contents
+        function generateTableOfContents(elementType) {
+            // Get the toc container
+            const tocList = document.getElementById("toc");
+
+            // Find all headings of specified type
+            const headings = document.querySelectorAll(elementType);
+            // const subheadings = document.querySelectorAll('.project_title');
+
+            // Loop through each heading
+            for (let i = 0; i < headings.length; i++) {
+                const heading = headings[i];
+
+                // Create a list item for the heading
+                const listItem = document.createElement("li");
+                listItem.classList.add("toc_list_item");
+
+                // Create an anchor element with href pointing to the heading
+                const anchor = document.createElement("a");
+                anchor.href = "#" + heading.id;
+                anchor.textContent = heading.textContent;
+
+                // Append the anchor to the list item
+                listItem.appendChild(anchor);
+
+                // Append the list item to the table of contents list
+                tocList.appendChild(listItem);
+
+                const subheadings = findSubheadingsBetween(headings, headings[i], headings[i+1])
+                
+                // If subheadings exist, create subitems for them
+                if (subheadings.length > 0) {
+                    const subList = document.createElement("ul");
+
+                    // Loop through subheadings
+                    for (let j = 0; j < subheadings.length; j++) {
+                        const subheading = subheadings[j];
+                        const subItem = document.createElement("li");
+                        subItem.classList.add("toc_sub_list_item");
+        
+                        const subAnchor = document.createElement("a");
+                        subAnchor.textContent = subheading.textContent;
+                        subAnchor.href = "#" + subheading.id;
+        
+                        subItem.appendChild(subAnchor);
+                        subList.appendChild(subItem);
+                    }
+        
+                    // Append the sublist to the current list item
+                    const sublistContainer = document.createElement("li");
+                    sublistContainer.appendChild(subList);
+
+                    tocList.appendChild(sublistContainer);
+                } else {
+                    const newLi = document.createElement("li");
+                    const newLiAnchor = document.createElement("a");
+                    newLiAnchor.textContent = "oops";
+                    newLi.appendChild(newLiAnchor);
+                    tocList.appendChild(newLi);
+                }
+            }
+        }
+
+</script>
+{% comment %} subAnchor.href = "#" + subheading.id;
+                        subAnchor.textContent = subheading.textContent; {% endcomment %}
+                {% comment %} const subItem = document.createElement("li");
+                subItem.classList.add("toc_sub_list_item");
+
+                const subAnchor = document.createElement("a");
+
+                subAnchor.href = "#" + heading.id;
+                subAnchor.textContent = heading.textContent + ' (subitem test)';
+                subItem.appendChild(subAnchor);
+                tocList.appendChild(subItem); {% endcomment %}
+
+
+<body class="page_body" onload="generateTableOfContents('h1')"> 
+
+    {% comment %} PRINCE BLOCK {% endcomment %}
+    <div class="prince_page">
+        <div class="prince_blocker">
+            <p>Generated {{time_generated}}</p>
+            <p>Template populated in {{population_time}} seconds</p>
         </div>
-        <div class="cover_logo_container">
-            <img class="cover_logo" alt="DBCA BCS Image" 
-            src="{{dbca_image_path}}"/>
+    </div>
+
+    {% comment %} COVER {% endcomment %}
+    <div class="coverpage_page">
+        <div class="section_container">
+            <div class="cover_title_container">
+                <p class="cover_dept_text_1">Department of </p>
+                <p class="cover_dept_text_2">Biodiversity, Conservation and Attractions</p>
+                <p class="cover_dept_text_3">Biodiversity and Conservation Science<br/>Annual Report</p>
+                <p class="cover_year_text">{{financial_year_string}}</p>    
+            </div>
+            <div class="cover_logo_container">
+                <img class="cover_logo" alt="DBCA BCS Image" 
+                src="{{dbca_image_path}}"/>
+            </div>
         </div>
     </div>
 
     {% comment %} DM {% endcomment %}
-    <div class="section_container">
+    <div class="dm_page">
+        <div class="section_container">
         <div class="directors_message_section_title_container">
             <p class="directors_message_section_title">Executive Director's Message</p>
         </div>
@@ -89,84 +427,235 @@
             {{ directors_message_data | safe}}
         </div>
     </div>
-
-    {% comment %} TABLE OF CONTENTS {% endcomment %}
-    <div class="section_container">
-        <div class="table_of_contents_container">
-                <p class="directors_message_section_title">Contents</p>
-            {% comment %} PRINCE GEN {% endcomment %}
-        </div>
-    </div> 
-
-    
-    {% comment %} SDS CHAPTER {% endcomment %}
-    <div class="section_container">
-        
-        <div class="chapter_container">
-            <div class="chapter_title_container">
-                <div class="chapter_image_container">
-                    <img 
-                        class="chapter_image"
-                        alt="Service Delivery Structure Chapter Image" 
-                        src="{{sds_data.chapter_image}}"
-                    />
-                </div>
-                <div class="chapter_title_text_container">
-                    <p class="chapter_title_text">Service Delivery Structure</p>
-                </div>
-            </div>
-            <div class="section_content_container"> 
-                {% comment %} SDS CHART {% endcomment %}
-                <div class="sds_chart_image_container">
-                    <img class="sds_chart_image" alt="BCS SDS Chart Image" 
-                    src="{{server_url}}{{sds_data.chart}}"/>
-                </div>
-                {% comment %} SDS INTRO {% endcomment %}
-                {% if not sds_data.intro == None %}
-                    <div class="sds_intro_container">
-                        {{sds_data.intro | safe}}
-                    </div>
-                {% endif %}
-
-            </div>
-        </div>
-
     </div>
 
+    {% comment %} TOC PAGINATION {% endcomment %}
+    <div class="toc_pages">
+        {% comment %} TABLE OF CONTENTS {% endcomment %}
+        <div class="section_container">
+            <div class="toc_title_container">
+                <p class="toc_section_title">Contents</p>
+            </div>
+            <div class="toc_data_container">
+                <ol id="toc">
+                    {% comment %} <li class="toc_list_item">Test</li> {% endcomment %}
+                </ol>
+                {% comment %} TOC HERE {% endcomment %}
+            </div>
+        </div> 
+    
+    </div>
 
-    {% comment %} BA & THEIR REPORTS {% endcomment %}
-    <div class="section_container">
-        {% for ba in sorted_ba_data_and_pr_dict %}
-            <div class="ba_chapter_container">
+    {% comment %} MAIN PAGINATION {% endcomment %}
+    <div class="main_pages">
+
+    {% comment %} SDS CHAPTER {% endcomment %}
+        <div class="section_container sds">
+            
+            <div class="chapter_container">
+                <div class="chapter_title_container">
+                    <div class="chapter_image_container">
+                        <img 
+                            class="chapter_image"
+                            alt="Service Delivery Structure Chapter Image" 
+                            src="{{sds_data.chapter_image}}"
+                        />
+                    </div>
+                    <div class="chapter_title_text_container">
+                        <h1 id="sdschaptertext" class="chapter_title_text">Service Delivery Structure</h1>
+                    </div>
+                </div>
+                <div class="section_content_container"> 
+                    {% comment %} SDS CHART {% endcomment %}
+                    <div class="sds_chart_image_container">
+                        <img class="sds_chart_image" alt="BCS SDS Chart Image" 
+                        src="{{server_url}}{{sds_data.chart}}"/>
+                    </div>
+                    {% comment %} SDS INTRO {% endcomment %}
+                    {% if not sds_data.intro == None %}
+                        <div class="sds_intro_container">
+                            {{sds_data.intro | safe}}
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+
+        </div>
+
+
+        {% comment %} BA & THEIR REPORTS {% endcomment %}
+        <div class="section_container ba">
+            {% for ba in sorted_ba_data_and_pr_dict %}
+                <div class="ba_chapter_container">
+
+                    <div class="chapter_title_container">
+                        <div class="chapter_image_container">
+                            <img 
+                                class="chapter_image"
+                                alt="{{ba.ba_name}} Image" 
+                                src="{{server_url}}{{ba.ba_image.file}}"
+                            />
+                        </div>
+                        <div class="chapter_title_text_container">
+                            <h1 id="{{ba.ba_name}}" class="chapter_title_text">{{ba.ba_name}}</h1>
+                        </div>
+                    </div>
+
+                    <div class="section_content_container"> 
+                        <div class="ba_lead_text_container">
+                            <span>
+                                <p class="ba_leader_text">Business Area Leader: {{ba.ba_leader}}</p>
+                                <div class="ba_introduction_text_container">
+                                    {{ ba.ba_introduction|safe }}
+                                </div>
+                            </span>
+                        </div>
+                        {% for report in ba.progress_reports %}
+                            <div class="progress_report_container">
+                                <div class="progress_report_top_container">
+                                    {% if not forloop.counter|divisibleby:2 %}
+
+                                    <div class="pr_img_container_lhs">
+                                        <img class="pr_image"
+                                            alt="{{report.document.project.title}} Image"
+                                            src="{{server_url}}{{report.document.project.image.file}}"
+                                        />
+                                    </div>
+                                    <div class="pr_data_rhs">
+                                    {% else %}
+                                        <div class="pr_data_lhs">
+                                    {% endif %}
+                                        <div class="pr_title_container">
+                                            <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="project_title">
+                                                {{report.document.project.title | safe}}
+                                            </h2>
+                                        </div>
+                                        <div class="project_tag_container">
+                                            <p class="project_text_section_title">Tag:</p>
+                                            <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
+                                        </div>
+                                        <div class="pr_member_container">
+                                            <p class="project_text_section_title">Team:</p>
+                                            <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {% if forloop.counter|divisibleby:2 %}
+                                        <div class="pr_img_container_lhs">
+                                            <img class="pr_image"
+                                                alt="{{report.document.project.title}} Image"
+                                                src="{{server_url}}{{report.document.project.image.file}}"
+                                            />
+                                        </div>
+                                    {% endif %}
+                    
+                                </div>
+                                <div class="progress_report_bottom_container">
+                                    <div class="pr_subsection">
+                                        <p class="pr_subsection_title">Context</p>
+                                        <div class="pr_subsection_content_container">
+                                            {{report.context | safe}}
+                                        </div>
+                                    </div>
+                                    <div class="pr_subsection">
+                                        <div class="pr_subsection_content_container">
+                                            <p class="pr_subsection_title">Aims</p>
+                                            {{report.aims | safe}}
+                                        </div>
+                                    </div>
+                                    <div class="pr_subsection">
+                                        <p class="pr_subsection_title">Progress</p>
+                                        <div class="pr_subsection_content_container">
+                                        {{report.progress | safe}}
+                                        </div>
+                                    </div>
+                                    <div class="pr_subsection">
+                                        <p class="pr_subsection_title">Implications</p>
+                                        <div class="pr_subsection_content_container">
+                                        {{report.implications | safe}}
+                                        </div>
+                                    </div>
+                                    <div class="pr_subsection">
+                                        <p class="pr_subsection_title">Future Directions</p>
+                                        <div class="pr_subsection_content_container">
+                                            {{report.future | safe}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            {% endfor %}
+        </div>
+
+        {% comment %} EXTERNAL PARTNERSHIPS CHAPTER{% endcomment %}
+        <div class="section_container">
+            <div class="chapter_container">
+
 
                 <div class="chapter_title_container">
                     <div class="chapter_image_container">
                         <img 
                             class="chapter_image"
-                            alt="{{ba.ba_name}} Image" 
-                            src="{{server_url}}{{ba.ba_image.file}}"
+                            alt="Service Delivery Structure Chapter Image" 
+                            src="{{sds_data.chapter_image}}"
                         />
                     </div>
                     <div class="chapter_title_text_container">
-                        <p class="chapter_title_text">{{ba.ba_name}}</p>
+                        <h1 id="externalpartnerships" class="chapter_title_text">External Partnerships</h1>
                     </div>
                 </div>
 
-                <div class="ba_lead_text_container">
-                    <span>
-                        <p class="ba_leader_text">Business Area Leader: {{ba.ba_leader}}</p>
-                        <div class="ba_introduction_text_container">
-                            {{ ba.ba_introduction|safe }}
-                        </div>
-                    </span>
-                </div>
-    
                 <div class="section_content_container"> 
-                    {% for report in ba.progress_reports %}
+                    {{external_partnerships_table_data | safe}}
+                </div>
+            </div>
+        </div>
+
+        {% comment %} STUDENT PROJECTS CHAPTER (TABLE) {% endcomment %}
+        <div class="section_container">
+            <div class="chapter_container">
+
+                <div class="chapter_title_container">
+                    <div class="chapter_image_container">
+                        <img 
+                            class="chapter_image"
+                            alt="Student Projects Image" 
+                            src="{{generic_chapter_image_path}}"
+                        />
+                    </div>
+                    <div class="chapter_title_text_container">
+                        <h1 id="studentprojects" class="chapter_title_text">Student Projects</h1>
+                    </div>
+                </div>
+                <div class="section_content_container"> 
+                    {{student_projects_table_data | safe}}
+                </div>
+            </div>
+        </div>
+
+        {% comment %} STUDENT REPORTS CHAPTER {% endcomment %}
+        <div class="section_container">
+            <div class="ba_chapter_container">
+                <div class="chapter_title_container">
+                    <div class="chapter_image_container">
+                        <img 
+                            class="chapter_image"
+                            alt="Student Project Reports" 
+                            src="{{generic_chapter_image_path}}"
+                        />
+                    </div>
+                    <div class="chapter_title_text_container">
+                        <h1 id="studentreports" class="chapter_title_text">Student Project Reports</h1>
+                    </div>
+                </div>
+                <div class="section_content_container"> 
+                    {% for report in sorted_student_report_array %}
                         <div class="progress_report_container">
                             <div class="progress_report_top_container">
-                                {% if not forloop.counter|divisibleby:2 %}
-
                                 <div class="pr_img_container_lhs">
                                     <img class="pr_image"
                                         alt="{{report.document.project.title}} Image"
@@ -174,234 +663,99 @@
                                     />
                                 </div>
                                 <div class="pr_data_rhs">
-                                {% else %}
-                                    <div class="pr_data_lhs">
-                                {% endif %}
                                     <div class="pr_title_container">
-                                        {{report.document.project.title | safe}}
+                                        <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="project_title">
+                                            {{report.document.project.title | safe}}
+                                        </h2>
                                     </div>
                                     <div class="project_tag_container">
                                         <p class="project_text_section_title">Tag:</p>
                                         <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                     </div>
-                                    <div class="pr_member_container">
-                                        <p class="project_text_section_title">Team:</p>
-                                        <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
+
+                                    <div class="student_pr_member_container">
+                            
+                                        <p class="project_text_section_title">Student:</p>
+                                        <p class="pr_member_string">
+                                            {% with students=report.team_members|filter_by_role:"student" %}
+                                                {% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}
+                                            {% endwith %}
                                         </p>
                                     </div>
-                                </div>
-                                {% if forloop.counter|divisibleby:2 %}
-                                    <div class="pr_img_container_lhs">
-                                        <img class="pr_image"
-                                            alt="{{report.document.project.title}} Image"
-                                            src="{{server_url}}{{report.document.project.image.file}}"
-                                        />
+                                    <div class="student_pr_member_container">
+                                        <p class="project_text_section_title">Academic(s):</p>
+                                        <p class="pr_member_string">
+                                            {% with academics=report.team_members|filter_by_role:"academicsuper" %}
+                                                {% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}
+                                            {% endwith %}
+                                        </p>
                                     </div>
-                                {% endif %}
-                
+                                    <div class="student_pr_member_container">
+                                        <p class="project_text_section_title">Scientist(s):</p>
+                                        <p class="pr_member_string">
+                                            {% with scientists=report.team_members|get_scientists %}
+                                                {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}
+                                            {% endwith %}
+                                        </p>
+                                    </div>
+        
+                                </div>
                             </div>
                             <div class="progress_report_bottom_container">
                                 <div class="pr_subsection">
-                                    <p class="pr_subsection_title">Context</p>
-                                    <div class="pr_subsection_content_container">
-                                        {{report.context | safe}}
-                                    </div>
-                                </div>
-                                <div class="pr_subsection">
-                                    <div class="pr_subsection_content_container">
-                                        <p class="pr_subsection_title">Aims</p>
-                                        {{report.aims | safe}}
-                                    </div>
-                                </div>
-                                <div class="pr_subsection">
-                                    <p class="pr_subsection_title">Progress</p>
-                                    <div class="pr_subsection_content_container">
-                                    {{report.progress | safe}}
-                                    </div>
-                                </div>
-                                <div class="pr_subsection">
-                                    <p class="pr_subsection_title">Implications</p>
-                                    <div class="pr_subsection_content_container">
-                                    {{report.implications | safe}}
-                                    </div>
-                                </div>
-                                <div class="pr_subsection">
-                                    <p class="pr_subsection_title">Future Directions</p>
-                                    <div class="pr_subsection_content_container">
-                                        {{report.future | safe}}
-                                    </div>
+                                    {{report.progress_report | safe}}
                                 </div>
                             </div>
                         </div>
                     {% endfor %}
                 </div>
             </div>
-
-        {% endfor %}
-    </div>
-
-    {% comment %} EXTERNAL PARTNERSHIPS CHAPTER{% endcomment %}
-    <div class="section_container">
-        <div class="chapter_container">
-
-
-            <div class="chapter_title_container">
-                <div class="chapter_image_container">
-                    <img 
-                        class="chapter_image"
-                        alt="Service Delivery Structure Chapter Image" 
-                        src="{{sds_data.chapter_image}}"
-                    />
-                </div>
-                <div class="chapter_title_text_container">
-                    <p class="chapter_title_text">External Partnerships</p>
-                </div>
-            </div>
-
-            <div class="section_content_container"> 
-                {{external_partnerships_table_data | safe}}
-            </div>
         </div>
-    </div>
 
-    {% comment %} STUDENT PROJECTS CHAPTER (TABLE) {% endcomment %}
-    <div class="section_container">
-        <div class="chapter_container">
+        {% comment %} PUBLICATIONS CHAPTER {% endcomment %}
+        <div class="section_container">
+            <div class="chapter_container">
 
-            <div class="chapter_title_container">
-                <div class="chapter_image_container">
-                    <img 
-                        class="chapter_image"
-                        alt="Student Projects Image" 
-                        src="{{generic_chapter_image_path}}"
-                    />
-                </div>
-                <div class="chapter_title_text_container">
-                    <p class="chapter_title_text">Student Projects</p>
-                </div>
-            </div>
-            <div class="section_content_container"> 
-                {{student_projects_table_data | safe}}
-            </div>
-        </div>
-    </div>
-
-
-
-    {% comment %} STUDENT REPORTS CHAPTER {% endcomment %}
-    <div class="section_container">
-        <div class="ba_chapter_container">
-            <div class="chapter_title_container">
-                <div class="chapter_image_container">
-                    <img 
-                        class="chapter_image"
-                        alt="Student Project Reports" 
-                        src="{{generic_chapter_image_path}}"
-                    />
-                </div>
-                <div class="chapter_title_text_container">
-                    <p class="chapter_title_text">Student Project Reports</p>
-                </div>
-            </div>
-            <div class="section_content_container"> 
-                {% for report in sorted_student_report_array %}
-                    <div class="progress_report_container">
-                        <div class="progress_report_top_container">
-                            <div class="pr_img_container_lhs">
-                                <img class="pr_image"
-                                    alt="{{report.document.project.title}} Image"
-                                    src="{{server_url}}{{report.document.project.image.file}}"
-                                />
-                            </div>
-                            <div class="pr_data_rhs">
-                                <div class="pr_title_container">
-                                    {{report.document.project.title | safe}}
-                                </div>
-                                <div class="project_tag_container">
-                                    <p class="project_text_section_title">Tag:</p>
-                                    <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
-                                </div>
-
-                                <div class="student_pr_member_container">
-                        
-                                    <p class="project_text_section_title">Student:</p>
-                                    <p class="pr_member_string">
-                                        {% with students=report.team_members|filter_by_role:"student" %}
-                                            {% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}
-                                        {% endwith %}
-                                    </p>
-                                </div>
-                                <div class="student_pr_member_container">
-                                    <p class="project_text_section_title">Academic(s):</p>
-                                    <p class="pr_member_string">
-                                        {% with academics=report.team_members|filter_by_role:"academicsuper" %}
-                                            {% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}
-                                        {% endwith %}
-                                    </p>
-                                </div>
-                                <div class="student_pr_member_container">
-                                    <p class="project_text_section_title">Scientist(s):</p>
-                                    <p class="pr_member_string">
-                                        {% with scientists=report.team_members|get_scientists %}
-                                            {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}
-                                        {% endwith %}
-                                    </p>
-                                </div>
-    
-                            </div>
-                        </div>
-                        <div class="progress_report_bottom_container">
-                            <div class="pr_subsection">
-                                {{report.progress_report | safe}}
-                            </div>
-                        </div>
+                <div class="chapter_title_container">
+                    <div class="chapter_image_container">
+                        <img 
+                            class="chapter_image"
+                            alt="Publications Image" 
+                            src="{{generic_chapter_image_path}}"
+                        />
                     </div>
-                {% endfor %}
+                    <div class="chapter_title_text_container">
+                        <h1 id="publications" class="chapter_title_text">Publications</h1>
+                    </div>
+                </div>
+                <div class="section_content_container"> 
+                    {{publications_data | safe}}
+                </div>
+            </div>
+        </div>
+
+
+        {% comment %} SUMMARY OF RESEARCH PROJECTS CHAPTER {% endcomment %}
+        <div class="section_container">
+            <div class="chapter_container">
+                <div class="chapter_title_container">
+                    <div class="chapter_image_container">
+                        <img 
+                            class="chapter_image"
+                            alt="Research Projects Image" 
+                            src="{{generic_chapter_image_path}}"
+                        />
+                    </div>
+                    <div class="chapter_title_text_container">
+                        <h1 id="researchprojsummary" class="chapter_title_text">Summary of Research Projects</h1>
+                    </div>
+                </div>
+                <div class="section_content_container"> 
+                        {{research_projects_table_data | safe}}
+                </div>
             </div>
         </div>
     </div>
 
-    {% comment %} PUBLICATIONS CHAPTER {% endcomment %}
-    <div class="section_container">
-        <div class="chapter_container">
-
-            <div class="chapter_title_container">
-                <div class="chapter_image_container">
-                    <img 
-                        class="chapter_image"
-                        alt="Publications Image" 
-                        src="{{generic_chapter_image_path}}"
-                    />
-                </div>
-                <div class="chapter_title_text_container">
-                    <p class="chapter_title_text">Publications</p>
-                </div>
-            </div>
-            <div class="section_content_container"> 
-                {{publications_data | safe}}
-            </div>
-        </div>
-    </div>
-
-
-    {% comment %} SUMMARY OF RESEARCH PROJECTS CHAPTER {% endcomment %}
-    <div class="section_container">
-        <div class="chapter_container">
-            <div class="chapter_title_container">
-                <div class="chapter_image_container">
-                    <img 
-                        class="chapter_image"
-                        alt="Research Projects Image" 
-                        src="{{generic_chapter_image_path}}"
-                    />
-                </div>
-                <div class="chapter_title_text_container">
-                    <p class="chapter_title_text">Summary of Research Projects</p>
-                </div>
-            </div>
-            <div class="section_content_container"> 
-                    {{research_projects_table_data | safe}}
-            </div>
-        </div>
 </body>
 </html>

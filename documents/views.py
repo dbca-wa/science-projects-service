@@ -421,6 +421,9 @@ class BeginReportDocGeneration(APIView):
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
         )
+        dbca_cropped_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
+        )
         no_image_path = os.path.join(
             settings.BASE_DIR, "documents", "image_not_available.png"
         )
@@ -448,6 +451,7 @@ class BeginReportDocGeneration(APIView):
                 "time_generated": get_formatted_datetime(datetime.datetime.now()),
                 "prince_css_path": prince_css_path,
                 "dbca_image_path": dbca_image_path,
+                "dbca_cropped_image_path": dbca_cropped_image_path,
                 "no_image_path": no_image_path,
                 "server_url": (
                     "http://127.0.0.1:8000"
@@ -516,7 +520,7 @@ class BeginReportDocGeneration(APIView):
         all_css_paths = ",".join([rte_css_path, prince_css_path])
 
         p = subprocess.Popen(
-            ["prince", "-", f"--style={all_css_paths}"],
+            ["prince", "-", f"--style={all_css_paths}", f"--javascript"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -1515,6 +1519,9 @@ class BeginProjectDocGeneration(APIView):
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
         )
+        dbca_cropped_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
+        )
         no_image_path = os.path.join(
             settings.BASE_DIR, "documents", "image_not_available.png"
         )
@@ -1549,6 +1556,7 @@ class BeginProjectDocGeneration(APIView):
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
                         "http://127.0.0.1:8000"
@@ -1626,6 +1634,7 @@ class BeginProjectDocGeneration(APIView):
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
                         "http://127.0.0.1:8000"
@@ -1728,6 +1737,7 @@ class BeginProjectDocGeneration(APIView):
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
                         "http://127.0.0.1:8000"
@@ -1793,6 +1803,7 @@ class BeginProjectDocGeneration(APIView):
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
                         "http://127.0.0.1:8000"
@@ -1841,6 +1852,7 @@ class BeginProjectDocGeneration(APIView):
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
                         "http://127.0.0.1:8000"
@@ -1928,7 +1940,7 @@ class BeginProjectDocGeneration(APIView):
         all_css_paths = ",".join([rte_css_path, prince_css_path])
 
         p = subprocess.Popen(
-            ["prince", "-", f"--style={all_css_paths}"],
+            ["prince", "-", f"--style={all_css_paths}", f"--javascript"],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

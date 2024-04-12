@@ -1,3 +1,70 @@
+/* PAGING */
+
+.prince_page {
+    page: prince;
+}
+
+.coverpage_page {
+    page: coverpage;
+}
+
+.dm_page {
+    page: dm;
+}
+
+.toc_pages {
+    page: toc_pages;
+    counter-reset: page 1;
+}
+
+
+.main_pages {
+    page: main_pages;
+    counter-reset: page 1;
+}
+
+.sds {
+    page: sds;
+    
+}
+
+
+/* TOC */
+.toc_list_item {
+    font-weight: bold;
+    font-size: 16px;
+    list-style-type: none;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.toc_sub_list_item {
+    font-size: 16px;
+    list-style-type: none;
+    margin-left: 40px;
+    margin-bottom: 5px;
+
+}
+
+.toc_list_item a,
+.toc_sub_list_item a
+ {
+    color: black;
+    text-decoration: none;
+}
+
+
+
+.toc_list_item a::after {
+    content: leader('.') target-counter(attr(href), page);
+}
+
+.toc_sub_list_item a::after {
+    content: leader('.') target-counter(attr(href), page);
+}
+
+
+
 /* ANNUAL REPORT COVER PAGE*/
 /* TABLES */
 
@@ -56,7 +123,10 @@ ul li {
     break-before: page;
 }
 
-.section_content_container {}
+.section_content_container {
+    margin-top: -50px;
+
+}
 
 /* Chapters */
 
@@ -93,7 +163,7 @@ ul li {
 .chapter_title_text_container {
     width: 80%;
     height: 70px;
-    border: 3px solid #376294;
+    border: 3px solid #396494;
     border-radius: 30px 0 0 30px;
     border-right: none;
     position: absolute;
@@ -241,8 +311,29 @@ ul li {
 
 
 
-.table_of_contents_container {}
+.toc_title_container {
+    text-align: center;
 
+}
+
+.toc_section_title {
+    margin-top: 80px;
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'NimbusSanL-Bold', sans-serif;
+
+}
+
+.toc_data_container {
+    margin-top: 30px;
+    font-size: 12px;
+    text-align: justify;
+}
+
+.toc_data_container p {
+    text-indent: 20px;
+
+}
 
 
 /* BA Progress Report Section */
@@ -253,7 +344,6 @@ ul li {
 .ba_lead_text_container {
     /* display: flex;
     flex-direction: row; */
-    margin-top: 25px;
     font-size: 12px;
     text-align: justify;
 }
@@ -270,7 +360,7 @@ ul li {
 .progress_report_container {
     display: flex;
     flex-direction: column;
-    margin-top: 40px;
+    margin-top: 30px;
 }
 
 .progress_report_top_container {
@@ -281,10 +371,10 @@ ul li {
 }
 
 .pr_img_container_lhs {
-    min-width: 250px;
-    max-width: 250px;
-    min-height: 180px;
-    max-height: 180px;
+    min-width: 225px;
+    max-width: 225px;
+    min-height: 162px;
+    max-height: 162px;
     border-radius: 8px;
     overflow: hidden;
 }
@@ -353,7 +443,9 @@ ul li {
 
 
 
-.progress_report_bottom_container {}
+.progress_report_bottom_container {
+    margin-top: 10px;
+}
 
 .progress_report_bottom_container li {
     margin-left: 25px;
