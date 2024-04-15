@@ -286,31 +286,33 @@
 <script>
 
     // Function to get subheadings between given heading indices
-    function findSubheadingsBetween(headings, startIndex, endIndex) {
+    function findSubheadingsFollowing(headings, startIndex) {
         const subheadings = [];
-    
-        // headings is the array of headings
-        // startIndex is the index of current heading
-        // endIndex is the index of last heading (if there is one)
+        const currentHeading = headings[startIndex];
+        const nextHeading = headings[startIndex+1];
 
-        if (headings[-1] === headings[startIndex])
-        {
-            // get the subheadings until end of document
-            // without relying on endIndex
-        } else {
-            const currentHeading = headings[startIndex];
-            let nextItem = currentHeading.nextElementSibling;
-            while (nextItem && nextItem !== headings[endIndex]) {
-                // Check if the heading is a subheading
-                if (nextItem.classList.contains("project_title"))  {
-                    subheadings.push(heading);
-                }
-                nextItem = nextItem.nextElementSibling;
+        // Flag to determine if we are within the range of interest
+        let withinRange = false;
+
+        // Iterate over all elements in the document
+        Array.from(document.querySelectorAll('*')).forEach(element => {
+            // Check if the element is the next heading
+            if (element === nextHeading) {
+                withinRange = false; // Reached the end of the range
             }
-    
-        }
 
-    
+            // If we are within the range and the element is an h2 with class "subheading", add it to subheadings
+            if (withinRange && element.tagName === "H2" && element.classList.contains("subheading")) {
+                subheadings.push(element);
+            }
+
+            // Check if the element is the current heading
+            if (element === currentHeading) {
+                withinRange = true; // Start of the range
+            }
+        });
+
+
         return subheadings;
     }
     
@@ -321,7 +323,7 @@
 
             // Find all headings of specified type
             const headings = document.querySelectorAll(elementType);
-            // const subheadings = document.querySelectorAll('.project_title');
+            // const subheadings = document.querySelectorAll('.subheading');
 
             // Loop through each heading
             for (let i = 0; i < headings.length; i++) {
@@ -342,7 +344,7 @@
                 // Append the list item to the table of contents list
                 tocList.appendChild(listItem);
 
-                const subheadings = findSubheadingsBetween(headings, headings[i], headings[i+1])
+                const subheadings = findSubheadingsFollowing(headings, i)
                 
                 // If subheadings exist, create subitems for them
                 if (subheadings.length > 0) {
@@ -364,15 +366,12 @@
         
                     // Append the sublist to the current list item
                     const sublistContainer = document.createElement("li");
+                    sublistContainer.classList.add("toc_sublist_container");
                     sublistContainer.appendChild(subList);
 
                     tocList.appendChild(sublistContainer);
                 } else {
-                    const newLi = document.createElement("li");
-                    const newLiAnchor = document.createElement("a");
-                    newLiAnchor.textContent = "oops";
-                    newLi.appendChild(newLiAnchor);
-                    tocList.appendChild(newLi);
+                    continue;
                 }
             }
         }
@@ -527,7 +526,7 @@
                                         <div class="pr_data_lhs">
                                     {% endif %}
                                         <div class="pr_title_container">
-                                            <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="project_title">
+                                            <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
                                                 {{report.document.project.title | safe}}
                                             </h2>
                                         </div>
@@ -664,7 +663,7 @@
                                 </div>
                                 <div class="pr_data_rhs">
                                     <div class="pr_title_container">
-                                        <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="project_title">
+                                        <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
                                             {{report.document.project.title | safe}}
                                         </h2>
                                     </div>

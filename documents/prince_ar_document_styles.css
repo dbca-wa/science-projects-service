@@ -39,11 +39,15 @@
 }
 
 .toc_sub_list_item {
-    font-size: 16px;
+    font-size: 14px;
     list-style-type: none;
-    margin-left: 40px;
+    margin-left: 30px;
     margin-bottom: 5px;
+}
 
+.toc_sublist_container {
+    font-size: 14px;
+    list-style-type: none;
 }
 
 .toc_list_item a,
