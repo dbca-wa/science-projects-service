@@ -286,6 +286,8 @@
 <script>
 
     // Function to get subheadings between given heading indices
+    // NOTE: Prince does not have access to all js dom traversal functions
+    // nor does it have full access to all css classes utilised in browsers
     function findSubheadingsFollowing(headings, startIndex) {
         const subheadings = [];
         const currentHeading = headings[startIndex];

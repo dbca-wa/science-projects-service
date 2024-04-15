@@ -34,6 +34,8 @@
     font-weight: bold;
     font-size: 16px;
     list-style-type: none;
+    margin-left: -40px;
+    padding: 0;
     margin-bottom: 10px;
     margin-top: 10px;
 }
@@ -48,6 +50,7 @@
 .toc_sublist_container {
     font-size: 14px;
     list-style-type: none;
+    margin-left: -40px;
 }
 
 .toc_list_item a,
