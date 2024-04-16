@@ -169,6 +169,22 @@ class BeginReportDocGeneration(APIView):
                 )
             )
 
+            def removeempty_p(html_content):
+                html_content = re.sub(r"<p>(&nbsp;|\s)*</p>", "", html_content)
+                html_content = re.sub(r"&nbsp;", " ", html_content)
+
+                return html_content
+
+            for report in active_pr_docs:
+                report.context = removeempty_p(report.context)
+                report.aims = removeempty_p(report.aims)
+                report.progress = removeempty_p(report.progress)
+                report.implications = removeempty_p(report.implications)
+                report.future = removeempty_p(report.future)
+
+            for sreport in active_sr_docs:
+                sreport.progress_report = removeempty_p(sreport.progress_report)
+
             sr_ser = StudentReportSerializer(
                 active_sr_docs,
                 many=True,
@@ -374,10 +390,10 @@ class BeginReportDocGeneration(APIView):
         # Prep sections for each ba with the relevant projects
         # print(sorted_ba_data)
 
-        for item in sorted_ba_data:
-            print(
-                f"\n {item['ba_name']}\n{item['progress_reports'][0]['document']['project']['title']}"
-            )
+        # for item in sorted_ba_data:
+        #     print(
+        #         f"\n {item['ba_name']}\n{item['progress_reports'][0]['document']['project']['title']}"
+        #     )
 
         sorted_srs = sorted(
             [

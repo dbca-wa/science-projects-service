@@ -2,37 +2,97 @@
 
 .prince_page {
     page: prince;
+    prince-page-group: start
 }
 
 .coverpage_page {
     page: coverpage;
+    prince-page-group: start
 }
 
 .dm_page {
     page: dm;
+    prince-page-group: start
 }
 
 .toc_pages {
     page: toc_pages;
     counter-reset: page 1;
+    prince-page-group: start
 }
 
-
-.main_pages {
-    page: main_pages;
-    counter-reset: page 1;
-}
 
 .sds {
     page: sds;
-    
+    prince-page-group: start
 }
 
+/* For setting the page counter */
+.main_pages {
+    page: main_pages;
+    counter-reset: page 1;
+    prince-page-group: start
+}
+
+.ba_pages {
+    page: ba_pages;
+    prince-page-group: start
+}
+
+.external_partnerships {
+    page: external_partnerships;
+    prince-page-group: start
+}
+.student_projects_summary {
+    page: student_projects_summary;
+    prince-page-group: start
+}
+
+.sr_pages {
+    page: sr_pages;
+    prince-page-group: start
+}
+
+.publications {
+    page: publications;
+    prince-page-group: start
+}
+
+.research_projects_summary {
+    page: research_projects_summary;
+    prince-page-group: start
+}
+
+.ba_pages .chapter_title_text {
+    string-set: ch_title content();
+}
+
+.main_pages .chapter_title_text {
+    string-set: ch_title content();
+}
+
+
+/* PUBLICATIONS */
+
+.publications_div {
+    column-count: 2;
+    column-gap: 30px;
+}
+
+.publications_div p {
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 8px;
+    text-indent: -10px; 
+    margin-left: 10px;
+    text-align: justify; 
+}
 
 /* TOC */
 .toc_list_item {
     font-weight: bold;
-    font-size: 16px;
+    font-size: 15px;
     list-style-type: none;
     margin-left: -40px;
     padding: 0;
@@ -41,6 +101,7 @@
 }
 
 .toc_sub_list_item {
+    font-weight: normal;
     font-size: 14px;
     list-style-type: none;
     margin-left: 30px;
@@ -132,8 +193,9 @@ ul li {
 
 .section_content_container {
     margin-top: -50px;
-
 }
+
+
 
 /* Chapters */
 
@@ -141,21 +203,27 @@ ul li {
     width: 100%;
 }
 
-.chapter_title_container {
+.chapter_title_container,
+.ba_chapter_title_container {
     width: 125%;
     height: 33vh;
     position: relative;
-    top: 0;
+    top: -15px;
     left: 0;
-    z-index: 1;
+    z-index: 99;
     margin: -2cm -2cm 2cm -2cm;
+}
+
+.ba_chapter_title_container {
+    margin-bottom: 1.75cm;
+    z-index: 99;
 }
 
 .chapter_image_container {
     width: 100%;
     position: absolute;
     height: 33vh;
-    z-index: 1;
+    z-index: 99;
 }
 
 .chapter_image {
@@ -164,7 +232,7 @@ ul li {
     object-fit: cover;
     top: 0;
     left: 0;
-    z-index: 1;
+    z-index: 99;
 }
 
 .chapter_title_text_container {
@@ -180,6 +248,8 @@ ul li {
     background-color: rgba(255, 255, 255, 0.6);
     display: flex; 
     align-items: center; 
+    z-index: 99;
+
 }
 
 .chapter_title_text {
@@ -188,7 +258,7 @@ ul li {
     font-family: 'NimbusSanL-Bold', sans-serif;
     font-size: 28px;
     padding-left: 20px;
-    z-index: 2;
+    z-index: 99;
     /* text-align: center; */
 }
 
@@ -293,12 +363,12 @@ ul li {
 
 .directors_message_container {
     margin-top: 30px;
-    font-size: 12px;
+    font-size: 12.5px;
     text-align: justify;
 }
 
 .directors_message_container p {
-    text-indent: 20px;
+    text-indent: 0px;
 }
 
 
@@ -324,7 +394,7 @@ ul li {
 }
 
 .toc_section_title {
-    margin-top: 80px;
+    margin-top: 20px;
     font-size: 28px;
     font-weight: 700;
     font-family: 'NimbusSanL-Bold', sans-serif;
@@ -348,11 +418,16 @@ ul li {
     break-before: page;
 }
 
+.ba {
+
+}
+
 .ba_lead_text_container {
     /* display: flex;
     flex-direction: row; */
     font-size: 12px;
     text-align: justify;
+    
 }
 
 .ba_leader_text {
@@ -364,20 +439,19 @@ ul li {
     text-align: justify;
 }
 
-.progress_report_container {
-    display: flex;
-    flex-direction: column;
-    margin-top: 30px;
-}
 
-.progress_report_top_container {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-    flex: 1;
-}
+
 
 .pr_img_container_lhs {
+    min-width: 225px;
+    max-width: 225px;
+    min-height: 162px;
+    max-height: 162px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.pr_img_container_rhs {
     min-width: 225px;
     max-width: 225px;
     min-height: 162px;
@@ -392,22 +466,16 @@ ul li {
     object-fit: cover;
 }
 
-.pr_data_rhs {
-    padding-left: 20px;
-    flex: 1;
-}
 
-.pr_data_lhs {
-    padding-right: 20px;
-    flex: 1;
-}
 
 .pr_title_container {
     color: #6888cc;
 }
 
-.pr_title_container p {
+.pr_title_container p,
+.pr_title_container h2 {
     /* color: orange; */
+    font-size: 16px;
     padding: 0px;
     margin: 0px;
 }
@@ -450,19 +518,26 @@ ul li {
 
 
 
-.progress_report_bottom_container {
-    margin-top: 10px;
+
+
+.publications-container {
+    column-count: 2;
+    column-fill: auto;
+    /* This property ensures that columns are filled sequentially */
 }
 
-.progress_report_bottom_container li {
-    margin-left: 25px;
-    padding-left: 0px;
-    margin-bottom: 0px;
-    padding-bottom: 2px;
+.publications-container p {
+    break-inside: avoid-column;
+    /* This property prevents breaking a single publication across columns */
 }
 
 
 
+/* .pr_subsection {
+    padding-bottom: 
+} */
+
+/* 
 .pr_subsection * {
     font-size: 12px;
     text-align: justify;
@@ -476,47 +551,145 @@ ul li {
     padding-bottom: 2px;
 }
 
-.pr_subsection_title {
-    font-weight: bold;
-    
+ */
+
+
+.pr_subsection_content_container {
+    padding-bottom: 7.5px;
+    padding-top: 7.5px;
 }
 
-.pr_subsection p {
-    /* widows: 2; */
-    orphans: 2;
+.pr_subsection_content_container *
+{
+    font-size: 12px;
+    text-align: justify;
+    color: black !important;
+    background-color: none !important;
+    /* widows: 3;     */
 }
 
-/* Allow breaking inside if it cannot fit on the previous page */
-.pr_subsection.breakable {
-    page-break-inside: auto;
+.sreport {
+    margin-top: -5px;
+}
+.sr_subsection_content_container {
+    padding-bottom: 7.5px;
+    margin-top: 7.5px;
 }
 
-/* Ensure subsections are not broken across pages if they can fit */
-.pr_subsection.keep-together {
+.sr_subsection_content_container *
+{
+    font-size: 12px;
+    text-align: justify;
+    color: black !important;
+    background-color: none !important;
+    /* widows: 3;     */
+}
+
+
+
+.pr_first_section {
+    margin-top: 10px;
+}
+
+
+.orphanage_widow p {
+    /* color: orange !important; */
+    /* widows: 2;
+    orphans: 3; */
+}
+
+
+.orphanage_widow li {
+    /* color: green !important; */
     page-break-inside: avoid;
 }
 
-.pr_subsection_content_container p {
-    orphans: 2;
+.progress_report_top_container p,
+.progress_report_top_container li 
+{
+    /* color: yellowgreen !important; */
     /* widows: 3; */
+    /* orphans: 2; */
+}
+
+.pr_subsection_title h3 {
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+    margin-bottom: 5px;
+    /* color: pink !important;  */
+    /* orphans: 4; */
 }
 
 
-.pr_subsection_content_container p {
+.progress_report_top_container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+    /* flex: 1; */
+    /* background-color: orange; */
+    /* color: red;
+    background-color: pink; */
+    page-break-inside: avoid;
+}
 
+.pr_top_filler {
+    height: 30px;
+    width: 0px;
+}
+
+.progress_report_container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
 }
 
 
 
-
-
-.publications-container {
-    column-count: 2;
-    column-fill: auto;
-    /* This property ensures that columns are filled sequentially */
+.progress_report_bottom_container {
+    margin-top: 8px;
 }
 
-.publications-container p {
-    break-inside: avoid-column;
-    /* This property prevents breaking a single publication across columns */
+
+.progress_report_bottom_container li {
+    margin-left: 25px;
+    padding-left: 0px;
+    margin-bottom: 0px;
+    padding-bottom: 2px;
+    word-spacing: normal;
+
 }
+
+.progress_report_bottom_container li span {
+    font-size: 12px !important;
+    word-spacing: normal !important;
+    color: black !important;
+    background-color: none !important;
+    font-weight: normal !important;
+    font-family: 'NimbusSanL-Bold', sans-serif !important;
+}
+
+/* .pr_last_section p {
+    widows: 3;
+}
+
+.pr_last_section li {
+    widows: 3;
+} */
+
+.pr_data_rhs {
+    /* background-color: red; */
+    flex: 1;
+    padding-left: 10px;
+}
+
+.pr_data_lhs {
+    /* background-color: blue; */
+    flex: 1;
+    padding-right: 10px;
+}
+/* 
+* p, li {
+    orphans: 3;
+} */

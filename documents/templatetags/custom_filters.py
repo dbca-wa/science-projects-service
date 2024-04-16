@@ -26,3 +26,13 @@ def escape_special_characters(value):
 def extract_text_content(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     return "".join(soup.stripped_strings)
+
+
+@register.filter
+def remove_empty_p(html_content):
+    soup = BeautifulSoup(html_content, "html.parser")
+    for p_tag in soup.find_all("p"):
+        if p_tag.text.strip() == "&nbsp;":
+            p_tag.extract()
+
+    return "".join(soup.stripped_strings)

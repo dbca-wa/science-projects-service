@@ -8,38 +8,15 @@
     <link rel="stylesheet" href="{{prince_css_path}}">
     <style>
         @page {
-            @top-left {padding: 0;
-                margin-top: 1cm;
-            }
-
-            @top-right {
-                padding: 0;
-                margin-top: 1cm;
-            }
-
-            @bottom-left {
-                padding: 0;
-                margin-bottom: 1cm;
-            }
-
-            @bottom-right {
-                padding: 0;
-                margin-bottom: 1cm;
-            }
-
-            border-bottom: 0.25pt solid #666;
-            margin-bottom: 2cm;
-            padding-bottom: 0.6cm;
-
-            border-top: 0.25pt solid #666;
-            margin-top: 2cm;            
+            orphans: 3;
+            widows: 3;
         }
         {% comment %} content: string(doctitle);
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
         font-size: 10pt; {% endcomment %}
 
-        {% comment %} PRINCE PAGE BLOCK {% endcomment %}
-        @page prince {
+        {% comment %} PRINCE, DIR MESS, COVERPAGE  {% endcomment %}
+        @page prince, dm, coverpage {
             @bottom-right {
                 content: normal
             }
@@ -64,19 +41,13 @@
             padding-top: 0cm;
         }
 
-        {% comment %} COVERPAGE {% endcomment %}
-        @page coverpage {
-            @bottom-right {
-                content: normal
-            }
+        {% comment %} CATCH ALL FOR ALL NON-NAMED PAGES AFTER PREAMBLE {% endcomment %}
+        @page main_pages {
             @bottom-left {
-                content: normal
+                content: " ";
             }
-            @top-right {
-                content: normal
-            }
-            @top-left {
-                content: normal
+            @bottom-right {
+                content: " ";
             }
             @top-left {
                 content: " ";
@@ -84,38 +55,60 @@
             @top-right {
                 content: " ";
             }
-            border-top: none;
-            border-bottom: none;
-            margin-top: 0cm;
-            padding-top: 0cm;
+
+            padding-top: 10px;
+            margin-bottom: 60px;
+            border-bottom: 0.25pt solid #666;
+            border-top: 0.25pt solid #666;
+
+            {% comment %} padding-bottom: 15px; {% endcomment %}
+
+        }
+        
+        @page main_pages:left {
+            @bottom-left {
+                content: counter(page, decimal);
+                padding: 0;   
+                padding-bottom: 20px;
+
+            }
+            @bottom-right {
+                content: string(ch_title);
+                padding: 0;    
+                padding-bottom: 20px;
+                font-weight: bold;
+                font-size: 12px;
+            }
+
+        }
+        
+        @page main_pages:right {
+            @bottom-right {
+                content: counter(page, decimal);
+                padding: 0;   
+                padding-bottom: 20px;            
+            }
+
+            @bottom-left {
+                padding: 0;   
+                padding-bottom: 20px;
+                content: string(ch_title); 
+                font-weight: bold;
+                font-size: 12px;
+            }
+
+                        
+            @top-left {
+                font-weight: bold;
+                font-size: 14px;
+                margin-top: 1cm;
+                z-index: 2;
+                content: "Annual Report {{financial_year_string}}";
+            }
+            
         }
 
-        {% comment %} DM {% endcomment %}
-        @page dm {
-            @bottom-right {
-                content: normal
-            }
-            @bottom-left {
-                content: normal
-            }
-            @top-right {
-                content: normal
-            }
-            @top-left {
-                content: normal
-            }
-            @top-left {
-                content: " ";
-            }
-            @top-right {
-                content: " ";
-            }
-            border-top: none;
-            border-bottom: none;
-            margin-top: 0cm;
-            padding-top: 0cm;
-        }
-
+        
         {% comment %} TOC PAGES {% endcomment %}
         @page toc_pages {
             @bottom-right {
@@ -130,6 +123,25 @@
             @top-left {
                 content: normal
             }
+            margin-bottom: 60px;
+            padding-bottom: 20px;
+            border-bottom: 0.25pt solid #666;
+
+        }
+
+        @page toc_pages:left {
+            @bottom-left {
+                content: counter(page, lower-roman);
+                padding: 0;        
+                padding-bottom: 20px;
+            }
+            @bottom-right {
+                content: "Table of Contents";
+                font-weight: bold;
+                font-size: 12px;
+                padding: 0;        
+                padding-bottom: 20px;
+            }
             @top-left {
                 content: " ";
             }
@@ -137,88 +149,39 @@
                 content: " ";
             }
             border-top: none;
-            {% comment %} margin-top: 0cm;
-            padding-top: 0cm; {% endcomment %}
-        }
+            margin-top: 0cm;
+            padding-top: 2cm;
 
-        @page toc_pages:left {
-            @bottom-left {
-                content: counter(page, lower-roman);
-            }
-            @bottom-right {
-                content: "Table of Contents"
-            }
         }
 
         @page toc_pages:right {
             @bottom-right {
                 content: counter(page, lower-roman);
+                padding: 0;        
+                padding-bottom: 20px;
             }
 
             @bottom-left {
-                content: "Table of Contents"
-            }
-        }
-
-        {% comment %} ALL PAGES AFTER PREAMBLE {% endcomment %}
-        @page main_pages {
-            @bottom-left {
-                content: " ";
-            }
-            @bottom-right {
-                content: " ";
-            }
-            @top-left {
-                content: " ";
-            }
-            @top-right {
-                content: " ";
-            }
-        }
-        
-        @page main_pages:left {
-            @bottom-left {
-                content: counter(page, decimal);
-            }
-            @bottom-right {
-                content: "Right"
-            }
-            
-            @top-left {
+                content: "Table of Contents";
                 font-weight: bold;
-                content: "Annual Report {{financial_year_string}}";
-            }
-            @top-right {
-                width: 200px;
-                height: 45px;
-                background-image: url('{{ dbca_cropped_image_path|escape_special_characters }}');
-                background-size: cover;    
-                margin-bottom: 0.10583333334cm;
-            }
-        }
-        
-        @page main_pages:right {
-            @bottom-right {
-                content: counter(page, decimal);
-            }
-
-            @bottom-left {
-                content: "Left"
-            }
-            
-            @top-right {
-                font-weight: bold;
-                content: "Annual Report {{financial_year_string}}";
+                font-size: 12px;
+                padding: 0;        
+                padding-bottom: 20px;
             }
             @top-left {
-                width: 200px;
-                height: 45px;
-                background-image: url('{{ dbca_cropped_image_path|escape_special_characters }}');
-                background-size: cover;    
-                margin-bottom: 0.10583333334cm;
+                content: " ";
             }
+            @top-right {
+                content: " ";
+            }
+            border-top: none;
+            margin-top: 0cm;
+            padding-top: 2cm;
+            
+
         }
 
+        
         {% comment %} SDS {% endcomment %}
         @page sds {
             @bottom-left {
@@ -233,52 +196,151 @@
             @top-right {
                 content: " ";
             }
-            
+            margin-bottom: 60px;
+            border-bottom: 0.25pt solid #666;
+
         }
 
         @page sds:left {
             @bottom-left {
                 content: counter(page, decimal);
+                padding: 0;        
+                padding-bottom: 20px;
             }
             @bottom-right {
-                content: "Service Delivery Structure"
+                content: "Service Delivery Structure";
+                font-weight: bold;
+                font-size: 12px;
+                padding: 0;        
+                padding-bottom: 20px;
             }
         }
 
         @page sds:right {
             @bottom-right {
                 content: counter(page, decimal);
+                padding: 0;        
+                padding-bottom: 20px;
             }
             @bottom-left {
-                content: "Service Delivery Structure"
+                content: "Service Delivery Structure";
+                font-weight: bold;
+                font-size: 12px;
+                padding: 0;        
+                padding-bottom: 20px;
             }
         }
 
-        
+        @page ba_pages,
+        external_partnerships,
+        student_projects_summary,
+        sr_pages,
+        publications,
+        research_projects_summary
+         {
+            @bottom-left {
+                content: " ";
+            }
+            @bottom-right {
+                content: " ";
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
 
-        .footer-image {
-            bottom: 0;
-            left: 0;
-            display: block;
-            width: 200px;
-            height: auto;
-            margin-right: 5px;
+            padding-top: 10px;
+            margin-bottom: 60px;
+            border-bottom: 0.25pt solid #666;
+            border-top: 0.25pt solid #666;
         }
 
-        .header-text {
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            font-size: 10pt;
-            margin: 0;
-            padding: 0;
+        @page ba_pages:left,
+        external_partnerships:left,
+        student_projects_summary:left,
+        sr_pages:left,
+        publications:left,
+        research_projects_summary:left {
+            @bottom-left {
+                content: counter(page, decimal);
+                font-size: 12px;
+                padding: 0;
+                padding-bottom: 20px;
+            }
+            @bottom-right {
+                content: string(ch_title); 
+                font-size: 12px;
+                font-weight: bold;       
+                padding: 0;   
+                padding-bottom: 20px;      
+            }
+            
+            @top-right {
+                font-weight: bold;
+                font-size: 14px;
+                margin-top: 1cm;
+                z-index: 2;
+                content: "Annual Report {{financial_year_string}}";
+            }
         }
 
-        
-        {% comment %} #toc li { 
-            list-style-type: none 
+        @page ba_pages:right,
+        external_partnerships:right,
+        student_projects_summary:right,
+        sr_pages:right,
+        publications:right,
+        research_projects_summary:right {
+            @bottom-right {
+                content: counter(page, decimal);
+                font-size: 12px;
+                padding: 0;
+                padding-bottom: 20px;
+            }
+
+            @bottom-left {
+                content: string(ch_title); 
+                font-size: 12px;
+                font-weight: bold;    
+                padding: 0;        
+                padding-bottom: 20px;
+            }
+            
+            @top-left {
+                font-weight: bold;
+                font-size: 14px;
+                margin-top: 1cm;
+                z-index: 2;
+                content: "Annual Report {{financial_year_string}}";
+            }           
         }
-        #toc a::after {
-            content: leader('.') target-counter(attr(href), page);
-        } {% endcomment %}
+
+        @page ba_pages:first,
+        external_partnerships:first,
+        student_projects_summary:first,
+        sr_pages:first,
+        publications:first,
+        research_projects_summary:first
+        {
+            @top-right {
+                font-weight: bold;
+                font-size: 14px;
+                margin-top: 1cm;
+                z-index: 2;
+                color: orange;
+                content: " ";
+            }
+            @top-left {
+                font-weight: bold;
+                font-size: 14px;
+                margin-top: 1cm;
+                z-index: 2;
+                color: orange;
+                content: " ";
+            }
+        }
+       
 
     </style>
 </head>
@@ -378,21 +440,23 @@
             }
         }
 
+    function adjustBaFirstPage() {
+        var page = document.querySelector('.ba_pages');
+        if (page) {
+            page.classList.add('first-page');
+        }
+        var pagetwo = document.querySelector('.ba_pages.left');
+        if (pagetwo) {
+            pagetwo.classList.add('first-page');
+        }
+    }
+
+    function runLoad() {
+        generateTableOfContents('h1');
+        adjustBaFirstPage();
+    }
 </script>
-{% comment %} subAnchor.href = "#" + subheading.id;
-                        subAnchor.textContent = subheading.textContent; {% endcomment %}
-                {% comment %} const subItem = document.createElement("li");
-                subItem.classList.add("toc_sub_list_item");
-
-                const subAnchor = document.createElement("a");
-
-                subAnchor.href = "#" + heading.id;
-                subAnchor.textContent = heading.textContent + ' (subitem test)';
-                subItem.appendChild(subAnchor);
-                tocList.appendChild(subItem); {% endcomment %}
-
-
-<body class="page_body" onload="generateTableOfContents('h1')"> 
+<body class="page_body" onload="runLoad()"> 
 
     {% comment %} PRINCE BLOCK {% endcomment %}
     <div class="prince_page">
@@ -487,32 +551,32 @@
 
         {% comment %} BA & THEIR REPORTS {% endcomment %}
         <div class="section_container ba">
-            {% for ba in sorted_ba_data_and_pr_dict %}
-                <div class="ba_chapter_container">
+            {% for ba_item in sorted_ba_data_and_pr_dict %}
+                <div class="ba_chapter_container ba_pages">
 
-                    <div class="chapter_title_container">
+                    <div class="ba_chapter_title_container ">
                         <div class="chapter_image_container">
                             <img 
                                 class="chapter_image"
-                                alt="{{ba.ba_name}} Image" 
-                                src="{{server_url}}{{ba.ba_image.file}}"
+                                alt="{{ba_item.ba_name}} Image" 
+                                src="{{server_url}}{{ba_item.ba_image.file}}"
                             />
                         </div>
                         <div class="chapter_title_text_container">
-                            <h1 id="{{ba.ba_name}}" class="chapter_title_text">{{ba.ba_name}}</h1>
+                            <h1 id="{{ba_item.ba_name}}" class="chapter_title_text">{{ba_item.ba_name}}</h1>
                         </div>
                     </div>
 
                     <div class="section_content_container"> 
                         <div class="ba_lead_text_container">
                             <span>
-                                <p class="ba_leader_text">Business Area Leader: {{ba.ba_leader}}</p>
+                                <p class="ba_leader_text">Business Area Leader: {{ba_item.ba_leader}}</p>
                                 <div class="ba_introduction_text_container">
-                                    {{ ba.ba_introduction|safe }}
+                                    {{ ba_item.ba_introduction|safe }}
                                 </div>
                             </span>
                         </div>
-                        {% for report in ba.progress_reports %}
+                        {% for report in ba_item.progress_reports %}
                             <div class="progress_report_container">
                                 <div class="progress_report_top_container">
                                     {% if not forloop.counter|divisibleby:2 %}
@@ -543,44 +607,86 @@
                                         </div>
                                     </div>
                                     {% if forloop.counter|divisibleby:2 %}
-                                        <div class="pr_img_container_lhs">
+                                        <div class="pr_img_container_rhs">
                                             <img class="pr_image"
                                                 alt="{{report.document.project.title}} Image"
                                                 src="{{server_url}}{{report.document.project.image.file}}"
                                             />
                                         </div>
                                     {% endif %}
-                    
+                                    <div class="pr_top_filler">
+                                        <p style="display: none;"></p>
+                                    </div>
                                 </div>
                                 <div class="progress_report_bottom_container">
-                                    <div class="pr_subsection">
-                                        <p class="pr_subsection_title">Context</p>
+                                    <div class="pr_subsection pr_first_section">
                                         <div class="pr_subsection_content_container">
-                                            {{report.context | safe}}
+                                            <div class="pr_subsection_title">
+                                                <h3>Context</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                            </div>
+                                            <div class="orphanage_widow">
+                                                {{report.context | safe }}
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="pr_subsection">
                                         <div class="pr_subsection_content_container">
-                                            <p class="pr_subsection_title">Aims</p>
-                                            {{report.aims | safe}}
+                                            <div class="pr_subsection_title">
+                                                <h3>Aims</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                            </div>
+                                            <div class="orphanage_widow">
+                                                {{report.aims | safe }}
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="pr_subsection">
-                                        <p class="pr_subsection_title">Progress</p>
                                         <div class="pr_subsection_content_container">
-                                        {{report.progress | safe}}
+                                            <div class="pr_subsection_title">
+                                                <h3>Progress</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                            </div>
+                                            <div class="orphanage_widow">
+                                                {{report.progress | safe }}
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="pr_subsection">
-                                        <p class="pr_subsection_title">Implications</p>
                                         <div class="pr_subsection_content_container">
-                                        {{report.implications | safe}}
+                                            <div class="pr_subsection_title">
+                                                <h3>Implications</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                            </div>
+                                            <div class="orphanage_widow">
+                                                {{report.implications | safe }}
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="pr_subsection">
-                                        <p class="pr_subsection_title">Future Directions</p>
+                                    <div class="pr_subsection pr_last_section">
                                         <div class="pr_subsection_content_container">
-                                            {{report.future | safe}}
+                                            <div class="pr_subsection_title">
+                                                <h3>Future Directions</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                                <h3 style="display: none">test</h3>
+                                            </div>
+                                            <div class="orphanage_widow">
+                                                {{report.future | safe }}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -588,12 +694,11 @@
                         {% endfor %}
                     </div>
                 </div>
-
             {% endfor %}
         </div>
 
         {% comment %} EXTERNAL PARTNERSHIPS CHAPTER{% endcomment %}
-        <div class="section_container">
+        <div class="section_container external_partnerships">
             <div class="chapter_container">
 
 
@@ -617,7 +722,7 @@
         </div>
 
         {% comment %} STUDENT PROJECTS CHAPTER (TABLE) {% endcomment %}
-        <div class="section_container">
+        <div class="section_container student_projects_summary">
             <div class="chapter_container">
 
                 <div class="chapter_title_container">
@@ -639,7 +744,7 @@
         </div>
 
         {% comment %} STUDENT REPORTS CHAPTER {% endcomment %}
-        <div class="section_container">
+        <div class="section_container sr_pages">
             <div class="ba_chapter_container">
                 <div class="chapter_title_container">
                     <div class="chapter_image_container">
@@ -704,7 +809,11 @@
                             </div>
                             <div class="progress_report_bottom_container">
                                 <div class="pr_subsection">
-                                    {{report.progress_report | safe}}
+                                    <div class="pr_subsection_content_container">
+                                        <div class="orphanage_widow">
+                                            {{report.progress_report | safe}}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -714,7 +823,7 @@
         </div>
 
         {% comment %} PUBLICATIONS CHAPTER {% endcomment %}
-        <div class="section_container">
+        <div class="section_container publications">
             <div class="chapter_container">
 
                 <div class="chapter_title_container">
@@ -726,10 +835,10 @@
                         />
                     </div>
                     <div class="chapter_title_text_container">
-                        <h1 id="publications" class="chapter_title_text">Publications</h1>
+                        <h1 id="publications" class="chapter_title_text">Publications and Reports</h1>
                     </div>
                 </div>
-                <div class="section_content_container"> 
+                <div class="section_content_container publications_div"> 
                     {{publications_data | safe}}
                 </div>
             </div>
@@ -737,7 +846,7 @@
 
 
         {% comment %} SUMMARY OF RESEARCH PROJECTS CHAPTER {% endcomment %}
-        <div class="section_container">
+        <div class="section_container research_projects_summary">
             <div class="chapter_container">
                 <div class="chapter_title_container">
                     <div class="chapter_image_container">
