@@ -715,7 +715,6 @@
                 </div>
 
                 <div class="section_content_container"> 
-                    {% comment %} {{external_partnerships_table_data | safe}} {% endcomment %}
                     <div class="ext_table_section_container">
                         <div class="ext_table_container">
                             <table class="ext_table">
@@ -762,7 +761,6 @@
                     </div>
                 </div>
                 <div class="section_content_container"> 
-                    {% comment %} {{student_projects_table_data | safe}} {% endcomment %}
                         <div class="sr_table_section_container">
                             <div class="sr_table_container">
                                 <table class="sr_table">
@@ -922,7 +920,6 @@
                     </div>
                 </div>
                 <div class="section_content_container"> 
-                    {% comment %} {{research_projects_table_data | safe}} {% endcomment %}
                     {% for ba_item in sorted_ba_data_and_pr_dict %}
                         <div class="ba_table_section_container">
                             <h3 class="ba_table_title">{{ba_item.ba_name}}</h3>
@@ -942,9 +939,28 @@
                                     {% for report in ba_item.progress_reports %}
                                         <tr class="ba_table_tr">
                                             <td class="project_title_td ba_table_td">{{report.document.project.title | safe}}</td>
-                                            <td class="dbca_region_td ba_table_td">DBCA Region</td>
-                                            <td class="imcraibra_td ba_table_td">IBRA/IMCRA</td>
-                                            <td class="nrm_td ba_table_td">NRM Region</td>
+                                           
+                                            <td class="dbca_region_td ba_table_td">
+                                                {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"dbcaregion" %}
+                                                    {% for area in filtered_areas %}
+                                                        {{ area.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                {% endwith %}
+                                            </td>
+                                            <td class="imcraibra_td ba_table_td">
+                                                {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"imcra, ibra" %}
+                                                    {% for area in filtered_areas %}
+                                                        {{ area.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                {% endwith %}
+                                            </td>
+                                            <td class="nrm_td ba_table_td">
+                                                {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"nrm" %}
+                                                    {% for area in filtered_areas %}
+                                                        {{ area.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                {% endwith %}
+                                            </td>
                                             <td class="page_td ba_table_td">Page</td>
                                         </tr>
                                     {% endfor %}
@@ -955,6 +971,13 @@
                     {% endfor %}
                 </div>
             </div>
+        </div>
+        
+        <div>
+ 
+
+            <p>Sorted Student Report Data:</p>
+            <p>{{sorted_student_report_array}}</p>
         </div>
     </div>
 

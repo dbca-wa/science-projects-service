@@ -1,5 +1,5 @@
 from medias.models import ProjectDocumentPDF, ProjectPlanMethodologyPhoto
-from projects.models import Project, ProjectMember
+from projects.models import Project, ProjectArea, ProjectMember
 from projects.serializers import (
     MiniProjectMemberSerializer,
     ProjectAreaSerializer,
@@ -607,6 +607,7 @@ class ProgressReportAnnualReportSerializer(serializers.ModelSerializer):
     report = TinyAnnualReportSerializer(read_only=True)
     # project = TinyProjectSerializer(read_only=True)
     team_members = serializers.SerializerMethodField()
+    project_areas = serializers.SerializerMethodField()
 
     def get_team_members(self, student_report):
         # print('getting team')
@@ -623,6 +624,17 @@ class ProgressReportAnnualReportSerializer(serializers.ModelSerializer):
         else:
             return serialized_members
 
+    def get_project_areas(self, student_report):
+        project = student_report.project
+        try:
+            areas = ProjectArea.objects.filter(project=project.pk).first()
+            ser = ProjectAreaSerializer(areas)
+        except ProjectArea.DoesNotExist:
+            print(f"error on area/ser (not found for project: {project.title})")
+            raise NotFound
+        else:
+            return ser
+
     class Meta:
         model = ProgressReport
         fields = [
@@ -638,6 +650,7 @@ class ProgressReportAnnualReportSerializer(serializers.ModelSerializer):
             "implications",
             "future",
             "team_members",
+            "project_areas",
         ]
 
 

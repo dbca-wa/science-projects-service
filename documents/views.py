@@ -498,16 +498,13 @@ class BeginReportDocGeneration(APIView):
                 "sds_data": sds_data,
                 # BA & Progress Reports
                 "sorted_ba_data_and_pr_dict": sorted_ba_data,
-                # External Partnerships Table
-                "external_partnerships_table_data": external_partnerships_table_data,
-                # Student Report Table
-                "student_projects_table_data": student_projects_table_data,
+                # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
+                # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
                 # Student Reports
                 "sorted_student_report_array": sorted_srs,
                 # Publications and Reports
                 "publications_data": publications_data,
-                # Summary of Research Projects
-                "research_projects_table_data": research_projects_table_data,
+                # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
                 "population_time": f"{float(time.time() - start_time):.3f}",
             }
         )

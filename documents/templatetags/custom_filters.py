@@ -10,6 +10,12 @@ def filter_by_role(team_members, role):
     return [item for item in team_members if item.get("role") == role]
 
 
+# Pass a list of area_types e.g. ["dbcaregion", "ibra"]
+@register.filter
+def filter_by_area(areas, area_types):
+    return [item for item in areas if item.get("area_type") in area_types]
+
+
 @register.filter
 def get_scientists(team_members):
     excluded_roles = ["academicsuper", "student"]
