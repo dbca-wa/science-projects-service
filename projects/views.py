@@ -33,6 +33,7 @@ from documents.models import (
     ConceptPlan,
     ProgressReport,
     ProjectClosure,
+    ProjectDocument,
     ProjectPlan,
     StudentReport,
 )
@@ -46,6 +47,7 @@ from documents.serializers import (
     ConceptPlanCreateSerializer,
     ConceptPlanSerializer,
     EndorsementCreationSerializer,
+    MidDocumentSerializer,
     ProgressReportSerializer,
     ProjectClosureSerializer,
     ProjectDocumentCreateSerializer,
@@ -1685,6 +1687,34 @@ class ProjectDetails(APIView):
                 base_ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class ProjectDocs(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def gos(pk):
+        try:
+            docs = ProjectDocument.objects.filter(project=pk).all()
+        except Project.DoesNotExist:
+            raise NotFound
+        return docs
+
+    def get(self, req, pk):
+        # Get the docs based on the project pk
+        all = self.gos(pk=pk)
+        ser = MidDocumentSerializer(
+            all,
+            many=True,
+        )
+        if ser.errors:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
 
 
 # PROJECTS ADDITIONAL DETAILS =============================================================================

@@ -9,7 +9,9 @@ RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     # Sys Utils
     openssh-client rsync vim ncdu wget systemctl \
     # Postgres
-    postgresql postgresql-client 
+    postgresql postgresql-client \ 
+    # Queing and Scheduling
+    celery rabbitmq-server
 
 # Installer for Prince
 RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
@@ -86,7 +88,8 @@ RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     djangorestframework django psycopg2-binary python-dotenv python-dateutil \
     requests whitenoise[brotli] gunicorn pandas \
-    beautifulsoup4 sentry-sdk[django] html2text pillow tqdm
+    beautifulsoup4 sentry-sdk[django] html2text pillow tqdm \
+    celery pika channels
 
 # Ensure prince is in path so it can be called in command line 
 ENV PATH="${PATH}:/usr/lib/prince/bin"
@@ -94,4 +97,5 @@ RUN prince --version
 
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
+RUN rabbitmq-server
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]

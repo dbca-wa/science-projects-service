@@ -6,6 +6,7 @@ urlpatterns = [
     path("", views.Projects.as_view()),
     path("listofyears", views.ProjectYears.as_view()),
     path("<int:pk>", views.ProjectDetails.as_view()),
+    path("<int:pk>/project_docs", views.ProjectDocs.as_view()),
     path("<int:pk>/team", views.MembersForProject.as_view()),
     path("<int:pk>/areas", views.AreasForProject.as_view()),
     path("<int:pk>/details", views.SelectedProjectAdditionalDetail.as_view()),

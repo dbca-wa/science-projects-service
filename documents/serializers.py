@@ -62,6 +62,51 @@ class MiniAnnualReportSerializer(serializers.ModelSerializer):
         ]
 
 
+class MidDocumentSerializer(serializers.ModelSerializer):
+    project = TinyProjectSerializer(read_only=True)
+    referenced_doc = serializers.SerializerMethodField()
+
+    def get_referenced_doc(self, obj):
+        if obj.kind == "concept":
+            doc = ConceptPlan.objects.filter(document=obj.document)
+        elif obj.kind == "projectplan":
+            doc = ProjectPlan.objects.filter(document=obj.document)
+        elif obj.kind == "progressreport":
+            doc = ProgressReport.objects.filter(document=obj.document)
+        elif obj.kind == "studentreport":
+            doc = StudentReport.objects.filter(document=obj.document)
+        elif obj.kind == "projectclosure":
+            doc = ProjectClosure.objects.filter(document=obj.document)
+        else:
+            print("ERROR ON OBJ KIND FOR MIDDOCUMENTSERIALIZER", obj.kind)
+            raise NotFound
+        return doc
+
+    class Meta:
+        model = ProjectDocument
+        fields = [
+            "pk",
+            "kind",
+            "project",
+            "referenced_doc",
+        ]
+
+    # pk: number;
+    # kind: string;
+    # title: string;
+    # export interface IReferencedDoc {
+    #     pk: number;
+    #     kind: string;
+    #     year?: number;
+    # }
+
+    # export interface IMidDoc {
+    #     pk: number;
+    #     project: ISmallProj;
+    #     referenced_doc: IReferencedDoc;
+    # }
+
+
 class TinyProjectDocumentSerializer(serializers.ModelSerializer):
     project = TinyProjectSerializer(read_only=True)
     created_year = serializers.SerializerMethodField()

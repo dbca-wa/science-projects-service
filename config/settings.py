@@ -85,6 +85,9 @@ SYSTEM_APPS = [
 THIRD_PARTY_APPS = [
     "rest_framework",
     "corsheaders",
+    # "celery",
+    # "kombu.transport.django",
+    # "channels",
 ]
 
 CUSTOM_APPS = [
@@ -450,3 +453,11 @@ if DEBUG:
     SITE_URL = "127.0.0.1:3000"
 else:
     SITE_URL = "https://scienceprojects-test.dbca.wa.gov.au"
+
+
+# import os
+
+# BROKER_URL = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/")
+
+# ASGI_APPLICATION = "config.routing.application"  # routing.py will handle the ASGI
+# CHANNEL_LAYERS = {"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}}

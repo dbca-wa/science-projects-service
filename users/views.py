@@ -16,6 +16,7 @@ from contacts.models import UserContact
 from medias.models import UserAvatar
 from medias.serializers import TinyUserAvatarSerializer
 from medias.views import UserAvatarDetail, UserAvatars
+from projects.models import Project, ProjectMember
 from .models import User, UserProfile, UserWork
 from rest_framework.exceptions import NotFound
 from .serializers import (
@@ -185,7 +186,7 @@ class SmallInternalUserSearch(APIView):
 
         search_term = request.GET.get("searchTerm")
         only_internal = request.GET.get("onlyInternal")
-
+        project_pk = request.GET.get("fromProject")
 
         try:
             only_internal = ast.literal_eval(only_internal)
@@ -193,7 +194,13 @@ class SmallInternalUserSearch(APIView):
             only_internal = False
 
         if only_internal == True:
-            users = User.objects.filter(is_staff=True)
+            if project_pk:
+                project = Project.objects.get(pk=project_pk)
+                users = User.objects.filter(member_of__project=project, is_staff=True)
+
+            else:
+                users = User.objects.filter(is_staff=True)
+
         else:
             users = User.objects.all()
 
@@ -925,4 +932,3 @@ class UpdateMembership(APIView):
                 "This user is not staff",
                 status=HTTP_200_OK,
             )
-

@@ -602,8 +602,7 @@
                                         </div>
                                         <div class="pr_member_container">
                                             <p class="project_text_section_title">Team:</p>
-                                            <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}
-                                            </p>
+                                            <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}</p>
                                         </div>
                                     </div>
                                     {% if forloop.counter|divisibleby:2 %}
@@ -716,7 +715,32 @@
                 </div>
 
                 <div class="section_content_container"> 
-                    {{external_partnerships_table_data | safe}}
+                    {% comment %} {{external_partnerships_table_data | safe}} {% endcomment %}
+                    <div class="ext_table_section_container">
+                        <div class="ext_table_container">
+                            <table class="ext_table">
+                                <thead class="table_head">
+                                    <tr class="ext_table_tr">
+                                        <th class="ext_project_title_td ext_table_th">Project Title</th>
+                                        <th class="partners_td ext_table_th">Partners</th>
+                                        <th class="funding_td ext_table_th">External Funding</th>
+                                        <th class="dept_involvement_td ext_table_th">Departmental Involvement</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="table_body">
+                                    {% for report in sorted_student_report_array %}
+                                        <tr class="ext_table_tr">
+                                            <td class="ext_project_title_td ext_table_td">{{report.document.project.title | safe}}</td>
+                                            <td class="partners_td ext_table_td">Alcoa</td>
+                                            <td class="funding_td ext_table_td">$1,000,000</td>
+                                            <td class="dept_involvement_td ext_table_td">Ben Richardson, Rory McAuley, Jarid Prince</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -738,7 +762,38 @@
                     </div>
                 </div>
                 <div class="section_content_container"> 
-                    {{student_projects_table_data | safe}}
+                    {% comment %} {{student_projects_table_data | safe}} {% endcomment %}
+                        <div class="sr_table_section_container">
+                            <div class="sr_table_container">
+                                <table class="sr_table">
+                                    <thead class="table_head">
+                                        <tr class="sr_table_tr">
+                                            <th class="student_project_title_td sr_table_th">Project Title</th>
+
+                                            <th class="student_td sr_table_th">Student</th>
+                                            <th class="duration_td sr_table_th">Duration</th>
+                                            <th class="academic_td sr_table_th">Academic/s</th>
+                                            <th class="dbca_officer_td sr_table_th">DBCA Officer</th>
+                                            <th class="page_td sr_table_th">Page</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="table_body">
+                                        {% for report in sorted_student_report_array %}
+                                            <tr class="sr_table_tr">
+                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe}}</td>
+
+                                                <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</td>
+                                                {% comment %} {% with students=report.team_members|filter_by_role:"student" %} {% endcomment %}
+                                                <td class="duration_td sr_table_td">2023-2024</td>
+                                                <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}{% endwith %}</td>
+                                                <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}{% endwith %}</td>
+                                                <td class="page_td sr_table_td">100</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -762,6 +817,8 @@
                     {% for report in sorted_student_report_array %}
                         <div class="progress_report_container">
                             <div class="progress_report_top_container">
+                                {% if not forloop.counter|divisibleby:2 %}
+
                                 <div class="pr_img_container_lhs">
                                     <img class="pr_image"
                                         alt="{{report.document.project.title}} Image"
@@ -769,6 +826,9 @@
                                     />
                                 </div>
                                 <div class="pr_data_rhs">
+                                {% else %}
+                                <div class="pr_data_lhs">
+                                {% endif %}
                                     <div class="pr_title_container">
                                         <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
                                             {{report.document.project.title | safe}}
@@ -780,21 +840,12 @@
                                     </div>
 
                                     <div class="student_pr_member_container">
-                            
                                         <p class="project_text_section_title">Student:</p>
-                                        <p class="pr_member_string">
-                                            {% with students=report.team_members|filter_by_role:"student" %}
-                                                {% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}
-                                            {% endwith %}
-                                        </p>
+                                        <p class="pr_member_string">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</p>
                                     </div>
                                     <div class="student_pr_member_container">
                                         <p class="project_text_section_title">Academic(s):</p>
-                                        <p class="pr_member_string">
-                                            {% with academics=report.team_members|filter_by_role:"academicsuper" %}
-                                                {% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}
-                                            {% endwith %}
-                                        </p>
+                                        <p class="pr_member_string">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}{% endwith %}</p>
                                     </div>
                                     <div class="student_pr_member_container">
                                         <p class="project_text_section_title">Scientist(s):</p>
@@ -804,7 +855,17 @@
                                             {% endwith %}
                                         </p>
                                     </div>
-        
+                                </div>
+                                {% if forloop.counter|divisibleby:2 %}
+                                <div class="pr_img_container_rhs">
+                                    <img class="pr_image"
+                                        alt="{{report.document.project.title}} Image"
+                                        src="{{server_url}}{{report.document.project.image.file}}"
+                                    />
+                                </div>
+                                {% endif %}
+                                <div class="pr_top_filler">
+                                    <p style="display: none;"></p>
                                 </div>
                             </div>
                             <div class="progress_report_bottom_container">
@@ -861,7 +922,37 @@
                     </div>
                 </div>
                 <div class="section_content_container"> 
-                        {{research_projects_table_data | safe}}
+                    {% comment %} {{research_projects_table_data | safe}} {% endcomment %}
+                    {% for ba_item in sorted_ba_data_and_pr_dict %}
+                        <div class="ba_table_section_container">
+                            <h3 class="ba_table_title">{{ba_item.ba_name}}</h3>
+
+                            <div class="ba_table_container">
+                                <table class="ba_table">
+                                    <thead class="ba_table_head">
+                                        <tr class="ba_table_tr">
+                                            <th class="project_title_td ba_table_th">Project Title</th>
+                                            <th class="dbca_region_td ba_table_th">DBCA Region</th>
+                                            <th class="imcraibra_td ba_table_th">IBRA/IMCRA</th>
+                                            <th class="nrm_td ba_table_th">NRM Region</th>
+                                            <th class="page_td ba_table_th">Page</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="ba_table_body">
+                                    {% for report in ba_item.progress_reports %}
+                                        <tr class="ba_table_tr">
+                                            <td class="project_title_td ba_table_td">{{report.document.project.title | safe}}</td>
+                                            <td class="dbca_region_td ba_table_td">DBCA Region</td>
+                                            <td class="imcraibra_td ba_table_td">IBRA/IMCRA</td>
+                                            <td class="nrm_td ba_table_td">NRM Region</td>
+                                            <td class="page_td ba_table_td">Page</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

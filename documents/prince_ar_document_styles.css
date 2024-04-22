@@ -689,7 +689,161 @@ ul li {
     flex: 1;
     padding-right: 10px;
 }
+
 /* 
 * p, li {
     orphans: 3;
 } */
+
+
+
+.ba_table_section_container {
+    padding: 10px 0;
+}
+
+.ba_table_container {}
+
+
+
+.ba_table_title {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.ba_table, .sr_table, .ext_table {
+    font-size: 14px !important;
+    text-align: left;
+    word-wrap: break-word;
+    width: 100%;
+    border-collapse: collapse;
+    outline: none;
+}
+
+.ba_table p, .sr_table p, .ext_table p {
+    padding: 0;
+    margin: 0;
+}
+
+
+.ba_table_th, .sr_table_th, .ext_table_th {
+    color: black !important;
+    text-align: left !important;
+}
+
+.ba_table_tr {
+
+}
+
+.ba_table_td,
+.ba_table_th,
+.sr_table_td,
+.sr_table_th,
+.ext_table_td,
+.ext_table_th {
+    padding: 5px 0px 5px;
+
+}
+
+.ba_table_tr,
+.sr_table_tr,
+.ext_table_tr,
+.ba_table_th,
+.sr_table_th,
+.ext_table_th,
+.ba_table_td,
+.sr_table_td,
+.ext_table_td {
+    border: 1px solid #575757;
+    vertical-align: top !important;
+
+    border-right: none;
+    border-left: none;
+}
+
+.project_title_td {
+    width: 44%; 
+    padding: 5px 10px 5px 0px!important;
+}
+
+.project_title_td p, 
+.student_project_title_td p,
+.ext_project_title_td p {
+    text-align: justify;
+}
+
+.dbca_region_td,
+.imcraibra_td,
+.nrm_td {
+    width: 17%; /* 3/5 of the table width divided among these three cells */
+    padding: 5px 10px 5px;
+
+}
+.page_td {
+    text-align: right !important;
+    color:#6888cc;
+    width: 5%;     /* Remaining width after the above cells take their share */
+}
+
+
+
+
+
+/* .student_td {
+    
+}
+.duration_td {
+
+}
+.academic_td {
+
+}
+.dbca_officer_td {
+
+} */
+
+.sr_table_section_container {}
+
+.sr_table_container {}
+
+.sr_table {}
+
+.sr_table_tr {
+
+}
+
+.sr_table_th {
+
+}
+
+.student_project_title_td {
+    width: 35%; 
+    padding: 5px 10px 5px 0px!important;
+}
+
+
+.ext_project_title_td {
+    width: 40%; 
+    padding: 5px 20px 5px 0px!important;
+}
+
+.partners_td, .funding_td, .dept_involvement_td
+{
+    width: 20%; 
+    padding: 5px 10px 5px 0px!important;
+}
+
+.dept_involvement_td,
+.dept_involvement_th {
+    text-align: right !important;
+}
+
+.student_td,
+.duration_td,
+.academic_td,
+.dbca_officer_td
+{
+    width: 15%; 
+    padding: 5px 10px 5px;
+}
+
+

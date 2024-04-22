@@ -124,17 +124,23 @@ class ProjectAreaSerializer(serializers.ModelSerializer):
 
         return representation
 
+
 class PkAndKindOnlyProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
-        fields=['pk', 'kind']
+        fields = ["pk", "kind"]
+
 
 class MiniUserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "pk", "first_name", "last_name",
-            "email", "is_active", "is_staff",
+            "pk",
+            "first_name",
+            "last_name",
+            "email",
+            "is_active",
+            "is_staff",
         ]
 
 
