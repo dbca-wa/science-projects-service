@@ -537,11 +537,13 @@
                         src="{{server_url}}{{sds_data.chart}}"/>
                     </div>
                     {% comment %} SDS INTRO {% endcomment %}
-                    {% if not sds_data.intro == None %}
-                        <div class="sds_intro_container">
-                            {{sds_data.intro | safe}}
-                        </div>
-                    {% endif %}
+                    {% with preprocessed_intro=sds_data.intro|safe|remove_empty_p %}
+                        {% if preprocessed_intro and sds_data.intro != None %}
+                            <div class="sds_intro_container">
+                                {{ sds_data.intro | safe }}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
 
                 </div>
             </div>
@@ -771,7 +773,7 @@
                                             <th class="student_td sr_table_th">Student</th>
                                             <th class="duration_td sr_table_th">Duration</th>
                                             <th class="academic_td sr_table_th">Academic/s</th>
-                                            <th class="dbca_officer_td sr_table_th">DBCA Officer</th>
+                                            <th class="dbca_officer_td sr_table_th">DBCA Officer/s</th>
                                             <th class="page_td sr_table_th">Page</th>
                                         </tr>
                                     </thead>
@@ -779,11 +781,10 @@
                                         {% for report in sorted_student_report_array %}
                                             <tr class="sr_table_tr">
                                                 <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe}}</td>
-
-                                                <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</td>
-                                                {% comment %} {% with students=report.team_members|filter_by_role:"student" %} {% endcomment %}
+                                                <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
                                                 <td class="duration_td sr_table_td">2023-2024</td>
-                                                <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}{% endwith %}</td>
+                                                {% comment %} Abbrev. and add organisation {% endcomment %}
+                                                <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% endfor %}{% endwith %}</td>
                                                 <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}{% endwith %}</td>
                                                 <td class="page_td sr_table_td">100</td>
                                             </tr>
@@ -974,10 +975,21 @@
         </div>
         
         <div>
- 
-
+            {% for ext_project in sorted_external_project_data%}
+                <p>({{ext_project.kind}}) {{ext_project.title}}</p>
+                <p>{{ext_project.team_members}}</p>
+                <p>{{ext_project.partners}}</p>
+                <p>{{ext_project.funding}}</p>
+                <p>
+            {% endfor %}
+        </div>
+        <div>
             <p>Sorted Student Report Data:</p>
-            <p>{{sorted_student_report_array}}</p>
+            {% for report in sorted_student_report_array%}
+                <p>
+                    {{report.document.project.student_level|get_student_level_text}} {{report.document.project.title}}
+                </p>
+            {% endfor %}
         </div>
     </div>
 

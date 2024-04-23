@@ -58,6 +58,27 @@ class CreateProjectSerializer(ModelSerializer):
         return representation
 
 
+class ARProjectSerializer(ModelSerializer):
+    # image = ProjectPhotoSerializer(read_only=True)
+    image = ProjectPhotoSerializer(read_only=True)
+    business_area = TinyBusinessAreaSerializer(read_only=True)
+    team_members = SerializerMethodField
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        # Get the serialized data from the parent class
+        representation = super().to_representation(instance)
+
+        # Check if the custom context key is present and use 'pk' instead of 'id'
+        if self.context.get("use_pk_for_id"):
+            representation["pk"] = representation.pop("id")
+
+        return representation
+
+
 class ProjectSerializer(ModelSerializer):
     # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
@@ -81,6 +102,7 @@ class ProjectSerializer(ModelSerializer):
 class TinyProjectSerializer(ModelSerializer):
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
+    # level = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -93,6 +115,30 @@ class TinyProjectSerializer(ModelSerializer):
             "number",
             "business_area",
             "image",
+            # "level",
+        )
+
+
+class TinyStudentProjectARSerializer(ModelSerializer):
+    image = TinyProjectPhotoSerializer(read_only=True)
+    business_area = TinyBusinessAreaSerializer(read_only=True)
+    student_level = serializers.SerializerMethodField()
+
+    def get_student_level(self, project):
+        return project.student_project_info.level
+
+    class Meta:
+        model = Project
+        fields = (
+            "pk",
+            "title",
+            "status",
+            "kind",
+            "year",
+            "number",
+            "business_area",
+            "image",
+            "student_level",
         )
 
 
@@ -132,6 +178,11 @@ class PkAndKindOnlyProjectSerializer(ModelSerializer):
 
 
 class MiniUserSerializer(ModelSerializer):
+    title = serializers.SerializerMethodField()
+
+    def get_title(self, user):
+        return user.profile.title
+
     class Meta:
         model = User
         fields = [
@@ -141,6 +192,7 @@ class MiniUserSerializer(ModelSerializer):
             "email",
             "is_active",
             "is_staff",
+            "title",
         ]
 
 

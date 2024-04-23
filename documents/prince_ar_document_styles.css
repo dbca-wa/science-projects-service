@@ -375,17 +375,24 @@ ul li {
 /* SDS Intro */
 .sds_chart_image_container {
     height: 65vh;
+    width: 100%;
     margin-top: 10px;
 }
 
 .sds_chart_image {
     height: 100%;
+    width: 100%;
+    object-fit: cover;
+
 }
 
 
-.sds_intro_container {}
-
-
+.sds_intro_container {
+    break-before: page;
+    font-size: 12px;
+    text-align: justify;
+    font-weight: 700;
+}
 
 
 .toc_title_container {
@@ -429,6 +436,7 @@ ul li {
     text-align: justify;
     
 }
+
 
 .ba_leader_text {
     font-weight: 700;

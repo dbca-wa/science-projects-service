@@ -288,12 +288,15 @@ class LatestReportMedia(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting latest report's media")
+
         def go():
             try:
                 latest = AnnualReport.objects.order_by("-year").first()
                 medias = AnnualReportMedia.objects.filter(report=latest).all()
                 return TinyAnnualReportMediaSerializer(medias, many=True)
             except AnnualReportMedia.DoesNotExist:
+                print("MEDIA OBJECT NOT FOUND")
                 raise NotFound
             except Exception as e:
                 settings.LOGGER.error(msg=f"{e}")

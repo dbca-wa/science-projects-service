@@ -13,6 +13,7 @@ from communications.serializers import (
     TinyCommentCreateSerializer,
     TinyCommentSerializer,
 )
+from django.core.exceptions import ObjectDoesNotExist
 
 # from config.tasks import generate_pdf
 from projects.models import Project, ProjectMember
@@ -36,12 +37,14 @@ from medias.models import (
 )
 from medias.serializers import (
     AECPDFCreateSerializer,
+    AnnualReportPDFCreateSerializer,
     AnnualReportPDFSerializer,
     ProjectDocumentPDFSerializer,
     TinyAnnualReportPDFSerializer,
     TinyMethodologyImageSerializer,
     TinyProjectPhotoSerializer,
 )
+from projects.serializers import ProjectSerializer
 from users.models import User, UserWork
 from .models import (
     ConceptPlan,
@@ -74,6 +77,7 @@ from .serializers import (
     ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
     PublicationSerializer,
+    StudentReportAnnualReportSerializer,
     StudentReportCreateSerializer,
     StudentReportSerializer,
     TinyAnnualReportSerializer,
@@ -105,6 +109,7 @@ from rest_framework.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
+    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from django.db.models import Max
 
@@ -143,6 +148,32 @@ class BeginReportDocGeneration(APIView):
             print(f"AR MEDIA OF TYPE {kind} DOES NOT EXIST FOR AR {pk}")
             return None
         return obj
+
+    def get_approved_external_projects_for_ar(self, report):
+        settings.LOGGER.info(msg=f"Getting Approved External Projects for current year")
+        if report:
+            # print(report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            active_external_projects = Project.objects.filter(
+                kind="external", status="active"
+            ).exclude(
+                Q(business_area__division__name__isnull=True)
+                | ~Q(
+                    business_area__division__name="Biodiversity and Conservation Science"
+                )
+            )
+
+            # REPLACE WITH AR EXT PROJECT SERIALIAZER
+            proj_ser = ProjectSerializer(
+                active_external_projects,
+                many=True,
+            )
+
+            return proj_ser.data
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
 
     def get_approved_reports_for_ar(self, report):
         settings.LOGGER.info(
@@ -185,7 +216,7 @@ class BeginReportDocGeneration(APIView):
             for sreport in active_sr_docs:
                 sreport.progress_report = removeempty_p(sreport.progress_report)
 
-            sr_ser = StudentReportSerializer(
+            sr_ser = StudentReportAnnualReportSerializer(
                 active_sr_docs,
                 many=True,
             )
@@ -316,8 +347,23 @@ class BeginReportDocGeneration(APIView):
             else generic_chapter_image
         )
 
+        participating_external_projects = self.get_approved_external_projects_for_ar(
+            report=report
+        )
+        # ext = []
+        # for proj in participating_external_projects:
+        #     title = proj["title"]
+        #     partners = proj["partners"]
+        #     funding = proj["funding"]
+        #     members = proj.team_members
+
         # Participating Reports (Dict in format of student_reports, progress_reports)
-        participating_reports = self.get_approved_reports_for_ar(report=report)
+        try:
+            participating_reports = self.get_approved_reports_for_ar(report=report)
+        except Exception as e:
+            print(e)
+            set_report_generation_status(report, False)
+
         # print(participating_reports["student_reports"])
         # print(participating_reports["progress_reports"])
 
@@ -360,6 +406,7 @@ class BeginReportDocGeneration(APIView):
 
             progress_reports_by_ba[ba_pk].append(item)
 
+        sorted_external_project_data = []
         sorted_ba_data = []
         existing_ba_names = set()  # To keep track of existing ba_names
 
@@ -499,6 +546,7 @@ class BeginReportDocGeneration(APIView):
                 # BA & Progress Reports
                 "sorted_ba_data_and_pr_dict": sorted_ba_data,
                 # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
+                "sorted_external_project_data": participating_external_projects,
                 # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
                 # Student Reports
                 "sorted_student_report_array": sorted_srs,
@@ -544,6 +592,7 @@ class BeginReportDocGeneration(APIView):
         if p.returncode:
             # Handle `errs`.
             print(p.returncode)
+            set_report_generation_status(report, False)
 
         else:
             pdf = outs
@@ -569,31 +618,32 @@ class BeginReportDocGeneration(APIView):
                 doc_pdf = AnnualReportPDF.objects.get(
                     report=report,
                 )
-
-                ser = AnnualReportPDFSerializer(
-                    doc_pdf,
-                    data={
-                        "file": file_content,
-                    },
-                    partial=True,
-                )
-                if ser.is_valid():
-                    # Delete the previous file
-                    pdfs_file_path = doc_pdf.file.path
-                    default_storage.delete(pdfs_file_path)
-                    doc_pdf = ser.save()
-                    return Response(
-                        AnnualReportPDFSerializer(doc_pdf).data,
-                        status=HTTP_202_ACCEPTED,
+                if doc_pdf:
+                    ser = AnnualReportPDFSerializer(
+                        doc_pdf,
+                        data={
+                            "file": file_content,
+                        },
+                        partial=True,
                     )
+                    if ser.is_valid():
+                        # Delete the previous file
+                        pdfs_file_path = doc_pdf.file.path
+                        default_storage.delete(pdfs_file_path)
+                        doc_pdf = ser.save()
+                        return Response(
+                            AnnualReportPDFSerializer(doc_pdf).data,
+                            status=HTTP_202_ACCEPTED,
+                        )
 
-                else:
-                    print("error on try ser")
-                    print(ser.errors)
+                    else:
+                        print("\n\nERROR HERE 1\n\n")
+                        print("error on try ser")
+                        print(ser.errors)
 
             except AnnualReportPDF.DoesNotExist:
                 # If the item doesn't exist, create a new one
-                ser = AnnualReportPDFSerializer(
+                ser = AnnualReportPDFCreateSerializer(
                     data={
                         "file": file_content,
                         "report": report.pk,
@@ -1964,6 +2014,8 @@ class BeginProjectDocGeneration(APIView):
         if p.returncode:
             # Handle `errs`.
             print(p.returncode)
+            doc.pdf_generation_in_progress = True
+            doc.save()
 
         else:
             pdf = outs
@@ -3704,6 +3756,8 @@ class Reports(APIView):
                             e,
                             status=HTTP_400_BAD_REQUEST,
                         )
+
+                # AnnualReportPDF
 
                 return Response(
                     TinyAnnualReportSerializer(report).data,
