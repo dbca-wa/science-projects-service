@@ -395,13 +395,31 @@
                 const listItem = document.createElement("li");
                 listItem.classList.add("toc_list_item");
 
+                const contentContainer = document.createElement("div");
+                contentContainer.classList.add("toc_li_content_container");
+                const textContainer = document.createElement("div");
+                textContainer.classList.add("toc_text_container");
+                const pageNumberContainer = document.createElement("div");
+                pageNumberContainer.classList.add("toc_page_number_container");
+
+
+
                 // Create an anchor element with href pointing to the heading
-                const anchor = document.createElement("a");
-                anchor.href = "#" + heading.id;
-                anchor.textContent = heading.textContent;
+                const titledAnchor = document.createElement("a");
+                titledAnchor.href = "#" + heading.id;
+                titledAnchor.classList.add("toc_anchor_title")
+                titledAnchor.textContent = heading.textContent;
+
+                const pagedAnchor = document.createElement("a");
+                pagedAnchor.classList.add("toc_page_number")
+                pagedAnchor.href = "#" + heading.id;
 
                 // Append the anchor to the list item
-                listItem.appendChild(anchor);
+                textContainer.appendChild(titledAnchor);
+                contentContainer.appendChild(textContainer);
+                pageNumberContainer.appendChild(pagedAnchor);
+                contentContainer.appendChild(pageNumberContainer);
+                listItem.appendChild(contentContainer);
 
                 // Append the list item to the table of contents list
                 tocList.appendChild(listItem);
@@ -418,11 +436,33 @@
                         const subItem = document.createElement("li");
                         subItem.classList.add("toc_sub_list_item");
         
-                        const subAnchor = document.createElement("a");
-                        subAnchor.textContent = subheading.textContent;
-                        subAnchor.href = "#" + subheading.id;
-        
-                        subItem.appendChild(subAnchor);
+                        const subcontentContainer = document.createElement("div");
+                        subcontentContainer.classList.add("toc_li_content_container");
+                        const subTextContainer = document.createElement("div");
+                        subTextContainer.classList.add("toc_text_container");
+                        const subPageContainer = document.createElement("div");
+                        subPageContainer.classList.add("toc_page_number_container");
+
+
+
+                        // Create an anchor element with href pointing to the heading
+                        const subTitledAnchor = document.createElement("a");
+                        subTitledAnchor.href = "#" + subheading.id;
+                        subTitledAnchor.classList.add("toc_anchor_subtitle")
+                        subTitledAnchor.textContent = subheading.textContent;
+
+                        const subPageAnchor = document.createElement("a");
+                        subPageAnchor.classList.add("toc_page_number")
+                        subPageAnchor.href = "#" + subheading.id;
+
+                        // Append the anchor to the list item
+                        subTextContainer.appendChild(subTitledAnchor);
+                        subcontentContainer.appendChild(subTextContainer);
+                        subPageContainer.appendChild(subPageAnchor);
+                        subcontentContainer.appendChild(subPageContainer);
+
+                   
+                        subItem.appendChild(subcontentContainer);
                         subList.appendChild(subItem);
                     }
         
@@ -459,8 +499,8 @@
     
     <div class="prince_page">
         <div class="prince_blocker">
-            <p>Generated 24th April, 2024 @ 10:20AM</p>
-            <p>Template populated in 2.600 seconds</p>
+            <p>Generated 24th April, 2024 @ 01:33PM</p>
+            <p>Template populated in 2.592 seconds</p>
         </div>
     </div>
 
