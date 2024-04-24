@@ -53,7 +53,7 @@ def get_student_level_text(value):
 
 @register.filter
 def abbreviated_name(user_obj):
-    print(user_obj)
+    # print(user_obj)
     if user_obj["title"]:
         return (
             f"{user_obj['title']} {user_obj['first_name'][0]} {user_obj['last_name']}"

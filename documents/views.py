@@ -150,7 +150,7 @@ class BeginReportDocGeneration(APIView):
         return obj
 
     def get_approved_external_projects_for_ar(self, report):
-        settings.LOGGER.info(msg=f"Getting Approved External Projects for current year")
+        settings.LOGGER.info(msg=f"Getting Approved External Projects for current year...")
         if report:
             # print(report)
             # Get progress report documents which belong to it and belong to active and approved projects
@@ -2409,7 +2409,7 @@ class LatestYearsStudentReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
-        settings.LOGGER.info(msg=f"Getting Approved Student Reports for current year")
+        settings.LOGGER.info(msg=f"Getting Approved Student Reports for current year...")
 
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()

@@ -2361,17 +2361,22 @@ class Loader:
             #         file.write(name + "\n")
             filename = "RemovedBusinessAreas.txt"
             bas_dir = os.path.join(self.django_project_path, filename)
-            # Read existing content from the file
-            with open(bas_dir, "r") as file:
-                existing_content = file.read()
-            # Check if the content already exists
-            for name in removed_business_areas:
-                if f"{name}\n" not in existing_content:
-                    # Append to the file
-                    with open(bas_dir, "a") as file:
+            if os.path.exists(bas_dir):
+                # Read existing content from the file
+                with open(bas_dir, "r") as file:
+                    existing_content = file.read()
+                # Check if the content already exists
+                for name in removed_business_areas:
+                    if f"{name}\n" not in existing_content:
+                        # Append to the file
+                        with open(bas_dir, "a") as file:
+                            file.write(f"{name}\n")
+                    else:
+                        print("already present in ba removal file")
+            else:
+                with open(bas_dir, "w") as file:
+                    for name in removed_business_areas:
                         file.write(f"{name}\n")
-                else:
-                    print("already present in ba removal file")
 
         except Exception as e:
             connection.rollback()
