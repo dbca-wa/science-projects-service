@@ -479,9 +479,9 @@ ul li {
 .ba_lead_text_container {
     /* display: flex;
     flex-direction: row; */
-    font-size: 12px;
+    font-size: 13px;
     text-align: justify;
-    
+    padding-bottom: 10px;
 }
 
 
@@ -545,7 +545,8 @@ ul li {
 }
 
 .student_pr_member_container {
-    margin-top: 7px;
+    margin: 0;
+    margin-top: 5px;
 }
 
 
@@ -647,7 +648,14 @@ ul li {
 }
 
 
+.orphanage_widow {
+    /* padding: 0;
+    margin: 0; */
+}
 .orphanage_widow p {
+    padding: 0;
+    margin: 0;
+    margin-bottom: 8px;
     /* color: orange !important; */
     /* widows: 2;
     orphans: 3; */
@@ -707,7 +715,11 @@ ul li {
 }
 
 
-.progress_report_bottom_container li {
+.progress_report_bottom_container_rhs {
+    margin-top: -15px;
+}
+
+.progress_report_bottom_container li, .progress_report_bottom_container_rhs li {
     margin-left: 25px;
     padding-left: 0px;
     margin-bottom: 0px;
@@ -736,13 +748,13 @@ ul li {
 .pr_data_rhs {
     /* background-color: red; */
     flex: 1;
-    padding-left: 10px;
+    padding-left: 18px;
 }
 
 .pr_data_lhs {
     /* background-color: blue; */
     flex: 1;
-    padding-right: 10px;
+    padding-right: 18px;
 }
 
 /* 

@@ -666,19 +666,14 @@ class StudentReportAnnualReportSerializer(serializers.ModelSerializer):
             return ser
 
     class Meta:
-        model = ProgressReport
+        model = StudentReport
         fields = [
             "pk",
             "document",
             # "project",
             "report",
             "year",
-            "is_final_report",
-            "context",
-            "aims",
-            "progress",
-            "implications",
-            "future",
+            "progress_report",
             "team_members",
             "project_areas",
         ]
