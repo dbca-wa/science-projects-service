@@ -239,6 +239,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     agency = TinyAgencySerializer(source="work.agency")
     branch = MiniBranchSerializer(source="work.branch")
     business_area = MiniBASerializer(source="work.business_area")
+    affiliation = AffiliationSerializer(source="work.affiliation")
 
     phone = serializers.CharField(source="contact.phone")
     fax = serializers.CharField(source="contact.fax")
@@ -268,4 +269,5 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "title",
             "phone",
             "fax",
+            "affiliation",
         )
