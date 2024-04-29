@@ -84,8 +84,8 @@
     margin: 0;
     padding: 0;
     padding-bottom: 8px;
-    text-indent: -10px; 
-    margin-left: 10px;
+    text-indent: -15px; 
+    margin-left: 15px;
     text-align: justify; 
 }
 
@@ -98,6 +98,15 @@
     padding: 0;
     margin-bottom: 10px;
     margin-top: 10px;
+}
+
+.toc_anchor_title {
+    font-size: 14px;
+
+}
+
+.toc_anchor_subtitle {
+    font-size: 14px;
 }
 
 .toc_sub_list_item {
@@ -121,14 +130,52 @@
     text-decoration: none;
 }
 
+.toc_li_content_container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    
+}
+
+.toc_text_container {
+    flex: 1;
+}
+.toc_text_container a {
+    font-size: 15px;
+}
+
+.toc_text_container a::after {
+    padding-left: 2px;
+    content: leader('.');
+}
+
+.toc_page_number_container {
+    padding-left: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+}
+
+
+.toc_page_number {
+    margin-top: auto;
+    content: target-counter(attr(href), page);
+}
+
 
 
 .toc_list_item a::after {
-    content: leader('.') target-counter(attr(href), page);
+    /* content: leader('.') target-counter(attr(href), page); */
 }
 
 .toc_sub_list_item a::after {
-    content: leader('.') target-counter(attr(href), page);
+    /* content: leader('.') target-counter(attr(href), page); */
+}
+
+
+.toc_anchor_subtitle, .toc_anchor_title {
+    line-height: 20px !important;
 }
 
 
@@ -432,9 +479,9 @@ ul li {
 .ba_lead_text_container {
     /* display: flex;
     flex-direction: row; */
-    font-size: 12px;
+    font-size: 13px;
     text-align: justify;
-    
+    padding-bottom: 10px;
 }
 
 
@@ -498,7 +545,8 @@ ul li {
 }
 
 .student_pr_member_container {
-    margin-top: 7px;
+    margin: 0;
+    margin-top: 5px;
 }
 
 
@@ -600,7 +648,14 @@ ul li {
 }
 
 
+.orphanage_widow {
+    /* padding: 0;
+    margin: 0; */
+}
 .orphanage_widow p {
+    padding: 0;
+    margin: 0;
+    margin-bottom: 8px;
     /* color: orange !important; */
     /* widows: 2;
     orphans: 3; */
@@ -660,7 +715,11 @@ ul li {
 }
 
 
-.progress_report_bottom_container li {
+.progress_report_bottom_container_rhs {
+    margin-top: -15px;
+}
+
+.progress_report_bottom_container li, .progress_report_bottom_container_rhs li {
     margin-left: 25px;
     padding-left: 0px;
     margin-bottom: 0px;
@@ -689,13 +748,13 @@ ul li {
 .pr_data_rhs {
     /* background-color: red; */
     flex: 1;
-    padding-left: 10px;
+    padding-left: 18px;
 }
 
 .pr_data_lhs {
     /* background-color: blue; */
     flex: 1;
-    padding-right: 10px;
+    padding-right: 18px;
 }
 
 /* 

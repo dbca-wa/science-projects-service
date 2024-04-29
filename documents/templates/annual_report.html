@@ -397,13 +397,31 @@
                 const listItem = document.createElement("li");
                 listItem.classList.add("toc_list_item");
 
+                const contentContainer = document.createElement("div");
+                contentContainer.classList.add("toc_li_content_container");
+                const textContainer = document.createElement("div");
+                textContainer.classList.add("toc_text_container");
+                const pageNumberContainer = document.createElement("div");
+                pageNumberContainer.classList.add("toc_page_number_container");
+
+
+
                 // Create an anchor element with href pointing to the heading
-                const anchor = document.createElement("a");
-                anchor.href = "#" + heading.id;
-                anchor.textContent = heading.textContent;
+                const titledAnchor = document.createElement("a");
+                titledAnchor.href = "#" + heading.id;
+                titledAnchor.classList.add("toc_anchor_title")
+                titledAnchor.textContent = heading.textContent;
+
+                const pagedAnchor = document.createElement("a");
+                pagedAnchor.classList.add("toc_page_number")
+                pagedAnchor.href = "#" + heading.id;
 
                 // Append the anchor to the list item
-                listItem.appendChild(anchor);
+                textContainer.appendChild(titledAnchor);
+                contentContainer.appendChild(textContainer);
+                pageNumberContainer.appendChild(pagedAnchor);
+                contentContainer.appendChild(pageNumberContainer);
+                listItem.appendChild(contentContainer);
 
                 // Append the list item to the table of contents list
                 tocList.appendChild(listItem);
@@ -420,11 +438,33 @@
                         const subItem = document.createElement("li");
                         subItem.classList.add("toc_sub_list_item");
         
-                        const subAnchor = document.createElement("a");
-                        subAnchor.textContent = subheading.textContent;
-                        subAnchor.href = "#" + subheading.id;
-        
-                        subItem.appendChild(subAnchor);
+                        const subcontentContainer = document.createElement("div");
+                        subcontentContainer.classList.add("toc_li_content_container");
+                        const subTextContainer = document.createElement("div");
+                        subTextContainer.classList.add("toc_text_container");
+                        const subPageContainer = document.createElement("div");
+                        subPageContainer.classList.add("toc_page_number_container");
+
+
+
+                        // Create an anchor element with href pointing to the heading
+                        const subTitledAnchor = document.createElement("a");
+                        subTitledAnchor.href = "#" + subheading.id;
+                        subTitledAnchor.classList.add("toc_anchor_subtitle")
+                        subTitledAnchor.textContent = subheading.textContent;
+
+                        const subPageAnchor = document.createElement("a");
+                        subPageAnchor.classList.add("toc_page_number")
+                        subPageAnchor.href = "#" + subheading.id;
+
+                        // Append the anchor to the list item
+                        subTextContainer.appendChild(subTitledAnchor);
+                        subcontentContainer.appendChild(subTextContainer);
+                        subPageContainer.appendChild(subPageAnchor);
+                        subcontentContainer.appendChild(subPageContainer);
+
+                   
+                        subItem.appendChild(subcontentContainer);
                         subList.appendChild(subItem);
                     }
         
@@ -572,7 +612,7 @@
                     <div class="section_content_container"> 
                         <div class="ba_lead_text_container">
                             <span>
-                                <p class="ba_leader_text">Business Area Leader: {{ba_item.ba_leader}}</p>
+                                <p class="ba_leader_text">Program Leader: {{ba_item.ba_leader}}</p>
                                 <div class="ba_introduction_text_container">
                                     {{ ba_item.ba_introduction|safe }}
                                 </div>
@@ -599,11 +639,11 @@
                                             </h2>
                                         </div>
                                         <div class="project_tag_container">
-                                            <p class="project_text_section_title">Tag:</p>
+                                            {% comment %} <p class="project_text_section_title">Tag:</p> {% endcomment %}
                                             <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                         </div>
                                         <div class="pr_member_container">
-                                            <p class="project_text_section_title">Team:</p>
+                                            {% comment %} <p class="project_text_section_title">Team:</p> {% endcomment %}
                                             <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}</p>
                                         </div>
                                     </div>
@@ -619,15 +659,17 @@
                                         <p style="display: none;"></p>
                                     </div>
                                 </div>
+                            </div>
+                                {% if forloop.counter|divisibleby:2 %}
+                                <div class="progress_report_bottom_container_rhs">
+                                {% else %}
                                 <div class="progress_report_bottom_container">
-                                    <div class="pr_subsection pr_first_section">
+                                {% endif %}                                    
+                                    <div class="pr_subsection">
+                                        {% comment %} pr_first_section {% endcomment %}
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
                                                 <h3>Context</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
                                             </div>
                                             <div class="orphanage_widow">
                                                 {{report.context | safe }}
@@ -638,10 +680,6 @@
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
                                                 <h3>Aims</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
                                             </div>
                                             <div class="orphanage_widow">
                                                 {{report.aims | safe }}
@@ -652,10 +690,6 @@
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
                                                 <h3>Progress</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
                                             </div>
                                             <div class="orphanage_widow">
                                                 {{report.progress | safe }}
@@ -666,10 +700,6 @@
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
                                                 <h3>Implications</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
                                             </div>
                                             <div class="orphanage_widow">
                                                 {{report.implications | safe }}
@@ -680,10 +710,6 @@
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
                                                 <h3>Future Directions</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
-                                                <h3 style="display: none">test</h3>
                                             </div>
                                             <div class="orphanage_widow">
                                                 {{report.future | safe }}
@@ -833,18 +859,17 @@
                                             {{report.document.project.title | safe}}
                                         </h2>
                                     </div>
-                                    <div class="project_tag_container">
+                                    {% comment %} <div class="project_tag_container">
                                         <p class="project_text_section_title">Tag:</p>
                                         <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
-                                    </div>
-
+                                    </div> {% endcomment %}
                                     <div class="student_pr_member_container">
                                         <p class="project_text_section_title">Student:</p>
                                         <p class="pr_member_string">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</p>
                                     </div>
                                     <div class="student_pr_member_container">
                                         <p class="project_text_section_title">Academic(s):</p>
-                                        <p class="pr_member_string">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user.first_name }} {{ academic.user.last_name }}{% endfor %}{% endwith %}</p>
+                                        <p class="pr_member_string">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% endfor %}{% endwith %}</p>
                                     </div>
                                     <div class="student_pr_member_container">
                                         <p class="project_text_section_title">Scientist(s):</p>
@@ -867,9 +892,16 @@
                                     <p style="display: none;"></p>
                                 </div>
                             </div>
+                            {% if forloop.counter|divisibleby:2 %}
+                            <div class="progress_report_bottom_container_rhs">
+                            {% else %}
                             <div class="progress_report_bottom_container">
+                            {% endif %}
                                 <div class="pr_subsection">
                                     <div class="pr_subsection_content_container">
+                                        <div class="pr_subsection_title">
+                                            <h3>Progress Report</h3>
+                                        </div>
                                         <div class="orphanage_widow">
                                             {{report.progress_report | safe}}
                                         </div>
@@ -989,6 +1021,7 @@
                 <p>
                     {{report.document.project.student_level|get_student_level_text}} {{report.document.project.title}}
                 </p>
+                <p>{% if forloop.first %}{{report}}{% endif %}</p>
             {% endfor %}
         </div>
     </div>

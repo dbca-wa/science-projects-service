@@ -150,7 +150,9 @@ class BeginReportDocGeneration(APIView):
         return obj
 
     def get_approved_external_projects_for_ar(self, report):
-        settings.LOGGER.info(msg=f"Getting Approved External Projects for current year")
+        settings.LOGGER.info(
+            msg=f"Getting Approved External Projects for current year..."
+        )
         if report:
             # print(report)
             # Get progress report documents which belong to it and belong to active and approved projects
@@ -180,6 +182,7 @@ class BeginReportDocGeneration(APIView):
             msg=f"Getting Approved Student & Progress Reports for current year"
         )
         if report:
+            print("A REPORT")
             # print(report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_sr_docs = StudentReport.objects.filter(
@@ -213,6 +216,8 @@ class BeginReportDocGeneration(APIView):
                 report.implications = removeempty_p(report.implications)
                 report.future = removeempty_p(report.future)
 
+            print(active_sr_docs)
+
             for sreport in active_sr_docs:
                 sreport.progress_report = removeempty_p(sreport.progress_report)
 
@@ -226,11 +231,11 @@ class BeginReportDocGeneration(APIView):
             )
 
             # print(active_pr_docs)
-            # print(active_sr_docs)
             data_object = {
                 "student_reports": sr_ser.data,
                 "progress_reports": pr_ser.data,
             }
+            print(data_object["student_reports"])
             # print(data_object)
             return data_object
         else:
@@ -2409,7 +2414,9 @@ class LatestYearsStudentReports(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
-        settings.LOGGER.info(msg=f"Getting Approved Student Reports for current year")
+        settings.LOGGER.info(
+            msg=f"Getting Approved Student Reports for current year..."
+        )
 
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()
