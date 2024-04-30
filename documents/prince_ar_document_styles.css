@@ -807,6 +807,7 @@ ul li {
 .sr_table_th,
 .ext_table_td,
 .ext_table_th {
+    /* padding: 5px 10px; */
     padding: 5px 0px 5px;
 
 }
@@ -829,7 +830,7 @@ ul li {
 
 .project_title_td {
     width: 44%; 
-    padding: 5px 10px 5px 0px!important;
+    padding: 5px 15px 5px 0px!important;
 }
 
 .project_title_td p, 
