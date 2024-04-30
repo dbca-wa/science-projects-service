@@ -232,12 +232,9 @@
         }
 
         @page ba_pages,
-        external_partnerships,
-        student_projects_summary,
         sr_pages,
-        publications,
-        research_projects_summary
-         {
+        publications
+        {
             @bottom-left {
                 content: " ";
             }
@@ -256,6 +253,29 @@
             border-bottom: 0.25pt solid #666;
             border-top: 0.25pt solid #666;
         }
+
+        @page external_partnerships,
+        student_projects_summary,
+        research_projects_summary
+         {
+            @bottom-left {
+                content: " ";
+            }
+            @bottom-right {
+                content: " ";
+            }
+            @top-left {
+                content: " ";
+            }
+            @top-right {
+                content: " ";
+            }
+
+            padding-top: 10px;
+            margin-bottom: 60px;
+        }
+
+
 
         @page ba_pages:left,
         external_partnerships:left,
@@ -339,6 +359,11 @@
                 color: orange;
                 content: " ";
             }
+        }
+
+        @page research_projects_summary, student_projects_summary {
+            border-bottom: none !important;
+            border-top: none !important;
         }
        
 
@@ -639,11 +664,9 @@
                                             </h2>
                                         </div>
                                         <div class="project_tag_container">
-                                            {% comment %} <p class="project_text_section_title">Tag:</p> {% endcomment %}
                                             <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                         </div>
                                         <div class="pr_member_container">
-                                            {% comment %} <p class="project_text_section_title">Team:</p> {% endcomment %}
                                             <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}</p>
                                         </div>
                                     </div>
@@ -666,7 +689,6 @@
                                 <div class="progress_report_bottom_container">
                                 {% endif %}                                    
                                     <div class="pr_subsection">
-                                        {% comment %} pr_first_section {% endcomment %}
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
                                                 <h3>Context</h3>
@@ -717,7 +739,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         {% endfor %}
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from agencies.models import Branch, BusinessArea
+from agencies.models import Affiliation, Branch, BusinessArea
 
 from agencies.serializers import (
     AffiliationSerializer,
@@ -220,10 +220,16 @@ class UpdateMembershipSerializer(serializers.ModelSerializer):
     business_area = serializers.PrimaryKeyRelatedField(
         queryset=BusinessArea.objects.all(), required=False
     )
+    affiliation = serializers.PrimaryKeyRelatedField(
+        queryset=Affiliation.objects.all(),
+        required=False,
+        allow_null=True,
+    )
 
     class Meta:
         model = UserWork
         fields = (
+            "affiliation",
             "branch",
             "business_area",
         )
