@@ -179,9 +179,13 @@ class PkAndKindOnlyProjectSerializer(ModelSerializer):
 
 class MiniUserSerializer(ModelSerializer):
     title = serializers.SerializerMethodField()
+    affiliation = serializers.SerializerMethodField()
 
     def get_title(self, user):
         return user.profile.title
+
+    def get_affiliation(self, user):
+        return user.work.affiliation
 
     class Meta:
         model = User
@@ -193,6 +197,7 @@ class MiniUserSerializer(ModelSerializer):
             "is_active",
             "is_staff",
             "title",
+            "affiliation",
         ]
 
 
