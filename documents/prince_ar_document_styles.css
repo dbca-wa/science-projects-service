@@ -883,21 +883,27 @@ ul li {
 
 }
 
-.student_project_title_td {
-    width: 35%; 
-    padding: 5px 10px 5px 0px!important;
+.student_project_title_td, .ext_project_title_td {
+    width: 30%; 
+    padding: 5px 15px 5px 0px!important;
 }
 
-
-.ext_project_title_td {
-    width: 40%; 
-    padding: 5px 20px 5px 0px!important;
-}
-
-.partners_td, .funding_td, .dept_involvement_td
+.partners_td
 {
-    width: 20%; 
-    padding: 5px 10px 5px 0px!important;
+    width: 25%; 
+    padding: 5px 15px 5px 10px!important;
+}
+
+.dept_involvement_td {
+    width: 25%; 
+    padding: 5px 0px 5px 15px!important;
+    justify-content: right;
+}
+
+.funding_td {
+    width: 15%; 
+    padding: 5px 10px 5px 10px!important;
+
 }
 
 .dept_involvement_td,
@@ -907,11 +913,13 @@ ul li {
 
 .student_td,
 .duration_td,
-.academic_td,
 .dbca_officer_td
 {
     width: 15%; 
     padding: 5px 10px 5px;
 }
-
+.academic_td {
+    width: 20%; 
+    padding: 5px 10px 5px;
+}
 

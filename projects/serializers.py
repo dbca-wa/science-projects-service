@@ -1,4 +1,6 @@
+from amqp import NotFound
 from agencies.serializers import TinyBusinessAreaSerializer
+from documents.templatetags.custom_filters import extract_text_content
 from locations.models import Area
 from medias.models import ProjectPhoto
 from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
@@ -63,6 +65,64 @@ class ARProjectSerializer(ModelSerializer):
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     team_members = SerializerMethodField
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        # Get the serialized data from the parent class
+        representation = super().to_representation(instance)
+
+        # Check if the custom context key is present and use 'pk' instead of 'id'
+        if self.context.get("use_pk_for_id"):
+            representation["pk"] = representation.pop("id")
+
+        return representation
+
+
+class ARExternalProjectSerializer(ModelSerializer):
+    team_members = serializers.SerializerMethodField()
+    partners = serializers.SerializerMethodField()
+    funding = serializers.SerializerMethodField()
+
+    def get_team_members(self, project):
+        # print('getting team')
+        try:
+            members = ProjectMember.objects.filter(project=project.pk).all()
+            serialized_members = []
+            for member in members:
+                ser = MiniProjectMemberSerializer(member)
+                serialized_members.append(ser.data)
+        except ProjectMember.DoesNotExist:
+            print("error on team")
+            raise NotFound
+        else:
+            return serialized_members
+
+    def get_partners(self, project):
+        try:
+            ext = project.external_project_info
+            # print("ext:", ext)
+            return ext.collaboration_with
+        except:
+            print(
+                "\nEXCEPTION (NO PARTNERS):",
+                extract_text_content(project.title),
+            )
+            return ""
+
+    def get_funding(self, project):
+        try:
+            ext = project.external_project_info
+            # print("ext:", ext)
+            return ext.budget
+        except:
+            print(
+                "\nEXCEPTION (NO FUNDING):",
+                extract_text_content(project.title),
+            )
+            return ""
 
     class Meta:
         model = Project

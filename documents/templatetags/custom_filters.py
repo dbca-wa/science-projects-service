@@ -19,6 +19,11 @@ def filter_by_role(team_members, role):
     return [item for item in team_members if item.get("role") == role]
 
 
+@register.filter
+def is_staff_filter(team_members):
+    return [member for member in team_members if member["user"]["is_staff"]]
+
+
 # Pass a list of area_types e.g. ["dbcaregion", "ibra"]
 @register.filter
 def filter_by_area(areas, area_types):

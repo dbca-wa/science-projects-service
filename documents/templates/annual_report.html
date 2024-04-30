@@ -776,12 +776,12 @@
                                     </tr>
                                 </thead>
                                 <tbody class="table_body">
-                                    {% for report in sorted_student_report_array %}
+                                    {% for project in sorted_external_project_data %}
                                         <tr class="ext_table_tr">
-                                            <td class="ext_project_title_td ext_table_td">{{report.document.project.title | safe}}</td>
-                                            <td class="partners_td ext_table_td">Alcoa</td>
-                                            <td class="funding_td ext_table_td">$1,000,000</td>
-                                            <td class="dept_involvement_td ext_table_td">Ben Richardson, Rory McAuley, Jarid Prince</td>
+                                            <td class="ext_project_title_td ext_table_td">{{project.title | safe}}</td>
+                                            <td class="partners_td ext_table_td">{{project.partners}}</td>
+                                            <td class="funding_td ext_table_td">{{project.funding}}</td>
+                                            <td class="dept_involvement_td ext_table_td">{% with members=project.team_members|is_staff_filter %}{% for member in members %}{% if not forloop.first %}, {% endif %}{{ member.user.first_name }} {{ member.user.last_name }}{% endfor %}{% endwith %}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -829,7 +829,7 @@
                                             <tr class="sr_table_tr">
                                                 <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe}}</td>
                                                 <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
-                                                <td class="duration_td sr_table_td">2023-2024</td>
+                                                <td class="duration_td sr_table_td">2023 - 2024</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
                                                 <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% if not academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% if forloop.last and academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% endfor %}{% endwith %}</td>
                                                 <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}{% endwith %}</td>
@@ -1025,25 +1025,6 @@
                     {% endfor %}
                 </div>
             </div>
-        </div>
-        
-        <div>
-            {% for ext_project in sorted_external_project_data%}
-                <p>({{ext_project.kind}}) {{ext_project.title}}</p>
-                <p>{{ext_project.team_members}}</p>
-                <p>{{ext_project.partners}}</p>
-                <p>{{ext_project.funding}}</p>
-                <p>
-            {% endfor %}
-        </div>
-        <div>
-            <p>Sorted Student Report Data:</p>
-            {% for report in sorted_student_report_array%}
-                <p>
-                    {{report.document.project.student_level|get_student_level_text}} {{report.document.project.title}}
-                </p>
-                <p>{% if forloop.first %}{{report}}{% endif %}</p>
-            {% endfor %}
         </div>
     </div>
 

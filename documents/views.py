@@ -44,7 +44,7 @@ from medias.serializers import (
     TinyMethodologyImageSerializer,
     TinyProjectPhotoSerializer,
 )
-from projects.serializers import ProjectSerializer
+from projects.serializers import ARExternalProjectSerializer, ProjectSerializer
 from users.models import User, UserWork
 from .models import (
     ConceptPlan,
@@ -166,7 +166,7 @@ class BeginReportDocGeneration(APIView):
             )
 
             # REPLACE WITH AR EXT PROJECT SERIALIAZER
-            proj_ser = ProjectSerializer(
+            proj_ser = ARExternalProjectSerializer(
                 active_external_projects,
                 many=True,
             )
