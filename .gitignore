@@ -6,6 +6,13 @@ extracted_table_data
 *.dump
 *.sql
 *.env
+*.tex
+*.out
+*.toc
+*.aux
+*django_session.csv
+*reversion_version.csv
+
 extract_data.py
 files/
 

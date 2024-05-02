@@ -1,0 +1,186 @@
+id,name,content_type_id,codename
+1,Can add log entry,1,add_logentry
+2,Can change log entry,1,change_logentry
+3,Can delete log entry,1,delete_logentry
+4,Can view log entry,1,view_logentry
+5,Can add content type,2,add_contenttype
+6,Can change content type,2,change_contenttype
+7,Can delete content type,2,delete_contenttype
+8,Can view content type,2,view_contenttype
+9,Can add permission,4,add_permission
+10,Can change permission,4,change_permission
+11,Can delete permission,4,delete_permission
+12,Can add group,3,add_group
+13,Can change group,3,change_group
+14,Can delete group,3,delete_group
+15,Can view group,3,view_group
+16,Can view permission,4,view_permission
+17,Can add session,5,add_session
+18,Can change session,5,change_session
+19,Can delete session,5,delete_session
+20,Can view session,5,view_session
+21,Can add site,6,add_site
+22,Can change site,6,change_site
+23,Can delete site,6,delete_site
+24,Can view site,6,view_site
+25,Can add area,10,add_area
+26,Can change area,10,change_area
+27,Can delete area,10,delete_area
+28,Can add region,11,add_region
+29,Can change region,11,change_region
+30,Can delete region,11,delete_region
+31,Can add district,9,add_district
+32,Can change district,9,change_district
+33,Can delete district,9,delete_district
+34,Can add address,17,add_address
+35,Can change address,17,change_address
+36,Can delete address,17,delete_address
+37,Can add division,8,add_division
+38,Can change division,8,change_division
+39,Can delete division,8,delete_division
+40,Can add program,15,add_program
+41,Can change program,15,change_program
+42,Can delete program,15,delete_program
+43,Can add work centre,13,add_workcenter
+44,Can change work centre,13,change_workcenter
+45,Can delete work centre,13,delete_workcenter
+46,Can add web resource domain,12,add_webresourcedomain
+47,Can change web resource domain,12,change_webresourcedomain
+48,Can delete web resource domain,12,delete_webresourcedomain
+49,Can add URL prefix,16,add_urlprefix
+50,Can change URL prefix,16,change_urlprefix
+51,Can delete URL prefix,16,delete_urlprefix
+52,Can add web resource,14,add_webresource
+53,Can change web resource,14,change_webresource
+54,Can delete web resource,14,delete_webresource
+55,Can add user,18,add_user
+56,Can change user,18,change_user
+57,Can delete user,18,delete_user
+58,Can add arar report,7,add_ararreport
+59,Can change arar report,7,change_ararreport
+60,Can delete arar report,7,delete_ararreport
+61,Can view address,17,view_address
+62,Can view arar report,7,view_ararreport
+63,Can view area,10,view_area
+64,Can view district,9,view_district
+65,Can view division,8,view_division
+66,Can view program,15,view_program
+67,Can view region,11,view_region
+68,Can view URL prefix,16,view_urlprefix
+69,Can view user,18,view_user
+70,Can view web resource,14,view_webresource
+71,Can view web resource domain,12,view_webresourcedomain
+72,Can view work centre,13,view_workcenter
+73,Can add document,23,add_document
+74,Can change document,23,change_document
+75,Can delete document,23,delete_document
+76,Can add concept plan,24,add_conceptplan
+77,Can change concept plan,24,change_conceptplan
+78,Can delete concept plan,24,delete_conceptplan
+79,Can add project plan,22,add_projectplan
+80,Can change project plan,22,change_projectplan
+81,Can delete project plan,22,delete_projectplan
+82,Can add Progress Report,19,add_progressreport
+83,Can change Progress Report,19,change_progressreport
+84,Can delete Progress Report,19,delete_progressreport
+85,Can add project closure,21,add_projectclosure
+86,Can change project closure,21,change_projectclosure
+87,Can delete project closure,21,delete_projectclosure
+88,Can add student report,20,add_studentreport
+89,Can change student report,20,change_studentreport
+90,Can delete student report,20,delete_studentreport
+91,Can view concept plan,24,view_conceptplan
+92,Can view document,23,view_document
+93,Can view Progress Report,19,view_progressreport
+94,Can view project closure,21,view_projectclosure
+95,Can view project plan,22,view_projectplan
+96,Can view student report,20,view_studentreport
+97,Can submit concept plan,24,submit_conceptplan
+98,Can review concept plan,24,review_conceptplan
+99,Can approve concept plan,24,approve_conceptplan
+100,Can submit document,23,submit_document
+101,Can review document,23,review_document
+102,Can approve document,23,approve_document
+103,Can submit Progress Report,19,submit_progressreport
+104,Can review Progress Report,19,review_progressreport
+105,Can approve Progress Report,19,approve_progressreport
+106,Can submit project closure,21,submit_projectclosure
+107,Can review project closure,21,review_projectclosure
+108,Can approve project closure,21,approve_projectclosure
+109,Can submit project plan,22,submit_projectplan
+110,Can review project plan,22,review_projectplan
+111,Can approve project plan,22,approve_projectplan
+112,Can submit student report,20,submit_studentreport
+113,Can review student report,20,review_studentreport
+114,Can approve student report,20,approve_studentreport
+115,Can add project,27,add_project
+116,Can change project,27,change_project
+117,Can delete project,27,delete_project
+118,Can add science project,25,add_scienceproject
+119,Can change science project,25,change_scienceproject
+120,Can delete science project,25,delete_scienceproject
+121,Can add core function,29,add_corefunctionproject
+122,Can change core function,29,change_corefunctionproject
+123,Can delete core function,29,delete_corefunctionproject
+124,Can add collaboration project,30,add_collaborationproject
+125,Can change collaboration project,30,change_collaborationproject
+126,Can delete collaboration project,30,delete_collaborationproject
+127,Can add student project,26,add_studentproject
+128,Can change student project,26,change_studentproject
+129,Can delete student project,26,delete_studentproject
+130,Can add project membership,28,add_projectmembership
+131,Can change project membership,28,change_projectmembership
+132,Can delete project membership,28,delete_projectmembership
+133,Can view collaboration project,30,view_collaborationproject
+134,Can view core function,29,view_corefunctionproject
+135,Can view project,27,view_project
+136,Can view project membership,28,view_projectmembership
+137,Can view science project,25,view_scienceproject
+138,Can view student project,26,view_studentproject
+139,Can add comment,31,add_comment
+140,Can change comment,31,change_comment
+141,Can delete comment,31,delete_comment
+142,Can moderate comments,31,can_moderate
+143,Can add comment flag,32,add_commentflag
+144,Can change comment flag,32,change_commentflag
+145,Can delete comment flag,32,delete_commentflag
+146,Can view comment,31,view_comment
+147,Can view comment flag,32,view_commentflag
+148,Can add key map,33,add_keymap
+149,Can change key map,33,change_keymap
+150,Can delete key map,33,delete_keymap
+151,Can view key map,33,view_keymap
+152,Can add migration history,34,add_migrationhistory
+153,Can change migration history,34,change_migrationhistory
+154,Can delete migration history,34,delete_migrationhistory
+155,Can view migration history,34,view_migrationhistory
+156,Can add revision,36,add_revision
+157,Can change revision,36,change_revision
+158,Can delete revision,36,delete_revision
+159,Can add version,35,add_version
+160,Can change version,35,change_version
+161,Can delete version,35,delete_version
+162,Can view revision,36,view_revision
+163,Can view version,35,view_version
+164,Can add user object permission,38,add_userobjectpermission
+165,Can change user object permission,38,change_userobjectpermission
+166,Can delete user object permission,38,delete_userobjectpermission
+167,Can add group object permission,37,add_groupobjectpermission
+168,Can change group object permission,37,change_groupobjectpermission
+169,Can delete group object permission,37,delete_groupobjectpermission
+170,Can view group object permission,37,view_groupobjectpermission
+171,Can view user object permission,38,view_userobjectpermission
+172,Can add research function,39,add_researchfunction
+173,Can change research function,39,change_researchfunction
+174,Can delete research function,39,delete_researchfunction
+175,Can view research function,39,view_researchfunction
+176,Contribute as team member,27,team
+177,Can add staff time estimate,40,add_stafftimeestimate
+178,Can change staff time estimate,40,change_stafftimeestimate
+179,Can delete staff time estimate,40,delete_stafftimeestimate
+180,Can submit staff time estimate,40,submit_stafftimeestimate
+181,Can review staff time estimate,40,review_stafftimeestimate
+182,Can approve staff time estimate,40,approve_stafftimeestimate
+183,Can add Service,41,add_service
+184,Can change Service,41,change_service
+185,Can delete Service,41,delete_service

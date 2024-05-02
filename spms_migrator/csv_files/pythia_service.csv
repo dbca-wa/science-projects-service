@@ -1,11 +1,11 @@
 id,effective_from,effective_to,creator_id,modifier_id,created,modified,name,slug,director_id
-1,2014-06-05 18:28:10+08:00,,100000,1,2014-06-05 18:28:10.297000+08:00,2018-07-23 13:14:48.760000+08:00,"Conserving Habitats, Species and Communities",6,6
-2,2014-06-05 18:28:10+08:00,,100000,1,2014-06-05 18:28:10.297000+08:00,2018-07-23 13:14:48.760000+08:00,Data migration placeholder,x,6
-3,2014-06-05 18:28:10+08:00,,100000,1,2014-06-05 18:28:10.307000+08:00,2018-07-05 14:16:35.694000+08:00,Visitor Services and Public Programs Provided at Kings Park and Bold Park,1,6
-4,2015-06-11 15:15:48+08:00,,1,1,2015-06-11 15:16:09.235000+08:00,2018-07-23 13:14:41.506000+08:00,Research and Conservation Partnerships,7,6
-5,2015-06-11 15:17:11+08:00,,1,1,2015-06-11 15:17:29.316000+08:00,2018-07-23 13:14:25.630000+08:00,Implementation of the Forest Management Plan,8,6
-6,2015-06-11 15:18:12+08:00,,1,1,2015-06-11 15:18:23.113000+08:00,2018-07-23 13:14:12.358000+08:00,Prescribed Burning and Fire Management,9,6
-7,2015-06-11 15:18:34+08:00,,1,1,2015-06-11 15:18:46.984000+08:00,2018-07-23 13:14:05.859000+08:00,Bushfire Suppression,10,6
-8,2015-06-11 15:18:58+08:00,,1,1,2015-06-11 15:19:12.411000+08:00,2018-07-23 13:15:04.360000+08:00,Visitor Services and Public Programs Provided in the Swan and Canning Riverpark,4,6
-9,2018-07-05 14:10:41.015000+08:00,,1,1,2018-07-05 14:10:41.015000+08:00,2018-07-23 13:15:11.241000+08:00,Visitor Services and Public Programs Provided at Perth Zoo,3,6
-10,2018-07-05 14:14:17.117000+08:00,,1,1,2018-07-05 14:14:17.118000+08:00,2018-07-23 13:14:55.545000+08:00,Visitor Services and Public Programs Provided in National Parks and Other Lands and Waters,5,6
+1,2014-06-05 20:28:10+10:00,,100000,1,2014-06-05 20:28:10.297000+10:00,2018-07-23 15:14:48.760000+10:00,"Conserving Habitats, Species and Communities",6,6
+2,2014-06-05 20:28:10+10:00,,100000,1,2014-06-05 20:28:10.297000+10:00,2018-07-23 15:14:48.760000+10:00,Data migration placeholder,x,6
+3,2014-06-05 20:28:10+10:00,,100000,1,2014-06-05 20:28:10.307000+10:00,2018-07-05 16:16:35.694000+10:00,Visitor Services and Public Programs Provided at Kings Park and Bold Park,1,6
+4,2015-06-11 17:15:48+10:00,,1,1,2015-06-11 17:16:09.235000+10:00,2018-07-23 15:14:41.506000+10:00,Research and Conservation Partnerships,7,6
+5,2015-06-11 17:17:11+10:00,,1,1,2015-06-11 17:17:29.316000+10:00,2018-07-23 15:14:25.630000+10:00,Implementation of the Forest Management Plan,8,6
+6,2015-06-11 17:18:12+10:00,,1,1,2015-06-11 17:18:23.113000+10:00,2018-07-23 15:14:12.358000+10:00,Prescribed Burning and Fire Management,9,6
+7,2015-06-11 17:18:34+10:00,,1,1,2015-06-11 17:18:46.984000+10:00,2018-07-23 15:14:05.859000+10:00,Bushfire Suppression,10,6
+8,2015-06-11 17:18:58+10:00,,1,1,2015-06-11 17:19:12.411000+10:00,2018-07-23 15:15:04.360000+10:00,Visitor Services and Public Programs Provided in the Swan and Canning Riverpark,4,6
+9,2018-07-05 16:10:41.015000+10:00,,1,1,2018-07-05 16:10:41.015000+10:00,2018-07-23 15:15:11.241000+10:00,Visitor Services and Public Programs Provided at Perth Zoo,3,6
+10,2018-07-05 16:14:17.117000+10:00,,1,1,2018-07-05 16:14:17.118000+10:00,2018-07-23 15:14:55.545000+10:00,Visitor Services and Public Programs Provided in National Parks and Other Lands and Waters,5,6
