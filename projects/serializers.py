@@ -1,5 +1,5 @@
 from amqp import NotFound
-from agencies.serializers import TinyBusinessAreaSerializer
+from agencies.serializers import AffiliationSerializer, TinyBusinessAreaSerializer
 from documents.templatetags.custom_filters import extract_text_content
 from locations.models import Area
 from medias.models import ProjectPhoto
@@ -245,7 +245,13 @@ class MiniUserSerializer(ModelSerializer):
         return user.profile.title
 
     def get_affiliation(self, user):
-        return user.work.affiliation
+        if user.work and user.work.affiliation:
+            affiliation_instance = user.work.affiliation
+            affiliation_data = AffiliationSerializer(affiliation_instance).data
+            return affiliation_data
+        else:
+            # print("ITS EMPTY")
+            return None
 
     class Meta:
         model = User

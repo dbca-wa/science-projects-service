@@ -26,6 +26,8 @@ import time
 
 from medias.models import BusinessAreaPhoto
 from medias.serializers import TinyBusinessAreaPhotoSerializer
+from users.models import UserWork
+from users.serializers import TinyUserWorkSerializer, UserWorkAffiliationUpdateSerializer, UserWorkSerializer
 
 from .models import (
     Branch,
@@ -59,15 +61,47 @@ class Affiliations(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
-        all = Affiliation.objects.all()
-        ser = AffiliationSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
+        try:
+            page = int(req.query_params.get("page", 1))
+        except ValueError:
+            # If the user sends a non-integer value as the page parameter
+            page = 1
+
+        page_size = settings.PAGE_SIZE
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        search_term = req.query_params.get("searchTerm")
+
+        if search_term:
+            # Apply filtering based on the search term
+            affiliations = Affiliation.objects.filter(Q(name__icontains=search_term))
+            # Sort branches alphabetically based on email
+            affiliations = affiliations.order_by("name")
+            total_affiliations = affiliations.count()
+            total_pages = ceil(total_affiliations / page_size)
+
+            serialized_affiliations = AffiliationSerializer(
+                affiliations[start:end], many=True, context={"request": req}
+            ).data
+
+            response_data = {
+                "affiliations": serialized_affiliations,
+                "total_results": total_affiliations,
+                "total_pages": total_pages,
+            }
+            return Response(response_data, status=HTTP_200_OK)
+
+        else:
+            all = Affiliation.objects.all()
+            ser = AffiliationSerializer(
+                all,
+                many=True,
+            )
+            return Response(
+                ser.data,
+                status=HTTP_200_OK,
+            )
 
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is posting an affiliation")
@@ -87,6 +121,52 @@ class Affiliations(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+
+class AffiliationsMerge(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is merging affiliations")
+        primaryAffiliation = req.data.get("primaryAffiliation")
+        secondaryAffiliations = req.data.get("secondaryAffiliations")
+        if not isinstance(secondaryAffiliations, list):
+            secondaryAffiliations = [secondaryAffiliations]
+
+        print(f"Merging into {primaryAffiliation["name"]}:\n {secondaryAffiliations}")
+        
+        # Serialize the primary instance ---------------
+        # primary_instance = Affiliation.objects.get(pk=primaryAffiliation["pk"])
+        # serialized_primary_affiliation = AffiliationSerializer(primary_instance)
+    
+        # Merge logic -----------------------
+        print("TRYING TO MERGE:\n")
+        for item in secondaryAffiliations:
+            try:
+                instance_to_update = UserWork.objects.get(affiliation=item['pk'])
+                ser = UserWorkAffiliationUpdateSerializer(
+                    instance=instance_to_update,
+                    data={
+                        "affiliation": primaryAffiliation["pk"],
+                    },
+                    partial=True,
+                )
+                if ser.is_valid():
+                    updated = ser.save()      
+
+            except UserWork.DoesNotExist:
+                # If nothing exists that uses the affiliation just go to next step and delete
+                pass
+            finally:
+                # Delete old one
+                instance_to_delete = Affiliation.objects.get(pk=item["pk"])
+                instance_to_delete.delete()
+
+        return Response(
+            {"message": "Merged!"},
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+    
 
 class Agencies(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]

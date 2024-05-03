@@ -1371,10 +1371,26 @@ class ProjectDetails(APIView):
         return details, documents, members, area_obj
 
     def get(self, req, pk):
+        # print("GETTING PROJECT DETAILS...")
         proj = self.go(pk=pk)
         settings.LOGGER.info(msg=f"{req.user} is viewing project: {proj}")
         ser = ProjectSerializer(proj).data
+        # print("SER...")
         details, documents, members, area_obj = self.get_full_object(pk)
+        # print("FULL OBJ")
+        # data = {
+        #     "project": ser,
+        #     "details": details,
+        #     "documents": documents,
+        #     "members": members,
+        #     "location": area_obj,
+        # }
+        # try:
+        #     json_str = json.dumps(documents["progress_reports"], indent=4)
+        #     print(json_str)
+        # except Exception as e:
+        #     print(f"\n\nERROR IS HERE: {e}\n\n")
+
         return Response(
             {
                 "project": ser,

@@ -126,6 +126,14 @@ class UserWorkSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UserWorkAffiliationUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserWork
+        fields = [
+            "affiliation",
+        ]
+
+
 class UpdatePISerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)

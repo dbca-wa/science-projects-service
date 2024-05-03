@@ -7645,32 +7645,48 @@ class Loader:
                     self.django_project_path, "dumped_media", pdf
                 )
                 print(file_directory)
-                with open(file_directory, "rb") as file:
-                    # Create an InMemoryUploadedFile
-                    uploaded_file = InMemoryUploadedFile(
-                        file,
-                        None,
-                        os.path.basename(file_directory),
-                        "application/pdf",  # Adjust the content type based on your file type
-                        len(file.read()),  # Pass the file content length
-                        None,
-                    )
+                if not os.path.exists(file_directory):
+                    # get the last character of the file_directory, if it is convertible to a number,
+                    # convert it to a number and subtract one, reassign file_directory to file_directory with the substituted last character
+                    last_char = file_directory[-1]
+                    if last_char.isdigit():
+                        # If the last character is a digit, subtract 1 and replace it
+                        new_last_char = str(int(last_char) - 1)
+                        file_directory = file_directory[:-1] + new_last_char
+                        # Check if the new file directory exists
+                        if not os.path.exists(file_directory):
+                            print(
+                                "Modified file directory doesnt exist either:",
+                                file_directory,
+                            )
 
-                    saved_file = default_storage.save(
-                        f"project_documents/{uploaded_file.name}", uploaded_file
-                    )
-
-                    try:
-                        self.create_project_document_pdf(
-                            connection=connection,
-                            cursor=cursor,
-                            related_document_id=new_document_id,
-                            related_project_id=new_proj_id,
-                            data=saved_file,
+                if os.path.exists(file_directory):
+                    with open(file_directory, "rb") as file:
+                        # Create an InMemoryUploadedFile
+                        uploaded_file = InMemoryUploadedFile(
+                            file,
+                            None,
+                            os.path.basename(file_directory),
+                            "application/pdf",  # Adjust the content type based on your file type
+                            len(file.read()),  # Pass the file content length
+                            None,
                         )
-                    except Exception as e:
-                        print(e)
-                        continue
+
+                        saved_file = default_storage.save(
+                            f"project_documents/{uploaded_file.name}", uploaded_file
+                        )
+
+                        try:
+                            self.create_project_document_pdf(
+                                connection=connection,
+                                cursor=cursor,
+                                related_document_id=new_document_id,
+                                related_project_id=new_proj_id,
+                                data=saved_file,
+                            )
+                        except Exception as e:
+                            print(e)
+                            continue
 
     def spms_progress_report_setter(
         self, dataframe, cursor, connection, current_datetime, set_new_status

@@ -1,4 +1,5 @@
 project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academic_list_plain_no_affiliation
+1071,0.0,,,,
 1062,0.0,,A Gojanovic,"A/Prof J Hemmi (University of Western Australia), Dr J Kelley (University of Western Australia)","A/Prof J Hemmi, Dr J Kelley"
 1057,0.0,,Mr D da Silva Turollo,,
 1053,0.0,The University of Western Australia,S Lye,"Dr A Guzzomi (The University of Western Australia), Dr M Masarei (The University of Western Australia)","Dr A Guzzomi, Dr M Masarei"
@@ -28,6 +29,7 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 498,2.0,The University of Western Australia,D Collins,"D McLean (The University of Western Australia), Dr T Langlois (The University of Western Australia)","T Holmes, D McLean, Dr T Langlois"
 495,1.0,University of Amsterdam,R Fernandes,Dr G Oostermeijer (University of Amsterdam ),Dr G Oostermeijer
 465,0.0,University of Western Australia,C Tuckett,"Dr T Wernberg (The University of Western Australia), Dr T de Bettignies (The University of Western Australia)","Dr T Wernberg, Dr T de Bettignies"
+1077,1.0,Murdoch University,,J Tweedley (Murdoch University),J Tweedley
 827,0.0,Curtin University,E Rastion,Prof E Harvey (Curtin University),Prof E Harvey
 1058,2.0,Murdoch University,D St Jack,,
 1047,1.0,UWA Oceans Graduate School ,S Lim,Dr C Pattiaratchi (The University of Western Australia),Dr C Pattiaratchi
@@ -38,6 +40,7 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 819,0.0,Murdoch University,L Povh,,
 963,0.0,,,,
 788,0.0,University of Western Australia,B Mirfakhraei,Dr E Veneklaas (The University of Western Australia),Dr E Veneklaas
+1078,0.0,,"E Stout, K Trayler",J Tweedley (Murdoch University),J Tweedley
 907,0.0,,D Godwin,"Dr M Van Keulan (Murdoch University), Dr M Hughes (Murdoch University), Dr H Kobryn (Murdoch University)","Dr M Van Keulan, Dr M Hughes, Dr H Kobryn"
 905,0.0,Murdoch University,M Taylor,"Dr M Calver (Murdoch University), Dr K Bryant (Murdoch University), Dr N Armstrong (Murdoch University)","Dr M Calver, Dr K Bryant, Dr N Armstrong"
 904,2.0,Australian National University,A Buckley,,
@@ -50,7 +53,6 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 492,2.0,Murdoch University,C Desfosses,"Dr H Lozano-Montes (CSIRO), Prof N Loneragan (Murdoch University)","Prof N Loneragan, Dr H Lozano-Montes"
 491,2.0,The University of Western Australia,M Moustaka,Dr T Langlois (The University of Western Australia),"Dr T Langlois, RD Evans"
 485,0.0,The University of Western Australia,A Lullfitz,Prof S Hopper (The University of Western Australia),Prof SD Hopper
-869,0.0,Murdoch University,A Islam,Dr J Chaplin (Murdoch University),Dr J Chaplin
 473,0.0,The University of Western Australia,B Anderson,"Dr P Grierson (The University of Western Australia), Dr K Thiele (Eubio Consulting), Dr M Barrett (Botanic Gardens and Parks Authority)","Dr K Thiele, Dr P Grierson, Dr M Barrett"
 466,0.0,Australian National University,J Van Lier,"Dr M Depczynski (Australian Institute of Marine Science), Dr C Fulton (Australian National University)","Dr C Fulton, Dr M Depczynski"
 820,1.0,"Edith Cowan University, Western Australia",S Treloar,"Dr R Davis (Edith Cowan University), Dr A Hopkins (Edith Cowan University)","Dr R Davis, Dr A Hopkins"
@@ -92,7 +94,7 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 979,0.0,Curtin University,M Williams,A/prof J Mcllwain (Curtin University),A/prof J Mcllwain
 978,0.0,,A Gillies,A/Prof N Callow (University of Western Australia),A/Prof N Callow
 850,2.0,Murdoch University,Ms L Ducki,Dr R Standish (Murdoch University),Dr R Standish
-870,2.0,Murdoch University,N Anderson,"Dr L Walden (Murdoch University), Dr J Fontaine (Murdoch University)","Dr L Walden, Dr J Fontaine"
+253,0.0,The University of Western Australia,,,
 848,2.0,Curtin University,H Abdi,"Dr S Tomlinson (Curtin University), Dr B Bateman (Curtin University)","Dr S Tomlinson, Dr B Bateman"
 807,0.0,The University of Western Australia,O Kildisheva,M Madsen (Brigham Young University),M Madsen
 805,0.0,,O Kildisheva,,
@@ -149,6 +151,8 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 873,1.0,The University of Western Australia,L McCauley,"A/Prof S Thompson (The University of Western Australia), Dr G Skrzypek (The University of Western Australia), Dr E Veneklaas (The University of Western Australia)","Associate Professor S Thompson, Dr G Skrzypek, Dr E Veneklaas"
 872,1.0,,J Barrett,A/Prof M Leopold (The University of Western Australia),Associate Professor M Leopold
 871,2.0,Murdoch University,T Rasmussen,"Dr J Fontaine (Murdoch University), Dr L Walden (Murdoch University)","Dr J Fontaine, Dr L Walden"
+870,2.0,Murdoch University,N Anderson,"Dr L Walden (Murdoch University), Dr J Fontaine (Murdoch University)","Dr L Walden, Dr J Fontaine"
+869,0.0,Murdoch University,A Islam,Dr J Chaplin (Murdoch University),Dr J Chaplin
 868,0.0,Murdoch University,M Rahman,Dr J Chaplin (Murdoch University),Dr J Chaplin
 849,2.0,UWA,J Kestel,"Dr P Grierson (The University of Western Australia), Prof S Hopper (The University of Western Australia)","Dr P Grierson, Prof S Hopper"
 847,2.0,,M Cowan,"Dr D Nimmo (Charles Sturt University), Dr J Turner (Charles Sturt University)","Dr J Turner, Dr D Nimmo"
@@ -157,8 +161,8 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 825,1.0,Curtin University,B Price,Prof E Harvey (Curtin University),Prof E Harvey
 799,1.0,The University of Western Australia,E Ling,Dr A Guzzomi (The University of Western Australia),Dr L Guzzomi
 780,0.0,University of Western Australia,W Wong,"A/Prof R Trengove (Murdoch University), Dr J Yong (The University of Western Australia), Dr E Veneklaas (The University of Western Australia)","Dr J Yong, A/Prof R Trengove, Dr E Veneklaas"
-689,2.0,The University of Western Australia,,Dr P Grierson (The University of Western Australia),Dr P Grierson
 625,0.0,University of Queensland,N Leseberg,"A/Prof R Fuller (University of Queensland), Dr S Murphy (Australian National University), Dr J Watson (University of Queensland)","Dr J Watson, Dr S Murphy, A/Prof R Fuller"
+689,2.0,The University of Western Australia,,Dr P Grierson (The University of Western Australia),Dr P Grierson
 622,1.0,The University of Western Australia,I Lindgren,"D McLean (The University of Western Australia), Dr T Langlois (The University of Western Australia)","Dr T Langlois, D McLean"
 621,0.0,,B Ross,"Dr B Murphy (Charles Darwin University), Prof J Woinarski (Charles Darwin University), Dr T Cremona (Charles Darwin University)","Dr T Cremona, Prof J Woinarski, Dr B Murphy"
 619,0.0,Charles Sturt University,H Moore,"Dr D Nimmo (Charles Sturt University), Prof D Watson (Charles Sturt University), Dr L Valentine (The University of Western Australia)","Dr L Valentine, Prof D Watson, Dr D Nimmo"
@@ -251,7 +255,6 @@ project_ptr_id,level,organisation,student_list_plain,academic_list_plain,academi
 256,0.0,The University of Western Australia,C Allen,"A/Prof P Poot (The University of Western Australia), A/Prof M Moody (The University of Western Australia), A/Prof R Standish","A/Prof P Poot, A/Prof M Moody, A/Prof R Standish"
 255,0.0,The University of Western Australia,R Thavornkanlapachai,Dr H Mills (The University of Western Australia),Dr H Mills
 254,0.0,Murdoch University,J Dunlop,Prof A Thompson (Murdoch University),Prof A Thompson
-253,0.0,The University of Western Australia,,,
 252,0.0,"University of Adelaide, The University of Melbourne, Centre for Australian Weather and Climate Research, Bureau of Meteorology, Bushfire Cooperative Research Centre",M Peace,"Dr T Mattner (University of Adelaide), Dr G Mills (Bureau of Meteorology), Dr J Keppert (The University of Melbourne)","Dr T Mattner, Dr G Mills, Dr J Keppert"
 251,0.0,Edith Cowan University,A Turco,A/Prof G Hyndes (Edith Cowan University),A/Prof G Hyndes
 250,0.0,Edith Cowan University,F Vitelli,A/Prof G Hyndes (Edith Cowan University),A/Prof G Hyndes
