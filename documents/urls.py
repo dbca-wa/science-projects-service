@@ -21,7 +21,7 @@ urlpatterns = [
     path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
-    path("opennewcycle", views.BatchProgressReportCreation.as_view()),
+    path("opennewcycle", views.NewCycleOpen.as_view()),
     path("projectdocuments", views.ProjectDocuments.as_view()),
     # path(
     #     "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
@@ -101,6 +101,7 @@ urlpatterns = [
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
     # Actions (PROGRESS REPORT)
+    path("actions/finalApproval", views.FinalDocApproval.as_view()),
     path("actions/approve", views.DocApproval.as_view()),
     path("actions/reopen", views.DocReopenProject.as_view()),
     path("actions/recall", views.DocRecall.as_view()),
