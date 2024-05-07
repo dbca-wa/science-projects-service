@@ -3362,36 +3362,35 @@ class BatchApproveOld(APIView):
                 # FIRST ENSURE THEY BELONG TO THE ANNUAL REPORT BY FINDING THE YEAR ON EACH MODEL
                 if doc.kind == "studentreport":
                     sr_obj = StudentReport.objects.filter(document=doc.id).first()
+                    # Skip projects with no members
+                    if sr_obj and sr_obj.project.members.length == 0:
+                        continue
                     if sr_obj and sr_obj.report != last_report:
                         thedoc = sr_obj.document
-                        thedoc.project_lead_approval_granted = True
-                        thedoc.business_area_lead_approval_granted = True
-                        thedoc.directorate_approval_granted = True
-                        thedoc.status = "approved"
-                        thedoc.save()
-                        project = Project.objects.filter(pk=thedoc.project.pk).first()
-                        project.status = Project.StatusChoices.ACTIVE
-                        project.save()
+                    else:
+                        # Go to next iteration if belongs to current report
+                        continue
 
                 elif doc.kind == "progressreport":
                     pr_obj = ProgressReport.objects.filter(document=doc.id).first()
+                    # Skip projects with no members
+                    if pr_obj and pr_obj.project.members.length == 0:
+                        continue
                     if pr_obj and pr_obj.report != last_report:
                         thedoc = pr_obj.document
-                        thedoc.project_lead_approval_granted = True
-                        thedoc.business_area_lead_approval_granted = True
-                        thedoc.directorate_approval_granted = True
-                        thedoc.status = "approved"
-                        thedoc.save()
-                        project = Project.objects.filter(pk=thedoc.project.pk).first()
-                        project.status = Project.StatusChoices.ACTIVE
-                        project.save()
+                    else:
+                        # Go to next iteration if belongs to current report
+                        continue
 
-            # for doc in relevant_docs_belonging_to_reports_other_than_last_report:
-            #     doc.project_lead_approval_granted = True
-            #     doc.business_area_lead_approval_granted = True
-            #     doc.directorate_approval_granted = True
-            #     doc.project.status = Project.StatusChoices.ACTIVE
-            #     doc.save()
+                thedoc.project_lead_approval_granted = True
+                thedoc.business_area_lead_approval_granted = True
+                thedoc.directorate_approval_granted = True
+                thedoc.status = "approved"
+                thedoc.save()
+                project = Project.objects.filter(pk=thedoc.project.pk).first()
+                project.status = Project.StatusChoices.ACTIVE
+                project.save()
+
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
             return Response(
@@ -3408,7 +3407,7 @@ class BatchApproveOld(APIView):
             )
 
 
-class BatchProgressReportCreation(APIView):
+class NewCycleOpen(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def post(self, req):
@@ -3439,6 +3438,7 @@ class BatchProgressReportCreation(APIView):
                     kind__in=[
                         Project.CategoryKindChoices.SCIENCE,
                         Project.CategoryKindChoices.COREFUNCTION,
+                        # Project.CategoryKindChoices.STUDENT,
                     ]
                 )
                 & Q(status__in=["active", "updating"])
@@ -3449,6 +3449,7 @@ class BatchProgressReportCreation(APIView):
                     kind__in=[
                         Project.CategoryKindChoices.SCIENCE,
                         Project.CategoryKindChoices.COREFUNCTION,
+                        # Project.CategoryKindChoices.STUDENT,
                     ]
                 )
                 & Q(status="active")
@@ -3467,10 +3468,6 @@ class BatchProgressReportCreation(APIView):
             eligible_student_projects = Project.objects.filter(
                 Q(status="active") & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
             )
-
-        eligible_student_projects = Project.objects.filter(
-            Q(status="active") & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
-        )
 
         eligible_student_projects.exclude(
             documents__progress_report_details__report__year=last_report.year
@@ -3502,57 +3499,78 @@ class BatchProgressReportCreation(APIView):
                 with transaction.atomic():
                     doc = new_project_document.save()
                     if project.kind != Project.CategoryKindChoices.STUDENT:
-                        progress_report_data = {
-                            "document": doc.pk,
-                            "project": project.pk,
-                            "report": last_report.pk,
-                            "project": project.pk,
-                            "year": last_report.year,
-                            "context": "<p></p>",
-                            "implications": "<p></p>",
-                            "future": "<p></p>",
-                            "progress": "<p></p>",
-                            "aims": "<p></p>",
-                        }
 
-                        progress_report = ProgressReportCreateSerializer(
-                            data=progress_report_data
-                        )
+                        exists = ProgressReport.objects.filter(
+                            year=last_report.year, project=project.pk
+                        ).exists()
 
-                        if progress_report.is_valid():
-                            progress_report.save()
+                        if not exists:
+
+                            progress_report_data = {
+                                "document": doc.pk,
+                                "project": project.pk,
+                                "report": last_report.pk,
+                                "project": project.pk,
+                                "year": last_report.year,
+                                "context": "<p></p>",
+                                "implications": "<p></p>",
+                                "future": "<p></p>",
+                                "progress": "<p></p>",
+                                "aims": "<p></p>",
+                            }
+
+                            progress_report = ProgressReportCreateSerializer(
+                                data=progress_report_data
+                            )
+
+                            if progress_report.is_valid():
+                                progress_report.save()
+                                project.status = Project.StatusChoices.UPDATING
+                                project.save()
+                            else:
+                                settings.LOGGER.error(
+                                    msg=f"Error validating progress report: {progress_report.errors}"
+                                )
+                                return Response(
+                                    progress_report.errors, HTTP_400_BAD_REQUEST
+                                )
+                        else:
                             project.status = Project.StatusChoices.UPDATING
                             project.save()
-                        else:
-                            settings.LOGGER.error(
-                                msg=f"Error validating progress report: {progress_report.errors}"
-                            )
-                            return Response(
-                                progress_report.errors, HTTP_400_BAD_REQUEST
-                            )
                     else:
-                        student_report_data = {
-                            "document": doc.pk,
-                            "project": project.pk,
-                            "report": last_report.pk,
-                            "project": project.pk,
-                            "year": last_report.year,
-                            "progress_report": "<p></p>",
-                        }
+                        exists = StudentReport.objects.filter(
+                            year=last_report.year, project=project.pk
+                        ).exists()
 
-                        student_report = StudentReportCreateSerializer(
-                            data=student_report_data
-                        )
+                        if not exists:
+                            student_report_data = {
+                                "document": doc.pk,
+                                "project": project.pk,
+                                "report": last_report.pk,
+                                "project": project.pk,
+                                "year": last_report.year,
+                                "progress_report": "<p></p>",
+                            }
 
-                        if student_report.is_valid():
-                            student_report.save()
+                            student_report = StudentReportCreateSerializer(
+                                data=student_report_data
+                            )
+
+                            if student_report.is_valid():
+                                student_report.save()
+                                project.status = Project.StatusChoices.UPDATING
+                                project.save()
+                            else:
+                                print(student_report.errors["non_field_errors"])
+                                settings.LOGGER.error(
+                                    msg=f"Error validating student report {student_report.errors}"
+                                )
+                                return Response(
+                                    student_report.errors, HTTP_400_BAD_REQUEST
+                                )
+                        else:
                             project.status = Project.StatusChoices.UPDATING
                             project.save()
-                        else:
-                            settings.LOGGER.error(
-                                msg=f"Error validating student report {student_report.errors}"
-                            )
-                            return Response(student_report.errors, HTTP_400_BAD_REQUEST)
 
             else:
                 settings.LOGGER.error(
@@ -6073,6 +6091,97 @@ class DocReopenProject(APIView):
         closure.delete()
         document.delete()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+class FinalDocApproval(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        kind = req.data.get("kind")
+        reportPk = req.data.get("reportPk")
+        documentPk = req.data.get("documentPk")
+        isActive = req.data.get("isActive")
+        print(req.data)
+
+        if isActive == False:
+            settings.LOGGER.info(
+                msg=f"{req.user} is providing final approval for {documentPk}"
+            )
+            # print({kind, reportPk, documentPk})
+            # return Response({"error": True}, HTTP_400_BAD_REQUEST)
+            document = self.get_document(pk=documentPk)
+
+            data = {
+                "project_lead_approval_granted": True,
+                "business_area_lead_approval_granted": True,
+                "directorate_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "approved",
+            }
+            ser = ProjectDocumentSerializer(
+                document,
+                data=data,
+                partial=True,
+            )
+            if ser.is_valid():
+                u_document = ser.save()
+                u_document.project.status = Project.StatusChoices.ACTIVE
+                u_document.project.save()
+            else:
+                settings.LOGGER.error(msg=f"{ser.errors}")
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        elif isActive == True:
+            settings.LOGGER.info(
+                msg=f"{req.user} is recalling final approval for docID: {documentPk}"
+            )
+            # print({kind, reportPk, documentPk})
+            # return Response({"error": True}, HTTP_400_BAD_REQUEST)
+            document = self.get_document(pk=documentPk)
+
+            data = {
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+            ser = ProjectDocumentSerializer(
+                document,
+                data=data,
+                partial=True,
+            )
+            if ser.is_valid():
+                u_document = ser.save()
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+            else:
+                settings.LOGGER.error(msg=f"{ser.errors}")
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            print("Noned")
+            return Response(
+                {"error": "Something went wrong!"},
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class DocApproval(APIView):
