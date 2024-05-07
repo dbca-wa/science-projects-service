@@ -3807,7 +3807,13 @@ class ReportDetail(APIView):
             for report in reports:
                 report.document.delete()
 
+        def delete_student_reports(report):
+            reports = StudentReport.objects.filter(report=report).all()
+            for report in reports:
+                report.document.delete()
+
         delete_reports(report)
+        delete_student_reports(report)
         report.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
