@@ -2385,7 +2385,7 @@ class LatestYearsProgressReports(APIView):
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()
         if latest_report:
-            print(latest_report)
+            # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = ProgressReport.objects.filter(
                 report=latest_report, project__status="active"
@@ -2395,7 +2395,7 @@ class LatestYearsProgressReports(APIView):
                     project__business_area__division__name="Biodiversity and Conservation Science"
                 )
             )
-            print(active_docs)
+            # print(active_docs)
             ser = ProgressReportSerializer(
                 active_docs, many=True, context={"request": req}
             )
@@ -2420,7 +2420,7 @@ class LatestYearsStudentReports(APIView):
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()
         if latest_report:
-            print(latest_report)
+            # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = StudentReport.objects.filter(
                 report=latest_report, project__status="active"
@@ -2430,7 +2430,7 @@ class LatestYearsStudentReports(APIView):
                     project__business_area__division__name="Biodiversity and Conservation Science"
                 )
             )
-            print(active_docs)
+            # print(active_docs)
             ser = StudentReportSerializer(
                 active_docs, many=True, context={"request": req}
             )
@@ -2452,7 +2452,7 @@ class LatestYearsInactiveReports(APIView):
         # Get the latest year's report
         latest_report = AnnualReport.objects.order_by("-year").first()
         if latest_report:
-            print(latest_report)
+            # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             inactive_srs = (
                 StudentReport.objects.filter(report=latest_report)

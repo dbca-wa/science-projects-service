@@ -141,16 +141,17 @@ class AffiliationsMerge(APIView):
         print("TRYING TO MERGE:\n")
         for item in secondaryAffiliations:
             try:
-                instance_to_update = UserWork.objects.get(affiliation=item['pk'])
-                ser = UserWorkAffiliationUpdateSerializer(
-                    instance=instance_to_update,
-                    data={
-                        "affiliation": primaryAffiliation["pk"],
-                    },
-                    partial=True,
-                )
-                if ser.is_valid():
-                    updated = ser.save()      
+                instances_to_update = UserWork.objects.filter(affiliation=item['pk']).all()
+                for ins in instances_to_update:
+                    ser = UserWorkAffiliationUpdateSerializer(
+                        instance=ins,
+                        data={
+                            "affiliation": primaryAffiliation["pk"],
+                        },
+                        partial=True,
+                    )
+                    if ser.is_valid():
+                        updated = ser.save()      
 
             except UserWork.DoesNotExist:
                 # If nothing exists that uses the affiliation just go to next step and delete
@@ -484,6 +485,10 @@ class AffiliationDetail(APIView):
         return obj
 
     def get(self, req, pk):
+        if pk == 0:
+            return Response(
+                status=HTTP_200_OK,
+            )
         affiliation = self.go(pk)
         ser = AffiliationSerializer(affiliation)
         return Response(
