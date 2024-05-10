@@ -176,6 +176,9 @@ if DEBUG:
 else:
     INSTANCE_URL = env("PRODUCTION_SITE_URL")
 
+CORS_ALLOWED_ORIGINS = [
+    url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"
+]
 CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS))
 
 print(CORS_ALLOWED_ORIGINS)
