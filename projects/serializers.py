@@ -1,4 +1,5 @@
-from amqp import NotFound
+# from amqp import NotFound
+from rest_framework.exceptions import NotFound
 from agencies.serializers import AffiliationSerializer, TinyBusinessAreaSerializer
 from documents.templatetags.custom_filters import extract_text_content
 from locations.models import Area
