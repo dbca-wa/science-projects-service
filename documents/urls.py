@@ -101,11 +101,12 @@ urlpatterns = [
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
     # Actions (PROGRESS REPORT)
-    path("actions/finalApproval", views.FinalDocApproval.as_view()),
     path("actions/approve", views.DocApproval.as_view()),
     path("actions/reopen", views.DocReopenProject.as_view()),
     path("actions/recall", views.DocRecall.as_view()),
     path("actions/send_back", views.DocSendBack.as_view()),
+    # Admin Latest Report
+    path("actions/finalApproval", views.FinalDocApproval.as_view()),
     path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
     path("progress_reports/update", views.UpdateProgressReport.as_view()),
     # path("generate_cover_page/", views.generate_cover_page, name="generate_cover_page"),
