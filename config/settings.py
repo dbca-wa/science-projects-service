@@ -43,7 +43,7 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 EMAIL_HOST = "mail-relay.lan.fyi"
 EMAIL_PORT = 587
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
-ENVELOPE_EMAIL_RECIPIENTS = [env("MAINTAINER_EMAIL")]
+ENVELOPE_EMAIL_RECIPIENTS = [env("SPMS_MAINTAINER_EMAIL")]
 ENVELOPE_USE_HTML_EMAIL = True
 
 
@@ -53,8 +53,8 @@ if DEBUG:
         "default": {
             "ENGINE": "django.db.backends.postgresql_psycopg2",
             "NAME": f"{env('LOCAL_DBNAME')}",
-            "USER": f"{env('LOCAL_PGUSER')}",
-            "PASSWORD": f"{env('LOCAL_PGPASS')}",
+            "USER": f"{env('PGUSER')}",
+            "PASSWORD": f"{env('PGPASS')}",
             "OPTIONS": {
                 "options": "-c client_encoding=utf8",
             },
@@ -114,7 +114,7 @@ if not DEBUG:
     ALLOW_LIST += env("PRODUCTION_SITE_URL")
 
     if ON_TEST_NETWORK:
-        ALLOW_LIST += env("TEST_CLUSTER_IP")
+        ALLOW_LIST += env("UAT_CLUSTER_IP")
     else:
         ALLOW_LIST += env("PRODUCTION_CLUSTER_IP")
 

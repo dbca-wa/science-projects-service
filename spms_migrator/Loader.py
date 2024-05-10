@@ -1,35 +1,19 @@
-from datetime import datetime as dt
-from pathlib import Path
 import subprocess
-
-# import time
 import traceback
-from django.conf import settings
-import requests
-from django.contrib.auth.hashers import make_password
-
-# from selenium import webdriver
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
 import environ
 import random
 import string
-import urllib3
 import json
 import os
-from psycopg2 import sql
-
-# from django.core.files import File
-# from django.core.files.uploadedfile import SimpleUploadedFile
-# from psycopg2 import Binary
-# from django.core.files.images import ImageFile
+import psycopg2
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.files.storage import default_storage
-
-# from ..config.settings
 from django.conf import settings
-import psycopg2
+from psycopg2 import sql
+from datetime import datetime as dt
+from pathlib import Path
 
 
 def determine_user():
@@ -888,38 +872,6 @@ class Loader:
             )
             return user_id
 
-    # def spms_get_research_function_by_old_id(self, connection, cursor, old_id):
-    #     try:
-    #         # cursor = connection.cursor()
-
-    #         # Construct the SQL query
-    #         sql = """
-    #             SELECT id FROM projects_researchfunction WHERE old_id = %s
-    #         """
-
-    #         old_id = int(old_id)
-
-    #         # Execute the query with the user name
-    #         cursor.execute(sql, (old_id,))
-
-    #         # Fetch the result
-    #         result = cursor.fetchone()
-
-    #         if result:
-    #             rf_id = result[0]  # Return the user ID
-    #     except Exception as e:
-    #         self.misc.nli(
-    #             f"{self.misc.bcolors.FAIL}Error retrieving Research function: {str(e)}{self.misc.bcolors.ENDC}"
-    #         )
-    #         # Rollback the transaction
-    #         connection.rollback()
-    #         return None
-    #     else:
-    #         self.misc.nls(
-    #             f"{self.misc.bcolors.OKGREEN}Research function retrieved ({rf_id})!{self.misc.bcolors.ENDC}"
-    #         )
-    #         return rf_id
-
     def spms_get_superuser(self, connection, cursor):
         # connection.autocommit = False
         try:
@@ -935,7 +887,7 @@ class Loader:
             self.load_dotenv()
 
             superuser_username = self.os.getenv(
-                "SPMS_SUPERUSER_USERNAME", "jarid.prince@dbca.wa.gov.au"
+                "SPMS_MAINTAINER_USERNAME", "jarid.prince@dbca.wa.gov.au"
             )
 
             # Execute the query with the user name
@@ -1180,30 +1132,46 @@ class Loader:
             environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
             print("basedir:", BASE_DIR)
             debugmode = env("DJANGO_DEBUG")
+            testmode = env("ON_TEST_NETWORK")
+
             print("debug:", debugmode)
             print(
                 "connecting to",
                 (
-                    env("SPMS_DESTINATION_HOST")
+                    "localhost"
                     if debugmode == "True"
-                    else env("PRODUCTION_HOST")
+                    else env("UAT_HOST") if testmode else env("PRODUCTION_HOST")
                 ),
             )
-            if debugmode == "True" or debugmode == True:
-                connection = self.psycopg2.connect(
-                    host=env("SPMS_DESTINATION_HOST"),
-                    port=env("SPMS_DESTINATION_PORT"),
-                    database=env("SPMS_DESTINATION_DB"),
-                    user=env("SPMS_DESTINATION_USER"),
-                    password=env("SPMS_DESTINATION_PASSWORD"),
-                )
+            if debugmode == "False" or debugmode == False:
+                if testmode == "False" or testmode == False:
+                    # Main production spms (not debug, not test) (Rancher)
+                    connection = self.psycopg2.connect(
+                        host=env("PRODUCTION_HOST"),
+                        port=5432,
+                        database=env("PRODUCTION_DB_NAME"),
+                        user=env("PRODUCTION_USERNAME"),
+                        password=env("PRODUCTION_PASSWORD"),
+                    )
+
+                else:
+                    # Test SPMS (Rancher)
+                    connection = self.psycopg2.connect(
+                        host=env("UAT_HOST"),
+                        port=5432,
+                        database=env("UAT_DB_NAME"),
+                        user=env("UAT_USERNAME"),
+                        password=env("UAT_PASSWORD"),
+                    )
+
             else:
+                # Local db
                 connection = self.psycopg2.connect(
-                    host=env("PRODUCTION_HOST"),
+                    host="localhost",
                     port=5432,
-                    database=env("PRODUCTION_DB_NAME"),
-                    user=env("PRODUCTION_USERNAME"),
-                    password=env("PRODUCTION_PASSWORD"),
+                    database="spms",
+                    user="postgres",
+                    password=123,
                 )
 
             # Create a cursor object to execute SQL queries
@@ -1393,43 +1361,6 @@ class Loader:
         # Change back to this directory
         self.os.chdir(self.migrator_path)
 
-    def spms_drop_and_create(self):
-        # Load environment variables from .env file
-        print(f"{self.misc.bcolors.WARNING}Loading Env...{self.misc.bcolors.ENDC}")
-        self.load_dotenv()
-
-        # Run the dropdb command
-        print(
-            f"{self.misc.bcolors.WARNING}Running drop command...{self.misc.bcolors.ENDC}"
-        )
-        try:
-            dropdb_command = f"dropdb --if-exists --username={self.os.getenv('PGUSER')} --no-password {self.os.getenv('DBNAME')}"
-            subprocess.run(dropdb_command, shell=True)
-        except Exception as e:
-            self.misc.nli(
-                f"{self.misc.bcolors.FAIL}Could not Run drop command{self.misc.bcolors.ENDC}",
-                e,
-            )
-        else:
-            self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}DB Dropped successfully{self.misc.bcolors.ENDC}"
-            )
-
-        # Run the createdb command
-        print("Running create command")
-        try:
-            createdb_command = f"createdb --username={self.os.getenv('PGUSER')} --no-password {self.os.getenv('DBNAME')}"
-            subprocess.run(createdb_command, shell=True)
-        except Exception as e:
-            self.misc.nli(
-                f"{self.misc.bcolors.FAIL}Could not Run create command{self.misc.bcolors.ENDC}",
-                e,
-            )
-        else:
-            self.misc.nls(
-                f"{self.misc.bcolors.OKGREEN}DB Created successfully{self.misc.bcolors.ENDC}"
-            )
-
     def spms_create_super_user(self, auto=True):
         # Establishing connection:
         (
@@ -1442,11 +1373,11 @@ class Loader:
             print(
                 f"{self.misc.bcolors.WARNING}Loading Environment variables...{self.misc.bcolors.ENDC}"
             )
-            env_fn = self.os.getenv("SPMS_SUPERUSER_FIRST_NAME")
-            env_ln = self.os.getenv("SPMS_SUPERUSER_LAST_NAME")
-            env_email = self.os.getenv("SPMS_SUPERUSER_EMAIL")
-            env_username = self.os.getenv("SPMS_SUPERUSER_USERNAME")
-            env_pass = self.os.getenv("SPMS_SUPERUSER_PASSWORD")
+            env_fn = self.os.getenv("SPMS_MAINTAINER_FIRST_NAME")
+            env_ln = self.os.getenv("SPMS_MAINTAINER_LAST_NAME")
+            env_email = self.os.getenv("SPMS_MAINTAINER_EMAIL")
+            env_username = self.os.getenv("SPMS_MAINTAINER_USERNAME")
+            env_pass = self.os.getenv("SPMS_MAINTAINER_PASSWORD")
             print(env_username, env_pass)
 
         else:
@@ -1540,15 +1471,18 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for profile...{self.misc.bcolors.ENDC}"
         )
-        env_about = self.os.getenv("SPMS_SUPERUSER_ABOUT", "Web Developer")
-        env_role = self.os.getenv("SPMS_SUPERUSER_ROLE")
-        env_expertise = self.os.getenv("SPMS_SUPERUSER_EXPERTISE", "Making this site")
-        env_title = self.os.getenv("SPMS_SUPERUSER_TITLE", "mr")
-        env_mid_init = self.os.getenv("SPMS_SUPERUSER_MIDDLE_INITIALS", "M.")
-        env_cv = self.os.getenv(
-            "SPMS_SUPERUSER_CURRICULUM_VITAE"
-        )  # UNUSED FOR THIS PURPOSE, WILL BE A RELATIONAL LINK TO A FILES MODEL
-        env_user_image = self.os.getenv("SPMS_SUPERUSER_IMAGE")
+        env_about = self.os.getenv("SPMS_MAINTAINER_ABOUT", "Web Developer")
+        # env_role = self.os.getenv("SPMS_MAINTAINER_ROLE")
+        env_expertise = self.os.getenv("SPMS_MAINTAINER_EXPERTISE", "Making this site")
+        env_title = self.os.getenv("SPMS_MAINTAINER_TITLE", "mr")
+        env_mid_init = self.os.getenv("SPMS_MAINTAINER_MIDDLE_INITIALS", "M.")
+        # env_cv = self.os.getenv(
+        #     "SPMS_MAINTAINER_CURRICULUM_VITAE"
+        # )  # UNUSED FOR THIS PURPOSE, WILL BE A RELATIONAL LINK TO A FILES MODEL
+        env_user_image = self.os.getenv(
+            "SPMS_MAINTAINER_IMAGE",
+            "https://img.freepik.com/premium-photo/pikachu-character-with-gas-mask-helmet_901003-25444.jpg",
+        )
 
         # Create the User Avatar based on the env image
         user_image_id = self.spms_create_user_profile_image(
@@ -1961,12 +1895,10 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for super user contact...{self.misc.bcolors.ENDC}"
         )
-        email = self.os.getenv(
-            "SPMS_SUPERUSER_CONTACT_EMAIL", "jarid.prince@dbca.wa.gov.au"
-        )
-        phone = self.os.getenv("SPMS_SUPERUSER_PHONE")
-        alt_phone = self.os.getenv("SPMS_SUPERUSER_ALT_PHONE")
-        fax = self.os.getenv("SPMS_SUPERUSER_FAX")
+        email = self.os.getenv("SPMS_MAINTAINER_EMAIL")
+        phone = self.os.getenv("SPMS_MAINTAINER_PHONE", "")
+        alt_phone = self.os.getenv("SPMS_MAINTAINER_ALT_PHONE", "")
+        fax = self.os.getenv("SPMS_MAINTAINER_FAX", "")
 
         # Create the contact info that correspond with the User
         try:
@@ -2024,8 +1956,8 @@ class Loader:
         print(
             f"{self.misc.bcolors.WARNING}Loading Environment variables for super user work...{self.misc.bcolors.ENDC}"
         )
-        branch_name = self.os.getenv("SPMS_SUPERUSER_BRANCH_NAME", "Kensington")
-        ba_name = self.os.getenv("SPMS_SUPERUSER_BUSINESS_AREA_NAME", "Ecoinformatics")
+        branch_name = self.os.getenv("SPMS_MAINTAINER_BRANCH_NAME", "Kensington")
+        ba_name = self.os.getenv("SPMS_MAINTAINER_BUSINESS_AREA_NAME", "Ecoinformatics")
 
         # Get the DBCA Agency ID
         dbca_id = self.spms_get_dbca_agency(connection=connection, cursor=cursor)
@@ -2258,6 +2190,9 @@ class Loader:
             print("All files in subdirectories deleted successfully.")
 
     def spms_run_all(self):
+        debugmode = self.os.getenv("DJANGO_DEBUG")
+        testmode = self.os.getenv("ON_TEST_NETWORK")
+        self.misc.nli(f"DEBUG: {debugmode}\nTEST: {testmode}\nPress enter to continue.")
         self.spms_clear_files()
         self.spms_recreate_db()  # Resets DB and creates superuser with user profile/image
         self.spms_set_encoding_to_utf8()
@@ -2289,12 +2224,6 @@ class Loader:
         self.spms_create_document_comments()
         self.spms_create_superuser_todos()
         self.spms_set_new_leaders()
-        # # Majority of media photo uploads
-        # self.spms_replace_photo_with_cf_file(from_table="agencyimage")
-        # self.spms_replace_photo_with_cf_file(from_table="businessareaphoto")
-        # self.spms_replace_photo_with_cf_file(from_table="useravatar")
-        # self.spms_replace_photo_with_cf_file(from_table="projectphoto")
-        # self.spms_replace_photo_with_cf_file(from_table="annualreportmedia")
 
         self.misc.nls("Data ETL complete! You may now use the site!")
 
@@ -2757,7 +2686,6 @@ class Loader:
         """
 
         self.load_dotenv()
-        throwaway_pass = self.os.getenv("SPMS_THROWAWAY_PASS")
 
         for index, user in users_columns.iterrows():
             # Skip my superuser account
@@ -2789,12 +2717,7 @@ class Loader:
                 if is_staff_value == False:
                     is_superuser_value = False
 
-                hashed_password = (
-                    # make_password(throwaway_pass)
-                    # if self.pd.isna(user["password"])
-                    # else
-                    user["password"]
-                )
+                hashed_password = user["password"]
 
                 try:
                     # Start a transaction
@@ -3418,7 +3341,7 @@ class Loader:
                 print(
                     f"{self.misc.bcolors.WARNING}Loading env image...{self.misc.bcolors.ENDC}"
                 )
-                dbca_logo = self.os.getenv("DBCA_LOGO")
+                dbca_logo = "https://zooaquarium.org.au/images/party/da62072d-882e-4e6a-9b47-3907e86305ee_20210129121405133.jpg"
 
                 print(
                     f"{self.misc.bcolors.WARNING}Creating the image...{self.misc.bcolors.ENDC}"
@@ -3440,6 +3363,68 @@ class Loader:
                 self.misc.nls(
                     f"{self.misc.bcolors.OKGREEN}DBCA Agency Image Created!{self.misc.bcolors.ENDC}"
                 )
+
+        finally:
+            # Close the cursor and connection
+            cursor.close()
+            connection.close()
+
+    def spms_create_admin_options(self):
+        self.misc.nls(
+            f"{self.misc.bcolors.OKBLUE}Creating Admin options...{self.misc.bcolors.ENDC}"
+        )
+
+        # Establishing connection:
+        (
+            cursor,
+            connection,
+        ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+
+        # Get the current date and time
+        current_datetime = dt.now()
+
+        # Try the Query
+        print(
+            f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
+        )
+        try:
+            # Start a transaction
+            connection.autocommit = False
+            cursor = connection.cursor()
+
+            # Construct the SQL query
+            sql = """
+                BEGIN;
+                INSERT INTO adminoptions_adminoptions (
+                    created_at, updated_at, email_options, maintainer
+                ) VALUES (%s, %s,%s, %s, %s);
+                COMMIT;
+            """
+
+            # Execute the query with the user data
+            cursor.execute(
+                sql,
+                (
+                    current_datetime,
+                    current_datetime,
+                    "disabled",
+                    101073,
+                    True,
+                ),
+            )
+            # ,
+
+        except Exception as e:
+            self.misc.nli(
+                f"{self.misc.bcolors.FAIL}Error creating Admin Options: {str(e)}{self.misc.bcolors.ENDC}"
+            )
+            # Rollback the transaction
+            connection.rollback()
+
+        else:
+            self.misc.nls(
+                f"{self.misc.bcolors.OKGREEN}Admin Options Created!{self.misc.bcolors.ENDC}"
+            )
 
         finally:
             # Close the cursor and connection
@@ -3772,34 +3757,6 @@ class Loader:
             try:
                 # Start a transaction
                 cursor = connection.cursor()
-
-                # array = [
-                #     current_datetime,
-                #     current_datetime,
-                #     business_area["name"],
-                #     business_area["slug"],
-                #     business_area["cost_center"],
-                #     business_area["published"],
-                #     True,
-                #     business_area["focus"],
-                #     business_area["introduction"],
-                #     dbca_id,
-                #     superuser_id,
-                #     superuser_id,
-                #     None,
-                #     superuser_id,
-                #     0
-                #     if self.pd.isna(business_area["program_leader_id"]) == None
-                #     else business_area["program_leader_id"],
-                #     0
-                #     if self.pd.isna(business_area["finance_admin_id"]) == None
-                #     else business_area["finance_admin_id"],
-                #     0
-                #     if self.pd.isna(business_area["data_custodian_id"]) == None
-                #     else business_area["data_custodian_id"],
-                # ]
-                # for item in array:
-                #     print(f"{type(item)}: {item}")
                 pl_value = (
                     None
                     if self.pd.isna(business_area["program_leader_id"])
@@ -3984,314 +3941,6 @@ class Loader:
 
         print("BA Load operation finished.")
 
-        # def spms_create_business_areas(self):
-        #     BusinessArea = self.import_model("agencies", "BusinessArea")
-        #     agency = self.import_model("agencies", "agency")
-        #     User = self.import_model("users", "User")
-        #     BusinessAreaPhoto = self.import_model("medias", "BusinessAreaPhoto")
-
-        #     # Load the file into a data frame
-        #     file_path = self.os.path.join(
-        #         self.file_handler.clean_directory, "pythia_program.csv"
-        #     )
-        #     df = self.file_handler.read_csv_and_prepare_df(file_path)
-
-        #     # Display the columns available in file
-        #     self.display_columns_available_in_df(df)
-
-        #     # Check if continuing with these columns or not
-        #     df = self.alter_column_check(df)
-
-        #     # Establish DB connection
-        #     (
-        #         cursor,
-        #         connection,
-        #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-
-        #     # Get the agency with the name "DBCA" if it exists
-        #     try:
-        #         dbca_agency = agency.objects.get(name="DBCA")
-        #     except agency.DoesNotExist:
-        #         # If the agency does not exist, create it
-        #         user, _ = User.objects.get_or_create(
-        #             email="jarid.prince@dbca.wa.gov.au", username="jp"
-        #         )
-        #         user.set_password("1")
-        #         user.is_superuser = True
-        #         user.is_staff = True
-        #         user.save()
-
-        #         dbca_agency = agency.objects.create(name="DBCA", key_stakeholder=user)
-
-        #     # Insert data from the DataFrame into the BusinessArea model
-        #     try:
-        #         for row in df.itertuples(index=False):
-        #             # Calculate the current year
-        #             current_year = dt.now().year
-
-        #             # Create the BusinessArea object
-        #             business_area = BusinessArea(
-        #                 old_pk=row.id,
-        #                 agency_id=dbca_agency.id,
-        #                 name=row.name,
-        #                 slug=row.slug,
-        #                 published=row.published,
-        #                 is_active=row.is_active,
-        #                 leader=row.leader_id,
-        #                 finance_admin=row.finance_admin_id,
-        #                 data_custodian=row.data_custodian_id,
-        #                 focus=row.focus,
-        #                 introduction=row.introduction,
-        #                 image=None
-        #                 # image=row.image,
-        #             )
-
-        #             business_area.save()
-
-        #             # Save the BusinessArea object first
-        #             business_area.save()
-
-        #             # Create or get the BusinessAreaPhoto object
-        #             business_area_photo, created = BusinessAreaPhoto.objects.get_or_create(
-        #                 file=row.image,
-        #                 defaults={
-        #                     "year": current_year,
-        #                     "business_area": business_area,
-        #                     "uploader": dbca_agency.key_stakeholder,
-        #                 },
-        #             )
-
-        #             # Assign the BusinessAreaPhoto to the BusinessArea
-        #             business_area.image = business_area_photo
-        #             business_area.save()
-
-        #     except Exception as e:
-        #         print(e)
-
-        #     # Commit the changes and close the cursor and connection
-        #     connection.commit()
-        #     cursor.close()
-        #     connection.close()
-
-        #     print("Business Area Load operation finished.")
-        pass
-
-    # def spms_create_dbca_research_functions(self):
-    #     self.misc.nls(
-    #         f"{self.misc.bcolors.OKBLUE}Creating DBCA Research Functions...{self.misc.bcolors.ENDC}"
-    #     )
-
-    #     # Load the research functions file into a data frame
-    #     try:
-    #         file_path = self.os.path.join(
-    #             self.file_handler.clean_directory, "projects_researchfunction.csv"
-    #         )
-    #         rf_df = self.file_handler.read_csv_and_prepare_df(file_path)
-    #     except Exception as e:
-    #         self.misc.nli(f"{self.misc.bcolors.FAIL}Error: {e}{self.misc.bcolors.ENDC}")
-    #     else:
-    #         print(f"{self.misc.bcolors.OKGREEN}File loaded!{self.misc.bcolors.ENDC}")
-
-    #     # Establishing connection:
-    #     (
-    #         cursor,
-    #         connection,
-    #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-    #     connection.autocommit = False
-
-    #     # # Get the user with the name "jp" if it exists
-    #     # superuser_id = self.spms_get_superuser(connection=connection, cursor=cursor)
-
-    #     # # Get the DBCA Agency
-    #     # dbca_id = self.spms_get_dbca_agency(connection=connection, cursor=cursor)
-
-    #     # Get the current date and time
-    #     current_datetime = dt.now()
-
-    #     # Establish columns we want to use in workcenter df
-    #     rf_columns = rf_df[
-    #         [
-    #             "id",
-    #             "name",
-    #             "description",
-    #             "leader_id",
-    #             "association",
-    #             "active",
-    #         ]
-    #     ]
-
-    #     # Insert data from the DataFrame into the RF model
-    #     # Try the Query
-    #     print(
-    #         f"{self.misc.bcolors.WARNING}Beginning SQL query...{self.misc.bcolors.ENDC}"
-    #     )
-
-    #     # Construct the SQL query
-    #     sql = """
-    #         BEGIN;
-    #         INSERT INTO projects_researchfunction (
-    #             old_id, created_at, updated_at, name, description, leader_id, association, is_active
-    #         ) VALUES (%s, %s, %s, %s, %s,%s, %s, %s);
-    #         COMMIT;
-    #     """
-
-    #     # Create an entry for each branch in the csv
-    #     for index, research_function in rf_columns.iterrows():
-    #         print(
-    #             f"{self.misc.bcolors.WARNING}Creating entry for {research_function['name']}...{self.misc.bcolors.ENDC}"
-    #         )
-
-    #         # Get the new leader if there was an old one
-    #         if self.pd.isna(research_function["leader_id"]):
-    #             new_leader_id = None
-    #         else:
-    #             new_leader_id = self.spms_get_user_by_old_id(
-    #                 connection=connection,
-    #                 cursor=cursor,
-    #                 old_id=research_function["leader_id"],
-    #             )
-
-    #         try:
-    #             # Start a transaction
-    #             cursor = connection.cursor()
-
-    #             cursor.execute(
-    #                 sql,
-    #                 (
-    #                     research_function["id"],  # old_id,
-    #                     current_datetime,
-    #                     current_datetime,
-    #                     research_function["name"],
-    #                     None
-    #                     if self.pd.isna(research_function["description"])
-    #                     else research_function["description"],
-    #                     new_leader_id,  # leader id based on old pk
-    #                     None
-    #                     if self.pd.isna(research_function["association"])
-    #                     else research_function["association"],
-    #                     research_function["active"],
-    #                 ),
-    #             )
-
-    #         except Exception as e:
-    #             self.misc.nli(
-    #                 f"{self.misc.bcolors.FAIL}Error creating DBCA RF ({research_function['name']}): {str(e)}{self.misc.bcolors.ENDC}"
-    #             )
-    #             # Print the complete traceback information
-    #             traceback_str = traceback.format_exc()
-    #             print(traceback_str)
-    #             # Rollback the transaction
-    #             connection.rollback()
-
-    #         else:
-    #             self.misc.nls(
-    #                 f"{self.misc.bcolors.OKGREEN}DBCA RF ({research_function['name']}) Created!{self.misc.bcolors.ENDC}"
-    #             )
-
-    #         finally:
-    #             connection.commit()
-
-    #     # TODO: At the end of all operations remove old_id & old_director_id from divisions table in django
-
-    #     # Commit the changes and close the cursor and connection
-    #     cursor.close()
-    #     connection.close()
-
-    #     print("RF Load operation finished.")
-
-    #     # def spms_create_business_areas(self):
-    #     #     BusinessArea = self.import_model("agencies", "BusinessArea")
-    #     #     agency = self.import_model("agencies", "agency")
-    #     #     User = self.import_model("users", "User")
-    #     #     BusinessAreaPhoto = self.import_model("medias", "BusinessAreaPhoto")
-
-    #     #     # Load the file into a data frame
-    #     #     file_path = self.os.path.join(
-    #     #         self.file_handler.clean_directory, "pythia_program.csv"
-    #     #     )
-    #     #     df = self.file_handler.read_csv_and_prepare_df(file_path)
-
-    #     #     # Display the columns available in file
-    #     #     self.display_columns_available_in_df(df)
-
-    #     #     # Check if continuing with these columns or not
-    #     #     df = self.alter_column_check(df)
-
-    #     #     # Establish DB connection
-    #     #     (
-    #     #         cursor,
-    #     #         connection,
-    #     #     ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-
-    #     #     # Get the agency with the name "DBCA" if it exists
-    #     #     try:
-    #     #         dbca_agency = agency.objects.get(name="DBCA")
-    #     #     except agency.DoesNotExist:
-    #     #         # If the agency does not exist, create it
-    #     #         user, _ = User.objects.get_or_create(
-    #     #             email="jarid.prince@dbca.wa.gov.au", username="jp"
-    #     #         )
-    #     #         user.set_password("1")
-    #     #         user.is_superuser = True
-    #     #         user.is_staff = True
-    #     #         user.save()
-
-    #     #         dbca_agency = agency.objects.create(name="DBCA", key_stakeholder=user)
-
-    #     #     # Insert data from the DataFrame into the BusinessArea model
-    #     #     try:
-    #     #         for row in df.itertuples(index=False):
-    #     #             # Calculate the current year
-    #     #             current_year = dt.now().year
-
-    #     #             # Create the BusinessArea object
-    #     #             business_area = BusinessArea(
-    #     #                 old_pk=row.id,
-    #     #                 agency_id=dbca_agency.id,
-    #     #                 name=row.name,
-    #     #                 slug=row.slug,
-    #     #                 published=row.published,
-    #     #                 is_active=row.is_active,
-    #     #                 leader=row.leader_id,
-    #     #                 finance_admin=row.finance_admin_id,
-    #     #                 data_custodian=row.data_custodian_id,
-    #     #                 focus=row.focus,
-    #     #                 introduction=row.introduction,
-    #     #                 image=None
-    #     #                 # image=row.image,
-    #     #             )
-
-    #     #             business_area.save()
-
-    #     #             # Save the BusinessArea object first
-    #     #             business_area.save()
-
-    #     #             # Create or get the BusinessAreaPhoto object
-    #     #             business_area_photo, created = BusinessAreaPhoto.objects.get_or_create(
-    #     #                 file=row.image,
-    #     #                 defaults={
-    #     #                     "year": current_year,
-    #     #                     "business_area": business_area,
-    #     #                     "uploader": dbca_agency.key_stakeholder,
-    #     #                 },
-    #     #             )
-
-    #     #             # Assign the BusinessAreaPhoto to the BusinessArea
-    #     #             business_area.image = business_area_photo
-    #     #             business_area.save()
-
-    #     #     except Exception as e:
-    #     #         print(e)
-
-    #     #     # Commit the changes and close the cursor and connection
-    #     #     connection.commit()
-    #     #     cursor.close()
-    #     #     connection.close()
-
-    #     #     print("Business Area Load operation finished.")
-
-    #     pass
-
     def spms_create_dbca_divisions(self):
         self.misc.nls(
             f"{self.misc.bcolors.OKBLUE}Creating DBCA Divisions...{self.misc.bcolors.ENDC}"
@@ -4381,26 +4030,6 @@ class Loader:
                     cursor=cursor,
                     old_id=division["approver_id"],
                 )
-
-            # # Get the new modifier_id
-            # if self.pd.isna(division["modifier_id"]):
-            #     new_modifier_id = None
-            # else:
-            #     new_modifier_id = self.spms_get_user_by_old_id(
-            #         connection=connection,
-            #         cursor=cursor,
-            #         old_id=division["modifier_id"],
-            #     )
-
-            # # Get the new creator_id
-            # if self.pd.isna(division["creator_id"]):
-            #     new_creator_id = None
-            # else:
-            #     new_creator_id = self.spms_get_user_by_old_id(
-            #         connection=connection,
-            #         cursor=cursor,
-            #         old_id=division["creator_id"],
-            #     )
 
             try:
                 # Start a transaction
@@ -4908,59 +4537,6 @@ class Loader:
             current_datetime=current_datetime,
             superuser_id=superuser_id,
         )
-
-        # ======================================================================================
-
-        # Create secondary entries for each project in the csv
-
-        # image_link, current_datetime, project_id, uploader
-
-        # self.spms_create_project_image(
-        #     connection=connection,
-        #     cursor=cursor,
-        #     current_datetime=current_datetime,
-        #     project_id=project_id,
-        #     uploader=superuser_id,
-        # )
-
-        # project_key_members_sql = """
-        #     BEGIN;
-        #     INSERT INTO projects_projectdetail; (
-        #         created_at,
-        #         udpated_at,
-        #         project_id,
-        #         creator_id,
-        #         modifier_id,
-        #         project_owner_id,
-        #         data_custodian_id,
-        #         team_list_plain,
-        #         supervising_scientist_list_plain
-        #     ) VALUES (%s, %s, %s, %s, %s);
-        #     COMMIT;
-        # """
-
-        # project_further_details_sql = """
-        #     BEGIN;
-        #     INSERT INTO projects_projectdetail; (
-        #         research_function_id,
-        #         output_program_id,
-        #         area_list_dpaw_region,
-        #         area_list_dpaw_district,
-        #         area_list_ibra_imcra_region,
-        #         area_list_nrm_region,
-
-        #     ) VALUES (%s, %s, %s, %s, %s);
-        #     COMMIT;
-        # """
-        # ======================================================================================
-
-        # ======================================================================================
-
-        # Create entries specific to student projects
-
-        # Create entries specific to external projects
-
-        # NOTE: Science and core function projects do not require extra data
 
         # ======================================================================================
 
@@ -5704,110 +5280,6 @@ class Loader:
         # Commit the transaction for empty entries
         connection.commit()
 
-    def spms_project_comments_setter(self, projects_df, cursor, connection):
-        pass
-        # # Title
-        # self.misc.nls(
-        #     f"{self.misc.bcolors.OKBLUE}Setting Project Comments...{self.misc.bcolors.ENDC}"
-        # )
-
-        # # Establishing connection and fetching some necessary data:
-        # (
-        #     cursor,
-        #     connection,
-        # ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
-        # connection.autocommit = False
-
-        # # Get the current date and time
-        # current_datetime = dt.now()
-
-        # # Open the team membership csv and save as a separate dataframe
-        # try:
-        #     file_path = self.os.path.join(
-        #         self.file_handler.clean_directory, "projects_project_areas.csv"
-        #     )
-        #     project_area_df = self.file_handler.read_csv_and_prepare_df(file_path)
-        # except Exception as e:
-        #     self.misc.nli(f"{self.misc.bcolors.FAIL}Error: {e}{self.misc.bcolors.ENDC}")
-        # else:
-        #     print(f"{self.misc.bcolors.OKGREEN}File loaded!{self.misc.bcolors.ENDC}")
-
-        # # Establish columns we want to use in df
-        # project_area_df = project_area_df[
-        #     [
-        #         "id",  # old_id
-        #         "project_id",  # old_project_id
-        #         "area_id",  # old_area_id
-        #     ]
-        # ]
-
-        # # Construct the SQL query for base
-        # project_area_sql = """
-        #     BEGIN;
-        #     INSERT INTO projects_projectarea (
-        #         created_at,
-        #         updated_at,
-        #         old_id,
-        #         project_id,
-        #         area_id
-        #     ) VALUES (%s, %s, %s, %s, %s);
-        #     COMMIT;
-        # """
-
-        # # Execute sql per row
-        # for index, projectarea in project_area_df.iterrows():
-        #     print(
-        #         f"{self.misc.bcolors.WARNING}Creating area entry for Project Area: {projectarea['id']}...{self.misc.bcolors.ENDC}"
-        #     )
-
-        #     # Get new values related to each project area entry
-        #     old_id = int(projectarea["id"])
-        #     new_proj_id = self.spms_get_project_by_old_id(
-        #         old_id=projectarea["project_id"], cursor=cursor, connection=connection
-        #     )
-        #     new_area_id = self.spms_get_area_by_old_id(
-        #         old_id=projectarea["area_id"], cursor=cursor, connection=connection
-        #     )
-
-        #     try:
-        #         # Start a transaction
-        #         cursor = connection.cursor()
-        #         cursor.execute(
-        #             project_area_sql,
-        #             (
-        #                 current_datetime,  # created at
-        #                 current_datetime,  # updated at
-        #                 old_id,  # old_id,
-        #                 new_proj_id,  #
-        #                 new_area_id,
-        #             ),
-        #         )
-        #     except Exception as e:
-        #         print(old_id)
-        #         print(current_datetime)
-        #         print(current_datetime)
-        #         print(new_proj_id)
-        #         print(new_area_id)
-        #         self.misc.nli(
-        #             f"{self.misc.bcolors.FAIL}Error creating Project Area (OLD ID: {old_id}): {str(e)}{self.misc.bcolors.ENDC}"
-        #         )
-        #         # Print the complete traceback information
-        #         traceback_str = traceback.format_exc()
-        #         print(traceback_str)
-
-        #         # Rollback the transaction
-        #         connection.rollback()
-
-        #     else:
-        #         self.misc.nls(
-        #             f"{self.misc.bcolors.OKGREEN} Project Area (OLD ID: {old_id}) Created!{self.misc.bcolors.ENDC}"
-        #         )
-
-        #     finally:
-        #         connection.commit()
-        #         connection.close()
-        #         cursor.close()
-
     def spms_project_details_setter(
         self, connection, cursor, current_datetime, df_project
     ):
@@ -5878,63 +5350,12 @@ class Loader:
                     connection=connection,
                 )
             )
-            # new_research_function_id = (
-            #     None
-            #     if self.pd.isna(df_project["research_function_id"])
-            #     else self.spms_get_research_function_by_old_id(
-            #         old_id=df_project["research_function_id"],
-            #         cursor=cursor,
-            #         connection=connection,
-            #     )
-            # )
-
-            # new_service_id = (
-            #     None
-            #     if self.pd.isna(df_project["service_id"])
-            #     else self.spms_get_service_by_old_id(
-            #         old_id=df_project["service_id"],
-            #         cursor=cursor,
-            #         connection=connection,
-            #     )
-            # )
 
             old_output_program_id = (
                 None
                 if self.pd.isna(df_project["output_program_id"])
                 else int(df_project["output_program_id"])
             )
-
-            # if new_research_function_id == None:
-            #     filename = "ProjectsWithNoRFs.txt"
-            #     rfs_dir = os.path.join(self.django_project_path, filename)
-            #     if not os.path.exists(rfs_dir):
-            #         with open(rfs_dir, "w") as file:
-            #             pass
-            #     # Read existing content from the file
-            #     with open(rfs_dir, "r", encoding="utf-8") as file:
-            #         existing_content = file.read()
-            #     # Check if the content already exists
-            #     if (
-            #         f"https://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n"
-            #         not in existing_content
-            #     ):
-            #         # Get the project lead nasme
-            #         lead_name = self.spms_get_user_name_old_id(
-            #             connection=connection,
-            #             cursor=cursor,
-            #             old_id=df_project["project_owner_id"],
-            #         )
-            #         title = df_project["title"]
-            #         status = df_project["status"]
-            #         # Get the project title
-            #         # project_title = self.spms_get_project_title_by_
-            #         # Append to the file
-            #         with open(rfs_dir, "a", encoding="utf-8") as file:
-            #             file.write(
-            #                 f"{lead_name}\n{status}\n{title}\nhttps://scienceprojects-test.dbca.wa.gov.au/projects/{new_project_id}\n\n"
-            #             )
-            #     else:
-            #         print("Content already exists in the file.")
 
             # Start a transaction
             cursor = connection.cursor()
@@ -6225,33 +5646,9 @@ class Loader:
             if old_status == None:
                 return "new"
             else:
-                # if old_status == "new" and created < updated:
-                #         return "revising"
+
                 return old_status
-            # statuses = [
-            #     # For brand new docs
-            #     {"new": "new"},  # "New document"
-            #     # For when a doc is sent back for revision or a change made to new doc
-            #     {"revising": "revising"},  # Revising
-            #     # For when a revised/new doc is in review
-            #     {"inreview": "inreview"},  # In Review
-            #     # For when the revised doc is approved by reviewer, and finally sent to directorate
-            #     {"inapproval": "inapproval"},  # Seeking Approval
-            #     # When a doc receives final approval. Only progress reports in this state added to report
-            #     {"approved": "approved"},  # Approved
-            # ]
 
-            # for item in statuses:
-            #     if old_status in status_dict:
-            #         new_status = status_dict[old_status]
-            #         if new_status == "new" and created < updated:
-            #             return "revising"
-            #         return new_status
-
-            # print(old_status)
-            # return None  # Handle the case when no matching status is found
-
-        # Joining on id, to create new dataframes for each document file.
         # ======================================================================================
         # CONCEPT PLANS
 
@@ -7143,14 +6540,6 @@ class Loader:
             finally:
                 connection.commit()
 
-            # self.spms_create_tasks_for_document(
-            #     connection=connection,
-            #     cursor=cursor,
-            #     document_id=new_document_id,
-            #     doc_status=status,
-            #     doc_type="Concept Plan",
-            # )
-
             if pdf != None:
                 file_directory = os.path.join(
                     self.django_project_path, "dumped_media", pdf
@@ -7442,24 +6831,10 @@ class Loader:
                     project_tasks,
                     listed_references,  # renamed as references is a reserved word that causes errors
                     methodology,
-                    # involves_plants,
-                    # involves_animals,
                     operating_budget,
                     operating_budget_external,
                     related_projects,
                 )
-                #  document_id,
-                #         project_id,
-                #         background,
-                #         aims,
-                #         outcome,
-                #         knowledge_transfer,
-                #         project_tasks,
-                #         listed_references,
-                #         methodology,
-                #         operating_budget,
-                #         operating_budget_external,
-                #         related_projects
 
                 # Print the complete traceback information
                 traceback_str = traceback.format_exc()
@@ -7487,12 +6862,6 @@ class Loader:
                 ) VALUES (%s, %s, %s, %s, %s);
                 COMMIT;
             """
-            # %s, %s, %s, %s,
-            #             bm_endorsement_required,
-            #                     bm_endorsement_provided,
-            #                     hc_endorsement_required,
-            #                     hc_endorsement_provided,
-            # Endorsement
 
             try:
                 print(
@@ -7504,55 +6873,7 @@ class Loader:
                     cursor=cursor,
                     connection=connection,
                 )
-                # involves_plants = (
-                #     False
-                #     if self.pd.isna(project_plan["involves_plants"])
-                #     else project_plan["involves_plants"]
-                # )
 
-                # involves_animals = (
-                #     False
-                #     if self.pd.isna(project_plan["involves_animals"])
-                #     else project_plan["involves_animals"]
-                # )
-                # bm_endorsement_required = (
-                #     False
-                #     if (
-                #         self.pd.isna(project_plan["bm_endorsement"])
-                #         or project_plan["bm_endorsement"] == "not required"
-                #     )
-                #     else True
-                # )
-                # bm_endorsement_provided = (
-                #     True
-                #     if (
-                #         (project_plan["bm_endorsement"] == "granted")
-                #         or (
-                #             bm_endorsement_required == True
-                #             and project_plan["status"] == "approved"
-                #         )
-                #     )
-                #     else False
-                # )
-                # hc_endorsement_required = (
-                #     False
-                #     if (
-                #         self.pd.isna(project_plan["hc_endorsement"])
-                #         or project_plan["hc_endorsement"] == "not required"
-                #     )
-                #     else True
-                # )
-                # hc_endorsement_provided = (
-                #     True
-                #     if (
-                #         (project_plan["hc_endorsement"] == "granted")
-                #         or (
-                #             hc_endorsement_required == True
-                #             and project_plan["status"] == "approved"
-                #         )
-                #     )
-                #     else False
-                # )
                 ae_endorsement_required = (
                     False
                     if (
@@ -7589,11 +6910,6 @@ class Loader:
                     endorsements_sql,
                     (
                         project_plan_detail_id,
-                        # new_proj_id,
-                        # bm_endorsement_required,
-                        # bm_endorsement_provided,
-                        # hc_endorsement_required,
-                        # hc_endorsement_provided,
                         ae_endorsement_required,
                         ae_endorsement_provided,
                         data_management,
@@ -7604,11 +6920,6 @@ class Loader:
             except Exception as e:
                 print(
                     project_plan_detail_id,
-                    # new_proj_id,
-                    # bm_endorsement_required,
-                    # bm_endorsement_provided,
-                    # hc_endorsement_required,
-                    # hc_endorsement_provided,
                     ae_endorsement_required,
                     ae_endorsement_provided,
                     data_management,
@@ -7631,14 +6942,6 @@ class Loader:
 
             finally:
                 connection.commit()
-
-            # self.spms_create_tasks_for_document(
-            #     connection=connection,
-            #     cursor=cursor,
-            #     document_id=new_document_id,
-            #     doc_status=status,
-            #     doc_type="Project Plan",
-            # )
 
             if pdf != None:
                 file_directory = os.path.join(
@@ -7947,14 +7250,6 @@ class Loader:
             finally:
                 connection.commit()
 
-            # self.spms_create_tasks_for_document(
-            #     connection=connection,
-            #     cursor=cursor,
-            #     document_id=new_document_id,
-            #     doc_status=status,
-            #     doc_type="Progress Report",
-            # )
-
             if (pdf != None) and (report_id != None):
                 file_directory = os.path.join(
                     self.django_project_path, "dumped_media", pdf
@@ -8193,14 +7488,6 @@ class Loader:
             finally:
                 connection.commit()
 
-            # self.spms_create_tasks_for_document(
-            #     connection=connection,
-            #     cursor=cursor,
-            #     document_id=document_id,
-            #     doc_status=status,
-            #     doc_type="Student Report",
-            # )
-
             if pdf != None:
                 file_directory = os.path.join(
                     self.django_project_path, "dumped_media", pdf
@@ -8322,14 +7609,6 @@ class Loader:
                 or directorate_approval_granted
                 else False
             )  # set all non-news to approved
-
-            # directorate_approval_granted = True if status == "approved" else False
-            # business_area_lead_approval_granted = True if (directorate_approval_granted == True or status == "inapproval") else False
-            # project_lead_approval_granted = True if (
-            #     status == "inreview" or status == "revising" or
-            #     business_area_lead_approval_granted == True or
-            #     directorate_approval_granted == True
-            # ) else False # set all non-news to approved
 
             print(pdf)
             try:
@@ -8479,14 +7758,6 @@ class Loader:
 
             finally:
                 connection.commit()
-
-            # self.spms_create_tasks_for_document(
-            #     connection=connection,
-            #     cursor=cursor,
-            #     document_id=document_id,
-            #     doc_status=status,
-            #     doc_type="Project Closure",
-            # )
 
             if pdf != None:
                 file_directory = os.path.join(
@@ -9110,12 +8381,6 @@ class Loader:
             is_public = comment["is_public"]
             is_removed = comment["is_removed"]
 
-            # updated_at = (
-            #     current_datetime
-            #     if self.pd.isna(comment["modified"])
-            #     else comment["modified"]
-            # )
-
             try:
                 if new_document_id is not None:
                     # Start a transaction
@@ -9197,7 +8462,6 @@ class Loader:
                     break
                 check_num += 1
 
-        # Return the project_name with the desired case sensitivity
         return project_name
 
     def spms_create_annual_reports(self):
@@ -9517,19 +8781,6 @@ class Loader:
         new_value = new_kind_dict[old_kind_value]
         return new_value
 
-    #  medias = [
-    #             cover_page,
-    #             sds_chapter_image,
-    #             sds_org_chart,
-    #             research_chapter_image,
-    #             partnerships_chapter_image,
-    #             student_projects_chapter_image,
-    #             publications_chapter_image,
-    #             collaboration_chapter_image,
-    #             pdf,
-    #             rear_cover_page,
-    #         ]
-
     def create_project_document_pdf(
         self, connection, cursor, related_project_id, related_document_id, data
     ):
@@ -9706,68 +8957,3 @@ class Loader:
             )
         finally:
             connection.commit()
-
-    # Get the image upload URL from cloudflare
-    def spms_get_cf_images_upload_url(self):
-        env = environ.Env()
-        account = env("CF_ACCOUNT_ID")
-        api_token = env("CF_IMAGES_TOKEN")
-        url = f"https://api.cloudflare.com/client/v4/accounts/{account}/images/v2/direct_upload"
-        one_time_url = requests.post(
-            url,
-            headers={
-                "Authorization": f"Bearer {api_token}",
-                # "Content-Type": "multipart/form-data",
-            },
-        )
-
-        one_time_url = one_time_url.json()
-        result = one_time_url.get("result")
-        print(f"{result}")
-        return (result.get("id"), result.get("uploadURL"))
-
-    # Upload the downloaded file to the cloudflare images server and return the link to
-    # the new cloudflare image location
-    def spms_upload_to_cf_url(self, url, file_path):
-        # Read the image file
-        with open(file_path, "rb") as file:
-            filename = self.os.path.basename(file_path)
-            file_content = file.read()
-            http = urllib3.PoolManager()
-            fields = {"file": (filename, file_content)}
-            response = http.request("POST", url, fields=fields)
-
-            # # Generate the boundary
-            # boundary = self.generate_boundary()
-
-            # Create the form data with the boundary
-            # form_data = {"file": (file_path, image_data, "application/octet-stream")}
-
-            # # Set the headers with the boundary
-            # headers = {"Content-Type": "multipart/form-data"}
-
-            # # Make the request
-            # response = requests.post(url, files=files, headers=headers)
-
-            # Return
-            if response.status == 200:
-                self.misc.nls(
-                    f"{self.misc.bcolors.OKGREEN}File uploaded{self.misc.bcolors.ENDC}"
-                )
-                data = json.loads(response.data.decode("utf-8"))
-                variants = data["result"]["variants"]
-                variants_string = variants[0] if variants else None
-                print(f"Variants string: {variants_string}")
-                return variants_string
-
-                # return response.json()
-            else:
-                print(response)
-                error_message = response.text
-                print(
-                    response.status,
-                    error_message,
-                )
-                raise Exception(
-                    "Failed to upload file to cloudflare",
-                )

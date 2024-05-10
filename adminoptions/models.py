@@ -16,6 +16,13 @@ class AdminOptions(CommonModel):
         choices=EmailOptions.choices,
         default=EmailOptions.DISABLED,
     )
+    maintainer = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin",
+    )
 
     def clean(self):
         # Ensure only one instance of AdminOptions exists
