@@ -1151,27 +1151,26 @@ class Loader:
             else:
                 # Main production spms (not debug, not test) (Rancher)
                 if testmode != "True" and testmode != True:
-                    connecting_to = f'{env("PRODUCTION_HOST")}'
+                    connecting_to = f'{env("PRODUCTION_HOST")} (prod)'
                     print(f"connecting to {connecting_to}...")
-                    connection = self.psycopg2.connect(
-                        host=env("PRODUCTION_HOST"),
-                        port=5432,
-                        database=env("PRODUCTION_DB_NAME"),
-                        user=env("PRODUCTION_USERNAME"),
-                        password=env("PRODUCTION_PASSWORD"),
-                    )
+                    connection = self.psycopg2.connect(env("PRODUCTION_DATABASE_URL"))
+                    #    host=env("PRODUCTION_HOST"),
+                    # port=5432,
+                    # database=env("PRODUCTION_DB_NAME"),
+                    # user=env("PRODUCTION_USERNAME"),
+                    # password=env("PRODUCTION_PASSWORD"),
 
                 # Test SPMS (Rancher)
                 else:
-                    connecting_to = f'{env("UAT_HOST")}'
+                    connecting_to = f'{env("UAT_HOST")} (prod test)'
                     print(f"connecting to {connecting_to}...")
-                    connection = self.psycopg2.connect(
-                        host=env("UAT_HOST"),
-                        port=5432,
-                        database=env("UAT_DB_NAME"),
-                        user=env("UAT_USERNAME"),
-                        password=env("UAT_PASSWORD"),
-                    )
+                    connection = self.psycopg2.connect(env("UAT_DATABASE_URL"))
+
+                    #    host=env("UAT_HOST"),
+                    # port=5432,
+                    # database=env("UAT_DB_NAME"),
+                    # user=env("UAT_USERNAME"),
+                    # password=env("UAT_PASSWORD"),
 
             # Create a cursor object to execute SQL queries
             print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
