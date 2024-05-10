@@ -1,5 +1,10 @@
 # Python downgraded to suit Prince libs (from 3.11.6)
-FROM python:3.11.4
+# FROM python:3.11.4
+# FROM python:3.11.6
+# FROM python:3.12.3
+# FROM python:3.13.0b1
+FROM python:latest
+
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV TZ="Australia/Perth"
@@ -9,9 +14,10 @@ RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     # Sys Utils
     openssh-client rsync vim ncdu wget systemctl \
     # Postgres
-    postgresql postgresql-client \ 
-    # Queing and Scheduling
-    celery rabbitmq-server
+    postgresql postgresql-client 
+# \ 
+# Queing and Scheduling
+# celery rabbitmq-server
 
 # Installer for Prince
 RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
@@ -31,7 +37,8 @@ RUN echo "Downloading Prince Package" \
     # Latest version that suits Python image
     # https://www.princexml.com/download/prince-books_20220701-1_debian11_amd64.deb
     # https://www.princexml.com/download/prince-books_20220701-1_ubuntu22.04_amd64.deb
-    https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
+    # https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
+    https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
 # https://www.princexml.com/download/prince_15.3-1_ubuntu22.04_amd64.deb
 
 RUN echo "Installing Prince stuff" \
@@ -39,6 +46,10 @@ RUN echo "Installing Prince stuff" \
     && yes | gdebi ${DEB_FILE}  \
     && echo "Cleaning up" \
     && rm -f ${DEB_FILE}
+
+# Ensure prince is in path so it can be called in command line 
+ENV PATH="${PATH}:/usr/lib/prince/bin"
+RUN prince --version
 
 # Move local files over
 COPY . ./backend
@@ -82,20 +93,19 @@ RUN echo '# Custom .bashrc modifications\n' \
 RUN poetry config virtualenvs.create false
 RUN poetry init
 # Necessary to fix pandas/numpy installation issues on 3.11-12 with poetry
-RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
+# RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
+RUN sed -i 's/python = "^3.12"/python = "<=3.13.1,>=3.12"/' pyproject.toml
 
 # Base django app dependencies
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     djangorestframework django psycopg2-binary python-dotenv python-dateutil \
     requests whitenoise[brotli] gunicorn pandas \
-    beautifulsoup4 sentry-sdk[django] html2text pillow tqdm \
-    celery pika channels
+    beautifulsoup4 sentry-sdk[django] html2text pillow tqdm
+# celery pika channels
 
-# Ensure prince is in path so it can be called in command line 
-ENV PATH="${PATH}:/usr/lib/prince/bin"
-RUN prince --version
+
 
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
-RUN rabbitmq-server
+# RUN rabbitmq-server
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]
