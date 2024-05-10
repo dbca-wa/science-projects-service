@@ -114,9 +114,9 @@ if not DEBUG:
     ALLOW_LIST += env("PRODUCTION_SITE_URL")
 
     if ON_TEST_NETWORK:
-        cluster_ip = env("UAT_CLUSTER_IP", None)
+        cluster_ip = os.getenv("UAT_CLUSTER_IP", None)
     else:
-        cluster_ip = env("PRODUCTION_CLUSTER_IP", None)
+        cluster_ip = os.getenv("PRODUCTION_CLUSTER_IP", None)
     if cluster_ip:
         ALLOW_LIST += cluster_ip
 
@@ -130,7 +130,7 @@ ALLOW_LIST_HTTP = [
     for item in ALLOW_LIST
 ]
 ALLOWED_HOSTS = ALLOW_LIST
-additional_host = env("ADDITIONAL_HOST", default=None)
+additional_host = os.getenv("ADDITIONAL_HOST", default=None)
 if additional_host:
     additional_host_list = additional_host.split(",")
     ALLOWED_HOSTS += additional_host_list
