@@ -114,9 +114,11 @@ if not DEBUG:
     ALLOW_LIST += env("PRODUCTION_SITE_URL")
 
     if ON_TEST_NETWORK:
-        ALLOW_LIST += env("UAT_CLUSTER_IP")
+        cluster_ip = env("UAT_CLUSTER_IP", None)
     else:
-        ALLOW_LIST += env("PRODUCTION_CLUSTER_IP")
+        cluster_ip = env("PRODUCTION_CLUSTER_IP", None)
+    if cluster_ip:
+        ALLOW_LIST += cluster_ip
 
 
 ALLOW_LIST_HTTP = [
