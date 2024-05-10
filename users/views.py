@@ -75,7 +75,7 @@ class Login(APIView):
             login(req, user)
             return Response({"ok": "Welcome"})
         else:
-            print("Password Error: no user")
+            # print("Password Error: no user")
             return Response({"error": "Incorrect Password"})
 
 
