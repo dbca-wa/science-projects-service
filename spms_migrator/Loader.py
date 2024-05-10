@@ -1135,17 +1135,24 @@ class Loader:
             testmode = env("ON_TEST_NETWORK")
 
             print("debug:", debugmode)
-            print(
-                "connecting to",
-                (
-                    "localhost"
-                    if debugmode == "True"
-                    else env("UAT_HOST") if testmode else env("PRODUCTION_HOST")
-                ),
-            )
-            if debugmode == "False" or debugmode == False:
-                if testmode == "False" or testmode == False:
-                    # Main production spms (not debug, not test) (Rancher)
+            print("testmode:", testmode)
+            connecting_to = ""
+            # Local db
+            if debugmode == "true" or testmode == True:
+                connecting_to = "localhost"
+                print(f"connecting to {connecting_to}...")
+                connection = self.psycopg2.connect(
+                    host="localhost",
+                    port=5432,
+                    database="spms",
+                    user="postgres",
+                    password=123,
+                )
+            else:
+                # Main production spms (not debug, not test) (Rancher)
+                if testmode != "True" and testmode != True:
+                    connecting_to = f'{env("PRODUCTION_HOST")}'
+                    print(f"connecting to {connecting_to}...")
                     connection = self.psycopg2.connect(
                         host=env("PRODUCTION_HOST"),
                         port=5432,
@@ -1154,8 +1161,10 @@ class Loader:
                         password=env("PRODUCTION_PASSWORD"),
                     )
 
+                # Test SPMS (Rancher)
                 else:
-                    # Test SPMS (Rancher)
+                    connecting_to = f'{env("UAT_HOST")}'
+                    print(f"connecting to {connecting_to}...")
                     connection = self.psycopg2.connect(
                         host=env("UAT_HOST"),
                         port=5432,
@@ -1163,16 +1172,6 @@ class Loader:
                         user=env("UAT_USERNAME"),
                         password=env("UAT_PASSWORD"),
                     )
-
-            else:
-                # Local db
-                connection = self.psycopg2.connect(
-                    host="localhost",
-                    port=5432,
-                    database="spms",
-                    user="postgres",
-                    password=123,
-                )
 
             # Create a cursor object to execute SQL queries
             print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
