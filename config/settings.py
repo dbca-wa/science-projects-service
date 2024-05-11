@@ -110,15 +110,17 @@ ALLOW_LIST = [
     "http://127.0.0.1:3000",
 ]
 
+ALLOW_LIST += [env("PRODUCTION_SITE_URL")]
+
+
 if not DEBUG:
-    ALLOW_LIST += env("PRODUCTION_SITE_URL")
 
     if ON_TEST_NETWORK:
         cluster_ip = os.getenv("UAT_CLUSTER_IP", None)
     else:
         cluster_ip = os.getenv("PRODUCTION_CLUSTER_IP", None)
     if cluster_ip:
-        ALLOW_LIST += cluster_ip
+        ALLOW_LIST += [cluster_ip]
 
 
 ALLOW_LIST_HTTP = [
@@ -151,6 +153,8 @@ if additional_url:
     ]
     CORS_ALLOWED_ORIGINS += additional_url_list
     CSRF_TRUSTED_ORIGINS += additional_url_list
+    print("CORS: ", CORS_ALLOWED_ORIGINS)
+    print("TRUSTED: ", CSRF_TRUSTED_ORIGINS)
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [

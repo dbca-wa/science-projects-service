@@ -81,6 +81,7 @@ class Loader:
         self.file_handler = file_handler
         self.cursor = None
         self.connection = None
+        self.connections = []
         self.db_source = ""
         self.db_destination = ""
         self.functions = [
@@ -1190,6 +1191,7 @@ class Loader:
             print("Client encoding set to UTF8")
             self.cursor = cursor
             self.connection = connection
+            self.connections.append(connection)
             return cursor, connection
 
         except Exception as e:
@@ -1269,6 +1271,7 @@ class Loader:
                 print("Client encoding set to UTF8")
                 self.connection = connection
                 self.cursor = cursor
+                self.connections.append(connection)
                 return cursor, connection
             except Exception as e:
                 input("STILL RAN INTO ERRORS. PRESS ENTER TO RETURN EMPTY")
@@ -2303,6 +2306,10 @@ class Loader:
         self.spms_create_document_comments()
         self.spms_create_superuser_todos()
         self.spms_set_new_leaders()
+
+        print("Closing connections...\n")
+        for connection in self.connections:
+            connection.close()
 
         self.misc.nls("Data ETL complete! You may now use the site!")
 
