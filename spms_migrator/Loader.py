@@ -16,6 +16,7 @@ from datetime import datetime as dt
 from pathlib import Path
 import time
 
+
 def determine_user():
     env = environ.Env()
     BASE_DIR = Path(__file__).resolve().parent.parent
@@ -1201,8 +1202,8 @@ class Loader:
             time.sleep(5)
             try:
                 print(
-                f"{self.misc.bcolors.WARNING}Establishing conn...{self.misc.bcolors.ENDC}"
-            )
+                    f"{self.misc.bcolors.WARNING}Establishing conn...{self.misc.bcolors.ENDC}"
+                )
 
                 env = environ.Env()
                 BASE_DIR = Path(__file__).resolve().parent
@@ -1231,7 +1232,9 @@ class Loader:
                     if testmode != "True" and testmode != True:
                         connecting_to = f'{env("PRODUCTION_HOST")} (prod)'
                         print(f"connecting to {connecting_to}...")
-                        connection = self.psycopg2.connect(env("PRODUCTION_DATABASE_URL"))
+                        connection = self.psycopg2.connect(
+                            env("PRODUCTION_DATABASE_URL")
+                        )
                         #    host=env("PRODUCTION_HOST"),
                         # port=5432,
                         # database=env("PRODUCTION_DB_NAME"),
@@ -1251,7 +1254,9 @@ class Loader:
                         # password=env("UAT_PASSWORD"),
 
                 # Create a cursor object to execute SQL queries
-                print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
+                print(
+                    f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}"
+                )
                 cursor = connection.cursor()
 
                 # Set the client_encoding parameter
@@ -1262,11 +1267,12 @@ class Loader:
                 cursor.execute("SET client_encoding = 'UTF8';")
                 connection.commit()
                 print("Client encoding set to UTF8")
-
+                self.connection = connection
+                self.cursor = cursor
                 return cursor, connection
             except Exception as e:
                 input("STILL RAN INTO ERRORS. PRESS ENTER TO RETURN EMPTY")
-                return 
+                return None, None
 
     def display_columns_available_in_df(self, df):
         for i, column in enumerate(df.columns):
