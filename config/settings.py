@@ -110,6 +110,7 @@ ALLOW_LIST = [
     "http://127.0.0.1:3000",
 ]
 
+ALLOW_LIST += [env("PRODUCTION_SITE_URL_HTTP")]
 ALLOW_LIST += [env("PRODUCTION_SITE_URL")]
 
 
@@ -173,12 +174,12 @@ CORS_ALLOW_HEADERS = [
 if DEBUG:
     SITE_URL = "127.0.0.1:3000"
 else:
-    SITE_URL = env("PRODUCTION_SITE_URL")
+    SITE_URL = env("PRODUCTION_SITE_URL_HTTP")
 
 if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
-    INSTANCE_URL = env("PRODUCTION_SITE_URL")
+    INSTANCE_URL = env("PRODUCTION_SITE_URL_HTTP")
 
 CORS_ALLOWED_ORIGINS = [
     url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"
