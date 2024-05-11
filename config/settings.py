@@ -154,8 +154,8 @@ if additional_url:
     ]
     CORS_ALLOWED_ORIGINS += additional_url_list
     CSRF_TRUSTED_ORIGINS += additional_url_list
-    print("CORS: ", CORS_ALLOWED_ORIGINS)
-    print("TRUSTED: ", CSRF_TRUSTED_ORIGINS)
+    # print("CORS: ", CORS_ALLOWED_ORIGINS)
+    # print("TRUSTED: ", CSRF_TRUSTED_ORIGINS)
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
