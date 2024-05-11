@@ -14,7 +14,7 @@ from django.conf import settings
 from psycopg2 import sql
 from datetime import datetime as dt
 from pathlib import Path
-
+import time
 
 def determine_user():
     env = environ.Env()
