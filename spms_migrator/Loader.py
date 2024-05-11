@@ -78,6 +78,8 @@ class Loader:
         self.migrator_path = os.path.join(self.django_project_path, "spms_migrator")
         self.parent_directory = parent_directory
         self.file_handler = file_handler
+        self.cursor = None
+        self.connection = None
         self.db_source = ""
         self.db_destination = ""
         self.functions = [
@@ -1185,14 +1187,86 @@ class Loader:
             cursor.execute("SET client_encoding = 'UTF8';")
             connection.commit()
             print("Client encoding set to UTF8")
-
+            self.cursor = cursor
+            self.connection = connection
             return cursor, connection
 
         except Exception as e:
-            self.misc.nli(
+            self.misc.nls(
                 f"{self.misc.bcolors.WARNING}Error establishing database connection: {e}{self.misc.bcolors.ENDC}"
             )
-            raise
+            self.misc.nls(
+                f"{self.misc.bcolors.WARNING}Sleeping for 5 seconds and trying again{self.misc.bcolors.ENDC}"
+            )
+            time.sleep(5)
+            try:
+                print(
+                f"{self.misc.bcolors.WARNING}Establishing conn...{self.misc.bcolors.ENDC}"
+            )
+
+                env = environ.Env()
+                BASE_DIR = Path(__file__).resolve().parent
+                environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+                print("basedir:", BASE_DIR)
+                debugmode = env("DJANGO_DEBUG")
+                testmode = env("ON_TEST_NETWORK")
+
+                print("debug:", debugmode)
+                print("testmode:", testmode)
+                connecting_to = ""
+                # Local db
+                if debugmode == "True" or debugmode == True:
+                    connecting_to = "localhost"
+                    print(f"connecting to {connecting_to}...")
+                    connection = self.psycopg2.connect(
+                        # host="localhost",
+                        # port=5432,
+                        # database="spms",
+                        # user="postgres",
+                        # password=123,
+                        "postgresql://postgres:123@localhost/spms"
+                    )
+                else:
+                    # Main production spms (not debug, not test) (Rancher)
+                    if testmode != "True" and testmode != True:
+                        connecting_to = f'{env("PRODUCTION_HOST")} (prod)'
+                        print(f"connecting to {connecting_to}...")
+                        connection = self.psycopg2.connect(env("PRODUCTION_DATABASE_URL"))
+                        #    host=env("PRODUCTION_HOST"),
+                        # port=5432,
+                        # database=env("PRODUCTION_DB_NAME"),
+                        # user=env("PRODUCTION_USERNAME"),
+                        # password=env("PRODUCTION_PASSWORD"),
+
+                    # Test SPMS (Rancher)
+                    else:
+                        connecting_to = f'{env("UAT_HOST")} (prod test)'
+                        print(f"connecting to {connecting_to}...")
+                        connection = self.psycopg2.connect(env("UAT_DATABASE_URL"))
+
+                        #    host=env("UAT_HOST"),
+                        # port=5432,
+                        # database=env("UAT_DB_NAME"),
+                        # user=env("UAT_USERNAME"),
+                        # password=env("UAT_PASSWORD"),
+
+                # Create a cursor object to execute SQL queries
+                print(f"{self.misc.bcolors.WARNING}Creating cursor{self.misc.bcolors.ENDC}")
+                cursor = connection.cursor()
+
+                # Set the client_encoding parameter
+                # self.psycopg2.extensions.register_type(
+                #     self.psycopg2.extensions.UNICODE,
+                #     connection_or_cursortype=self.psycopg2.extensions.connection,
+                # )
+                cursor.execute("SET client_encoding = 'UTF8';")
+                connection.commit()
+                print("Client encoding set to UTF8")
+
+                return cursor, connection
+            except Exception as e:
+                input("STILL RAN INTO ERRORS. PRESS ENTER TO RETURN EMPTY")
+                return 
 
     def display_columns_available_in_df(self, df):
         for i, column in enumerate(df.columns):
@@ -8350,6 +8424,10 @@ class Loader:
             cursor,
             connection,
         ) = self.spms_establish_dest_db_connection_and_return_cursor_conn()
+        if cursor == None:
+            cursor = self.cursor
+            connection = self.connection
+        connection.autocommit = False
 
         # Execute sql per row
         for index, comment in comment_df.iterrows():
