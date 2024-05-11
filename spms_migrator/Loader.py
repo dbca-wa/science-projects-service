@@ -1138,15 +1138,16 @@ class Loader:
             print("testmode:", testmode)
             connecting_to = ""
             # Local db
-            if debugmode == "true" or testmode == True:
+            if debugmode == "True" or debugmode == True:
                 connecting_to = "localhost"
                 print(f"connecting to {connecting_to}...")
                 connection = self.psycopg2.connect(
-                    host="localhost",
-                    port=5432,
-                    database="spms",
-                    user="postgres",
-                    password=123,
+                    # host="localhost",
+                    # port=5432,
+                    # database="spms",
+                    # user="postgres",
+                    # password=123,
+                    "postgresql://postgres:123@localhost/spms"
                 )
             else:
                 # Main production spms (not debug, not test) (Rancher)
