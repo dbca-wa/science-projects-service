@@ -1,9 +1,9 @@
 # Python downgraded to suit Prince libs (from 3.11.6)
-# FROM python:3.11.4
+FROM python:3.11.4
 # FROM python:3.11.6
 # FROM python:3.12.3
 # FROM python:3.13.0b1
-FROM python:latest
+# FROM python:latest
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -37,8 +37,8 @@ RUN echo "Downloading Prince Package" \
     # Latest version that suits Python image
     # https://www.princexml.com/download/prince-books_20220701-1_debian11_amd64.deb
     # https://www.princexml.com/download/prince-books_20220701-1_ubuntu22.04_amd64.deb
-    # https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
-    https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
+    https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
+# https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
 # https://www.princexml.com/download/prince_15.3-1_ubuntu22.04_amd64.deb
 
 RUN echo "Installing Prince stuff" \
@@ -90,8 +90,8 @@ RUN echo '# Custom .bashrc modifications\n' \
 RUN poetry config virtualenvs.create false
 RUN poetry init
 # Necessary to fix pandas/numpy installation issues on 3.11-12 with poetry
-# RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
-RUN sed -i 's/python = "^3.12"/python = "<=3.13.1,>=3.12"/' pyproject.toml
+RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
+# RUN sed -i 's/python = "^3.12"/python = "<=3.13.1,>=3.12"/' pyproject.toml
 
 # Base django app dependencies
 RUN poetry add brotli dj-database-url django-cors-headers django-environ \
