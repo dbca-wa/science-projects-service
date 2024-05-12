@@ -103,7 +103,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # CORS and Hosts =========================================================
 
-PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
+# /usr/src/app/backend (for getting images using PrinceXML)
+PRINCE_SERVER_URL = env("PRINCE_SERVER_URL", BASE_DIR)
 
 ALLOW_LIST = [
     "127.0.0.1",
