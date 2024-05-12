@@ -524,7 +524,7 @@ class BeginReportDocGeneration(APIView):
                     "http://127.0.0.1:8000"
                     if settings.DEBUG == True
                     # else settings.SITE_URL
-                    else "http://0.0.0.0:8000"
+                    else settings.PRINCE_SERVER_URL
                 ),
                 "frontend_url": (
                     "http://127.0.0.1:3000"
@@ -1630,7 +1630,7 @@ class BeginProjectDocGeneration(APIView):
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
                         # else settings.SITE_URL
-                        else "http://0.0.0.0:8000"
+                        else settings.PRINCE_SERVER_URL
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1709,7 +1709,7 @@ class BeginProjectDocGeneration(APIView):
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
                         # else settings.SITE_URL
-                        else "http://0.0.0.0:8000"
+                        else settings.PRINCE_SERVER_URL
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1813,7 +1813,7 @@ class BeginProjectDocGeneration(APIView):
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
                         # else settings.SITE_URL
-                        else "http://0.0.0.0:8000"
+                        else settings.PRINCE_SERVER_URL
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1880,7 +1880,7 @@ class BeginProjectDocGeneration(APIView):
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
                         # else settings.SITE_URL
-                        else "http://0.0.0.0:8000"
+                        else settings.PRINCE_SERVER_URL
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1930,7 +1930,7 @@ class BeginProjectDocGeneration(APIView):
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
                         # else settings.SITE_URL
-                        else "http://0.0.0.0:8000"
+                        else settings.PRINCE_SERVER_URL
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"

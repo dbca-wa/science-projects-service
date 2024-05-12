@@ -107,6 +107,7 @@ ALLOW_LIST = [
     "localhost",
     "http://localhost",
     "http://0.0.0.0",
+    "http://0.0.0.0:8000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
 ]
@@ -176,6 +177,8 @@ if DEBUG:
     SITE_URL = "127.0.0.1:3000"
 else:
     SITE_URL = env("PRODUCTION_SITE_URL_HTTP")
+
+PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
 
 if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
