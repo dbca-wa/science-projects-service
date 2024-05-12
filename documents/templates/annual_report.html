@@ -598,7 +598,7 @@
                 <div class="section_content_container"> 
                     {% comment %} SDS CHART {% endcomment %}
                     <div class="sds_chart_image_container">
-                        <img class="sds_chart_image" alt="BCS SDS Chart Image: {{server_url}}{{sds_data.chart}}" 
+                        <img class="sds_chart_image" alt="BCS SDS Chart Image" 
                         src="{{server_url}}{{sds_data.chart}}"/>
                     </div>
                     {% comment %} SDS INTRO {% endcomment %}
@@ -625,7 +625,7 @@
                         <div class="chapter_image_container">
                             <img 
                                 class="chapter_image"
-                                alt="{{ba_item.ba_name}} Image: {{server_url}}{{ba_item.ba_image.file}}" 
+                                alt="{{ba_item.ba_name}} Image" 
                                 src="{{server_url}}{{ba_item.ba_image.file}}"
                             />
                         </div>
@@ -650,7 +650,7 @@
 
                                     <div class="pr_img_container_lhs">
                                         <img class="pr_image"
-                                            alt="{{report.document.project.title}} Image: {{server_url}}{{report.document.project.image.file}}"
+                                            alt="{{report.document.project.title}} Image"
                                             src="{{server_url}}{{report.document.project.image.file}}"
                                         />
                                     </div>
@@ -673,7 +673,7 @@
                                     {% if forloop.counter|divisibleby:2 %}
                                         <div class="pr_img_container_rhs">
                                             <img class="pr_image"
-                                                alt="{{report.document.project.title}} Image: {{server_url}}{{report.document.project.image.file}}"
+                                                alt="{{report.document.project.title}} Image"
                                                 src="{{server_url}}{{report.document.project.image.file}}"
                                             />
                                         </div>
@@ -867,7 +867,7 @@
 
                                 <div class="pr_img_container_lhs">
                                     <img class="pr_image"
-                                        alt="{{report.document.project.title}} Image: {{server_url}}{{report.document.project.image.file}}"
+                                        alt="{{report.document.project.title}} Image"
                                         src="{{server_url}}{{report.document.project.image.file}}"
                                     />
                                 </div>
@@ -904,7 +904,7 @@
                                 {% if forloop.counter|divisibleby:2 %}
                                 <div class="pr_img_container_rhs">
                                     <img class="pr_image"
-                                        alt="{{report.document.project.title}} Image: {{server_url}}{{report.document.project.image.file}}"
+                                        alt="{{report.document.project.title}} Image"
                                         src="{{server_url}}{{report.document.project.image.file}}"
                                     />
                                 </div>

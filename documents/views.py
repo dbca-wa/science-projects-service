@@ -523,7 +523,8 @@ class BeginReportDocGeneration(APIView):
                 "server_url": (
                     "http://127.0.0.1:8000"
                     if settings.DEBUG == True
-                    else settings.SITE_URL
+                    # else settings.SITE_URL
+                    else "http://0.0.0.0:8000"
                 ),
                 "frontend_url": (
                     "http://127.0.0.1:3000"
@@ -1628,7 +1629,8 @@ class BeginProjectDocGeneration(APIView):
                     "server_url": (
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
-                        else settings.SITE_URL
+                        # else settings.SITE_URL
+                        else "http://0.0.0.0:8000"
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1706,7 +1708,8 @@ class BeginProjectDocGeneration(APIView):
                     "server_url": (
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
-                        else settings.SITE_URL
+                        # else settings.SITE_URL
+                        else "http://0.0.0.0:8000"
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1809,7 +1812,8 @@ class BeginProjectDocGeneration(APIView):
                     "server_url": (
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
-                        else settings.SITE_URL
+                        # else settings.SITE_URL
+                        else "http://0.0.0.0:8000"
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1875,7 +1879,8 @@ class BeginProjectDocGeneration(APIView):
                     "server_url": (
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
-                        else settings.SITE_URL
+                        # else settings.SITE_URL
+                        else "http://0.0.0.0:8000"
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"
@@ -1924,7 +1929,8 @@ class BeginProjectDocGeneration(APIView):
                     "server_url": (
                         "http://127.0.0.1:8000"
                         if settings.DEBUG == True
-                        else settings.SITE_URL
+                        # else settings.SITE_URL
+                        else "http://0.0.0.0:8000"
                     ),
                     "frontend_url": (
                         "http://127.0.0.1:3000"

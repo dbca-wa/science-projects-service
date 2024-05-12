@@ -4,8 +4,8 @@ from pathlib import Path
 import os
 import environ
 
-# import sentry_sdk
-# from sentry_sdk.integrations.django import DjangoIntegration
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 
 # Project ENV ===================================================================
@@ -265,12 +265,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 
 # Logs and Tracking =======================================================================
-# if not DEBUG:
-#     sentry_sdk.init(
-#         dsn=env("SENTRY_URL"),
-#         traces_sample_rate=1.0,
-#         profiles_sample_rate=1.0,
-#     )
+if not DEBUG:
+    sentry_sdk.init(
+        dsn=env("SENTRY_URL"),
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
 
 
 class ColoredFormatter(logging.Formatter):
