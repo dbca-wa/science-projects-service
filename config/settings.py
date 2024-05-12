@@ -102,7 +102,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 
 # CORS and Hosts =========================================================
+
+PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
+
 ALLOW_LIST = [
+    PRINCE_SERVER_URL,
     "127.0.0.1",
     "localhost",
     "http://localhost",
@@ -178,7 +182,6 @@ if DEBUG:
 else:
     SITE_URL = env("PRODUCTION_SITE_URL_HTTP")
 
-PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
 
 if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
