@@ -105,4 +105,4 @@ RUN poetry add brotli dj-database-url django-cors-headers django-environ \
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
 # RUN rabbitmq-server
-CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]

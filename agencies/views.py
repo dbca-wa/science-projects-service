@@ -27,7 +27,11 @@ import time
 from medias.models import BusinessAreaPhoto
 from medias.serializers import TinyBusinessAreaPhotoSerializer
 from users.models import UserWork
-from users.serializers import TinyUserWorkSerializer, UserWorkAffiliationUpdateSerializer, UserWorkSerializer
+from users.serializers import (
+    TinyUserWorkSerializer,
+    UserWorkAffiliationUpdateSerializer,
+    UserWorkSerializer,
+)
 
 from .models import (
     Branch,
@@ -124,6 +128,7 @@ class Affiliations(APIView):
 
 class AffiliationsMerge(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
+
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is merging affiliations")
         primaryAffiliation = req.data.get("primaryAffiliation")
@@ -131,17 +136,19 @@ class AffiliationsMerge(APIView):
         if not isinstance(secondaryAffiliations, list):
             secondaryAffiliations = [secondaryAffiliations]
 
-        print(f"Merging into {primaryAffiliation["name"]}:\n {secondaryAffiliations}")
-        
+        print(f"Merging into {primaryAffiliation['name']}:\n {secondaryAffiliations}")
+
         # Serialize the primary instance ---------------
         # primary_instance = Affiliation.objects.get(pk=primaryAffiliation["pk"])
         # serialized_primary_affiliation = AffiliationSerializer(primary_instance)
-    
+
         # Merge logic -----------------------
         print("TRYING TO MERGE:\n")
         for item in secondaryAffiliations:
             try:
-                instances_to_update = UserWork.objects.filter(affiliation=item['pk']).all()
+                instances_to_update = UserWork.objects.filter(
+                    affiliation=item["pk"]
+                ).all()
                 for ins in instances_to_update:
                     ser = UserWorkAffiliationUpdateSerializer(
                         instance=ins,
@@ -151,7 +158,7 @@ class AffiliationsMerge(APIView):
                         partial=True,
                     )
                     if ser.is_valid():
-                        updated = ser.save()      
+                        updated = ser.save()
 
             except UserWork.DoesNotExist:
                 # If nothing exists that uses the affiliation just go to next step and delete
@@ -166,8 +173,6 @@ class AffiliationsMerge(APIView):
             status=HTTP_202_ACCEPTED,
         )
 
-
-    
 
 class Agencies(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
