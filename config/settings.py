@@ -106,7 +106,6 @@ AUTH_PASSWORD_VALIDATORS = [
 PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
 
 ALLOW_LIST = [
-    PRINCE_SERVER_URL,
     "127.0.0.1",
     "localhost",
     "http://localhost",
@@ -115,6 +114,9 @@ ALLOW_LIST = [
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
 ]
+
+if not PRINCE_SERVER_URL.startswith("/usr"):
+    ALLOW_LIST.append(PRINCE_SERVER_URL)
 
 ALLOW_LIST += [env("PRODUCTION_SITE_URL_HTTP")]
 ALLOW_LIST += [env("PRODUCTION_SITE_URL")]
