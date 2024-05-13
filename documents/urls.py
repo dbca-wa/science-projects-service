@@ -2,15 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # PDF Generation & Downloads
-    # path("generateProjectDocument/<int:pk>", views.GenerateProjectDocument.as_view()),
-    # path("conceptplans/<int:pk>/generate_concept_plan", views.GenerateConceptPlan.as_view()),
     # Latest Report's active PRs and SRs
     path("latest_active_progress_reports", views.LatestYearsProgressReports.as_view()),
     path("latest_active_student_reports", views.LatestYearsStudentReports.as_view()),
     path("latest_inactive_reports", views.LatestYearsInactiveReports.as_view()),
     path("reports/latest", views.FullLatestReport.as_view()),
-    # REST framework
+    # EMAILS
     path("concept_plan_email", views.ConceptPlanEmail.as_view()),
     path("review_document_email", views.ReviewDocumentEmail.as_view()),
     path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
@@ -19,13 +16,32 @@ urlpatterns = [
     path("document_sent_back_email", views.DocumentSentBackEmail.as_view()),
     path("document_approved_email", views.DocumentApprovedEmail.as_view()),
     path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
+    # ACTIONS
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("opennewcycle", views.NewCycleOpen.as_view()),
     path("projectdocuments", views.ProjectDocuments.as_view()),
-    # path(
-    #     "projectdocuments/pendingapproval", views.ProjectDocsPendingApproval.as_view()
-    # ),
+    # Actions (PROGRESS REPORT)
+    path("actions/approve", views.DocApproval.as_view()),
+    path("actions/reopen", views.DocReopenProject.as_view()),
+    path("actions/recall", views.DocRecall.as_view()),
+    path("actions/send_back", views.DocSendBack.as_view()),
+    # Admin Latest Report
+    path("actions/finalApproval", views.FinalDocApproval.as_view()),
+    path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
+    path("progress_reports/update", views.UpdateProgressReport.as_view()),
+    # Project Doc Gen
+    path(
+        "generate_project_document/<int:pk>", views.BeginProjectDocGeneration.as_view()
+    ),
+    path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
+    # Annual Report Gen
+    path("reports/<int:pk>/generate_pdf", views.BeginReportDocGeneration.as_view()),
+    path(
+        "reports/<int:pk>/cancel_doc_gen",
+        views.CancelReportDocGeneration.as_view(),
+    ),
+    # REST FRAMEWORK
     path(
         "projectdocuments/pendingmyaction",
         views.ProjectDocsPendingMyActionAllStages.as_view(),
@@ -100,29 +116,9 @@ urlpatterns = [
     path("reports/pdf/<int:pk>", views.GetReportPDF.as_view()),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
-    # Actions (PROGRESS REPORT)
-    path("actions/approve", views.DocApproval.as_view()),
-    path("actions/reopen", views.DocReopenProject.as_view()),
-    path("actions/recall", views.DocRecall.as_view()),
-    path("actions/send_back", views.DocSendBack.as_view()),
-    # Admin Latest Report
-    path("actions/finalApproval", views.FinalDocApproval.as_view()),
-    path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
-    path("progress_reports/update", views.UpdateProgressReport.as_view()),
     # path("generate_cover_page/", views.generate_cover_page, name="generate_cover_page"),
     path(
         "conceptplans/<int:pk>/get_concept_plan_data",
         views.GetConceptPlanData.as_view(),
-    ),
-    # Project Doc Gen
-    path(
-        "generate_project_document/<int:pk>", views.BeginProjectDocGeneration.as_view()
-    ),
-    path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
-    # Annual Report Gen
-    path("reports/<int:pk>/generate_pdf", views.BeginReportDocGeneration.as_view()),
-    path(
-        "reports/<int:pk>/cancel_doc_gen",
-        views.CancelReportDocGeneration.as_view(),
     ),
 ]

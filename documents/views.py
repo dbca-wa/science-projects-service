@@ -2576,10 +2576,10 @@ class ReviewDocumentEmail(APIView):
                 "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
+            email_subject = f"SPMS: Review {document_kind_as_title}"
 
             for recipient in recipients_list:
                 if recipient["pk"] == 101073:
-                    email_subject = f"SPMS: Review {document_kind_as_title}"
                     to_email = [recipient["email"]]
 
                     template_props = {
@@ -2629,10 +2629,15 @@ class ReviewDocumentEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
+            return Response(
+                "Emails Sent!",
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                {"error": "No matching project"},
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class NewCycleOpenEmail(APIView):
