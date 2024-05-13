@@ -62,7 +62,7 @@ class DBCAMiddleware(MiddlewareMixin):
             and request.META["HTTP_X_LOGOUT_URL"]
         ):
             print("Logging out")
-            self.save_request_meta_to_file(request.META)
+            # self.save_request_meta_to_file(request.META)
             logout(request)
             return HttpResponseRedirect(request.META["HTTP_X_LOGOUT_URL"])
 
