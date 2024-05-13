@@ -83,8 +83,24 @@ class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, req):
-        logout(req)
-        return Response({"ok": "Bye"})
+        if settings.DEBUG:
+            logout(req)
+            return Response({"ok": "True"})
+        else:
+            if (
+                (
+                    req.path.startswith("/logout")
+                    or req.path.startswith("/api/v1/users/log-out")
+                    or req.path.startswith("/api/v1/users/logout")
+                )
+                and "HTTP_X_LOGOUT_URL" in req.META
+                and req.META["HTTP_X_LOGOUT_URL"]
+            ):
+                print("Logging out")
+                # self.save_request_meta_to_file(request.META)
+                logout(req)
+                data = {"ok": "True", "logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
+                return Response(data, HTTP_200_OK)
 
 
 class ChangePassword(APIView):

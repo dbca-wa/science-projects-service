@@ -10,6 +10,10 @@ from rest_framework.exceptions import ParseError
 from django.conf import settings
 
 from users.models import UserProfile, UserWork
+from rest_framework.response import Response
+from rest_framework.status import (
+    HTTP_200_OK,
+)
 
 User = get_user_model()
 
@@ -64,7 +68,8 @@ class DBCAMiddleware(MiddlewareMixin):
             print("Logging out")
             # self.save_request_meta_to_file(request.META)
             logout(request)
-            return HttpResponseRedirect(request.META["HTTP_X_LOGOUT_URL"])
+            data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
+            return Response(data, HTTP_200_OK)
 
         user_auth = request.user.is_authenticated
         if not user_auth:
