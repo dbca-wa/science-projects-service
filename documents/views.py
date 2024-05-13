@@ -3142,10 +3142,15 @@ class DocumentApprovedEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
+            return Response(
+                "Emails Sent!",
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                {"error": "No matchin project"},
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class DocumentRecalledEmail(APIView):
@@ -3238,10 +3243,855 @@ class DocumentRecalledEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
+            return Response(
+                "Emails Sent!",
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                {"error": str(e)},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+# ACTIONS ==========================================================
+
+class DocApproval(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        settings.LOGGER.info(msg=f"{req.user} is approving a doc {document_pk}")
+        if not stage and not document_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        # document_kind = document.kind
+
+        settings.LOGGER.info(msg=f"{req.user} is approving {document}")
+        if int(stage) == 1:
+            data = {
+                "project_lead_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+
+        elif int(stage) == 2:
+            data = {
+                "business_area_lead_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+        elif int(stage) == 3:
+            data = {
+                "directorate_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "approved",
+            }
+        else:
+            settings.LOGGER.error(msg=f"No stage provided for approval")
+            return Response(
+                status=HTTP_400_BAD_REQUEST,
+            )
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
         )
+        if ser.is_valid():
+            u_document = ser.save()
+
+            # If stage 3
+            if u_document.kind == "concept" and (stage == 3 or stage == "3"):
+                # Create a fresh document with type of project plan =====================
+                # Get the project id
+                project_pk = document.project.pk
+                kind = "projectplan"
+                document_serializer = ProjectDocumentCreateSerializer(
+                    data={
+                        "old_id": 1,
+                        "kind": kind,
+                        "status": "new",
+                        "project": project_pk,
+                        "creator": req.user.pk,
+                        "modifier": req.user.pk,
+                    }
+                )
+
+                if document_serializer.is_valid():
+                    with transaction.atomic():
+                        projplanmaindoc = document_serializer.save()
+                        # Create a project plan
+
+                        project_plan_data_object = {
+                            "document": projplanmaindoc.pk,
+                            "project": project_pk,
+                            "background": "<p></p>",
+                            "methodology": "<p></p>",
+                            "aims": "<p></p>",
+                            "outcome": "<p></p>",
+                            "knowledge_transfer": "<p></p>",
+                            "listed_references": "<p></p>",
+                            "operating_budget": '<table class="table-light">\
+                <colgroup>\
+                <col>\
+                <col>\
+                <col>\
+                <col>\
+                </colgroup>\
+                <tbody>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Source</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 1</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 2</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 3</span>\
+                    </p>\
+                    </th>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">FTE Scientist</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">FTE Technical</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Equipment</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Vehicle</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Travel</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Other</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Total</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                </tbody>\
+            </table>',
+                            "operating_budget_external": '<table class="table-light">\
+                <colgroup>\
+                <col>\
+                <col>\
+                <col>\
+                <col>\
+                </colgroup>\
+                <tbody>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Source</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 1</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 2</span>\
+                    </p>\
+                    </th>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Year 3</span>\
+                    </p>\
+                    </th>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Overheads</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Equipment</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Vehicle</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Travel</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Other</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                <tr>\
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
+                    <p class="editor-p-light" dir="ltr">\
+                        <span style="white-space: pre-wrap;">Total</span>\
+                    </p>\
+                    </th>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
+                </tr>\
+                </tbody>\
+            </table>',
+                            "related_projects": "<p></p>",
+                        }
+                        project_plan_serializer = ProjectPlanCreateSerializer(
+                            data=project_plan_data_object
+                        )
+
+                        if project_plan_serializer.is_valid():
+                            # with transaction.atomic():
+                            try:
+                                projplan = project_plan_serializer.save()
+                                endorsements = EndorsementCreationSerializer(
+                                    data={
+                                        "project_plan": projplan.pk,
+                                        # "bm_endorsement_required": True,
+                                        # "hc_endorsement_required": False,
+                                        # "dm_endorsement_required": True,
+                                        "ae_endorsement_required": False,
+                                        # "bm_endorsement_provided": False,
+                                        # "hc_endorsement_provided": False,
+                                        "ae_endorsement_provided": False,
+                                        # "dm_endorsement_provided": False,
+                                        "data_management": "<p></p>",
+                                        "no_specimens": "<p></p>",
+                                    }
+                                )
+                                if endorsements.is_valid():
+                                    endorsements.save()
+
+                                else:
+                                    settings.LOGGER.error(
+                                        f"endorsement error: {endorsements.errors}"
+                                    )
+                                    return Response(
+                                        endorsements.errors,
+                                        HTTP_400_BAD_REQUEST,
+                                    )
+
+                            except Exception as e:
+                                settings.LOGGER.error(msg=f"{e}")
+                                return Response(
+                                    e,
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                            u_document.project.status = Project.StatusChoices.PENDING
+                            u_document.project.save()
+                        else:
+                            settings.LOGGER.error(
+                                msg=f"{project_plan_serializer.errors}"
+                            )
+                            return Response(
+                                project_plan_serializer.errors,
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+
+                else:
+                    settings.LOGGER.error(msg=f"{document_serializer.errors}")
+                    return Response(
+                        document_serializer.errors,
+                        HTTP_400_BAD_REQUEST,
+                    )
+            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+            if u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.ACTIVE
+                u_document.project.save()
+            if u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.ACTIVE
+                u_document.project.save()
+            if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
+                settings.LOGGER.info(msg=f"{req.user} is closing a project")
+                # find the closure matching
+                closure_doc = ProjectClosure.objects.get(document=u_document)
+                outcome = closure_doc.intended_outcome
+                # if outcome == "force_completed":
+                #     outcome = "completed"
+                u_document.project.status = outcome
+                u_document.project.save()
+
+            # Send Emails
+            should_send_email = req.data["shouldSendEmail"]
+
+            if should_send_email:
+                print("SENDING DOC APPROVE EMAILS")
+                # Preset info
+                from_email = settings.DEFAULT_FROM_EMAIL
+                templ = "./email_templates/document_approved_email.html"
+
+                # Get project information
+                # project_pk = req.data["project_pk"]
+                project = Project.objects.filter(pk=document.project).first()
+
+                # Get recipient list
+                members = ProjectMember.objects.filter(project=project).all()
+                recipients_list = []
+
+                for member in members:
+                    user = member.user.pk
+                    user_name = f"{member.user.first_name} {member.user.last_name}"
+                    user_email = f"{member.user.email}"
+                    data_obj = {"pk": member.user.pk, "name": user_name, "email": user_email}
+                    recipients_list.append(data_obj)
+
+                if project:
+                    html_project_title = project.title
+                    plain_project_name = html2text.html2text(
+                        html_project_title
+                    ).strip()  # nicely rendered html title
+
+                    # Get document kind information
+                    
+                    document_kind_dict = {
+                        "concept": "Science Concept Plan",
+                        "projectplan": "Science Project Plan",
+                        "progressreport": "Progress Report",
+                        "studentreport": "Student Report",
+                        "projectclosure": "Project Closure",
+                    }
+                    document_kind_as_title = document_kind_dict[u_document.kind]
+
+                    for recipient in recipients_list:
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Approved"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": u_document.kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    return Response(
+                        "Emails Sent!",
+                        status=HTTP_202_ACCEPTED,
+                    )
+                else:
+                    return Response(
+                        {"error": "No matchin project"},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
+
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class DocRecall(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        settings.LOGGER.info(msg=f"{req.user} is recalling a doc {document_pk}")
+        if not stage and not document_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is recalling {document}")
+
+        data = "test"
+        if int(stage) == 1:
+            if document.business_area_lead_approval_granted == False:
+                data = {
+                    "project_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "revising",
+                }
+
+        elif int(stage) == 2:
+            if document.directorate_approval_granted == False:
+                data = {
+                    "business_area_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "inapproval",
+                }
+        elif int(stage) == 3:
+            data = {
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_document = ser.save()
+            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.PENDING
+                u_document.project.save()
+            elif u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.CLOSUREREQ
+                u_document.project.save()
+
+            elif u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+
+            elif u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+
+            # Send Emails
+            should_send_email = req.data["shouldSendEmail"]
+
+            if should_send_email:
+                print("SENDING DOC RECALLED EMAIL")
+                # Preset info
+                from_email = settings.DEFAULT_FROM_EMAIL
+                templ = "./email_templates/document_recalled_email.html"
+
+                # Get project information
+                # project_pk = req.data["project_pk"]
+                project = Project.objects.filter(pk=document.project).first()
+
+                if project:
+                    html_project_title = project.title
+                    plain_project_name = html2text.html2text(
+                        html_project_title
+                    ).strip()  # nicely rendered html title
+
+                    # Get document kind information
+                    
+                    document_kind_dict = {
+                        "concept": "Science Concept Plan",
+                        "projectplan": "Science Project Plan",
+                        "progressreport": "Progress Report",
+                        "studentreport": "Student Report",
+                        "projectclosure": "Project Closure",
+                    }
+                    document_kind_as_title = document_kind_dict[u_document.kind]
+
+                    actioning_user = User.objects.get(pk=req.user.pk)
+                    actioning_user_name = (
+                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                    )
+                    actioning_user_email = f"{actioning_user.email}"
+
+                    # Get recipient list
+                    recipients_list = []
+                    if stage == 1:
+                        # get ba lead user as the pl is the actioning user
+                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        user = ba_lead.pk
+                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_email = f"{ba_lead.email}"
+                        data_obj = {"pk": user, "name": user_name, "email": user_email}
+                        recipients_list.append(data_obj)
+
+                    if stage == 2:
+                        # get active directorate members as the ba lead is the actioning user
+                        user_works = UserWork.objects.filter(business_area__name="Directorate")
+                        user_ids = user_works.values_list("user", flat=True)
+                        directorate_users = User.objects.filter(id__in=user_ids).all()
+                        for member in directorate_users:
+                            user = member.pk
+                            user_name = f"{member.first_name} {member.last_name}"
+                            user_email = f"{member.email}"
+                            data_obj = {"pk": user, "name": user_name, "email": user_email}
+                            recipients_list.append(data_obj)
+
+                    if stage == 3:
+                        pass # No need for emails
+
+                    for recipient in recipients_list:
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "user_kind": (
+                                    "Project Lead" if stage == 2 else "Business Area Lead"
+                                ),
+                                "email_subject": email_subject,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "recipient_name": recipient["name"],
+                                "project_id": project.pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document.kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    return Response(
+                        "Emails Sent!",
+                        status=HTTP_202_ACCEPTED,
+                    )
+                else:
+                    return Response(
+                        {"error": "No matchin project"},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
+
+
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class DocReopenProject(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is reopening project by deleting closure")
+        user = req.user
+        settings.LOGGER.info(
+            msg=f"{req.user} is reopening project {req.data['documentPk']}"
+        )
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        if not stage and not document_pk:
+            settings.LOGGER.error(msg=f"Error reopening - no stage/doc pk")
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        project = document.project
+        project.status = "updating"
+        project.save()
+        closure = ProjectClosure.objects.get(document=document)
+        closure.delete()
+        document.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
+
+
+class FinalDocApproval(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        kind = req.data.get("kind")
+        reportPk = req.data.get("reportPk")
+        documentPk = req.data.get("documentPk")
+        isActive = req.data.get("isActive")
+        print(req.data)
+
+        if isActive == False:
+            settings.LOGGER.info(
+                msg=f"{req.user} is providing final approval for {documentPk}"
+            )
+            # print({kind, reportPk, documentPk})
+            # return Response({"error": True}, HTTP_400_BAD_REQUEST)
+            document = self.get_document(pk=documentPk)
+
+            data = {
+                "project_lead_approval_granted": True,
+                "business_area_lead_approval_granted": True,
+                "directorate_approval_granted": True,
+                "modifier": req.user.pk,
+                "status": "approved",
+            }
+            ser = ProjectDocumentSerializer(
+                document,
+                data=data,
+                partial=True,
+            )
+            if ser.is_valid():
+                u_document = ser.save()
+                u_document.project.status = Project.StatusChoices.ACTIVE
+                u_document.project.save()
+            else:
+                settings.LOGGER.error(msg=f"{ser.errors}")
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        elif isActive == True:
+            settings.LOGGER.info(
+                msg=f"{req.user} is recalling final approval for docID: {documentPk}"
+            )
+            # print({kind, reportPk, documentPk})
+            # return Response({"error": True}, HTTP_400_BAD_REQUEST)
+            document = self.get_document(pk=documentPk)
+
+            data = {
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "inapproval",
+            }
+            ser = ProjectDocumentSerializer(
+                document,
+                data=data,
+                partial=True,
+            )
+            if ser.is_valid():
+                u_document = ser.save()
+                u_document.project.status = Project.StatusChoices.UPDATING
+                u_document.project.save()
+            else:
+                settings.LOGGER.error(msg=f"{ser.errors}")
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            print("Noned")
+            return Response(
+                {"error": "Something went wrong!"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+
+class DocSendBack(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
+        if not stage and not document_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is sending back {document}")
+        data = "test"
+        if int(stage) == 2:
+            if document.directorate_approval_granted == False:
+                data = {
+                    "business_area_lead_approval_granted": False,
+                    "project_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "revising",
+                }
+        elif int(stage) == 3:
+            data = {
+                "business_area_lead_approval_granted": False,
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "revising",
+            }
+
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_document = ser.save()
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
 
 
 # REPORTS ==========================================================
@@ -6070,686 +6920,6 @@ class RepoenProject(APIView):
 
 
 # ENDORSEMENTS & APPROVALS ==========================================================
-
-
-class DocReopenProject(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is reopening project by deleting closure")
-        user = req.user
-        settings.LOGGER.info(
-            msg=f"{req.user} is reopening project {req.data['documentPk']}"
-        )
-        stage = req.data["stage"]
-        document_pk = req.data["documentPk"]
-        if not stage and not document_pk:
-            settings.LOGGER.error(msg=f"Error reopening - no stage/doc pk")
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        project = document.project
-        project.status = "updating"
-        project.save()
-        closure = ProjectClosure.objects.get(document=document)
-        closure.delete()
-        document.delete()
-        return Response(status=HTTP_204_NO_CONTENT)
-
-
-class FinalDocApproval(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        kind = req.data.get("kind")
-        reportPk = req.data.get("reportPk")
-        documentPk = req.data.get("documentPk")
-        isActive = req.data.get("isActive")
-        print(req.data)
-
-        if isActive == False:
-            settings.LOGGER.info(
-                msg=f"{req.user} is providing final approval for {documentPk}"
-            )
-            # print({kind, reportPk, documentPk})
-            # return Response({"error": True}, HTTP_400_BAD_REQUEST)
-            document = self.get_document(pk=documentPk)
-
-            data = {
-                "project_lead_approval_granted": True,
-                "business_area_lead_approval_granted": True,
-                "directorate_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "approved",
-            }
-            ser = ProjectDocumentSerializer(
-                document,
-                data=data,
-                partial=True,
-            )
-            if ser.is_valid():
-                u_document = ser.save()
-                u_document.project.status = Project.StatusChoices.ACTIVE
-                u_document.project.save()
-            else:
-                settings.LOGGER.error(msg=f"{ser.errors}")
-                return Response(
-                    ser.errors,
-                    status=HTTP_400_BAD_REQUEST,
-                )
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        elif isActive == True:
-            settings.LOGGER.info(
-                msg=f"{req.user} is recalling final approval for docID: {documentPk}"
-            )
-            # print({kind, reportPk, documentPk})
-            # return Response({"error": True}, HTTP_400_BAD_REQUEST)
-            document = self.get_document(pk=documentPk)
-
-            data = {
-                "directorate_approval_granted": False,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-            ser = ProjectDocumentSerializer(
-                document,
-                data=data,
-                partial=True,
-            )
-            if ser.is_valid():
-                u_document = ser.save()
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-            else:
-                settings.LOGGER.error(msg=f"{ser.errors}")
-                return Response(
-                    ser.errors,
-                    status=HTTP_400_BAD_REQUEST,
-                )
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            print("Noned")
-            return Response(
-                {"error": "Something went wrong!"},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DocApproval(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is approving a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        # document_kind = document.kind
-
-        settings.LOGGER.info(msg=f"{req.user} is approving {document}")
-        if int(stage) == 1:
-            data = {
-                "project_lead_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-
-        elif int(stage) == 2:
-            data = {
-                "business_area_lead_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-        elif int(stage) == 3:
-            data = {
-                "directorate_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "approved",
-            }
-        else:
-            settings.LOGGER.error(msg=f"No stage provided for approval")
-            return Response(
-                status=HTTP_400_BAD_REQUEST,
-            )
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-
-            # If stage 3
-            if u_document.kind == "concept" and (stage == 3 or stage == "3"):
-                # Create a fresh document with type of project plan =====================
-                # Get the project id
-                project_pk = document.project.pk
-                kind = "projectplan"
-                document_serializer = ProjectDocumentCreateSerializer(
-                    data={
-                        "old_id": 1,
-                        "kind": kind,
-                        "status": "new",
-                        "project": project_pk,
-                        "creator": req.user.pk,
-                        "modifier": req.user.pk,
-                    }
-                )
-
-                if document_serializer.is_valid():
-                    with transaction.atomic():
-                        projplanmaindoc = document_serializer.save()
-                        # Create a project plan
-
-                        project_plan_data_object = {
-                            "document": projplanmaindoc.pk,
-                            "project": project_pk,
-                            "background": "<p></p>",
-                            "methodology": "<p></p>",
-                            "aims": "<p></p>",
-                            "outcome": "<p></p>",
-                            "knowledge_transfer": "<p></p>",
-                            "listed_references": "<p></p>",
-                            "operating_budget": '<table class="table-light">\
-                <colgroup>\
-                <col>\
-                <col>\
-                <col>\
-                <col>\
-                </colgroup>\
-                <tbody>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Source</span>\
-                    </p>\
-                    </th>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Year 1</span>\
-                    </p>\
-                    </th>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Year 2</span>\
-                    </p>\
-                    </th>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Year 3</span>\
-                    </p>\
-                    </th>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">FTE Scientist</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">FTE Technical</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Equipment</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Vehicle</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Travel</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Other</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Total</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                </tbody>\
-            </table>',
-                            "operating_budget_external": '<table class="table-light">\
-                <colgroup>\
-                <col>\
-                <col>\
-                <col>\
-                <col>\
-                </colgroup>\
-                <tbody>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Source</span>\
-                    </p>\
-                    </th>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Year 1</span>\
-                    </p>\
-                    </th>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Year 2</span>\
-                    </p>\
-                    </th>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Year 3</span>\
-                    </p>\
-                    </th>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Overheads</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Equipment</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Vehicle</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Travel</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Other</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                <tr>\
-                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                    <p class="editor-p-light" dir="ltr">\
-                        <span style="white-space: pre-wrap;">Total</span>\
-                    </p>\
-                    </th>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                </tr>\
-                </tbody>\
-            </table>',
-                            "related_projects": "<p></p>",
-                        }
-                        project_plan_serializer = ProjectPlanCreateSerializer(
-                            data=project_plan_data_object
-                        )
-
-                        if project_plan_serializer.is_valid():
-                            # with transaction.atomic():
-                            try:
-                                projplan = project_plan_serializer.save()
-                                endorsements = EndorsementCreationSerializer(
-                                    data={
-                                        "project_plan": projplan.pk,
-                                        # "bm_endorsement_required": True,
-                                        # "hc_endorsement_required": False,
-                                        # "dm_endorsement_required": True,
-                                        "ae_endorsement_required": False,
-                                        # "bm_endorsement_provided": False,
-                                        # "hc_endorsement_provided": False,
-                                        "ae_endorsement_provided": False,
-                                        # "dm_endorsement_provided": False,
-                                        "data_management": "<p></p>",
-                                        "no_specimens": "<p></p>",
-                                    }
-                                )
-                                if endorsements.is_valid():
-                                    endorsements.save()
-
-                                else:
-                                    settings.LOGGER.error(
-                                        f"endorsement error: {endorsements.errors}"
-                                    )
-                                    return Response(
-                                        endorsements.errors,
-                                        HTTP_400_BAD_REQUEST,
-                                    )
-
-                            except Exception as e:
-                                settings.LOGGER.error(msg=f"{e}")
-                                return Response(
-                                    e,
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                            u_document.project.status = Project.StatusChoices.PENDING
-                            u_document.project.save()
-                        else:
-                            settings.LOGGER.error(
-                                msg=f"{project_plan_serializer.errors}"
-                            )
-                            return Response(
-                                project_plan_serializer.errors,
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-
-                else:
-                    settings.LOGGER.error(msg=f"{document_serializer.errors}")
-                    return Response(
-                        document_serializer.errors,
-                        HTTP_400_BAD_REQUEST,
-                    )
-
-            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-            if u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.ACTIVE
-                u_document.project.save()
-            if u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.ACTIVE
-                u_document.project.save()
-            if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                settings.LOGGER.info(msg=f"{req.user} is closing a project")
-                # find the closure matching
-                closure_doc = ProjectClosure.objects.get(document=u_document)
-                outcome = closure_doc.intended_outcome
-                # if outcome == "force_completed":
-                #     outcome = "completed"
-                u_document.project.status = outcome
-                u_document.project.save()
-
-            # Send Emails
-            should_send_email = req.data["shouldSendEmail"]
-
-            if should_send_email:
-                # if settings.DEBUG == False:
-                if u_document.kind == "concept":
-                    if stage == 1:
-                        pass
-                    if stage == 2:
-                        pass
-                    if stage == 3:
-                        pass
-                elif u_document.kind == "projectplan":
-                    if stage == 1:
-                        pass
-                    if stage == 2:
-                        pass
-                    if stage == 3:
-                        pass
-                elif u_document.kind == "progressreport":
-                    if stage == 1:
-                        pass
-                    if stage == 2:
-                        pass
-                    if stage == 3:
-                        pass
-                elif u_document.kind == "studentreport":
-                    if stage == 1:
-                        pass
-                    if stage == 2:
-                        pass
-                    if stage == 3:
-                        pass
-                elif u_document.kind == "projectclosure":
-                    if stage == 1:
-                        pass
-                    if stage == 2:
-                        pass
-                    if stage == 3:
-                        pass
-
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DocRecall(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is recalling a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        settings.LOGGER.info(msg=f"{req.user} is recalling {document}")
-
-        data = "test"
-        if int(stage) == 1:
-            if document.business_area_lead_approval_granted == False:
-                data = {
-                    "project_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "revising",
-                }
-
-        elif int(stage) == 2:
-            if document.directorate_approval_granted == False:
-                data = {
-                    "business_area_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "inapproval",
-                }
-        elif int(stage) == 3:
-            data = {
-                "directorate_approval_granted": False,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.PENDING
-                u_document.project.save()
-            elif u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.CLOSUREREQ
-                u_document.project.save()
-
-            elif u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-
-            elif u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DocSendBack(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        settings.LOGGER.info(msg=f"{req.user} is sending back {document}")
-        data = "test"
-        if int(stage) == 2:
-            if document.directorate_approval_granted == False:
-                data = {
-                    "business_area_lead_approval_granted": False,
-                    "project_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "revising",
-                }
-        elif int(stage) == 3:
-            data = {
-                "business_area_lead_approval_granted": False,
-                "directorate_approval_granted": False,
-                "modifier": req.user.pk,
-                "status": "revising",
-            }
-
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
 
 class Endorsements(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]

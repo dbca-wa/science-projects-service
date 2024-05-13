@@ -16,16 +16,16 @@ urlpatterns = [
     path("document_sent_back_email", views.DocumentSentBackEmail.as_view()),
     path("document_approved_email", views.DocumentApprovedEmail.as_view()),
     path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
+    # Actions (Project Docs)
+    path("actions/approve", views.DocApproval.as_view()),
+    path("actions/reopen", views.DocReopenProject.as_view()),
+    path("actions/recall", views.DocRecall.as_view()),
+    path("actions/send_back", views.DocSendBack.as_view()),
     # ACTIONS
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("opennewcycle", views.NewCycleOpen.as_view()),
     path("projectdocuments", views.ProjectDocuments.as_view()),
-    # Actions (PROGRESS REPORT)
-    path("actions/approve", views.DocApproval.as_view()),
-    path("actions/reopen", views.DocReopenProject.as_view()),
-    path("actions/recall", views.DocRecall.as_view()),
-    path("actions/send_back", views.DocSendBack.as_view()),
     # Admin Latest Report
     path("actions/finalApproval", views.FinalDocApproval.as_view()),
     path("student_reports/update_progress", views.UpdateStudentReport.as_view()),
