@@ -12,6 +12,7 @@ urlpatterns = [
     path("affiliations", views.Affiliations.as_view()),
     path("affiliations/<int:pk>", views.AffiliationDetail.as_view()),
     path("affiliations/merge", views.AffiliationsMerge.as_view()),
+    # path("affiliation_name/<name:str>", views.AffiliationByName.as_view()),
     path("divisions", views.Divisions.as_view()),
     path("divisions/<int:pk>", views.DivisionDetail.as_view()),
     path("services", views.DepartmentalServices.as_view()),

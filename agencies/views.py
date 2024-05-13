@@ -174,6 +174,25 @@ class AffiliationsMerge(APIView):
         )
 
 
+# class AffiliationByName(APIView):
+#     permission_classes = [IsAuthenticatedOrReadOnly]
+
+#     def go(self, name):
+#         try:
+#             obj = Affiliation.objects.get(name=name)
+#         except Affiliation.DoesNotExist:
+#             raise NotFound
+#         return obj
+
+#     def get(self, req, name):
+#         affiliation = self.go(name)
+#         ser = AffiliationSerializer(affiliation)
+#         return Response(
+#             ser.data,
+#             status=HTTP_200_OK,
+#         )
+
+
 class Agencies(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
