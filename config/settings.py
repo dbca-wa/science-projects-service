@@ -111,6 +111,9 @@ if not DEBUG and PRINCE_SERVER_URL == "":
 ALLOW_LIST = [
     "127.0.0.1",
     "localhost",
+    "dbcab2c.b2clogin.com",
+    "dbcab2c.onmicrosoft.com",
+    "login.microsoftonline.com",
     "http://localhost",
     "http://0.0.0.0",
     "http://0.0.0.0:8000",
@@ -165,8 +168,6 @@ if additional_url:
     ]
     CORS_ALLOWED_ORIGINS += additional_url_list
     CSRF_TRUSTED_ORIGINS += additional_url_list
-    # print("CORS: ", CORS_ALLOWED_ORIGINS)
-    # print("TRUSTED: ", CSRF_TRUSTED_ORIGINS)
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -192,6 +193,12 @@ if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
     INSTANCE_URL = env("PRODUCTION_SITE_URL_HTTP")
+
+CORS_ALLOWED_ORIGINS += [
+    "https://dbcab2c.b2clogin.com",
+    "https://dbcab2c.onmicrosoft.com",
+    "https://login.microsoftonline.com",
+]
 
 CORS_ALLOWED_ORIGINS = [
     url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"

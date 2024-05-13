@@ -298,7 +298,7 @@ class Users(APIView):
             users = users.filter(is_superuser=True)
 
         if business_area != "All":
-            users = users.filter(work__business_area__name=business_area).all()
+            users = users.filter(work__business_area__pk=business_area).all()
 
         # Sort users alphabetically based on email
         users = users.order_by("email")

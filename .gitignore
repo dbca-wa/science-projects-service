@@ -12,6 +12,7 @@ extracted_table_data
 *.aux
 *django_session.csv
 *reversion_version.csv
+*requestsMeta.txt
 
 extract_data.py
 files/
