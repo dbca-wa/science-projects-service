@@ -1,3 +1,4 @@
+import os
 from django import http
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.backends import ModelBackend
@@ -37,8 +38,14 @@ class DBCAMiddleware(MiddlewareMixin):
         except Exception as e:
             raise ParseError(str(e))
 
-    def __call__(self, request):
+    def save_request_meta_to_file(self, meta_data):
+        file_path = os.path.join(settings.BASE_DIR, "requestsMeta.txt")
+        print(f"WRITING UP META TO: {file_path}")
+        mode = "w+"
+        with open(file_path, mode) as file:
+            file.write(str(meta_data) + "\n")
 
+    def __call__(self, request):
         if (
             "HTTP_REMOTE_USER" not in request.META
             or not request.META["HTTP_REMOTE_USER"]
@@ -48,11 +55,14 @@ class DBCAMiddleware(MiddlewareMixin):
         if (
             (
                 request.path.startswith("/logout")
+                or request.path.startswith("/api/v1/users/log-out")
                 or request.path.startswith("/api/v1/users/logout")
             )
             and "HTTP_X_LOGOUT_URL" in request.META
             and request.META["HTTP_X_LOGOUT_URL"]
         ):
+            print("Logging out")
+            self.save_request_meta_to_file(request.META)
             logout(request)
             return HttpResponseRedirect(request.META["HTTP_X_LOGOUT_URL"])
 
