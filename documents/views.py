@@ -3256,6 +3256,7 @@ class DocumentRecalledEmail(APIView):
 
 # ACTIONS ==========================================================
 
+
 class DocApproval(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -3637,17 +3638,6 @@ class DocApproval(APIView):
                 # project_pk = req.data["project_pk"]
                 project = Project.objects.filter(pk=document.project).first()
 
-                # Get recipient list
-                members = ProjectMember.objects.filter(project=project).all()
-                recipients_list = []
-
-                for member in members:
-                    user = member.user.pk
-                    user_name = f"{member.user.first_name} {member.user.last_name}"
-                    user_email = f"{member.user.email}"
-                    data_obj = {"pk": member.user.pk, "name": user_name, "email": user_email}
-                    recipients_list.append(data_obj)
-
                 if project:
                     html_project_title = project.title
                     plain_project_name = html2text.html2text(
@@ -3655,7 +3645,7 @@ class DocApproval(APIView):
                     ).strip()  # nicely rendered html title
 
                     # Get document kind information
-                    
+
                     document_kind_dict = {
                         "concept": "Science Concept Plan",
                         "projectplan": "Science Project Plan",
@@ -3665,12 +3655,82 @@ class DocApproval(APIView):
                     }
                     document_kind_as_title = document_kind_dict[u_document.kind]
 
+                    actioning_user = User.objects.get(pk=req.user.pk)
+                    actioning_user_name = (
+                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                    )
+                    actioning_user_email = f"{actioning_user.email}"
+
+                    # Get recipient list
+                    recipients_list = []
+                    if stage == 1:
+                        # get ba lead user as the pl is the actioning user
+                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        user = ba_lead.pk
+                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_email = f"{ba_lead.email}"
+                        data_obj = {"pk": user, "name": user_name, "email": user_email}
+                        recipients_list.append(data_obj)
+
+                    if stage == 2:
+                        # get active directorate members as the ba lead is the actioning user
+                        user_works = UserWork.objects.filter(
+                            business_area__name="Directorate"
+                        )
+                        user_ids = user_works.values_list("user", flat=True)
+                        directorate_users = User.objects.filter(id__in=user_ids).all()
+                        for member in directorate_users:
+                            if member.is_active and member.is_staff:
+                                user = member.pk
+                                user_name = f"{member.first_name} {member.last_name}"
+                                user_email = f"{member.email}"
+                                data_obj = {
+                                    "pk": user,
+                                    "name": user_name,
+                                    "email": user_email,
+                                }
+                                recipients_list.append(data_obj)
+
+                    if stage == 3:
+                        # Send to PL and BA Lead
+                        templ = (
+                            "./email_templates/document_approved_directorate_email.html"
+                        )
+                        p_leader = ProjectMember.objects.get(
+                            project=project, is_leader=True
+                        )
+                        pl_user = p_leader.user.pk
+                        pl_user_name = (
+                            f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                        )
+                        pl_user_email = f"{p_leader.user.email}"
+                        p_leader_data_obj = {
+                            "pk": pl_user,
+                            "name": pl_user_name,
+                            "email": pl_user_email,
+                        }
+                        recipients_list.append(p_leader_data_obj)
+
+                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        user = ba_lead.pk
+                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_email = f"{ba_lead.email}"
+                        ba_data_obj = {
+                            "pk": user,
+                            "name": user_name,
+                            "email": user_email,
+                        }
+                        recipients_list.append(ba_data_obj)
+
                     for recipient in recipients_list:
                         if recipient["pk"] == 101073:
                             email_subject = f"SPMS: {document_kind_as_title} Approved"
                             to_email = [recipient["email"]]
 
                             template_props = {
+                                "stage": stage,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
                                 "email_subject": email_subject,
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
@@ -3808,7 +3868,7 @@ class DocRecall(APIView):
                     ).strip()  # nicely rendered html title
 
                     # Get document kind information
-                    
+
                     document_kind_dict = {
                         "concept": "Science Concept Plan",
                         "projectplan": "Science Project Plan",
@@ -3837,18 +3897,25 @@ class DocRecall(APIView):
 
                     if stage == 2:
                         # get active directorate members as the ba lead is the actioning user
-                        user_works = UserWork.objects.filter(business_area__name="Directorate")
+                        user_works = UserWork.objects.filter(
+                            business_area__name="Directorate"
+                        )
                         user_ids = user_works.values_list("user", flat=True)
                         directorate_users = User.objects.filter(id__in=user_ids).all()
                         for member in directorate_users:
-                            user = member.pk
-                            user_name = f"{member.first_name} {member.last_name}"
-                            user_email = f"{member.email}"
-                            data_obj = {"pk": user, "name": user_name, "email": user_email}
-                            recipients_list.append(data_obj)
+                            if member.is_active and member.is_staff:
+                                user = member.pk
+                                user_name = f"{member.first_name} {member.last_name}"
+                                user_email = f"{member.email}"
+                                data_obj = {
+                                    "pk": user,
+                                    "name": user_name,
+                                    "email": user_email,
+                                }
+                                recipients_list.append(data_obj)
 
                     if stage == 3:
-                        pass # No need for emails
+                        pass  # No need for emails
 
                     for recipient in recipients_list:
                         if recipient["pk"] == 101073:
@@ -3857,7 +3924,9 @@ class DocRecall(APIView):
 
                             template_props = {
                                 "user_kind": (
-                                    "Project Lead" if stage == 2 else "Business Area Lead"
+                                    "Project Lead"
+                                    if stage == 2
+                                    else "Business Area Lead"
                                 ),
                                 "email_subject": email_subject,
                                 "actioning_user_email": actioning_user_email,
@@ -3900,6 +3969,181 @@ class DocRecall(APIView):
                         status=HTTP_400_BAD_REQUEST,
                     )
 
+            return Response(
+                TinyProjectDocumentSerializer(u_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class DocSendBack(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_document(self, pk):
+        try:
+            obj = ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req):
+        user = req.user
+        stage = req.data["stage"]
+        document_pk = req.data["documentPk"]
+        settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
+        if not stage and not document_pk:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        document = self.get_document(pk=document_pk)
+        settings.LOGGER.info(msg=f"{req.user} is sending back {document}")
+        data = "test"
+        if int(stage) == 2:
+            if document.directorate_approval_granted == False:
+                data = {
+                    "business_area_lead_approval_granted": False,
+                    "project_lead_approval_granted": False,
+                    "modifier": req.user.pk,
+                    "status": "revising",
+                }
+        elif int(stage) == 3:
+            data = {
+                "business_area_lead_approval_granted": False,
+                "directorate_approval_granted": False,
+                "modifier": req.user.pk,
+                "status": "revising",
+            }
+
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_document = ser.save()
+
+            # Send Emails
+            should_send_email = req.data["shouldSendEmail"]
+
+            if should_send_email:
+                print("SENDING DOC SENT BACK EMAIL")
+                # Preset info
+                from_email = settings.DEFAULT_FROM_EMAIL
+                templ = "./email_templates/document_sent_back_email.html"
+
+                # Get project information
+                # project_pk = req.data["project_pk"]
+                project = Project.objects.filter(pk=document.project).first()
+
+                if project:
+                    html_project_title = project.title
+                    plain_project_name = html2text.html2text(
+                        html_project_title
+                    ).strip()  # nicely rendered html title
+
+                    # Get document kind information
+
+                    document_kind_dict = {
+                        "concept": "Science Concept Plan",
+                        "projectplan": "Science Project Plan",
+                        "progressreport": "Progress Report",
+                        "studentreport": "Student Report",
+                        "projectclosure": "Project Closure",
+                    }
+                    document_kind_as_title = document_kind_dict[u_document.kind]
+
+                    actioning_user = User.objects.get(pk=req.user.pk)
+                    actioning_user_name = (
+                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                    )
+                    actioning_user_email = f"{actioning_user.email}"
+
+                    # Get recipient list
+                    recipients_list = []
+                    if stage == 1:
+                        pass  # no one to send bacl to
+
+                    if stage == 2:
+                        # get pl as the ba lead is the actioning user
+                        p_leader = ProjectMember.objects.get(
+                            project=project, is_leader=True
+                        )
+                        pl_user = p_leader.user.pk
+                        pl_user_name = (
+                            f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                        )
+                        pl_user_email = f"{p_leader.user.email}"
+                        p_leader_data_obj = {
+                            "pk": pl_user,
+                            "name": pl_user_name,
+                            "email": pl_user_email,
+                        }
+                        recipients_list.append(p_leader_data_obj)
+
+                    if stage == 3:
+                        # get ba lead user as the directorate is the actioning user
+                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        user = ba_lead.pk
+                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_email = f"{ba_lead.email}"
+                        data_obj = {"pk": user, "name": user_name, "email": user_email}
+                        recipients_list.append(data_obj)
+
+                    for recipient in recipients_list:
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "user_kind": (
+                                    "Project Lead"
+                                    if stage == 2
+                                    else "Business Area Lead"
+                                ),
+                                "email_subject": email_subject,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "recipient_name": recipient["name"],
+                                "project_id": project.pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document.kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    return Response(
+                        "Emails Sent!",
+                        status=HTTP_202_ACCEPTED,
+                    )
+                else:
+                    return Response(
+                        {"error": "No matchin project"},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
 
             return Response(
                 TinyProjectDocumentSerializer(u_document).data,
@@ -3945,6 +4189,7 @@ class DocReopenProject(APIView):
         return Response(status=HTTP_204_NO_CONTENT)
 
 
+# No Email
 class FinalDocApproval(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -4034,64 +4279,6 @@ class FinalDocApproval(APIView):
                 {"error": "Something went wrong!"},
                 status=HTTP_400_BAD_REQUEST,
             )
-
-
-
-class DocSendBack(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        settings.LOGGER.info(msg=f"{req.user} is sending back {document}")
-        data = "test"
-        if int(stage) == 2:
-            if document.directorate_approval_granted == False:
-                data = {
-                    "business_area_lead_approval_granted": False,
-                    "project_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "revising",
-                }
-        elif int(stage) == 3:
-            data = {
-                "business_area_lead_approval_granted": False,
-                "directorate_approval_granted": False,
-                "modifier": req.user.pk,
-                "status": "revising",
-            }
-
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
 
 
 # REPORTS ==========================================================
@@ -6920,6 +7107,7 @@ class RepoenProject(APIView):
 
 
 # ENDORSEMENTS & APPROVALS ==========================================================
+
 
 class Endorsements(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
