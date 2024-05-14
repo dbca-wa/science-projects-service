@@ -2578,62 +2578,12 @@ class ReviewDocumentEmail(APIView):
             document_kind_as_title = document_kind_dict[document_kind]
             email_subject = f"SPMS: Review {document_kind_as_title}"
 
+            processed = []
             for recipient in recipients_list:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    # if recipient["pk"] == 101073:
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "email_subject": email_subject,
-                        "recipient_name": recipient["name"],
-                        "actioning_user_email": actioning_user_email,
-                        "actioning_user_name": actioning_user_name,
-                        "project_id": project_pk,
-                        "plain_project_name": plain_project_name,
-                        "document_type": document_kind,
-                        "document_type_title": document_kind_as_title,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-                    print(
-                        {
-                            "to_email": to_email,
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "actioning_user_email": actioning_user_email,
-                            "actioning_user_name": actioning_user_name,
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-                    )
-
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:  # test
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == 101073:
+                if recipient["pk"] not in processed:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                        # if recipient["pk"] == 101073:
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -2683,6 +2633,60 @@ class ReviewDocumentEmail(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:  # test
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        if recipient["pk"] == 101073:
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document_kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+                            print(
+                                {
+                                    "to_email": to_email,
+                                    "email_subject": email_subject,
+                                    "recipient_name": recipient["name"],
+                                    "actioning_user_email": actioning_user_email,
+                                    "actioning_user_name": actioning_user_name,
+                                    "project_id": project_pk,
+                                    "plain_project_name": plain_project_name,
+                                    "document_type": document_kind,
+                                    "document_type_title": document_kind_as_title,
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                }
+                            )
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    processed.append(recipient["pk"])
+                
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -2731,44 +2735,12 @@ class ProjectClosureEmail(APIView):
                     html_project_title
                 ).strip()  # nicely rendered html title
 
+                processed = []
                 for recipient in recipients_list:
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        # if recipient["pk"] == 101073:
-                        email_subject = f"SPMS: Project Closed"
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                            "plain_project_name": plain_project_name,
-                            "project_id": project_pk,
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            send_mail(
-                                email_subject,
-                                template_content,  # plain text
-                                from_email,
-                                to_email,
-                                fail_silently=False,  # Set this to False to see errors
-                                html_message=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:  # test
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == 101073:
+                    if recipient["pk"] not in processed:
+                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                            # if recipient["pk"] == 101073:
                             email_subject = f"SPMS: Project Closed"
                             to_email = [recipient["email"]]
 
@@ -2800,6 +2772,42 @@ class ProjectClosureEmail(APIView):
                                     {"error": str(e)},
                                     status=HTTP_400_BAD_REQUEST,
                                 )
+                        else:  # test
+                            print(f"TEST: Sending email to {recipient["name"]}")
+                            if recipient["pk"] == 101073:
+                                email_subject = f"SPMS: Project Closed"
+                                to_email = [recipient["email"]]
+
+                                template_props = {
+                                    "email_subject": email_subject,
+                                    "recipient_name": recipient["name"],
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                    "plain_project_name": plain_project_name,
+                                    "project_id": project_pk,
+                                }
+
+                                template_content = render_to_string(templ, template_props)
+
+                                try:
+                                    send_mail(
+                                        email_subject,
+                                        template_content,  # plain text
+                                        from_email,
+                                        to_email,
+                                        fail_silently=False,  # Set this to False to see errors
+                                        html_message=template_content,
+                                    )
+                                except Exception as e:
+                                    settings.LOGGER.error(
+                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                    )
+                                    return Response(
+                                        {"error": str(e)},
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+                        processed.append(recipient["pk"])
+            
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -2849,47 +2857,12 @@ class DocumentReadyEmail(APIView):
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
+            processed = []
             for recipient in recipients_list:
-                # if recipient["pk"] == 101073:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    email_subject = f"SPMS: New {document_kind_as_title} Ready"
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "email_subject": email_subject,
-                        "recipient_name": recipient["name"],
-                        "project_id": project_pk,
-                        "plain_project_name": plain_project_name,
-                        "document_type": document_kind,
-                        "document_type_title": document_kind_as_title,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    # test
-                    if recipient["pk"] == 101073:
+                if recipient["pk"] not in processed:
+                    # if recipient["pk"] == 101073:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
                         email_subject = f"SPMS: New {document_kind_as_title} Ready"
                         to_email = [recipient["email"]]
 
@@ -2923,6 +2896,45 @@ class DocumentReadyEmail(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        # test
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: New {document_kind_as_title} Ready"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document_kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    processed.append(recipient["pk"])
+
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -2975,50 +2987,12 @@ class DocumentSentBackEmail(APIView):
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
+            processed = []
             for recipient in recipients_list:
-                # if recipient["pk"] == 101073:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    email_subject = f"SPMS: {document_kind_as_title} Sent Back"
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "email_subject": email_subject,
-                        "recipient_name": recipient["name"],
-                        "actioning_user_role": (
-                            "directorate" if stage == 3 else "business area lead"
-                        ),
-                        "project_id": project_pk,
-                        "plain_project_name": plain_project_name,
-                        "document_type": document_kind,
-                        "document_type_title": document_kind_as_title,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    # test
-                    if recipient["pk"] == 101073:
+                if recipient["pk"] not in processed:
+                    # if recipient["pk"] == 101073:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
                         email_subject = f"SPMS: {document_kind_as_title} Sent Back"
                         to_email = [recipient["email"]]
 
@@ -3055,6 +3029,48 @@ class DocumentSentBackEmail(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        # test
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Sent Back"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "actioning_user_role": (
+                                    "directorate" if stage == 3 else "business area lead"
+                                ),
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document_kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    processed.append(recipient["pk"])
+        
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -3104,44 +3120,47 @@ class ConceptPlanEmail(APIView):
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
+            processed = []
             for recipient in recipients_list:
-                if (
-                    recipient["pk"] == 101073
-                ):  # Change to if settings.DEBUG == True mass replace
-                    email_subject = f"SPMS: Concept Plan Review"
-                    to_email = [recipient["email"]]
+                if recipient["pk"] not in processed:
+                    if (
+                        recipient["pk"] == 101073
+                    ):  # Change to if settings.DEBUG == True mass replace
+                        email_subject = f"SPMS: Concept Plan Review"
+                        to_email = [recipient["email"]]
 
-                    template_props = {
-                        "email_subject": email_subject,
-                        "recipient_name": recipient["name"],
-                        "project_id": project_pk,
-                        "plain_project_name": plain_project_name,
-                        "document_type": document_kind,
-                        "document_type_title": document_kind_as_title,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
 
-                    # template_content = render_to_string(templ, template_props)
-                    template_content = render_to_string(templ)
+                        # template_content = render_to_string(templ, template_props)
+                        template_content = render_to_string(templ)
 
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                    processed.append(recipient["pk"])
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -3191,47 +3210,12 @@ class DocumentApprovedEmail(APIView):
             }
             document_kind_as_title = document_kind_dict[document_kind]
 
+            processed = []
             for recipient in recipients_list:
+                if recipient["pk"] not in processed:
                 # if recipient["pk"] == 101073:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    email_subject = f"SPMS: {document_kind_as_title} Approved"
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "email_subject": email_subject,
-                        "recipient_name": recipient["name"],
-                        "project_id": project_pk,
-                        "plain_project_name": plain_project_name,
-                        "document_type": document_kind,
-                        "document_type_title": document_kind_as_title,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    # test
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == 101073:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
                         email_subject = f"SPMS: {document_kind_as_title} Approved"
                         to_email = [recipient["email"]]
 
@@ -3265,6 +3249,45 @@ class DocumentApprovedEmail(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:
+                        # test
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Approved"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document_kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    processed.append(recipient["pk"])
+               
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -3327,52 +3350,13 @@ class DocumentRecalledEmail(APIView):
             stage = req.data["stage"]
             if stage:
                 stage = int(stage)
+
+            processed = []
             for recipient in recipients_list:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    # if recipient["pk"] == 101073:
-                    email_subject = f"SPMS: {document_kind_as_title} Recalled"
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "user_kind": (
-                            "Project Lead" if stage == 2 else "Business Area Lead"
-                        ),
-                        "email_subject": email_subject,
-                        "actioning_user_email": actioning_user_email,
-                        "actioning_user_name": actioning_user_name,
-                        "recipient_name": recipient["name"],
-                        "project_id": project_pk,
-                        "plain_project_name": plain_project_name,
-                        "document_type": document_kind,
-                        "document_type_title": document_kind_as_title,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    # test
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == 101073:
+                if recipient["pk"] not in processed:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                        # if recipient["pk"] == 101073:
                         email_subject = f"SPMS: {document_kind_as_title} Recalled"
                         to_email = [recipient["email"]]
 
@@ -3411,6 +3395,50 @@ class DocumentRecalledEmail(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:
+                        # test
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "user_kind": (
+                                    "Project Lead" if stage == 2 else "Business Area Lead"
+                                ),
+                                "email_subject": email_subject,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "recipient_name": recipient["name"],
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document_kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    processed.append(recipient["pk"])
+            
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -3896,53 +3924,13 @@ class DocApproval(APIView):
                         }
                         recipients_list.append(ba_data_obj)
 
+                    processed = []
                     for recipient in recipients_list:
-                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                            # if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Approved"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "stage": stage,
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "project_id": project.pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": u_document.kind,
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,  # plain text
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,  # Set this to False to see errors
-                                    html_message=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                        else:
-                            # test
-                            print(f"TEST: Sending email to {recipient["name"]}")
-                            if recipient["pk"] == 101073:
-                                email_subject = (
-                                    f"SPMS: {document_kind_as_title} Approved"
-                                )
+                        if recipient["pk"] not in processed:
+                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                                # if recipient["pk"] == 101073:
+                                email_subject = f"SPMS: {document_kind_as_title} Approved"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -3959,9 +3947,7 @@ class DocApproval(APIView):
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
+                                template_content = render_to_string(templ, template_props)
 
                                 try:
                                     send_mail(
@@ -3980,6 +3966,51 @@ class DocApproval(APIView):
                                         {"error": str(e)},
                                         status=HTTP_400_BAD_REQUEST,
                                     )
+                            else:
+                                # test
+                                print(f"TEST: Sending email to {recipient["name"]}")
+                                if recipient["pk"] == 101073:
+                                    email_subject = (
+                                        f"SPMS: {document_kind_as_title} Approved"
+                                    )
+                                    to_email = [recipient["email"]]
+
+                                    template_props = {
+                                        "stage": stage,
+                                        "actioning_user_email": actioning_user_email,
+                                        "actioning_user_name": actioning_user_name,
+                                        "email_subject": email_subject,
+                                        "recipient_name": recipient["name"],
+                                        "project_id": project.pk,
+                                        "plain_project_name": plain_project_name,
+                                        "document_type": u_document.kind,
+                                        "document_type_title": document_kind_as_title,
+                                        "site_url": settings.SITE_URL,
+                                        "dbca_image_path": get_encoded_image(),
+                                    }
+
+                                    template_content = render_to_string(
+                                        templ, template_props
+                                    )
+
+                                    try:
+                                        send_mail(
+                                            email_subject,
+                                            template_content,  # plain text
+                                            from_email,
+                                            to_email,
+                                            fail_silently=False,  # Set this to False to see errors
+                                            html_message=template_content,
+                                        )
+                                    except Exception as e:
+                                        settings.LOGGER.error(
+                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                        )
+                                        return Response(
+                                            {"error": str(e)},
+                                            status=HTTP_400_BAD_REQUEST,
+                                        )
+                            processed.append(recipient["pk"])
 
                     return Response(
                         "Emails Sent!",
@@ -4187,52 +4218,12 @@ class DocRecall(APIView):
 
                     print(recipients_list)
 
+                    processed = []
                     for recipient in recipients_list:
-                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                            email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
-                            to_email = [recipient["email"]]
+                        if recipient["pk"] not in processed:
 
-                            template_props = {
-                                "user_kind": (
-                                    "Project Lead"
-                                    if stage == 2
-                                    else "Business Area Lead"
-                                ),
-                                "email_subject": email_subject,
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "recipient_name": recipient["name"],
-                                "project_id": project.pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": document.kind,
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,  # plain text
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,  # Set this to False to see errors
-                                    html_message=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                        else:
-                            print(f"TEST: Sending email to {recipient["name"]}")
-                            if recipient["pk"] == 101073:
+                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
                                 email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
                                 to_email = [recipient["email"]]
 
@@ -4254,9 +4245,7 @@ class DocRecall(APIView):
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
+                                template_content = render_to_string(templ, template_props)
 
                                 try:
                                     send_mail(
@@ -4275,10 +4264,56 @@ class DocRecall(APIView):
                                         {"error": str(e)},
                                         status=HTTP_400_BAD_REQUEST,
                                     )
-                        return Response(
-                            "Emails Sent!",
-                            status=HTTP_202_ACCEPTED,
-                        )
+                            else:
+                                print(f"TEST: Sending email to {recipient["name"]}")
+                                if recipient["pk"] == 101073:
+                                    email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
+                                    to_email = [recipient["email"]]
+
+                                    template_props = {
+                                        "user_kind": (
+                                            "Project Lead"
+                                            if stage == 2
+                                            else "Business Area Lead"
+                                        ),
+                                        "email_subject": email_subject,
+                                        "actioning_user_email": actioning_user_email,
+                                        "actioning_user_name": actioning_user_name,
+                                        "recipient_name": recipient["name"],
+                                        "project_id": project.pk,
+                                        "plain_project_name": plain_project_name,
+                                        "document_type": document.kind,
+                                        "document_type_title": document_kind_as_title,
+                                        "site_url": settings.SITE_URL,
+                                        "dbca_image_path": get_encoded_image(),
+                                    }
+
+                                    template_content = render_to_string(
+                                        templ, template_props
+                                    )
+
+                                    try:
+                                        send_mail(
+                                            email_subject,
+                                            template_content,  # plain text
+                                            from_email,
+                                            to_email,
+                                            fail_silently=False,  # Set this to False to see errors
+                                            html_message=template_content,
+                                        )
+                                    except Exception as e:
+                                        settings.LOGGER.error(
+                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                        )
+                                        return Response(
+                                            {"error": str(e)},
+                                            status=HTTP_400_BAD_REQUEST,
+                                        )
+                            processed.append(recipient["pk"])
+                    return Response(
+                        "Emails Sent!",
+                        status=HTTP_202_ACCEPTED,
+                    )
                 else:
                     return Response(
                         {"error": "No matchin project"},
@@ -4412,57 +4447,13 @@ class DocSendBack(APIView):
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         recipients_list.append(data_obj)
 
+                    processed = []
                     for recipient in recipients_list:
-                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                            # if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Sent Back"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "user_kind": (
-                                    "Project Lead"
-                                    if stage == 2
-                                    else "Business Area Lead"
-                                ),
-                                "email_subject": email_subject,
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "recipient_name": recipient["name"],
-                                "project_id": project.pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": document.kind,
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,  # plain text
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,  # Set this to False to see errors
-                                    html_message=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                        else:
-                            # test
-                            print(f"TEST: Sending email to {recipient["name"]}")
-                            if recipient["pk"] == 101073:
-                                email_subject = (
-                                    f"SPMS: {document_kind_as_title} Sent Back"
-                                )
+                        if recipient["pk"] not in processed:
+                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                                # if recipient["pk"] == 101073:
+                                email_subject = f"SPMS: {document_kind_as_title} Sent Back"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -4483,9 +4474,7 @@ class DocSendBack(APIView):
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
+                                template_content = render_to_string(templ, template_props)
 
                                 try:
                                     send_mail(
@@ -4504,6 +4493,55 @@ class DocSendBack(APIView):
                                         {"error": str(e)},
                                         status=HTTP_400_BAD_REQUEST,
                                     )
+                            else:
+                                # test
+                                print(f"TEST: Sending email to {recipient["name"]}")
+                                if recipient["pk"] == 101073:
+                                    email_subject = (
+                                        f"SPMS: {document_kind_as_title} Sent Back"
+                                    )
+                                    to_email = [recipient["email"]]
+
+                                    template_props = {
+                                        "user_kind": (
+                                            "Project Lead"
+                                            if stage == 2
+                                            else "Business Area Lead"
+                                        ),
+                                        "email_subject": email_subject,
+                                        "actioning_user_email": actioning_user_email,
+                                        "actioning_user_name": actioning_user_name,
+                                        "recipient_name": recipient["name"],
+                                        "project_id": project.pk,
+                                        "plain_project_name": plain_project_name,
+                                        "document_type": document.kind,
+                                        "document_type_title": document_kind_as_title,
+                                        "site_url": settings.SITE_URL,
+                                        "dbca_image_path": get_encoded_image(),
+                                    }
+
+                                    template_content = render_to_string(
+                                        templ, template_props
+                                    )
+
+                                    try:
+                                        send_mail(
+                                            email_subject,
+                                            template_content,  # plain text
+                                            from_email,
+                                            to_email,
+                                            fail_silently=False,  # Set this to False to see errors
+                                            html_message=template_content,
+                                        )
+                                    except Exception as e:
+                                        settings.LOGGER.error(
+                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                        )
+                                        return Response(
+                                            {"error": str(e)},
+                                            status=HTTP_400_BAD_REQUEST,
+                                        )
+                            processed.append(recipient["pk"])
 
                     return Response(
                         "Emails Sent!",
@@ -4609,60 +4647,18 @@ class DocReopenProject(APIView):
                 }
                 recipients_list.append(p_leader_data_obj)
 
+                processed = []
                 for recipient in recipients_list:
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        # if recipient["pk"] == 101073:
-                        email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "user_kind": (
-                                "Project Lead" if stage == 2 else "Business Area Lead"
-                            ),
-                            "email_subject": email_subject,
-                            "actioning_user_email": actioning_user_email,
-                            "actioning_user_name": actioning_user_name,
-                            "recipient_name": recipient["name"],
-                            "project_id": project.pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": document.kind,
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            send_mail(
-                                email_subject,
-                                template_content,  # plain text
-                                from_email,
-                                to_email,
-                                fail_silently=False,  # Set this to False to see errors
-                                html_message=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:
-                        # test
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == 101073:
+                    if recipient["pk"] not in processed:
+                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                            # if recipient["pk"] == 101073:
                             email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
                             to_email = [recipient["email"]]
 
                             template_props = {
                                 "user_kind": (
-                                    "Project Lead"
-                                    if stage == 2
-                                    else "Business Area Lead"
+                                    "Project Lead" if stage == 2 else "Business Area Lead"
                                 ),
                                 "email_subject": email_subject,
                                 "actioning_user_email": actioning_user_email,
@@ -4695,6 +4691,52 @@ class DocReopenProject(APIView):
                                     {"error": str(e)},
                                     status=HTTP_400_BAD_REQUEST,
                                 )
+                        else:
+                            # test
+                            print(f"TEST: Sending email to {recipient["name"]}")
+                            if recipient["pk"] == 101073:
+                                email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                                to_email = [recipient["email"]]
+
+                                template_props = {
+                                    "user_kind": (
+                                        "Project Lead"
+                                        if stage == 2
+                                        else "Business Area Lead"
+                                    ),
+                                    "email_subject": email_subject,
+                                    "actioning_user_email": actioning_user_email,
+                                    "actioning_user_name": actioning_user_name,
+                                    "recipient_name": recipient["name"],
+                                    "project_id": project.pk,
+                                    "plain_project_name": plain_project_name,
+                                    "document_type": document.kind,
+                                    "document_type_title": document_kind_as_title,
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                }
+
+                                template_content = render_to_string(templ, template_props)
+
+                                try:
+                                    send_mail(
+                                        email_subject,
+                                        template_content,  # plain text
+                                        from_email,
+                                        to_email,
+                                        fail_silently=False,  # Set this to False to see errors
+                                        html_message=template_content,
+                                    )
+                                except Exception as e:
+                                    settings.LOGGER.error(
+                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                    )
+                                    return Response(
+                                        {"error": str(e)},
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )                        
+                        processed.append(recipient["pk"])
+
                 return Response(
                     "Emails Sent!",
                     status=HTTP_202_ACCEPTED,
@@ -4760,47 +4802,13 @@ class NewCycleOpenEmail(APIView):
         financial_year = req.data["financial_year"]
         financial_year_string = f"FY {int(financial_year-1)}-{int(financial_year)}"
 
+        processed = []
         for recipient in recipients_list:
-            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                # if recipient["pk"] == 101073:
-                email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
-                to_email = [recipient["email"]]
-
-                template_props = {
-                    "email_subject": email_subject,
-                    "recipient_name": recipient["name"],
-                    "site_url": settings.SITE_URL,
-                    "dbca_image_path": get_encoded_image(),
-                    "financial_year_string": financial_year_string,
-                }
-
-                template_content = render_to_string(templ, template_props)
-
-                try:
-                    send_mail(
-                        email_subject,
-                        template_content,  # plain text
-                        from_email,
-                        to_email,
-                        fail_silently=False,  # Set this to False to see errors
-                        html_message=template_content,
-                    )
-                except Exception as e:
-                    settings.LOGGER.error(
-                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                    )
-                    return Response(
-                        {"error": str(e)},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
-            else:
-                # test
-                print(f"TEST: Sending email to {recipient["name"]}")
-                if recipient["pk"] == 101073:
-                    email_subject = (
-                        f"SPMS: {financial_year_string} Reporting Cycle Open"
-                    )
+            if recipient["pk"] not in processed:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                    # if recipient["pk"] == 101073:
+                    email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
                     to_email = [recipient["email"]]
 
                     template_props = {
@@ -4830,6 +4838,43 @@ class NewCycleOpenEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
+                else:
+                    # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
+                    if recipient["pk"] == 101073:
+                        email_subject = (
+                            f"SPMS: {financial_year_string} Reporting Cycle Open"
+                        )
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                            "financial_year_string": financial_year_string,
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                processed.append(recipient["pk"])
 
         return Response(
             "Emails Sent!",
@@ -5039,46 +5084,12 @@ class NewCycleOpen(APIView):
                     recipients_list.append(data_obj)
 
             print(recipients_list)
+            processed = []
             for recipient in recipients_list:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    # if recipient["pk"] == 101073:
-                    email_subject = f"SPMS: New Reporting Cycle Open"
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "email_subject": email_subject,
-                        "actioning_user_email": actioning_user_email,
-                        "actioning_user_name": actioning_user_name,
-                        "financial_year_string": financial_year_string,
-                        "recipient_name": recipient["name"],
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_mail(
-                            email_subject,
-                            template_content,  # plain text
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    # test
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == 101073:
+                if recipient["pk"] not in processed:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                        # if recipient["pk"] == 101073:
                         email_subject = f"SPMS: New Reporting Cycle Open"
                         to_email = [recipient["email"]]
 
@@ -5111,6 +5122,44 @@ class NewCycleOpen(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:
+                        # test
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: New Reporting Cycle Open"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "financial_year_string": financial_year_string,
+                                "recipient_name": recipient["name"],
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                    processed.append(recipient["pk"])
+
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -7898,50 +7947,11 @@ class RepoenProject(APIView):
                     }
                     recipients_list.append(p_leader_data_obj)
 
+                    processed = []
                     for recipient in recipients_list:
-                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                            # if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "user_kind": "Project Lead",
-                                "email_subject": email_subject,
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "recipient_name": recipient["name"],
-                                "project_id": project.pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": "projectclosure",
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,  # plain text
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,  # Set this to False to see errors
-                                    html_message=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                        else:
-                            # test
-                            print(f"TEST: Sending email to {recipient["name"]}")
-                            if recipient["pk"] == 101073:
+                        if recipient["pk"] not in processed:
+                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
                                 # if recipient["pk"] == 101073:
                                 email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
                                 to_email = [recipient["email"]]
@@ -7979,6 +7989,48 @@ class RepoenProject(APIView):
                                         {"error": str(e)},
                                         status=HTTP_400_BAD_REQUEST,
                                     )
+                            else:
+                                # test
+                                print(f"TEST: Sending email to {recipient["name"]}")
+                                if recipient["pk"] == 101073:
+                                    # if recipient["pk"] == 101073:
+                                    email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                                    to_email = [recipient["email"]]
+
+                                    template_props = {
+                                        "user_kind": "Project Lead",
+                                        "email_subject": email_subject,
+                                        "actioning_user_email": actioning_user_email,
+                                        "actioning_user_name": actioning_user_name,
+                                        "recipient_name": recipient["name"],
+                                        "project_id": project.pk,
+                                        "plain_project_name": plain_project_name,
+                                        "document_type": "projectclosure",
+                                        "document_type_title": document_kind_as_title,
+                                        "site_url": settings.SITE_URL,
+                                        "dbca_image_path": get_encoded_image(),
+                                    }
+
+                                    template_content = render_to_string(templ, template_props)
+
+                                    try:
+                                        send_mail(
+                                            email_subject,
+                                            template_content,  # plain text
+                                            from_email,
+                                            to_email,
+                                            fail_silently=False,  # Set this to False to see errors
+                                            html_message=template_content,
+                                        )
+                                    except Exception as e:
+                                        settings.LOGGER.error(
+                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                        )
+                                        return Response(
+                                            {"error": str(e)},
+                                            status=HTTP_400_BAD_REQUEST,
+                                        )
+                            processed.append(recipient["pk"])
 
                     return Response(
                         "Emails Sent!",
