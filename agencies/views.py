@@ -133,6 +133,8 @@ class AffiliationsMerge(APIView):
         settings.LOGGER.info(msg=f"{req.user} is merging affiliations")
         primaryAffiliation = req.data.get("primaryAffiliation")
         secondaryAffiliations = req.data.get("secondaryAffiliations")
+        print(primaryAffiliation)
+        print(secondaryAffiliations)
         if not isinstance(secondaryAffiliations, list):
             secondaryAffiliations = [secondaryAffiliations]
 
@@ -163,11 +165,24 @@ class AffiliationsMerge(APIView):
             except UserWork.DoesNotExist:
                 # If nothing exists that uses the affiliation just go to next step and delete
                 pass
+            except Exception as e:
+                settings.LOGGER.error(
+                    msg=f"{instances_to_update} could not be updated...{e}"
+                )
+                return Response(
+                    {"message": f"Error! {e}"},
+                    status=HTTP_400_BAD_REQUEST,
+                )
             finally:
                 # Delete old one
-                instance_to_delete = Affiliation.objects.get(pk=item["pk"])
-                instance_to_delete.delete()
+                if item["pk"] != primaryAffiliation["pk"]:
+                    instance_to_delete = Affiliation.objects.get(pk=item["pk"])
+                    settings.LOGGER.info(
+                        msg=f"{instance_to_delete['name']} is being deleted..."
+                    )
+                    instance_to_delete.delete()
 
+        settings.LOGGER.info(msg=f"Merged!")
         return Response(
             {"message": "Merged!"},
             status=HTTP_202_ACCEPTED,
