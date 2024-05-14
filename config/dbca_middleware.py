@@ -69,7 +69,7 @@ class DBCAMiddleware(MiddlewareMixin):
             # self.save_request_meta_to_file(request.META)
             logout(request)
             data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
-            return Response(data, HTTP_200_OK)
+            return HttpResponse(data, HTTP_200_OK)
 
         user_auth = request.user.is_authenticated
         if not user_auth:
