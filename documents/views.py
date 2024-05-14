@@ -2579,7 +2579,8 @@ class ReviewDocumentEmail(APIView):
             email_subject = f"SPMS: Review {document_kind_as_title}"
 
             for recipient in recipients_list:
-                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
                     # if recipient["pk"] == 101073:
                     to_email = [recipient["email"]]
 
@@ -2631,6 +2632,7 @@ class ReviewDocumentEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
                 else:  # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
                     if recipient["pk"] == 101073:
                         to_email = [recipient["email"]]
 
@@ -2730,7 +2732,8 @@ class ProjectClosureEmail(APIView):
                 ).strip()  # nicely rendered html title
 
                 for recipient in recipients_list:
-                    if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
                         # if recipient["pk"] == 101073:
                         email_subject = f"SPMS: Project Closed"
                         to_email = [recipient["email"]]
@@ -2764,6 +2767,7 @@ class ProjectClosureEmail(APIView):
                                 status=HTTP_400_BAD_REQUEST,
                             )
                     else:  # test
+                        print(f"TEST: Sending email to {recipient["name"]}")
                         if recipient["pk"] == 101073:
                             email_subject = f"SPMS: Project Closed"
                             to_email = [recipient["email"]]
@@ -2847,7 +2851,8 @@ class DocumentReadyEmail(APIView):
 
             for recipient in recipients_list:
                 # if recipient["pk"] == 101073:
-                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
                     email_subject = f"SPMS: New {document_kind_as_title} Ready"
                     to_email = [recipient["email"]]
 
@@ -2882,6 +2887,7 @@ class DocumentReadyEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
                 else:
+                    print(f"TEST: Sending email to {recipient["name"]}")
                     # test
                     if recipient["pk"] == 101073:
                         email_subject = f"SPMS: New {document_kind_as_title} Ready"
@@ -2935,6 +2941,8 @@ class DocumentSentBackEmail(APIView):
         from_email = settings.DEFAULT_FROM_EMAIL
         templ = "./email_templates/document_sent_back_email.html"
         stage = req.data["stage"]
+        if stage:
+            stage = int(stage)
 
         # Get recipient list
         recipients_list_data = req.data["recipients_list"]  # list of user pks
@@ -2969,7 +2977,8 @@ class DocumentSentBackEmail(APIView):
 
             for recipient in recipients_list:
                 # if recipient["pk"] == 101073:
-                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
                     email_subject = f"SPMS: {document_kind_as_title} Sent Back"
                     to_email = [recipient["email"]]
 
@@ -3007,6 +3016,7 @@ class DocumentSentBackEmail(APIView):
                             status=HTTP_400_BAD_REQUEST,
                         )
                 else:
+                    print(f"TEST: Sending email to {recipient["name"]}")
                     # test
                     if recipient["pk"] == 101073:
                         email_subject = f"SPMS: {document_kind_as_title} Sent Back"
@@ -3183,7 +3193,8 @@ class DocumentApprovedEmail(APIView):
 
             for recipient in recipients_list:
                 # if recipient["pk"] == 101073:
-                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
                     email_subject = f"SPMS: {document_kind_as_title} Approved"
                     to_email = [recipient["email"]]
 
@@ -3219,6 +3230,7 @@ class DocumentApprovedEmail(APIView):
                         )
                 else:
                     # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
                     if recipient["pk"] == 101073:
                         email_subject = f"SPMS: {document_kind_as_title} Approved"
                         to_email = [recipient["email"]]
@@ -3313,9 +3325,11 @@ class DocumentRecalledEmail(APIView):
             )
             actioning_user_email = f"{actioning_user.email}"
             stage = req.data["stage"]
-
+            if stage:
+                stage = int(stage)
             for recipient in recipients_list:
-                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
                     # if recipient["pk"] == 101073:
                     email_subject = f"SPMS: {document_kind_as_title} Recalled"
                     to_email = [recipient["email"]]
@@ -3357,6 +3371,7 @@ class DocumentRecalledEmail(APIView):
                         )
                 else:
                     # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
                     if recipient["pk"] == 101073:
                         email_subject = f"SPMS: {document_kind_as_title} Recalled"
                         to_email = [recipient["email"]]
@@ -3423,6 +3438,8 @@ class DocApproval(APIView):
     def post(self, req):
         user = req.user
         stage = req.data["stage"]
+        if stage:
+            stage = int(stage)
         document_pk = req.data["documentPk"]
         settings.LOGGER.info(msg=f"{req.user} is approving a doc {document_pk}")
         if not stage and not document_pk:
@@ -3781,7 +3798,7 @@ class DocApproval(APIView):
             # Send Emails
             should_send_email = req.data["shouldSendEmail"]
 
-            if should_send_email:
+            if should_send_email == "true":
                 print("SENDING DOC APPROVE EMAILS")
                 # Preset info
                 from_email = settings.DEFAULT_FROM_EMAIL
@@ -3790,8 +3807,11 @@ class DocApproval(APIView):
                 # Get project information
                 # project_pk = req.data["project_pk"]
                 project = Project.objects.filter(pk=document.project.pk).first()
-
+                # print("project")
+                # print(project)
                 if project:
+                    # print("project")
+                    # print(project)
                     html_project_title = project.title
                     plain_project_name = html2text.html2text(
                         html_project_title
@@ -3818,7 +3838,7 @@ class DocApproval(APIView):
                     recipients_list = []
                     if stage == 1:
                         # get ba lead user as the pl is the actioning user
-                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
                         user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
                         user_email = f"{ba_lead.email}"
@@ -3865,7 +3885,7 @@ class DocApproval(APIView):
                         }
                         recipients_list.append(p_leader_data_obj)
 
-                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
                         user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
                         user_email = f"{ba_lead.email}"
@@ -3877,7 +3897,8 @@ class DocApproval(APIView):
                         recipients_list.append(ba_data_obj)
 
                     for recipient in recipients_list:
-                        if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
                             # if recipient["pk"] == 101073:
                             email_subject = f"SPMS: {document_kind_as_title} Approved"
                             to_email = [recipient["email"]]
@@ -3888,7 +3909,7 @@ class DocApproval(APIView):
                                 "actioning_user_name": actioning_user_name,
                                 "email_subject": email_subject,
                                 "recipient_name": recipient["name"],
-                                "project_id": project_pk,
+                                "project_id": project.pk,
                                 "plain_project_name": plain_project_name,
                                 "document_type": u_document.kind,
                                 "document_type_title": document_kind_as_title,
@@ -3917,6 +3938,7 @@ class DocApproval(APIView):
                                 )
                         else:
                             # test
+                            print(f"TEST: Sending email to {recipient["name"]}")
                             if recipient["pk"] == 101073:
                                 email_subject = (
                                     f"SPMS: {document_kind_as_title} Approved"
@@ -3929,7 +3951,7 @@ class DocApproval(APIView):
                                     "actioning_user_name": actioning_user_name,
                                     "email_subject": email_subject,
                                     "recipient_name": recipient["name"],
-                                    "project_id": project_pk,
+                                    "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
                                     "document_type": u_document.kind,
                                     "document_type_title": document_kind_as_title,
@@ -3994,6 +4016,8 @@ class DocRecall(APIView):
     def post(self, req):
         user = req.user
         stage = req.data["stage"]
+        if stage:
+            stage = int(stage)
         document_pk = req.data["documentPk"]
         settings.LOGGER.info(msg=f"{req.user} is recalling a doc {document_pk}")
         if not stage and not document_pk:
@@ -4003,6 +4027,8 @@ class DocRecall(APIView):
         settings.LOGGER.info(msg=f"{req.user} is recalling {document}")
 
         data = "test"
+        if stage:
+            stage = int(stage)
         if int(stage) == 1:
             if document.business_area_lead_approval_granted == False:
                 data = {
@@ -4050,7 +4076,7 @@ class DocRecall(APIView):
             # Send Emails
             should_send_email = req.data["shouldSendEmail"]
 
-            if should_send_email:
+            if should_send_email == "true":
                 print("SENDING DOC RECALLED EMAIL")
                 # Preset info
                 from_email = settings.DEFAULT_FROM_EMAIL
@@ -4092,6 +4118,7 @@ class DocRecall(APIView):
                         user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
+                        print(data_obj)
                         recipients_list.append(data_obj)
 
                     if stage == 2:
@@ -4158,8 +4185,11 @@ class DocRecall(APIView):
                         else:
                             pass  # No need for emails
 
+                    print(recipients_list)
+
                     for recipient in recipients_list:
-                        if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
                             email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
                             to_email = [recipient["email"]]
 
@@ -4200,10 +4230,55 @@ class DocRecall(APIView):
                                     {"error": str(e)},
                                     status=HTTP_400_BAD_REQUEST,
                                 )
-                    return Response(
-                        "Emails Sent!",
-                        status=HTTP_202_ACCEPTED,
-                    )
+                        else:
+                            print(f"TEST: Sending email to {recipient["name"]}")
+                            if recipient["pk"] == 101073:
+                                email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
+                                to_email = [recipient["email"]]
+
+                                template_props = {
+                                    "user_kind": (
+                                        "Project Lead"
+                                        if stage == 2
+                                        else "Business Area Lead"
+                                    ),
+                                    "email_subject": email_subject,
+                                    "actioning_user_email": actioning_user_email,
+                                    "actioning_user_name": actioning_user_name,
+                                    "recipient_name": recipient["name"],
+                                    "project_id": project.pk,
+                                    "plain_project_name": plain_project_name,
+                                    "document_type": document.kind,
+                                    "document_type_title": document_kind_as_title,
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                }
+
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
+
+                                try:
+                                    send_mail(
+                                        email_subject,
+                                        template_content,  # plain text
+                                        from_email,
+                                        to_email,
+                                        fail_silently=False,  # Set this to False to see errors
+                                        html_message=template_content,
+                                    )
+                                except Exception as e:
+                                    settings.LOGGER.error(
+                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                    )
+                                    return Response(
+                                        {"error": str(e)},
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+                        return Response(
+                            "Emails Sent!",
+                            status=HTTP_202_ACCEPTED,
+                        )
                 else:
                     return Response(
                         {"error": "No matchin project"},
@@ -4235,6 +4310,8 @@ class DocSendBack(APIView):
     def post(self, req):
         user = req.user
         stage = req.data["stage"]
+        if stage:
+            stage = int(stage)
         document_pk = req.data["documentPk"]
         settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
         if not stage and not document_pk:
@@ -4269,8 +4346,9 @@ class DocSendBack(APIView):
 
             # Send Emails
             should_send_email = req.data["shouldSendEmail"]
+            print(should_send_email)
 
-            if should_send_email:
+            if should_send_email == "true":
                 print("SENDING DOC SENT BACK EMAIL")
                 # Preset info
                 from_email = settings.DEFAULT_FROM_EMAIL
@@ -4327,7 +4405,7 @@ class DocSendBack(APIView):
 
                     if stage == 3:
                         # get ba lead user as the directorate is the actioning user
-                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
                         user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
                         user_email = f"{ba_lead.email}"
@@ -4335,7 +4413,8 @@ class DocSendBack(APIView):
                         recipients_list.append(data_obj)
 
                     for recipient in recipients_list:
-                        if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
                             # if recipient["pk"] == 101073:
                             email_subject = f"SPMS: {document_kind_as_title} Sent Back"
                             to_email = [recipient["email"]]
@@ -4379,6 +4458,7 @@ class DocSendBack(APIView):
                                 )
                         else:
                             # test
+                            print(f"TEST: Sending email to {recipient["name"]}")
                             if recipient["pk"] == 101073:
                                 email_subject = (
                                     f"SPMS: {document_kind_as_title} Sent Back"
@@ -4464,6 +4544,8 @@ class DocReopenProject(APIView):
             msg=f"{req.user} is reopening project {req.data['documentPk']}"
         )
         stage = req.data["stage"]
+        if stage:
+            stage = int(stage)
         document_pk = req.data["documentPk"]
         if not stage and not document_pk:
             settings.LOGGER.error(msg=f"Error reopening - no stage/doc pk")
@@ -4479,7 +4561,7 @@ class DocReopenProject(APIView):
         # Send Emails
         should_send_email = req.data["shouldSendEmail"]
 
-        if should_send_email:
+        if should_send_email == "true":
             print("SENDING PROJECT REOPENED EMAIL")
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -4527,7 +4609,8 @@ class DocReopenProject(APIView):
                 recipients_list.append(p_leader_data_obj)
 
                 for recipient in recipients_list:
-                    if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
                         # if recipient["pk"] == 101073:
                         email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
                         to_email = [recipient["email"]]
@@ -4567,47 +4650,50 @@ class DocReopenProject(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
-                else:
-                    # test
-                    if recipient["pk"] == 101073:
-                        email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
-                        to_email = [recipient["email"]]
+                    else:
+                        # test
+                        print(f"TEST: Sending email to {recipient["name"]}")
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                            to_email = [recipient["email"]]
 
-                        template_props = {
-                            "user_kind": (
-                                "Project Lead" if stage == 2 else "Business Area Lead"
-                            ),
-                            "email_subject": email_subject,
-                            "actioning_user_email": actioning_user_email,
-                            "actioning_user_name": actioning_user_name,
-                            "recipient_name": recipient["name"],
-                            "project_id": project.pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": document.kind,
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
+                            template_props = {
+                                "user_kind": (
+                                    "Project Lead"
+                                    if stage == 2
+                                    else "Business Area Lead"
+                                ),
+                                "email_subject": email_subject,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "recipient_name": recipient["name"],
+                                "project_id": project.pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document.kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
 
-                        template_content = render_to_string(templ, template_props)
+                            template_content = render_to_string(templ, template_props)
 
-                        try:
-                            send_mail(
-                                email_subject,
-                                template_content,  # plain text
-                                from_email,
-                                to_email,
-                                fail_silently=False,  # Set this to False to see errors
-                                html_message=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
                 return Response(
                     "Emails Sent!",
                     status=HTTP_202_ACCEPTED,
@@ -4674,7 +4760,8 @@ class NewCycleOpenEmail(APIView):
         financial_year_string = f"FY {int(financial_year-1)}-{int(financial_year)}"
 
         for recipient in recipients_list:
-            if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                print(f"PRODUCTION: Sending email to {recipient["name"]}")
                 # if recipient["pk"] == 101073:
                 email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
                 to_email = [recipient["email"]]
@@ -4708,6 +4795,7 @@ class NewCycleOpenEmail(APIView):
                     )
             else:
                 # test
+                print(f"TEST: Sending email to {recipient["name"]}")
                 if recipient["pk"] == 101073:
                     email_subject = (
                         f"SPMS: {financial_year_string} Reporting Cycle Open"
@@ -4919,7 +5007,7 @@ class NewCycleOpen(APIView):
                 )
                 return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
 
-        if should_email:
+        if should_email == "true":
             print("SENDING CYCLE OPENED EMAILS")
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -4948,7 +5036,8 @@ class NewCycleOpen(APIView):
                 recipients_list.append(data_obj)
 
             for recipient in recipients_list:
-                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
                     # if recipient["pk"] == 101073:
                     email_subject = f"SPMS: New Reporting Cycle Open"
                     to_email = [recipient["email"]]
@@ -4984,6 +5073,7 @@ class NewCycleOpen(APIView):
                         )
                 else:
                     # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
                     if recipient["pk"] == 101073:
                         email_subject = f"SPMS: New Reporting Cycle Open"
                         to_email = [recipient["email"]]
