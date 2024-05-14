@@ -343,17 +343,31 @@ class BusinessAreas(APIView):
                     error_message = "The URL is not a valid photo file"
                     return Response(error_message, status=HTTP_400_BAD_REQUEST)
 
-        ba_data = {
-            # "old_id": req.data.get("old_id"),
-            # "slug": req.data.get("slug"),
-            "agency": req.data.get("agency"),
-            "name": req.data.get("name"),
-            "focus": req.data.get("focus"),
-            "introduction": req.data.get("introduction"),
-            "data_custodian": req.data.get("data_custodian"),
-            "finance_admin": req.data.get("finance_admin"),
-            "leader": req.data.get("leader"),
-        }
+        division_id = req.data.get("division")
+        if division_id and division_id != None:
+            ba_data = {
+                # "old_id": req.data.get("old_id"),
+                "division": int(division_id),
+                "agency": req.data.get("agency"),
+                "name": req.data.get("name"),
+                "focus": req.data.get("focus"),
+                "introduction": req.data.get("introduction"),
+                "data_custodian": req.data.get("data_custodian"),
+                "finance_admin": req.data.get("finance_admin"),
+                "leader": req.data.get("leader"),
+            }
+        else:
+            ba_data = {
+                # "old_id": req.data.get("old_id"),
+                # "slug": req.data.get("slug"),
+                "agency": req.data.get("agency"),
+                "name": req.data.get("name"),
+                "focus": req.data.get("focus"),
+                "introduction": req.data.get("introduction"),
+                "data_custodian": req.data.get("data_custodian"),
+                "finance_admin": req.data.get("finance_admin"),
+                "leader": req.data.get("leader"),
+            }
 
         ser = BusinessAreaSerializer(data=ba_data)
 
@@ -734,17 +748,33 @@ class BusinessAreaDetail(APIView):
                 if photo:
                     photo.delete()
 
-        ba_data = {
-            "old_id": req.data.get("old_id"),
-            "name": req.data.get("name"),
-            "slug": req.data.get("slug"),
-            "agency": req.data.get("agency"),
-            "focus": req.data.get("focus"),
-            "introduction": req.data.get("introduction"),
-            "data_custodian": req.data.get("data_custodian"),
-            "finance_admin": req.data.get("finance_admin"),
-            "leader": req.data.get("leader"),
-        }
+        division_id = req.data.get("division")
+        print("DIV ID: ", division_id)
+        if division_id:
+            ba_data = {
+                "old_id": req.data.get("old_id"),
+                "division": int(division_id),
+                "name": req.data.get("name"),
+                "slug": req.data.get("slug"),
+                "agency": req.data.get("agency"),
+                "focus": req.data.get("focus"),
+                "introduction": req.data.get("introduction"),
+                "data_custodian": req.data.get("data_custodian"),
+                "finance_admin": req.data.get("finance_admin"),
+                "leader": req.data.get("leader"),
+            }
+        else:
+            ba_data = {
+                "old_id": req.data.get("old_id"),
+                "name": req.data.get("name"),
+                "slug": req.data.get("slug"),
+                "agency": req.data.get("agency"),
+                "focus": req.data.get("focus"),
+                "introduction": req.data.get("introduction"),
+                "data_custodian": req.data.get("data_custodian"),
+                "finance_admin": req.data.get("finance_admin"),
+                "leader": req.data.get("leader"),
+            }
 
         ser = BusinessAreaSerializer(
             ba,
@@ -756,7 +786,7 @@ class BusinessAreaDetail(APIView):
             with transaction.atomic():
                 # First create or update the Business Area
                 uba = ser.save()
-
+                print("updated")
                 if image:
                     try:
                         # Check if Photo already present:
