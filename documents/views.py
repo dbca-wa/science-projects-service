@@ -4562,6 +4562,7 @@ class DocReopenProject(APIView):
         should_send_email = req.data["shouldSendEmail"]
 
         if should_send_email == "true":
+            
             print("SENDING PROJECT REOPENED EMAIL")
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -5007,7 +5008,8 @@ class NewCycleOpen(APIView):
                 )
                 return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
 
-        if should_email == "true":
+        print(should_email)
+        if should_email == True:
             print("SENDING CYCLE OPENED EMAILS")
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -5029,12 +5031,14 @@ class NewCycleOpen(APIView):
             bas = BusinessArea.objects.all()
             for ba in bas:
                 ba_lead = ba.leader
-                user = ba_lead.pk
-                user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
-                user_email = f"{ba_lead.email}"
-                data_obj = {"pk": user, "name": user_name, "email": user_email}
-                recipients_list.append(data_obj)
+                if ba_lead and ba_lead.is_active and ba_lead.is_staff:
+                    user = ba_lead.pk
+                    user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                    user_email = f"{ba_lead.email}"
+                    data_obj = {"pk": user, "name": user_name, "email": user_email}
+                    recipients_list.append(data_obj)
 
+            print(recipients_list)
             for recipient in recipients_list:
                 if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                     print(f"PRODUCTION: Sending email to {recipient["name"]}")
@@ -7847,7 +7851,141 @@ class RepoenProject(APIView):
                 project_document = self.get_base_document(pk)
                 project_document.project.status = "updating"
                 project_document.project.save()
+                project = Project.objects.filter(pk=project_document.project.pk).first()
+                # Get document kind information
+                document_kind_dict = {
+                    "concept": "Science Concept Plan",
+                    "projectplan": "Science Project Plan",
+                    "progressreport": "Progress Report",
+                    "studentreport": "Student Report",
+                    "projectclosure": "Project Closure",
+                }
+                document_kind_as_title = document_kind_dict[project_document.kind]
                 project_document.delete()
+                print("SENDING PROJECT REOPENED EMAIL")
+                # Preset info
+                from_email = settings.DEFAULT_FROM_EMAIL
+                templ = "./email_templates/project_reopened_email.html"
+
+                # Get project information
+                # project_pk = req.data["project_pk"]
+
+                if project:
+                    html_project_title = project.title
+                    plain_project_name = html2text.html2text(
+                        html_project_title
+                    ).strip()  # nicely rendered html title
+
+       
+
+                    actioning_user = User.objects.get(pk=req.user.pk)
+                    actioning_user_name = (
+                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                    )
+                    actioning_user_email = f"{actioning_user.email}"
+
+                    # Get recipient list
+                    recipients_list = []
+                    # get pl as the ba lead is the actioning user
+                    p_leader = ProjectMember.objects.get(project=project, is_leader=True)
+                    pl_user = p_leader.user.pk
+                    pl_user_name = f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                    pl_user_email = f"{p_leader.user.email}"
+                    p_leader_data_obj = {
+                        "pk": pl_user,
+                        "name": pl_user_name,
+                        "email": pl_user_email,
+                    }
+                    recipients_list.append(p_leader_data_obj)
+
+                    for recipient in recipients_list:
+                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                            # if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "user_kind": "Project Lead",
+                                "email_subject": email_subject,
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "recipient_name": recipient["name"],
+                                "project_id": project.pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": "projectclosure",
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
+                        else:
+                            # test
+                            print(f"TEST: Sending email to {recipient["name"]}")
+                            if recipient["pk"] == 101073:
+                                # if recipient["pk"] == 101073:
+                                email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                                to_email = [recipient["email"]]
+
+                                template_props = {
+                                    "user_kind": "Project Lead",
+                                    "email_subject": email_subject,
+                                    "actioning_user_email": actioning_user_email,
+                                    "actioning_user_name": actioning_user_name,
+                                    "recipient_name": recipient["name"],
+                                    "project_id": project.pk,
+                                    "plain_project_name": plain_project_name,
+                                    "document_type": "projectclosure",
+                                    "document_type_title": document_kind_as_title,
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                }
+
+                                template_content = render_to_string(templ, template_props)
+
+                                try:
+                                    send_mail(
+                                        email_subject,
+                                        template_content,  # plain text
+                                        from_email,
+                                        to_email,
+                                        fail_silently=False,  # Set this to False to see errors
+                                        html_message=template_content,
+                                    )
+                                except Exception as e:
+                                    settings.LOGGER.error(
+                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                    )
+                                    return Response(
+                                        {"error": str(e)},
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+
+                    return Response(
+                        "Emails Sent!",
+                        status=HTTP_202_ACCEPTED,
+                    )
+
+
                 return Response(status=HTTP_204_NO_CONTENT)
             except Exception as e:
                 settings.LOGGER.error(msg=f"{e}")
