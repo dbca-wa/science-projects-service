@@ -22,9 +22,9 @@ urlpatterns = [
     path("actions/recall", views.DocRecall.as_view()),
     path("actions/send_back", views.DocSendBack.as_view()),
     # ACTIONS
+    path("opennewcycle", views.NewCycleOpen.as_view()),
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
-    path("opennewcycle", views.NewCycleOpen.as_view()),
     path("projectdocuments", views.ProjectDocuments.as_view()),
     # Admin Latest Report
     path("actions/finalApproval", views.FinalDocApproval.as_view()),

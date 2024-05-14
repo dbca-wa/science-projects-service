@@ -2579,7 +2579,8 @@ class ReviewDocumentEmail(APIView):
             email_subject = f"SPMS: Review {document_kind_as_title}"
 
             for recipient in recipients_list:
-                if recipient["pk"] == 101073:
+                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                    # if recipient["pk"] == 101073:
                     to_email = [recipient["email"]]
 
                     template_props = {
@@ -2629,6 +2630,57 @@ class ReviewDocumentEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
+                else:  # test
+                    if recipient["pk"] == 101073:
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "actioning_user_email": actioning_user_email,
+                            "actioning_user_name": actioning_user_name,
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+                        print(
+                            {
+                                "to_email": to_email,
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "actioning_user_email": actioning_user_email,
+                                "actioning_user_name": actioning_user_name,
+                                "project_id": project_pk,
+                                "plain_project_name": plain_project_name,
+                                "document_type": document_kind,
+                                "document_type_title": document_kind_as_title,
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                            }
+                        )
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -2638,95 +2690,6 @@ class ReviewDocumentEmail(APIView):
                 {"error": "No matching project"},
                 status=HTTP_400_BAD_REQUEST,
             )
-
-
-class NewCycleOpenEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
-        )
-        print(req.data)
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/new_cycle_open_email.html"
-
-        # Get recipient list (ba leads)
-        ba_leads = {ba.leader.pk for ba in BusinessArea.objects.all() if ba.leader}
-        # Get recipient list (active project leads)
-        also_updating = req.data["include_projects_with_status_updating"]
-        if also_updating == True or also_updating == "True":
-            active_project_leads = (
-                ProjectMember.objects.filter(
-                    project__status__in=["active", "updating"], is_leader=True
-                )
-                .values_list("user__pk", flat=True)
-                .distinct()
-            )
-        else:
-            active_project_leads = (
-                ProjectMember.objects.filter(
-                    project__status__in=["active"], is_leader=True
-                )
-                .values_list("user__pk", flat=True)
-                .distinct()
-            )
-
-        # Get combined recipient list, without duplicates
-        recipients_list_data = list(ba_leads.union(active_project_leads))
-
-        print(recipients_list_data)
-
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get FY information
-        financial_year = req.data["financial_year"]
-        financial_year_string = f"FY {int(financial_year-1)}-{int(financial_year)}"
-
-        for recipient in recipients_list:
-            if recipient["pk"] == 101073:
-                email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
-                to_email = [recipient["email"]]
-
-                template_props = {
-                    "email_subject": email_subject,
-                    "recipient_name": recipient["name"],
-                    "site_url": settings.SITE_URL,
-                    "dbca_image_path": get_encoded_image(),
-                    "financial_year_string": financial_year_string,
-                }
-
-                template_content = render_to_string(templ, template_props)
-
-                try:
-                    send_mail(
-                        email_subject,
-                        template_content,  # plain text
-                        from_email,
-                        to_email,
-                        fail_silently=False,  # Set this to False to see errors
-                        html_message=template_content,
-                    )
-                except Exception as e:
-                    settings.LOGGER.error(
-                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                    )
-                    return Response(
-                        {"error": str(e)},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
 
 
 class ProjectClosureEmail(APIView):
@@ -2767,7 +2730,8 @@ class ProjectClosureEmail(APIView):
                 ).strip()  # nicely rendered html title
 
                 for recipient in recipients_list:
-                    if recipient["pk"] == 101073:
+                    if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                        # if recipient["pk"] == 101073:
                         email_subject = f"SPMS: Project Closed"
                         to_email = [recipient["email"]]
 
@@ -2799,6 +2763,39 @@ class ProjectClosureEmail(APIView):
                                 {"error": str(e)},
                                 status=HTTP_400_BAD_REQUEST,
                             )
+                    else:  # test
+                        if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: Project Closed"
+                            to_email = [recipient["email"]]
+
+                            template_props = {
+                                "email_subject": email_subject,
+                                "recipient_name": recipient["name"],
+                                "site_url": settings.SITE_URL,
+                                "dbca_image_path": get_encoded_image(),
+                                "plain_project_name": plain_project_name,
+                                "project_id": project_pk,
+                            }
+
+                            template_content = render_to_string(templ, template_props)
+
+                            try:
+                                send_mail(
+                                    email_subject,
+                                    template_content,  # plain text
+                                    from_email,
+                                    to_email,
+                                    fail_silently=False,  # Set this to False to see errors
+                                    html_message=template_content,
+                                )
+                            except Exception as e:
+                                settings.LOGGER.error(
+                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                )
+                                return Response(
+                                    {"error": str(e)},
+                                    status=HTTP_400_BAD_REQUEST,
+                                )
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -2849,7 +2846,8 @@ class DocumentReadyEmail(APIView):
             document_kind_as_title = document_kind_dict[document_kind]
 
             for recipient in recipients_list:
-                if recipient["pk"] == 101073:
+                # if recipient["pk"] == 101073:
+                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
                     email_subject = f"SPMS: New {document_kind_as_title} Ready"
                     to_email = [recipient["email"]]
 
@@ -2883,6 +2881,42 @@ class DocumentReadyEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
+                else:
+                    # test
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: New {document_kind_as_title} Ready"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -2934,7 +2968,8 @@ class DocumentSentBackEmail(APIView):
             document_kind_as_title = document_kind_dict[document_kind]
 
             for recipient in recipients_list:
-                if recipient["pk"] == 101073:
+                # if recipient["pk"] == 101073:
+                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
                     email_subject = f"SPMS: {document_kind_as_title} Sent Back"
                     to_email = [recipient["email"]]
 
@@ -2971,6 +3006,45 @@ class DocumentSentBackEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
+                else:
+                    # test
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: {document_kind_as_title} Sent Back"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "actioning_user_role": (
+                                "directorate" if stage == 3 else "business area lead"
+                            ),
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -3108,7 +3182,8 @@ class DocumentApprovedEmail(APIView):
             document_kind_as_title = document_kind_dict[document_kind]
 
             for recipient in recipients_list:
-                if recipient["pk"] == 101073:
+                # if recipient["pk"] == 101073:
+                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
                     email_subject = f"SPMS: {document_kind_as_title} Approved"
                     to_email = [recipient["email"]]
 
@@ -3142,6 +3217,42 @@ class DocumentApprovedEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
+                else:
+                    # test
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: {document_kind_as_title} Approved"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -3204,7 +3315,8 @@ class DocumentRecalledEmail(APIView):
             stage = req.data["stage"]
 
             for recipient in recipients_list:
-                if recipient["pk"] == 101073:
+                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                    # if recipient["pk"] == 101073:
                     email_subject = f"SPMS: {document_kind_as_title} Recalled"
                     to_email = [recipient["email"]]
 
@@ -3243,6 +3355,47 @@ class DocumentRecalledEmail(APIView):
                             {"error": str(e)},
                             status=HTTP_400_BAD_REQUEST,
                         )
+                else:
+                    # test
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "user_kind": (
+                                "Project Lead" if stage == 2 else "Business Area Lead"
+                            ),
+                            "email_subject": email_subject,
+                            "actioning_user_email": actioning_user_email,
+                            "actioning_user_name": actioning_user_name,
+                            "recipient_name": recipient["name"],
+                            "project_id": project_pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document_kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -3636,7 +3789,7 @@ class DocApproval(APIView):
 
                 # Get project information
                 # project_pk = req.data["project_pk"]
-                project = Project.objects.filter(pk=document.project).first()
+                project = Project.objects.filter(pk=document.project.pk).first()
 
                 if project:
                     html_project_title = project.title
@@ -3692,10 +3845,11 @@ class DocApproval(APIView):
                                 recipients_list.append(data_obj)
 
                     if stage == 3:
+                        if u_document.kind == "projectclosure":
+                            templ = "./email_templates/project_closed_email.html"
+                        else:
+                            templ = "./email_templates/document_approved_directorate_email.html"
                         # Send to PL and BA Lead
-                        templ = (
-                            "./email_templates/document_approved_directorate_email.html"
-                        )
                         p_leader = ProjectMember.objects.get(
                             project=project, is_leader=True
                         )
@@ -3723,7 +3877,8 @@ class DocApproval(APIView):
                         recipients_list.append(ba_data_obj)
 
                     for recipient in recipients_list:
-                        if recipient["pk"] == 101073:
+                        if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                            # if recipient["pk"] == 101073:
                             email_subject = f"SPMS: {document_kind_as_title} Approved"
                             to_email = [recipient["email"]]
 
@@ -3760,6 +3915,50 @@ class DocApproval(APIView):
                                     {"error": str(e)},
                                     status=HTTP_400_BAD_REQUEST,
                                 )
+                        else:
+                            # test
+                            if recipient["pk"] == 101073:
+                                email_subject = (
+                                    f"SPMS: {document_kind_as_title} Approved"
+                                )
+                                to_email = [recipient["email"]]
+
+                                template_props = {
+                                    "stage": stage,
+                                    "actioning_user_email": actioning_user_email,
+                                    "actioning_user_name": actioning_user_name,
+                                    "email_subject": email_subject,
+                                    "recipient_name": recipient["name"],
+                                    "project_id": project_pk,
+                                    "plain_project_name": plain_project_name,
+                                    "document_type": u_document.kind,
+                                    "document_type_title": document_kind_as_title,
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                }
+
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
+
+                                try:
+                                    send_mail(
+                                        email_subject,
+                                        template_content,  # plain text
+                                        from_email,
+                                        to_email,
+                                        fail_silently=False,  # Set this to False to see errors
+                                        html_message=template_content,
+                                    )
+                                except Exception as e:
+                                    settings.LOGGER.error(
+                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                    )
+                                    return Response(
+                                        {"error": str(e)},
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+
                     return Response(
                         "Emails Sent!",
                         status=HTTP_202_ACCEPTED,
@@ -3859,7 +4058,7 @@ class DocRecall(APIView):
 
                 # Get project information
                 # project_pk = req.data["project_pk"]
-                project = Project.objects.filter(pk=document.project).first()
+                project = Project.objects.filter(pk=document.project.pk).first()
 
                 if project:
                     html_project_title = project.title
@@ -3888,7 +4087,7 @@ class DocRecall(APIView):
                     recipients_list = []
                     if stage == 1:
                         # get ba lead user as the pl is the actioning user
-                        ba_lead = User.objects.get(pk=project.business_area.leader)
+                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
                         user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
                         user_email = f"{ba_lead.email}"
@@ -3915,11 +4114,53 @@ class DocRecall(APIView):
                                 recipients_list.append(data_obj)
 
                     if stage == 3:
-                        pass  # No need for emails
+                        if u_document.kind == "projectclosure":
+                            # Reopen project, keeping closure
+                            templ = "./email_templates/project_reopened_email.html"
+                            project = document.project
+                            project.status = "closure_requested"
+                            project.save()
+                            p_leader = ProjectMember.objects.get(
+                                project=project, is_leader=True
+                            )
+                            pl_user = p_leader.user.pk
+                            pl_user_name = (
+                                f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                            )
+                            pl_user_email = f"{p_leader.user.email}"
+                            p_leader_data_obj = {
+                                "pk": pl_user,
+                                "name": pl_user_name,
+                                "email": pl_user_email,
+                            }
+                            recipients_list.append(p_leader_data_obj)
+
+                        elif u_document.kind == "concept":
+                            # Spawn Proj Plan email
+                            templ = "./email_templates/document_ready_email.html"
+                            p_leader = ProjectMember.objects.get(
+                                project=project, is_leader=True
+                            )
+                            pl_user = p_leader.user.pk
+                            pl_user_name = (
+                                f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                            )
+                            pl_user_email = f"{p_leader.user.email}"
+                            p_leader_data_obj = {
+                                "pk": pl_user,
+                                "name": pl_user_name,
+                                "email": pl_user_email,
+                            }
+                            recipients_list.append(p_leader_data_obj)
+
+                        # generate_project_document
+
+                        else:
+                            pass  # No need for emails
 
                     for recipient in recipients_list:
-                        if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                        if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                            email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -4037,7 +4278,7 @@ class DocSendBack(APIView):
 
                 # Get project information
                 # project_pk = req.data["project_pk"]
-                project = Project.objects.filter(pk=document.project).first()
+                project = Project.objects.filter(pk=document.project.pk).first()
 
                 if project:
                     html_project_title = project.title
@@ -4094,8 +4335,9 @@ class DocSendBack(APIView):
                         recipients_list.append(data_obj)
 
                     for recipient in recipients_list:
-                        if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                        if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                            # if recipient["pk"] == 101073:
+                            email_subject = f"SPMS: {document_kind_as_title} Sent Back"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -4135,6 +4377,54 @@ class DocSendBack(APIView):
                                     {"error": str(e)},
                                     status=HTTP_400_BAD_REQUEST,
                                 )
+                        else:
+                            # test
+                            if recipient["pk"] == 101073:
+                                email_subject = (
+                                    f"SPMS: {document_kind_as_title} Sent Back"
+                                )
+                                to_email = [recipient["email"]]
+
+                                template_props = {
+                                    "user_kind": (
+                                        "Project Lead"
+                                        if stage == 2
+                                        else "Business Area Lead"
+                                    ),
+                                    "email_subject": email_subject,
+                                    "actioning_user_email": actioning_user_email,
+                                    "actioning_user_name": actioning_user_name,
+                                    "recipient_name": recipient["name"],
+                                    "project_id": project.pk,
+                                    "plain_project_name": plain_project_name,
+                                    "document_type": document.kind,
+                                    "document_type_title": document_kind_as_title,
+                                    "site_url": settings.SITE_URL,
+                                    "dbca_image_path": get_encoded_image(),
+                                }
+
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
+
+                                try:
+                                    send_mail(
+                                        email_subject,
+                                        template_content,  # plain text
+                                        from_email,
+                                        to_email,
+                                        fail_silently=False,  # Set this to False to see errors
+                                        html_message=template_content,
+                                    )
+                                except Exception as e:
+                                    settings.LOGGER.error(
+                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                                    )
+                                    return Response(
+                                        {"error": str(e)},
+                                        status=HTTP_400_BAD_REQUEST,
+                                    )
+
                     return Response(
                         "Emails Sent!",
                         status=HTTP_202_ACCEPTED,
@@ -4186,7 +4476,555 @@ class DocReopenProject(APIView):
         closure = ProjectClosure.objects.get(document=document)
         closure.delete()
         document.delete()
+        # Send Emails
+        should_send_email = req.data["shouldSendEmail"]
+
+        if should_send_email:
+            print("SENDING PROJECT REOPENED EMAIL")
+            # Preset info
+            from_email = settings.DEFAULT_FROM_EMAIL
+            templ = "./email_templates/project_reopened_email.html"
+
+            # Get project information
+            # project_pk = req.data["project_pk"]
+            project = Project.objects.filter(pk=document.project.pk).first()
+
+            if project:
+                html_project_title = project.title
+                plain_project_name = html2text.html2text(
+                    html_project_title
+                ).strip()  # nicely rendered html title
+
+                # Get document kind information
+
+                document_kind_dict = {
+                    "concept": "Science Concept Plan",
+                    "projectplan": "Science Project Plan",
+                    "progressreport": "Progress Report",
+                    "studentreport": "Student Report",
+                    "projectclosure": "Project Closure",
+                }
+                document_kind_as_title = document_kind_dict[document.kind]
+
+                actioning_user = User.objects.get(pk=req.user.pk)
+                actioning_user_name = (
+                    f"{actioning_user.first_name} {actioning_user.last_name}"
+                )
+                actioning_user_email = f"{actioning_user.email}"
+
+                # Get recipient list
+                recipients_list = []
+                # get pl as the ba lead is the actioning user
+                p_leader = ProjectMember.objects.get(project=project, is_leader=True)
+                pl_user = p_leader.user.pk
+                pl_user_name = f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                pl_user_email = f"{p_leader.user.email}"
+                p_leader_data_obj = {
+                    "pk": pl_user,
+                    "name": pl_user_name,
+                    "email": pl_user_email,
+                }
+                recipients_list.append(p_leader_data_obj)
+
+                for recipient in recipients_list:
+                    if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                        # if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "user_kind": (
+                                "Project Lead" if stage == 2 else "Business Area Lead"
+                            ),
+                            "email_subject": email_subject,
+                            "actioning_user_email": actioning_user_email,
+                            "actioning_user_name": actioning_user_name,
+                            "recipient_name": recipient["name"],
+                            "project_id": project.pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document.kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                else:
+                    # test
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "user_kind": (
+                                "Project Lead" if stage == 2 else "Business Area Lead"
+                            ),
+                            "email_subject": email_subject,
+                            "actioning_user_email": actioning_user_email,
+                            "actioning_user_name": actioning_user_name,
+                            "recipient_name": recipient["name"],
+                            "project_id": project.pk,
+                            "plain_project_name": plain_project_name,
+                            "document_type": document.kind,
+                            "document_type_title": document_kind_as_title,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                return Response(
+                    "Emails Sent!",
+                    status=HTTP_202_ACCEPTED,
+                )
+            else:
+                return Response(
+                    {"error": "No matchin project"},
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+# Emails admin part
+class NewCycleOpenEmail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
+        )
+        print(req.data)
+        # Preset info
+        from_email = settings.DEFAULT_FROM_EMAIL
+        templ = "./email_templates/new_cycle_open_email.html"
+
+        # Get recipient list (ba leads)
+        ba_leads = {ba.leader.pk for ba in BusinessArea.objects.all() if ba.leader}
+        # Get recipient list (active project leads)
+        also_updating = req.data["include_projects_with_status_updating"]
+        if also_updating == True or also_updating == "True":
+            active_project_leads = (
+                ProjectMember.objects.filter(
+                    project__status__in=["active", "updating"], is_leader=True
+                )
+                .values_list("user__pk", flat=True)
+                .distinct()
+            )
+        else:
+            active_project_leads = (
+                ProjectMember.objects.filter(
+                    project__status__in=["active"], is_leader=True
+                )
+                .values_list("user__pk", flat=True)
+                .distinct()
+            )
+
+        # Get combined recipient list, without duplicates
+        recipients_list_data = list(ba_leads.union(active_project_leads))
+
+        print(recipients_list_data)
+
+        recipients_list = []
+
+        for recipient_pk in recipients_list_data:
+            user = User.objects.get(pk=recipient_pk)
+            user_name = f"{user.first_name} {user.last_name}"
+            user_email = f"{user.email}"
+            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
+            recipients_list.append(data_obj)
+
+        # Get FY information
+        financial_year = req.data["financial_year"]
+        financial_year_string = f"FY {int(financial_year-1)}-{int(financial_year)}"
+
+        for recipient in recipients_list:
+            if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                # if recipient["pk"] == 101073:
+                email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
+                to_email = [recipient["email"]]
+
+                template_props = {
+                    "email_subject": email_subject,
+                    "recipient_name": recipient["name"],
+                    "site_url": settings.SITE_URL,
+                    "dbca_image_path": get_encoded_image(),
+                    "financial_year_string": financial_year_string,
+                }
+
+                template_content = render_to_string(templ, template_props)
+
+                try:
+                    send_mail(
+                        email_subject,
+                        template_content,  # plain text
+                        from_email,
+                        to_email,
+                        fail_silently=False,  # Set this to False to see errors
+                        html_message=template_content,
+                    )
+                except Exception as e:
+                    settings.LOGGER.error(
+                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                    )
+                    return Response(
+                        {"error": str(e)},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
+            else:
+                # test
+                if recipient["pk"] == 101073:
+                    email_subject = (
+                        f"SPMS: {financial_year_string} Reporting Cycle Open"
+                    )
+                    to_email = [recipient["email"]]
+
+                    template_props = {
+                        "email_subject": email_subject,
+                        "recipient_name": recipient["name"],
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                        "financial_year_string": financial_year_string,
+                    }
+
+                    template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_mail(
+                            email_subject,
+                            template_content,  # plain text
+                            from_email,
+                            to_email,
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+
+        return Response(
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+class NewCycleOpen(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, req):
+        print(req.data)
+        should_update = req.data["update"]
+        should_email = req.data["send_emails"]
+        settings.LOGGER.warning(
+            msg=f"{req.user} is attempting to batch create new progress reports for latest year {'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}..."
+        )
+        if req.user.is_superuser == False:
+            return Response(
+                {"error": "You don't have permission to do that!"},
+                HTTP_401_UNAUTHORIZED,
+            )
+
+        last_report = AnnualReport.objects.order_by("-year").first()
+
+        # Handle the case where no report is found
+        if not last_report:
+            return Response(
+                {"error": "No annual report found!"},
+                status=HTTP_404_NOT_FOUND,
+            )
+
+        if should_update:
+            eligible_projects = Project.objects.filter(
+                Q(
+                    kind__in=[
+                        Project.CategoryKindChoices.SCIENCE,
+                        Project.CategoryKindChoices.COREFUNCTION,
+                        # Project.CategoryKindChoices.STUDENT,
+                    ]
+                )
+                & Q(status__in=["active", "updating"])
+            )
+        else:
+            eligible_projects = Project.objects.filter(
+                Q(
+                    kind__in=[
+                        Project.CategoryKindChoices.SCIENCE,
+                        Project.CategoryKindChoices.COREFUNCTION,
+                        # Project.CategoryKindChoices.STUDENT,
+                    ]
+                )
+                & Q(status="active")
+            )
+
+        eligible_projects = eligible_projects.exclude(
+            documents__progress_report_details__report__year=last_report.year
+        )
+
+        if should_update:
+            eligible_student_projects = Project.objects.filter(
+                Q(status__in=["active", "updating"])
+                & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+            )
+        else:
+            eligible_student_projects = Project.objects.filter(
+                Q(status="active") & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
+            )
+
+        eligible_student_projects.exclude(
+            documents__progress_report_details__report__year=last_report.year
+        )
+
+        # Combine the two querysets
+        all_eligible_projects = eligible_projects | eligible_student_projects
+
+        for project in all_eligible_projects:
+            if project.kind == Project.CategoryKindChoices.STUDENT:
+                typeofdoc = ProjectDocument.CategoryKindChoices.STUDENTREPORT
+            elif (
+                project.kind == Project.CategoryKindChoices.SCIENCE
+                or project.kind == Project.CategoryKindChoices.COREFUNCTION
+            ):
+                typeofdoc = ProjectDocument.CategoryKindChoices.PROGRESSREPORT
+            new_doc_data = {
+                "old_id": 1,
+                "kind": typeofdoc,
+                "status": "new",
+                "modifier": req.user.pk,
+                "creator": req.user.pk,
+                "project": project.pk,
+            }
+
+            new_project_document = ProjectDocumentCreateSerializer(data=new_doc_data)
+
+            if new_project_document.is_valid():
+                with transaction.atomic():
+                    doc = new_project_document.save()
+                    if project.kind != Project.CategoryKindChoices.STUDENT:
+
+                        exists = ProgressReport.objects.filter(
+                            year=last_report.year, project=project.pk
+                        ).exists()
+
+                        if not exists:
+
+                            progress_report_data = {
+                                "document": doc.pk,
+                                "project": project.pk,
+                                "report": last_report.pk,
+                                "project": project.pk,
+                                "year": last_report.year,
+                                "context": "<p></p>",
+                                "implications": "<p></p>",
+                                "future": "<p></p>",
+                                "progress": "<p></p>",
+                                "aims": "<p></p>",
+                            }
+
+                            progress_report = ProgressReportCreateSerializer(
+                                data=progress_report_data
+                            )
+
+                            if progress_report.is_valid():
+                                progress_report.save()
+                                project.status = Project.StatusChoices.UPDATING
+                                project.save()
+                            else:
+                                settings.LOGGER.error(
+                                    msg=f"Error validating progress report: {progress_report.errors}"
+                                )
+                                return Response(
+                                    progress_report.errors, HTTP_400_BAD_REQUEST
+                                )
+                        else:
+                            project.status = Project.StatusChoices.UPDATING
+                            project.save()
+                    else:
+                        exists = StudentReport.objects.filter(
+                            year=last_report.year, project=project.pk
+                        ).exists()
+
+                        if not exists:
+                            student_report_data = {
+                                "document": doc.pk,
+                                "project": project.pk,
+                                "report": last_report.pk,
+                                "project": project.pk,
+                                "year": last_report.year,
+                                "progress_report": "<p></p>",
+                            }
+
+                            student_report = StudentReportCreateSerializer(
+                                data=student_report_data
+                            )
+
+                            if student_report.is_valid():
+                                student_report.save()
+                                project.status = Project.StatusChoices.UPDATING
+                                project.save()
+                            else:
+                                print(student_report.errors["non_field_errors"])
+                                settings.LOGGER.error(
+                                    msg=f"Error validating student report {student_report.errors}"
+                                )
+                                return Response(
+                                    student_report.errors, HTTP_400_BAD_REQUEST
+                                )
+                        else:
+                            project.status = Project.StatusChoices.UPDATING
+                            project.save()
+
+            else:
+                settings.LOGGER.error(
+                    msg=f"Error opening new cycle: {new_project_document.errors}"
+                )
+                return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
+
+        if should_email:
+            print("SENDING CYCLE OPENED EMAILS")
+            # Preset info
+            from_email = settings.DEFAULT_FROM_EMAIL
+            templ = "./email_templates/new_cycle_open_email.html"
+
+            actioning_user = User.objects.get(pk=req.user.pk)
+            actioning_user_name = (
+                f"{actioning_user.first_name} {actioning_user.last_name}"
+            )
+            actioning_user_email = f"{actioning_user.email}"
+
+            # Get report details:
+            financial_year_string = (
+                f"FY {int(last_report.year-1)}-{int(last_report.year)}",
+            )
+
+            # Get recipient list
+            recipients_list = []
+            bas = BusinessArea.objects.all()
+            for ba in bas:
+                ba_lead = ba.leader
+                user = ba_lead.pk
+                user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                user_email = f"{ba_lead.email}"
+                data_obj = {"pk": user, "name": user_name, "email": user_email}
+                recipients_list.append(data_obj)
+
+            for recipient in recipients_list:
+                if not settings.ON_TEST_NETWORK and not settings.DEBUG:
+                    # if recipient["pk"] == 101073:
+                    email_subject = f"SPMS: New Reporting Cycle Open"
+                    to_email = [recipient["email"]]
+
+                    template_props = {
+                        "email_subject": email_subject,
+                        "actioning_user_email": actioning_user_email,
+                        "actioning_user_name": actioning_user_name,
+                        "financial_year_string": financial_year_string,
+                        "recipient_name": recipient["name"],
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                    }
+
+                    template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_mail(
+                            email_subject,
+                            template_content,  # plain text
+                            from_email,
+                            to_email,
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    # test
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: New Reporting Cycle Open"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "actioning_user_email": actioning_user_email,
+                            "actioning_user_name": actioning_user_name,
+                            "financial_year_string": financial_year_string,
+                            "recipient_name": recipient["name"],
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+            return Response(
+                "Emails Sent!",
+                status=HTTP_202_ACCEPTED,
+            )
+
+        return Response(
+            HTTP_202_ACCEPTED,
+        )
 
 
 # No Email
@@ -4453,186 +5291,6 @@ class BatchApproveOld(APIView):
                 "Success",
                 HTTP_202_ACCEPTED,
             )
-
-
-class NewCycleOpen(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
-
-    def post(self, req):
-        print(req.data)
-        should_update = req.data["update"]
-        should_email = req.data["send_emails"]
-        settings.LOGGER.warning(
-            msg=f"{req.user} is attempting to batch create new progress reports for latest year {'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}..."
-        )
-        if req.user.is_superuser == False:
-            return Response(
-                {"error": "You don't have permission to do that!"},
-                HTTP_401_UNAUTHORIZED,
-            )
-
-        last_report = AnnualReport.objects.order_by("-year").first()
-
-        # Handle the case where no report is found
-        if not last_report:
-            return Response(
-                {"error": "No annual report found!"},
-                status=HTTP_404_NOT_FOUND,
-            )
-
-        if should_update:
-            eligible_projects = Project.objects.filter(
-                Q(
-                    kind__in=[
-                        Project.CategoryKindChoices.SCIENCE,
-                        Project.CategoryKindChoices.COREFUNCTION,
-                        # Project.CategoryKindChoices.STUDENT,
-                    ]
-                )
-                & Q(status__in=["active", "updating"])
-            )
-        else:
-            eligible_projects = Project.objects.filter(
-                Q(
-                    kind__in=[
-                        Project.CategoryKindChoices.SCIENCE,
-                        Project.CategoryKindChoices.COREFUNCTION,
-                        # Project.CategoryKindChoices.STUDENT,
-                    ]
-                )
-                & Q(status="active")
-            )
-
-        eligible_projects = eligible_projects.exclude(
-            documents__progress_report_details__report__year=last_report.year
-        )
-
-        if should_update:
-            eligible_student_projects = Project.objects.filter(
-                Q(status__in=["active", "updating"])
-                & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
-            )
-        else:
-            eligible_student_projects = Project.objects.filter(
-                Q(status="active") & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
-            )
-
-        eligible_student_projects.exclude(
-            documents__progress_report_details__report__year=last_report.year
-        )
-
-        # Combine the two querysets
-        all_eligible_projects = eligible_projects | eligible_student_projects
-
-        for project in all_eligible_projects:
-            if project.kind == Project.CategoryKindChoices.STUDENT:
-                typeofdoc = ProjectDocument.CategoryKindChoices.STUDENTREPORT
-            elif (
-                project.kind == Project.CategoryKindChoices.SCIENCE
-                or project.kind == Project.CategoryKindChoices.COREFUNCTION
-            ):
-                typeofdoc = ProjectDocument.CategoryKindChoices.PROGRESSREPORT
-            new_doc_data = {
-                "old_id": 1,
-                "kind": typeofdoc,
-                "status": "new",
-                "modifier": req.user.pk,
-                "creator": req.user.pk,
-                "project": project.pk,
-            }
-
-            new_project_document = ProjectDocumentCreateSerializer(data=new_doc_data)
-
-            if new_project_document.is_valid():
-                with transaction.atomic():
-                    doc = new_project_document.save()
-                    if project.kind != Project.CategoryKindChoices.STUDENT:
-
-                        exists = ProgressReport.objects.filter(
-                            year=last_report.year, project=project.pk
-                        ).exists()
-
-                        if not exists:
-
-                            progress_report_data = {
-                                "document": doc.pk,
-                                "project": project.pk,
-                                "report": last_report.pk,
-                                "project": project.pk,
-                                "year": last_report.year,
-                                "context": "<p></p>",
-                                "implications": "<p></p>",
-                                "future": "<p></p>",
-                                "progress": "<p></p>",
-                                "aims": "<p></p>",
-                            }
-
-                            progress_report = ProgressReportCreateSerializer(
-                                data=progress_report_data
-                            )
-
-                            if progress_report.is_valid():
-                                progress_report.save()
-                                project.status = Project.StatusChoices.UPDATING
-                                project.save()
-                            else:
-                                settings.LOGGER.error(
-                                    msg=f"Error validating progress report: {progress_report.errors}"
-                                )
-                                return Response(
-                                    progress_report.errors, HTTP_400_BAD_REQUEST
-                                )
-                        else:
-                            project.status = Project.StatusChoices.UPDATING
-                            project.save()
-                    else:
-                        exists = StudentReport.objects.filter(
-                            year=last_report.year, project=project.pk
-                        ).exists()
-
-                        if not exists:
-                            student_report_data = {
-                                "document": doc.pk,
-                                "project": project.pk,
-                                "report": last_report.pk,
-                                "project": project.pk,
-                                "year": last_report.year,
-                                "progress_report": "<p></p>",
-                            }
-
-                            student_report = StudentReportCreateSerializer(
-                                data=student_report_data
-                            )
-
-                            if student_report.is_valid():
-                                student_report.save()
-                                project.status = Project.StatusChoices.UPDATING
-                                project.save()
-                            else:
-                                print(student_report.errors["non_field_errors"])
-                                settings.LOGGER.error(
-                                    msg=f"Error validating student report {student_report.errors}"
-                                )
-                                return Response(
-                                    student_report.errors, HTTP_400_BAD_REQUEST
-                                )
-                        else:
-                            project.status = Project.StatusChoices.UPDATING
-                            project.save()
-
-            else:
-                settings.LOGGER.error(
-                    msg=f"Error opening new cycle: {new_project_document.errors}"
-                )
-                return Response(new_project_document.errors, HTTP_400_BAD_REQUEST)
-
-        if should_email:
-            print("Emails should be sent here")
-            pass
-
-        return Response(
-            HTTP_202_ACCEPTED,
-        )
 
 
 class Reports(APIView):
