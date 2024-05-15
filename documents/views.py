@@ -5067,10 +5067,7 @@ class NewCycleOpen(APIView):
             actioning_user_email = f"{actioning_user.email}"
 
             # Get report details:
-            financial_year_string = (
-                f"FY {int(last_report.year-1)}-{int(last_report.year)}",
-            )
-
+            financial_year_string = f"FY {int(last_report.year-1)}-{int(last_report.year)}"
             # Get recipient list
             recipients_list = []
             bas = BusinessArea.objects.all()
