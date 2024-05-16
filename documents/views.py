@@ -130,7 +130,18 @@ from django.core.files.storage import default_storage
 
 # PDF GENERATION ===================================================
 
-
+def determine_doc_kind_url_string(dockind:str):
+                if dockind == "conceptplan" or dockind == "concept":
+                    return "concept"
+                elif dockind == "projectplan" or dockind == "project":
+                    return "project"
+                elif dockind == "progressreport" or dockind == "progress":
+                    return "progress"
+                elif dockind == "studentreport" or dockind == "student":
+                    return "student"
+                else:
+                    return "closure"
+                
 class BeginReportDocGeneration(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -2593,7 +2604,7 @@ class ReviewDocumentEmail(APIView):
                             "actioning_user_name": actioning_user_name,
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
+                            "document_type": determine_doc_kind_url_string(document_kind),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -2609,7 +2620,7 @@ class ReviewDocumentEmail(APIView):
                                 "actioning_user_name": actioning_user_name,
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document_kind,
+                                "document_type": determine_doc_kind_url_string(document_kind),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -2645,7 +2656,7 @@ class ReviewDocumentEmail(APIView):
                                 "actioning_user_name": actioning_user_name,
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document_kind,
+                                "document_type": determine_doc_kind_url_string(document_kind),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -2661,7 +2672,7 @@ class ReviewDocumentEmail(APIView):
                                     "actioning_user_name": actioning_user_name,
                                     "project_id": project_pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": document_kind,
+                                    "document_type": determine_doc_kind_url_string(document_kind),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -2871,7 +2882,7 @@ class DocumentReadyEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
+                            "document_type": determine_doc_kind_url_string(document_kind),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -2908,7 +2919,7 @@ class DocumentReadyEmail(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document_kind,
+                                "document_type": determine_doc_kind_url_string(document_kind),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -3004,7 +3015,7 @@ class DocumentSentBackEmail(APIView):
                             ),
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
+                            "document_type": determine_doc_kind_url_string(document_kind),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -3044,7 +3055,7 @@ class DocumentSentBackEmail(APIView):
                                 ),
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document_kind,
+                                "document_type": determine_doc_kind_url_string(document_kind),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -3134,7 +3145,7 @@ class ConceptPlanEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
+                            "document_type": determine_doc_kind_url_string(document_kind),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -3224,7 +3235,7 @@ class DocumentApprovedEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
+                            "document_type": determine_doc_kind_url_string(document_kind),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -3261,7 +3272,7 @@ class DocumentApprovedEmail(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document_kind,
+                                "document_type": determine_doc_kind_url_string(document_kind),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -3370,7 +3381,7 @@ class DocumentRecalledEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": document_kind,
+                            "document_type": determine_doc_kind_url_string(document_kind),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -3412,7 +3423,7 @@ class DocumentRecalledEmail(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document_kind,
+                                "document_type": determine_doc_kind_url_string(document_kind),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -3941,7 +3952,7 @@ class DocApproval(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": u_document.kind,
+                                    "document_type": determine_doc_kind_url_string(u_document.kind),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -3983,7 +3994,7 @@ class DocApproval(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": u_document.kind,
+                                        "document_type": determine_doc_kind_url_string(u_document.kind),
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
@@ -4239,7 +4250,7 @@ class DocRecall(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": document.kind,
+                                    "document_type": determine_doc_kind_url_string(document.kind),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -4282,7 +4293,7 @@ class DocRecall(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": document.kind,
+                                        "document_type": determine_doc_kind_url_string(document.kind),
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
@@ -4468,7 +4479,7 @@ class DocSendBack(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": document.kind,
+                                    "document_type": determine_doc_kind_url_string(document.kind),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -4501,6 +4512,9 @@ class DocSendBack(APIView):
                                         f"SPMS: {document_kind_as_title} Sent Back"
                                     )
                                     to_email = [recipient["email"]]
+                                    
+             
+
 
                                     template_props = {
                                         "user_kind": (
@@ -4514,7 +4528,7 @@ class DocSendBack(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": document.kind,
+                                        "document_type": determine_doc_kind_url_string(document.kind),
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
@@ -4666,7 +4680,7 @@ class DocReopenProject(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project.pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": document.kind,
+                                "document_type": "closure",
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -4710,7 +4724,7 @@ class DocReopenProject(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": document.kind,
+                                    "document_type": "closure",
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -7981,7 +7995,7 @@ class RepoenProject(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": "projectclosure",
+                                    "document_type": "closure",
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -8022,7 +8036,7 @@ class RepoenProject(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": "projectclosure",
+                                        "document_type": "closure",
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
