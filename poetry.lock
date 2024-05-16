@@ -264,13 +264,13 @@ files = [
 
 [[package]]
 name = "cssutils"
-version = "2.10.3"
+version = "2.11.0"
 description = "A CSS Cascading Style Sheets library for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "cssutils-2.10.3-py3-none-any.whl", hash = "sha256:427bea159a9a54e17450c66b98bf93449cf1e6a1b0eaa26e566e9b381f94b7ea"},
-    {file = "cssutils-2.10.3.tar.gz", hash = "sha256:da47192f4e91457462ed990a6e12f87e3d7fee9368e9f51ad651646f6ad32ceb"},
+    {file = "cssutils-2.11.0-py3-none-any.whl", hash = "sha256:220816dc6d413e81281bbd568c473a8ae28f73b1af008b1bacf3a7ebd21e0334"},
+    {file = "cssutils-2.11.0.tar.gz", hash = "sha256:cd24a30b9a848ca92d80f0d1b362139c0b69de31394d585dbf1b17a5dc4aa627"},
 ]
 
 [package.extras]

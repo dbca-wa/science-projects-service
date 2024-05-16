@@ -5938,16 +5938,31 @@ class ProjectDocuments(APIView):
         )
         kind = req.data.get("kind")
         project_pk = req.data.get("project")
-        document_serializer = ProjectDocumentCreateSerializer(
-            data={
-                "old_id": 1,
-                "kind": kind,
-                "status": "new",
-                "project": project_pk,
-                "creator": req.user.pk,
-                "modifier": req.user.pk,
-            }
-        )
+        project_kind = req.data.get("projectKind")
+
+        print({
+            kind,
+            project_kind
+        })
+
+        data={
+            "old_id": 1,
+            "kind": kind,
+            "status": "new",
+            "project": project_pk,
+            "creator": req.user.pk,
+            "modifier": req.user.pk,
+        }
+
+        if kind == "projectclosure" and project_kind and project_kind != "science":
+            data["project_lead_approval_granted"] = True
+            data["business_area_lead_approval_granted"] = True
+            data["directorate_approval_granted"] = True
+
+
+        document_serializer = ProjectDocumentCreateSerializer(data=data)
+
+
 
         if document_serializer.is_valid():
             with transaction.atomic():
@@ -6435,7 +6450,7 @@ class ProjectDocuments(APIView):
                     reason = req.data.get("reason")
                     outcome = req.data.get("outcome")
                     project = req.data.get("project")
-
+                  
                     closure_data_object = {
                         "document": doc.pk,
                         "project": project,
@@ -6468,6 +6483,8 @@ class ProjectDocuments(APIView):
                         ),
                     }
 
+                    
+           
                     closure_serializer = ProjectClosureCreationSerializer(
                         data=closure_data_object
                     )
@@ -6476,7 +6493,10 @@ class ProjectDocuments(APIView):
                         try:
                             with transaction.atomic():
                                 closure = closure_serializer.save()
-                                closure.document.project.status = "closure_requested"
+                                if kind == "projectclosure" and project_kind and project_kind != "science":
+                                    closure.document.project.status = outcome
+                                else:
+                                    closure.document.project.status = "closure_requested"
                                 closure.document.project.save()
 
                         except Exception as e:
