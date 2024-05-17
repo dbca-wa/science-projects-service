@@ -92,6 +92,25 @@ class ProjectAreaAdmin(admin.ModelAdmin):
     list_filter = ["project__id"]
 
 
+# A function to convert "External Peer" roles to "Consulted Peers" (externalpeer --> consulted)
+@admin.action(description="Convert EXT Peer to Consulted")
+def convert_ext_peer_to_consulted(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    roles_to_convert = [
+        # ProjectMember.RoleChoices.EXTERNALCOL,
+        ProjectMember.RoleChoices.EXTERNALPEER,
+    ]
+    new_role = ProjectMember.RoleChoices.CONSULTED
+
+    # Update the role for all matching users
+    ProjectMember.objects.filter(role__in=roles_to_convert).update(role=new_role)
+    return
+    # all_external_peers = ProjectMember.objects.filter(role__in=roles_to_convert)
+
+
 @admin.register(ProjectMember)
 class ProjectMemberAdmin(admin.ModelAdmin):
     list_display = [
@@ -223,7 +242,7 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         "Set is_leader to True for members who are project owners"
     )
 
-    actions = [set_is_leader_to_true]
+    actions = [set_is_leader_to_true, convert_ext_peer_to_consulted]
 
 
 @admin.register(ProjectDetail)

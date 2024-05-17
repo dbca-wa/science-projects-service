@@ -53,13 +53,12 @@ def export_current_active_project_leads(model_admin, req, selected):
     )
 
     file_content = []
-    # file_location = os.path.dirname(os.path.realpath(__file__)) + "/pls.txt"
+    dbca_users = []
+    other_users = []
     file_content.append(
         "-----------------------------------------------------------\nUnique DBCA Project Leads (Active Projects)\n-----------------------------------------------------------\n"
     )
-    # with open(file_location, "w+") as file:
-    dbca_users = []
-    other_users = []
+
     for leader in unique_active_project_leads:
         print(
             f"handling leader {leader.email} | {leader.first_name} {leader.last_name}"
@@ -70,29 +69,13 @@ def export_current_active_project_leads(model_admin, req, selected):
         else:
             other_users.append(leader)
 
-        # file.write(
-        #     "-----------------------------------------------------------\nUnique DBCA Project Leads (Active Projects)\n-----------------------------------------------------------\n"
-        # )
-        # for user in dbca_users:
-        #     file.write(f"{user.email}\n")
     for user in dbca_users:
         file_content.append(f"{user.email}\n")
 
     file_content.append(
         "\n\n-----------------------------------------------------------\nUnique Non-DBCA Emails of Project Leads (Active Projects)\n-----------------------------------------------------------\n"
     )
-    # file.write(
-    #     "\n\n-----------------------------------------------------------\nUnique Non-DBCA Emails of Project Leads (Active Projects)\n-----------------------------------------------------------\n"
-    # )
-    # for other in other_users:
-    #     projmembers = active_project_leaders.filter(user=other).all()
-    #     file.write(f"User: {other.email} | {other.first_name} {other.last_name}\n")
-    #     for p in projmembers:
-    #         file.write(f"\t-Project: {p.project.title}\n")
-    #         file.write(
-    #             f"\t\tLink: https://scienceprojects.dbca.wa.gov.au/projects/{p.project.pk}\n"
-    #         )
-    #     file.write("\n")
+
     for other in other_users:
         projmembers = active_project_leaders.filter(user=other).all()
         file_content.append(

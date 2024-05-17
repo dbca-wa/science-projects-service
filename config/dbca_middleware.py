@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.backends import ModelBackend
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth import login, logout, get_user_model
+from agencies.models import Agency
 from contacts.models import UserContact
 from django.db import transaction
 from rest_framework.exceptions import ParseError
@@ -31,7 +32,9 @@ class DBCAMiddleware(MiddlewareMixin):
                     last_name=attributemap["last_name"],
                     email=attributemap["email"],
                 )
-                UserWork.objects.create(user=user, agency=1)
+                agency_instance = Agency.objects.get(pk=1)
+                UserWork.objects.create(user=user, agency=agency_instance)
+
                 UserProfile.objects.create(user=user)
                 UserContact.objects.create(user=user)
 

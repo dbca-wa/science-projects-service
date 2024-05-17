@@ -178,7 +178,7 @@ class Project(CommonModel):
         "agencies.BusinessArea",
         null=True,
         blank=True,
-        on_delete=models.SET_NULL
+        on_delete=models.SET_NULL,
         #  related_name='business'
     )
 
@@ -197,13 +197,13 @@ class Project(CommonModel):
     # )
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
-        soup = BeautifulSoup(html_string, 'html.parser')
+        soup = BeautifulSoup(html_string, "html.parser")
 
         # Extract the text content
-        inner_text = soup.get_text(separator=' ', strip=True)
+        inner_text = soup.get_text(separator=" ", strip=True)
 
         return inner_text
-    
+
     def __str__(self) -> str:
         return f"({self.kind.upper()}) {self.extract_inner_text(self.title)}"
 
@@ -217,7 +217,6 @@ class ProjectArea(CommonModel):
     )
     # areas = ArrayField(models.PositiveIntegerField(), default=list)
     areas = ArrayField(models.PositiveIntegerField(), default=list, blank=True)
-
 
     def __str__(self) -> str:
         return f"{self.project} - {', '.join(str(area) for area in self.areas)}"
@@ -247,10 +246,11 @@ class ProjectMember(CommonModel):
         SUPERVISING = ("supervising", "Supervising Scientist")
         RESEARCH = ("research", "Research Scientist")
         TECHNICAL = ("technical", "Technical Officer")
+
         EXTERNALCOL = ("externalcol", "External Collaborator")
+        EXTERNALPEER = ("externalpeer", "External Peer")
         ACADEMICSUPER = ("academicsuper", "Academic Supervisor")
         STUDENT = ("student", "Supervised Student")
-        EXTERNALPEER = ("externalpeer", "External Peer")
         CONSULTED = ("consulted", "Consulted Peer")
         GROUP = ("group", "Involved Group")
 
