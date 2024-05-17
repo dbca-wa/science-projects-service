@@ -7624,7 +7624,7 @@ class ProjectPlanDetail(APIView):
 
     def put(self, req, pk):
         settings.LOGGER.info(
-            msg=f"{req.user} is updating project plan details for {pk}"
+            msg=f"{req.user} is updating project plan details for project plan id: {pk}"
         )
         if (
             "data_management" in req.data

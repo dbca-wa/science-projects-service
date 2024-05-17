@@ -96,7 +96,7 @@ class Logout(APIView):
                 and "HTTP_X_LOGOUT_URL" in req.META
                 and req.META["HTTP_X_LOGOUT_URL"]
             ):
-                print("Logging out")
+                print(f"{req.user} is logging out from views")
                 data = {"ok": "True", "logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
                 # self.save_request_meta_to_file(request.META)
                 logout(req)

@@ -34,7 +34,6 @@ class DBCAMiddleware(MiddlewareMixin):
                 )
                 agency_instance = Agency.objects.get(pk=1)
                 UserWork.objects.create(user=user, agency=agency_instance)
-
                 UserProfile.objects.create(user=user)
                 UserContact.objects.create(user=user)
 
@@ -68,7 +67,7 @@ class DBCAMiddleware(MiddlewareMixin):
             and "HTTP_X_LOGOUT_URL" in request.META
             and request.META["HTTP_X_LOGOUT_URL"]
         ):
-            print("Logging out")
+            settings.LOGGER.info(msg=f"{request.user} is logging out from call")
             # self.save_request_meta_to_file(request.META)
             logout(request)
             data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}

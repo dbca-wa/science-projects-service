@@ -100,7 +100,6 @@ def convert_ext_peer_to_consulted(model_admin, req, selected):
         return
 
     roles_to_convert = [
-        # ProjectMember.RoleChoices.EXTERNALCOL,
         ProjectMember.RoleChoices.EXTERNALPEER,
     ]
     new_role = ProjectMember.RoleChoices.CONSULTED
@@ -108,7 +107,23 @@ def convert_ext_peer_to_consulted(model_admin, req, selected):
     # Update the role for all matching users
     ProjectMember.objects.filter(role__in=roles_to_convert).update(role=new_role)
     return
-    # all_external_peers = ProjectMember.objects.filter(role__in=roles_to_convert)
+
+
+# A function to convert "External Collaborator" roles to "Consulted Peers" (externalcol --> consulted)
+@admin.action(description="Convert EXT Collaborator to Consulted")
+def convert_ext_collaborator_to_consulted(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    roles_to_convert = [
+        ProjectMember.RoleChoices.EXTERNALCOL,
+    ]
+    new_role = ProjectMember.RoleChoices.CONSULTED
+
+    # Update the role for all matching users
+    ProjectMember.objects.filter(role__in=roles_to_convert).update(role=new_role)
+    return
 
 
 @admin.register(ProjectMember)
@@ -242,7 +257,11 @@ class ProjectMemberAdmin(admin.ModelAdmin):
         "Set is_leader to True for members who are project owners"
     )
 
-    actions = [set_is_leader_to_true, convert_ext_peer_to_consulted]
+    actions = [
+        set_is_leader_to_true,
+        convert_ext_peer_to_consulted,
+        convert_ext_collaborator_to_consulted,
+    ]
 
 
 @admin.register(ProjectDetail)
