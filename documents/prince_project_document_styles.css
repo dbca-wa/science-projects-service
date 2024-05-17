@@ -116,6 +116,19 @@ th, td, tr {
     margin-right: 0px;
 }
 
+.project_document_service_h1 {
+    color: rgb(0, 0, 0); 
+    font-size: 16px; 
+    font-weight: 700; 
+    text-align: center; 
+    padding: 0px; 
+    margin-top: 0.5rem; 
+    /* margin-bottom: 30px;  */
+    margin-left: 0px; 
+    margin-right: 0px;
+}
+
+
 .project_document_team_container {
     justify-content: center;
 }

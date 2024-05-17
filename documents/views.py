@@ -7,7 +7,7 @@ import subprocess
 import time
 from bs4 import BeautifulSoup
 from django.shortcuts import render
-from agencies.models import BusinessArea
+from agencies.models import BusinessArea, DepartmentalService
 from communications.models import Comment
 from communications.serializers import (
     TinyCommentCreateSerializer,
@@ -16,7 +16,7 @@ from communications.serializers import (
 from django.core.exceptions import ObjectDoesNotExist
 
 # from config.tasks import generate_pdf
-from projects.models import Project, ProjectMember
+from projects.models import Project, ProjectDetail, ProjectMember
 from django.template.loader import render_to_string
 import html2text
 import base64
@@ -1125,6 +1125,13 @@ class BeginProjectDocGeneration(APIView):
             # print(f"DOC KIND: {kind}\nDOC STRING: {kind_dict[kind]}")
             return kind_dict[kind]
 
+        def get_associated_service(pk):
+            print("projects pk:", pk)
+            details = ProjectDetail.objects.get(project=pk)
+            print(details.__dict__)
+            service = details.service
+            return service
+
         # Concept Plan
         def get_concept_plan_data():
             print("Gettin CP DATA")
@@ -1143,6 +1150,13 @@ class BeginProjectDocGeneration(APIView):
             )
             project_status = concept_plan_data.project.status
             business_area_name = concept_plan_data.project.business_area.name
+
+
+            service = get_associated_service(pk=concept_plan_data.project.pk)
+            if service:
+                departmental_service_name = service.name
+            else:
+                departmental_service_name = "No Dept. Service"
 
             project_team = get_project_team(concept_plan_data.project.pk)
 
@@ -1191,6 +1205,7 @@ class BeginProjectDocGeneration(APIView):
                 "project_title": project_title,
                 "project_status": project_status,
                 "business_area_name": business_area_name,
+                "departmental_service_name": departmental_service_name,
                 "project_team": tuple(project_team),
                 "project_image": project_image,
                 "now": now,
@@ -1224,6 +1239,14 @@ class BeginProjectDocGeneration(APIView):
             )
             project_status = project_plan_data.project.status
             business_area_name = project_plan_data.project.business_area.name
+            service = get_associated_service(pk=project_plan_data.project.pk)
+            if service:
+                departmental_service_name = service.name
+            else:
+                departmental_service_name = "No Dept. Service"
+
+
+
 
             project_team = get_project_team(project_plan_data.project.pk)
 
@@ -1288,7 +1311,11 @@ class BeginProjectDocGeneration(APIView):
             main_document_pk = project_plan_data.document.pk
             project_pk = project_plan_data.project.pk
 
+
+
+
             return {
+                "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
@@ -1383,7 +1410,14 @@ class BeginProjectDocGeneration(APIView):
             main_document_pk = progress_report_data.document.pk
             project_pk = progress_report_data.project.pk
 
+            service = get_associated_service(pk=project_pk)
+            if service:
+                departmental_service_name = service.name
+            else:
+                departmental_service_name = "No Dept. Service"
+
             return {
+                "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
@@ -1412,7 +1446,9 @@ class BeginProjectDocGeneration(APIView):
 
         # Student Report
         def get_student_report_data():
+            # doc pk is used (document=pk)
             student_report_data = self.get_student_report(pk=pk)
+            print(student_report_data.__dict__)
             project_kind, project_kind_tag = return_proj_type_tag(
                 document=student_report_data.document
             )
@@ -1429,6 +1465,17 @@ class BeginProjectDocGeneration(APIView):
             )
             project_status = student_report_data.project.status
             business_area_name = student_report_data.project.business_area.name
+
+            project_id = student_report_data.document.project_id
+            service = get_associated_service(pk=project_id)
+
+            if service:
+                departmental_service_name = service.name
+            else:
+                departmental_service_name = "No Dept. Service"
+            # print(f"SERVICE: {departmental_service_name}")
+
+
 
             project_team = get_project_team(student_report_data.project.pk)
 
@@ -1466,7 +1513,10 @@ class BeginProjectDocGeneration(APIView):
             main_document_pk = student_report_data.document.pk
             project_pk = student_report_data.project.pk
 
+
+
             return {
+                "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
@@ -1550,7 +1600,15 @@ class BeginProjectDocGeneration(APIView):
             main_document_pk = project_closure_data.document.pk
             project_pk = project_closure_data.project.pk
 
+            service = get_associated_service(pk=project_pk)
+            if service:
+                departmental_service_name = service.name
+            else:
+                departmental_service_name = "No Dept. Service"
+
+
             return {
+                "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
@@ -1655,6 +1713,7 @@ class BeginProjectDocGeneration(APIView):
                     "project_title": get_inner_html(doc_data["project_title"], "h1"),
                     "project_tag": doc_data["document_tag"],
                     "business_area_name": doc_data["business_area_name"],
+                    "departmental_service_name": doc_data["departmental_service_name"],
                     "project_status": doc_data["project_status"],
                     "team_as_string": ", ".join(map(str, doc_data["project_team"])),
                     "project_lead_approval": doc_data["project_lead_approval_granted"],
@@ -1710,6 +1769,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "departmental_service_name": doc_data["departmental_service_name"],
                     # Styles & url
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
@@ -1813,6 +1873,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "departmental_service_name": doc_data["departmental_service_name"],
                     "financial_year_string": doc_data["financial_year_string"],
                     # Styles & url
                     "rte_css_path": rte_css_path,
@@ -1880,6 +1941,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "departmental_service_name": doc_data["departmental_service_name"],
                     "financial_year_string": doc_data["financial_year_string"],
                     # Styles & url
                     "rte_css_path": rte_css_path,
@@ -1931,6 +1993,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "departmental_service_name": doc_data["departmental_service_name"],
                     # Styles & url
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
