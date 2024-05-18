@@ -58,20 +58,20 @@ class DBCAMiddleware(MiddlewareMixin):
         ):
             return self.get_response(request)
 
-        if (
-            (
-                request.path.startswith("/logout")
-                or request.path.startswith("/api/v1/users/log-out")
-                or request.path.startswith("/api/v1/users/logout")
-            )
-            and "HTTP_X_LOGOUT_URL" in request.META
-            and request.META["HTTP_X_LOGOUT_URL"]
-        ):
-            settings.LOGGER.info(msg=f"{request.user} is logging out from call")
-            # self.save_request_meta_to_file(request.META)
-            logout(request)
-            data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
-            return HttpResponse(data, HTTP_200_OK)
+        # if (
+        #     (
+        #         request.path.startswith("/logout")
+        #         or request.path.startswith("/api/v1/users/log-out")
+        #         or request.path.startswith("/api/v1/users/logout")
+        #     )
+        #     and "HTTP_X_LOGOUT_URL" in request.META
+        #     and request.META["HTTP_X_LOGOUT_URL"]
+        # ):
+        #     settings.LOGGER.info(msg=f"{request.user} is logging out from call")
+        #     # self.save_request_meta_to_file(request.META)
+        #     logout(request)
+        #     data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
+        #     return HttpResponse(data, HTTP_200_OK)
 
         user_auth = request.user.is_authenticated
         if not user_auth:
