@@ -87,20 +87,25 @@ class Logout(APIView):
             logout(req)
             return Response({"ok": "True"})
         else:
-            if (
-                (
-                    req.path.startswith("/logout")
-                    or req.path.startswith("/api/v1/users/log-out")
-                    or req.path.startswith("/api/v1/users/logout")
-                )
-                and "HTTP_X_LOGOUT_URL" in req.META
-                and req.META["HTTP_X_LOGOUT_URL"]
-            ):
-                print(f"{req.user} is logging out from views")
-                data = {"ok": "True", "logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
-                # self.save_request_meta_to_file(request.META)
+            if "HTTP_X_LOGOUT_URL" in req.META and req.META["HTTP_X_LOGOUT_URL"]:
+                settings.LOGGER.info(msg=f"{req.user} is logging out...")
                 logout(req)
+                data = {"logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
                 return Response(data, HTTP_200_OK)
+            # if (
+            #     (
+            #         req.path.startswith("/logout")
+            #         or req.path.startswith("/api/v1/users/log-out")
+            #         or req.path.startswith("/api/v1/users/logout")
+            #     )
+            #     and "HTTP_X_LOGOUT_URL" in req.META
+            #     and req.META["HTTP_X_LOGOUT_URL"]
+            # ):
+            #     print(f"{req.user} is logging out from views")
+            #     data = {"ok": "True", "logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
+            #     # self.save_request_meta_to_file(request.META)
+            #     logout(req)
+            #     return Response(data, HTTP_200_OK)
 
 
 class ChangePassword(APIView):
