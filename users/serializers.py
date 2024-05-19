@@ -33,6 +33,20 @@ class PrivateTinyUserSerializer(serializers.ModelSerializer):
         ]
 
 
+class MiniUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "is_active",
+            "is_superuser",
+        )
+
+
 class TinyUserSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source="work.role")
     branch = TinyBranchSerializer(source="work.branch")

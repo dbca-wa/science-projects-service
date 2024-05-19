@@ -24,6 +24,81 @@ class AdminOptions(CommonModel):
         related_name="admin",
     )
 
+    # ADMIN
+    guide_admin = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for admin",
+    )
+
+    # ABOUT
+    guide_about = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for about",
+    )
+
+    # LOGIN
+    guide_login = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for login",
+    )
+
+    # PROFILE
+    guide_profile = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for profile",
+    )
+
+    # USERS
+    guide_user_creation = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for user creation",
+    )
+
+    guide_user_view = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for viewing users",
+    )
+
+    # PROJECTS
+    guide_project_creation = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for project creation",
+    )
+
+    guide_project_view = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for viewing projects",
+    )
+
+    # TEAM
+    guide_project_team = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for project teams",
+    )
+
+    # DOCUMENTS
+    guide_documents = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for project documents",
+    )
+
+    # ANNUAL REPORT
+    guide_report = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Provide RTE data to be displayed on the guide for annual report",
+    )
+
     def clean(self):
         # Ensure only one instance of AdminOptions exists
         if AdminOptions.objects.exists() and self.pk is None:

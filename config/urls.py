@@ -34,7 +34,7 @@ urlpatterns = [
     path("api/v1/quotes/", include("quotes.urls")),
     path("api/v1/locations/", include("locations.urls")),
     path("api/v1/tasks/", include("tasks.urls")),
-    path("api/v1/admin/", include("adminoptions.urls")),
+    path("api/v1/adminoptions/", include("adminoptions.urls")),
     re_path(r"^files/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ] + static(
     settings.MEDIA_URL,

@@ -91,7 +91,7 @@ class Logout(APIView):
                 settings.LOGGER.info(msg=f"{req.user} is logging out...")
                 logout(req)
                 data = {"logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
-                return Response(data, HTTP_200_OK)
+                return Response(data=data, status=HTTP_200_OK)
             # if (
             #     (
             #         req.path.startswith("/logout")
