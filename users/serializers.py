@@ -52,6 +52,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
     branch = TinyBranchSerializer(source="work.branch")
     business_area = TinyBusinessAreaSerializer(source="work.business_area")
     image = UserAvatarSerializer(source="profile.image")
+    affiliation = AffiliationSerializer(source="work.affiliation")
 
     class Meta:
         model = User
@@ -71,7 +72,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "role",
             "branch",
             "business_area",
-            # affiliation,
+            "affiliation",
         )
 
 

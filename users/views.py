@@ -957,7 +957,35 @@ class UpdateMembership(APIView):
                     status=HTTP_400_BAD_REQUEST,
                 )
         else:
+            data_obj = {}
+            affiliation_pk = (
+                int(req.data.get("affiliation")) if req.data.get("affiliation") else 0
+            )
+            if affiliation_pk != 0:
+                data_obj["affiliation"] = affiliation_pk
+
+            ser = UpdateMembershipSerializer(
+                user_work,
+                data=data_obj,
+                partial=True,
+            )
+            if ser.is_valid():
+                updated = ser.save()
+                serialized = UpdateMembershipSerializer(updated).data
+                print(serialized)
+                return Response(
+                    serialized,
+                    status=HTTP_202_ACCEPTED,
+                )
+            else:
+                settings.LOGGER.error(msg=f"{ser.errors}")
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
             settings.LOGGER.warning(msg=f"This user is not staff")
+
             return Response(
                 "This user is not staff",
                 status=HTTP_200_OK,
