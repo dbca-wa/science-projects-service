@@ -179,7 +179,7 @@ class UserProfile(CommonModel):
         blank=True,
     )
     expertise = models.CharField(
-        max_length=140,
+        max_length=2000,
         null=True,
         blank=True,
     )
