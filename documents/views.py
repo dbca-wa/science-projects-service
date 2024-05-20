@@ -3372,6 +3372,84 @@ class DocumentApprovedEmail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+
+class SendProjectLeadEmail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, req):
+        settings.LOGGER.info(
+                msg=f"{req.user} is requesting active project lead emails to send a message to"
+            )  
+        active_project_leaders = ProjectMember.objects.filter(
+                    is_leader=True, project__status="active"
+                    ).all()
+        unique_active_project_leads = list(
+                set(
+                    lead_member_object.user
+                    for lead_member_object in active_project_leaders
+                    if lead_member_object.user.is_active
+                )
+            )
+
+        file_content = []
+        dbca_users = []
+        dbca_emails = []
+        other_users = []
+        file_content.append(
+            "-----------------------------------------------------------\nUnique DBCA Project Leads (Active Projects)\n-----------------------------------------------------------\n"
+        )
+
+        for leader in unique_active_project_leads:
+            print(
+                f"handling leader {leader.email} | {leader.first_name} {leader.last_name}"
+            )
+            if leader.email.endswith("dbca.wa.gov.au"):
+                dbca_users.append(leader)
+
+            else:
+                other_users.append(leader)
+
+        for user in dbca_users:
+            file_content.append(f"{user.email}\n")
+            dbca_emails.append(user.email)
+
+        file_content.append(
+            "\n\n-----------------------------------------------------------\nUnique Non-DBCA Emails of Project Leads (Active Projects)\n-----------------------------------------------------------\n"
+        )
+
+        for other in other_users:
+            projmembers = active_project_leaders.filter(user=other).all()
+            file_content.append(
+                f"User: {other.email} | {other.first_name} {other.last_name}\nProjects:\n"
+            )
+            for p in projmembers:
+                file_content.append(
+                    f"\t-Link: https://scienceprojects.dbca.wa.gov.au/projects/{p.project.pk}\n"
+                )
+                file_content.append(f"\t-Project: {p.project.title}\n\n")
+
+            file_content.append("\n")
+
+        return_data = {
+            "file_content": file_content,
+            "unique_dbca_emails_list": dbca_emails,
+        }
+
+        return Response(
+            data=return_data,
+            status=HTTP_200_OK,
+        )
+
+        # response = HttpResponse(
+        #     content_type="text/plain",
+        #     content="".join(file_content),
+        # )
+        # response["Content-Disposition"] = 'attachment; filename="active_project_leads.txt"'
+
+        # return response
+
+
+
 class FeedbackReceivedEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
