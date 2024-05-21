@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from medias.models import BusinessAreaPhoto
+from users.models import User
 
 # from users.serializers import TinyUserSerializer
 from .models import (
@@ -79,10 +80,18 @@ class BranchSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class UserPkOnly(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("pk",)
+
+
 class MiniBASerializer(serializers.ModelSerializer):
+    leader = UserPkOnly()
+
     class Meta:
         model = BusinessArea
-        fields = ["pk", "name"]
+        fields = ["pk", "name", "leader"]
 
 
 class BusinessAreaSerializer(serializers.ModelSerializer):

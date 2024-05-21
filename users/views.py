@@ -708,6 +708,21 @@ class SwitchAdmin(APIView):
         )
 
 
+class RemoveAvatar(APIView):
+    def go(self, pk):
+        pass
+
+    def post(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is deleting avatar for user with pk {pk}")
+        avatar_exists = UserAvatar.objects.filter(user=pk).first()
+        if avatar_exists:
+            avatar_exists.delete()
+
+        return Response(
+            HTTP_204_NO_CONTENT,
+        )
+
+
 class UpdateProfile(APIView):
     def go(self, pk):
         try:
