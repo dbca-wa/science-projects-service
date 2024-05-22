@@ -3425,7 +3425,7 @@ class SendProjectLeadEmail(APIView):
             )
             for p in projmembers:
                 file_content.append(
-                    f"\t-Link: https://scienceprojects.dbca.wa.gov.au/projects/{p.project.pk}\n"
+                    f"\t-Link: {settings.SITE_URL}/projects/{p.project.pk}\n"
                 )
                 file_content.append(f"\t-Project: {p.project.title}\n\n")
 
