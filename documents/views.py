@@ -3373,6 +3373,181 @@ class DocumentApprovedEmail(APIView):
             )
 
 
+class SendProjectLeadEmail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, req):
+        settings.LOGGER.info(
+                msg=f"{req.user} is requesting active project lead emails to send a message to"
+            )  
+        states = ["active", "suspended", "update_requested"]
+        active_project_leaders = ProjectMember.objects.filter(
+                    is_leader=True, project__status__in=states
+                    ).all()
+        unique_active_project_leads = list(
+                set(
+                    lead_member_object.user
+                    for lead_member_object in active_project_leaders
+                    if lead_member_object.user.is_active
+                )
+            )
+
+        file_content = []
+        dbca_users = []
+        dbca_emails = []
+        other_users = []
+        file_content.append(
+            "-------------------------------------------------------------------------------------\nUnique DBCA Project Leads (Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+        )
+
+        for leader in unique_active_project_leads:
+            print(
+                f"handling leader {leader.email} | {leader.first_name} {leader.last_name}"
+            )
+            if leader.email.endswith("dbca.wa.gov.au"):
+                dbca_users.append(leader)
+
+            else:
+                other_users.append(leader)
+
+        for user in dbca_users:
+            file_content.append(f"{user.email}\n")
+            dbca_emails.append(user.email)
+
+        file_content.append(
+            "\n\n-------------------------------------------------------------------------------------\nUnique Non-DBCA Emails of Project Leads (Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+        )
+
+        for other in other_users:
+            projmembers = active_project_leaders.filter(user=other).all()
+            file_content.append(
+                f"User: {other.email} | {other.first_name} {other.last_name}\nProjects:\n"
+            )
+            for p in projmembers:
+                file_content.append(
+                    f"\t-Link: https://scienceprojects.dbca.wa.gov.au/projects/{p.project.pk}\n"
+                )
+                file_content.append(f"\t-Project: {p.project.title}\n\n")
+
+            file_content.append("\n")
+
+        return_data = {
+            "file_content": file_content,
+            "unique_dbca_emails_list": dbca_emails,
+        }
+        settings.LOGGER.warning(
+                msg=f"{req.user} has been sent the email list"
+        )  
+        return Response(
+            data=return_data,
+            status=HTTP_200_OK,
+        )
+
+        # response = HttpResponse(
+        #     content_type="text/plain",
+        #     content="".join(file_content),
+        # )
+        # response["Content-Disposition"] = 'attachment; filename="active_project_leads.txt"'
+
+        # return response
+
+
+
+class FeedbackReceivedEmail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (Feedback Received) for users {req.data['recipients_list']}"
+        )
+        from_email = settings.DEFAULT_FROM_EMAIL
+        templ = "./email_templates/feedback_received_email.html"
+        recipients_list_data = req.data["recipients_list"]  # list of user pks
+        recipients_list = []
+        for recipient_pk in recipients_list_data:
+            user = User.objects.get(pk=recipient_pk)
+            user_name = f"{user.first_name} {user.last_name}"
+            user_email = f"{user.email}"
+            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
+            recipients_list.append(data_obj)
+
+        processed = []
+        for recipient in recipients_list:
+            if recipient["pk"] not in processed:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                    # if recipient["pk"] == 101073:
+                    email_subject = f"SPMS: Feedback Received"
+                    to_email = [recipient["email"]]
+
+                    template_props = {
+                        "email_subject": email_subject,
+                        "recipient_name": recipient["name"],
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                    }
+
+                    template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_mail(
+                            email_subject,
+                            template_content,  # plain text
+                            from_email,
+                            to_email,
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
+                    if recipient["pk"] == 101073:
+                        email_subject = f"SPMS: Feedback Received"
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                processed.append(recipient["pk"])
+        
+        return Response(
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+
 class DocumentRecalledEmail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
@@ -4965,6 +5140,7 @@ class NewCycleOpen(APIView):
     def post(self, req):
         print(req.data)
         should_update = req.data["update"]
+        should_prepopulate = req.data["prepopulate"]
         should_email = req.data["send_emails"]
         settings.LOGGER.warning(
             msg=f"{req.user} is attempting to batch create new progress reports for latest year {'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}..."
@@ -4993,7 +5169,7 @@ class NewCycleOpen(APIView):
                         # Project.CategoryKindChoices.STUDENT,
                     ]
                 )
-                & Q(status__in=["active", "updating"])
+                & Q(status__in=["active", "updating", "suspended"])
             )
         else:
             eligible_projects = Project.objects.filter(
@@ -5013,7 +5189,7 @@ class NewCycleOpen(APIView):
 
         if should_update:
             eligible_student_projects = Project.objects.filter(
-                Q(status__in=["active", "updating"])
+                Q(status__in=["active", "updating", "suspended"])
                 & Q(kind__in=[Project.CategoryKindChoices.STUDENT])
             )
         else:
@@ -5056,20 +5232,55 @@ class NewCycleOpen(APIView):
                             year=last_report.year, project=project.pk
                         ).exists()
 
+                        # Check if a progress report for the latest year somehow exists
                         if not exists:
+                            if not should_prepopulate:
+                                progress_report_data = {
+                                    "document": doc.pk,
+                                    "project": project.pk,
+                                    "report": last_report.pk,
+                                    "project": project.pk,
+                                    "year": last_report.year,
+                                    "context": "<p></p>",
+                                    "implications": "<p></p>",
+                                    "future": "<p></p>",
+                                    "progress": "<p></p>",
+                                    "aims": "<p></p>",
+                                }
+                            else:
+                                # PREPOPULATE WITH LAST YEARS DATA
+                                try:
+                                    last_one = ProgressReport.objects.filter(project=project.pk).order_by('-year').first()
+                                except ProgressReport.DoesNotExist:
+                                    last_one = None
+                                if last_one != None:
+                                    progress_report_data = {
+                                        "document": doc.pk,
+                                        "project": project.pk,
+                                        "report": last_report.pk,
+                                        "project": project.pk,
+                                        "year": last_report.year,
+                                        "context": last_one.context,
+                                        "implications": last_one.implications,
+                                        "future": last_one.future,
+                                        "progress": last_one.progress,
+                                        "aims": last_one.aims,
+                                    }
+                                    # If no prior report
+                                else:
+                                    progress_report_data = {
+                                        "document": doc.pk,
+                                        "project": project.pk,
+                                        "report": last_report.pk,
+                                        "project": project.pk,
+                                        "year": last_report.year,
+                                        "context": "<p></p>",
+                                        "implications": "<p></p>",
+                                        "future": "<p></p>",
+                                        "progress": "<p></p>",
+                                        "aims": "<p></p>",
+                                    }
 
-                            progress_report_data = {
-                                "document": doc.pk,
-                                "project": project.pk,
-                                "report": last_report.pk,
-                                "project": project.pk,
-                                "year": last_report.year,
-                                "context": "<p></p>",
-                                "implications": "<p></p>",
-                                "future": "<p></p>",
-                                "progress": "<p></p>",
-                                "aims": "<p></p>",
-                            }
 
                             progress_report = ProgressReportCreateSerializer(
                                 data=progress_report_data
@@ -5094,15 +5305,41 @@ class NewCycleOpen(APIView):
                             year=last_report.year, project=project.pk
                         ).exists()
 
+                        # Check if student report somehow already exists
                         if not exists:
-                            student_report_data = {
-                                "document": doc.pk,
-                                "project": project.pk,
-                                "report": last_report.pk,
-                                "project": project.pk,
-                                "year": last_report.year,
-                                "progress_report": "<p></p>",
-                            }
+                            if not should_prepopulate:
+                                student_report_data = {
+                                    "document": doc.pk,
+                                    "project": project.pk,
+                                    "report": last_report.pk,
+                                    "project": project.pk,
+                                    "year": last_report.year,
+                                    "progress_report": "<p></p>",
+                                }
+                            else:
+                                # PREPOPULATE WITH LAST YEARS DATA
+                                try:
+                                    last_one = StudentReport.objects.filter(project=project.pk).order_by('-year').first()
+                                except StudentReport.DoesNotExist:
+                                    last_one = None
+                                if last_one != None:
+                                    student_report_data = {
+                                        "document": doc.pk,
+                                        "project": project.pk,
+                                        "report": last_report.pk,
+                                        "project": project.pk,
+                                        "year": last_report.year,
+                                        "progress_report": last_one.progress_report,
+                                    }
+                                else:
+                                    student_report_data = {
+                                        "document": doc.pk,
+                                        "project": project.pk,
+                                        "report": last_report.pk,
+                                        "project": project.pk,
+                                        "year": last_report.year,
+                                        "progress_report": "<p></p>",
+                                    }
 
                             student_report = StudentReportCreateSerializer(
                                 data=student_report_data

@@ -91,7 +91,7 @@ class Logout(APIView):
                 settings.LOGGER.info(msg=f"{req.user} is logging out...")
                 logout(req)
                 data = {"logoutUrl": req.META["HTTP_X_LOGOUT_URL"]}
-                return Response(data, HTTP_200_OK)
+                return Response(data=data, status=HTTP_200_OK)
             # if (
             #     (
             #         req.path.startswith("/logout")
@@ -708,6 +708,21 @@ class SwitchAdmin(APIView):
         )
 
 
+class RemoveAvatar(APIView):
+    def go(self, pk):
+        pass
+
+    def post(self, req, pk):
+        settings.LOGGER.info(msg=f"{req.user} is deleting avatar for user with pk {pk}")
+        avatar_exists = UserAvatar.objects.filter(user=pk).first()
+        if avatar_exists:
+            avatar_exists.delete()
+
+        return Response(
+            HTTP_204_NO_CONTENT,
+        )
+
+
 class UpdateProfile(APIView):
     def go(self, pk):
         try:
@@ -957,7 +972,35 @@ class UpdateMembership(APIView):
                     status=HTTP_400_BAD_REQUEST,
                 )
         else:
+            data_obj = {}
+            affiliation_pk = (
+                int(req.data.get("affiliation")) if req.data.get("affiliation") else 0
+            )
+            if affiliation_pk != 0:
+                data_obj["affiliation"] = affiliation_pk
+
+            ser = UpdateMembershipSerializer(
+                user_work,
+                data=data_obj,
+                partial=True,
+            )
+            if ser.is_valid():
+                updated = ser.save()
+                serialized = UpdateMembershipSerializer(updated).data
+                print(serialized)
+                return Response(
+                    serialized,
+                    status=HTTP_202_ACCEPTED,
+                )
+            else:
+                settings.LOGGER.error(msg=f"{ser.errors}")
+                return Response(
+                    ser.errors,
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
             settings.LOGGER.warning(msg=f"This user is not staff")
+
             return Response(
                 "This user is not staff",
                 status=HTTP_200_OK,

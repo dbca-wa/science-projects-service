@@ -16,6 +16,7 @@ urlpatterns = [
     path("<int:pk>/pi", views.UpdatePersonalInformation.as_view()),
     path("<int:pk>/profile", views.UpdateProfile.as_view()),
     path("<int:pk>/membership", views.UpdateMembership.as_view()),
+    path("<int:pk>/remove_avatar", views.RemoveAvatar.as_view()),
     path("check-email-exists", views.CheckEmailExists.as_view()),
     path("check-name-exists", views.CheckNameExists.as_view()),
     # path("profiles", views.UserProfile)

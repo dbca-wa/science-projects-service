@@ -1252,6 +1252,35 @@ class Projects(APIView):
             )
 
 
+class SuspendProject(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        proj = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is trying to suspend a project (pk {pk}): \n{proj.title}"
+        )
+        try:
+            current_status = proj.status
+            if current_status != Project.StatusChoices.SUSPENDED:
+                proj.status = Project.StatusChoices.SUSPENDED
+            else:
+                proj.status = Project.StatusChoices.ACTIVE
+            proj.save()
+            return Response(
+                data={"ok": "Project Suspension updated"}, status=HTTP_202_ACCEPTED
+            )
+        except Exception as e:
+            return Response(data={"error": f"{e}"}, status=HTTP_400_BAD_REQUEST)
+
+
 class ProjectDetails(APIView):
     def go(self, pk):
         try:
