@@ -4,6 +4,14 @@ from rest_framework import serializers
 from users.serializers import MiniUserSerializer
 
 
+class AdminOptionsMaintainerSerializer(serializers.ModelSerializer):
+    maintainer = MiniUserSerializer()
+
+    class Meta:
+        model = AdminOptions
+        fields = ["maintainer"]
+
+
 class AdminOptionsSerializer(serializers.ModelSerializer):
     maintainer = MiniUserSerializer()
 

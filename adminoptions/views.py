@@ -22,7 +22,10 @@ from django.utils import timezone
 from django.db.models import Q
 
 from adminoptions.models import AdminOptions
-from adminoptions.serializers import AdminOptionsSerializer
+from adminoptions.serializers import (
+    AdminOptionsMaintainerSerializer,
+    AdminOptionsSerializer,
+)
 
 
 class AdminControls(APIView):
@@ -56,6 +59,26 @@ class AdminControls(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class GetMaintainer(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = AdminOptions.objects.get(pk=pk)
+        except AdminOptions.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting maintainer")
+        AdminControl = self.go(1)
+        ser = AdminOptionsMaintainerSerializer(AdminControl)
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
 
 
 class AdminControlsDetail(APIView):
