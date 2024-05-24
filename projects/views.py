@@ -23,7 +23,7 @@ from django.db import IntegrityError, transaction
 from django.conf import settings
 from django.utils import timezone
 from math import ceil
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, F
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -2131,14 +2131,35 @@ class PromoteToLeader(APIView):
 
         # Set is_leader to False for all members in the team
         try:
-            team.update(is_leader=False)
+
+            team.update(
+                is_leader=False,
+            )
+
+            # Get the IDs of team members with role "supervising" and associated users with is_staff=True
+            staff_ids = team.filter(
+                role="supervising", user__is_staff=True
+            ).values_list("id", flat=True)
+            # Get the IDs of team members with role "supervising" and associated users with is_staff=False
+            non_staff_ids = team.filter(
+                role="supervising", user__is_staff=False
+            ).values_list("id", flat=True)
+
+            team.filter(id__in=non_staff_ids).update(role="consulted")
+            team.filter(id__in=staff_ids).update(role="research")
+
+            # team.filter(role="supervising").update(role="research")
+
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
 
         # Create a serializer instance with the data and set is_leader=True
         ser = ProjectMemberSerializer(
             user_to_become_leader_obj,
-            data={"is_leader": True},  # Include is_leader=True in the data
+            data={
+                "is_leader": True,
+                "role": "supervising",
+            },  # Include is_leader=True in the data
             partial=True,
         )
         if ser.is_valid():
