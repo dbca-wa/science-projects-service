@@ -6,6 +6,11 @@ register = template.Library()
 
 
 @register.filter
+def replace_backslashes(value):
+    return value.replace("\\", "/")
+
+
+@register.filter
 def filter_by_project_kind(reports, kind):
     return [
         item

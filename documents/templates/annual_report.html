@@ -304,6 +304,17 @@
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
             }
+            @top-left {
+                z-index: 2;
+                content: ""; 
+                background-image: url("{{dbca_cropped_image_path|replace_backslashes}}"); 
+                background-size: contain; 
+                background-repeat: no-repeat; 
+                background-position: center; 
+                height: 100%;
+                width: 30%;
+                margin-top: 0.7cm;
+            }
         }
 
         @page ba_pages:right,
@@ -333,7 +344,18 @@
                 margin-top: 1cm;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
-            }           
+            }         
+            @top-right {
+                z-index: 2;
+                content: ""; 
+                background-image: url("{{dbca_cropped_image_path|replace_backslashes}}"); 
+                background-size: contain; 
+                background-repeat: no-repeat; 
+                background-position: center; 
+                height: 100%;
+                width: 30%;
+                margin-top: 0.7cm;
+            }  
         }
 
         @page ba_pages:first,
@@ -369,6 +391,7 @@
 
     </style>
 </head>
+{% comment %} <div class="top-left-image"><img src="{{ dbca_image_path }}" alt="Top Left Image"></div> {% endcomment %}
 
 <script>
 
@@ -529,6 +552,7 @@
             <p>Generated {{time_generated}}</p>
             <p>Template populated in {{population_time}} seconds</p>
             <p>Site URL: {{site_url}}</p>
+            <p>Image URL: {{dbca_image_path}}</p>
         </div>
     </div>
 

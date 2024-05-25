@@ -491,7 +491,7 @@ class Projects(APIView):
         # research_function = data.get("researchFunction")
         departmental_service = data.get("departmentalService")
         data_custodian = data.get("dataCustodian")
-        supervising_scientist = data.get("supervisingScientist")
+        project_leader = data.get("projectLead")
 
         start_date_str = data.get("startDate")
         end_date_str = data.get("endDate")
@@ -587,9 +587,9 @@ class Projects(APIView):
                 # Create an entry for project members
                 project_member_data_object = {
                     "project": project_id,
-                    "user": int(supervising_scientist),
+                    "user": int(project_leader),
                     "is_leader": True,
-                    "role": "supervising" if kind == "student" else "research",
+                    "role": "supervising",  # if kind == "student" else "research"
                     "old_id": 1,
                 }
                 project_member_ser = ProjectMemberSerializer(

@@ -27,6 +27,15 @@
     prince-page-group: start
 }
 
+.top-left-image {
+    position: absolute;
+    top: 10px; /* Adjust as needed */
+    left: 10px; /* Adjust as needed */
+    max-height: 100px; /* Adjust as needed */
+    max-width: 100px; /* Adjust as needed */
+    object-fit: contain;
+}
+
 /* For setting the page counter */
 .main_pages {
     page: main_pages;

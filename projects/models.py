@@ -243,9 +243,9 @@ class ProjectArea(CommonModel):
 # DONE
 class ProjectMember(CommonModel):
     class RoleChoices(models.TextChoices):
-        SUPERVISING = ("supervising", "Supervising Scientist")
-        RESEARCH = ("research", "Research Scientist")
-        TECHNICAL = ("technical", "Technical Officer")
+        SUPERVISING = ("supervising", "Project Leader")
+        RESEARCH = ("research", "Science Support")
+        TECHNICAL = ("technical", "Technical Support")
 
         EXTERNALCOL = ("externalcol", "External Collaborator")
         EXTERNALPEER = ("externalpeer", "External Peer")
