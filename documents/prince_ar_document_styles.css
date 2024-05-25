@@ -27,14 +27,8 @@
     prince-page-group: start
 }
 
-.top-left-image {
-    position: absolute;
-    top: 10px; /* Adjust as needed */
-    left: 10px; /* Adjust as needed */
-    max-height: 100px; /* Adjust as needed */
-    max-width: 100px; /* Adjust as needed */
-    object-fit: contain;
-}
+
+
 
 /* For setting the page counter */
 .main_pages {
@@ -513,6 +507,7 @@ ul li {
     max-height: 162px;
     border-radius: 8px;
     overflow: hidden;
+    position: "relative";
 }
 
 .pr_img_container_rhs {
@@ -522,6 +517,24 @@ ul li {
     max-height: 162px;
     border-radius: 8px;
     overflow: hidden;
+    position: "relative";
+}
+
+.pr_image_placeholder {
+    /* position: absolute; */
+    top: 0;
+    left: 0;
+    width: 100%; /* Fill the width of the container */
+    height: 100%; /* Fill the height of the container */
+    background-color: red; /* Red color for placeholder */
+    object-fit: cover;
+}
+
+.no_data_table_placeholder {
+    background-color: red; /* Background color */
+    color: white; /* Text color */
+    font-style: italic; /* Italicize the text */
+    /* Add any additional styling as needed */
 }
 
 .pr_image {

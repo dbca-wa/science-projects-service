@@ -674,10 +674,11 @@
                                     {% if not forloop.counter|divisibleby:2 %}
 
                                     <div class="pr_img_container_lhs">
-                                        <img class="pr_image"
-                                            alt="{{report.document.project.title}} Image"
-                                            src="{{server_url}}{{report.document.project.image.file}}"
-                                        />
+                                        {% if report.document.project.image.file %}
+                                            <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
+                                        {% else %}
+                                            <div class="pr_image_placeholder"></div>
+                                        {% endif %}
                                     </div>
                                     <div class="pr_data_rhs">
                                     {% else %}
@@ -697,10 +698,14 @@
                                     </div>
                                     {% if forloop.counter|divisibleby:2 %}
                                         <div class="pr_img_container_rhs">
-                                            <img class="pr_image"
+                                            {% if report.document.project.image.file %}
+                                                <img class="pr_image"
                                                 alt="{{report.document.project.title}} Image"
                                                 src="{{server_url}}{{report.document.project.image.file}}"
                                             />
+                                            {% else %}
+                                                <div class="pr_image_placeholder"></div>
+                                            {% endif %}
                                         </div>
                                     {% endif %}
                                     <div class="pr_top_filler">
@@ -804,8 +809,16 @@
                                     {% for project in sorted_external_project_data %}
                                         <tr class="ext_table_tr">
                                             <td class="ext_project_title_td ext_table_td">{{project.title | safe}}</td>
-                                            <td class="partners_td ext_table_td">{{project.partners}}</td>
-                                            <td class="funding_td ext_table_td">{{project.funding}}</td>
+                                            <td class="partners_td ext_table_td">{% if project.partners %}
+                                                {{ project.partners }}
+                                            {% else %}
+                                                <div class="no_data_table_placeholder">No partners set</div>
+                                            {% endif %}</td>
+                                            <td class="funding_td ext_table_td">{% if project.funding %}
+                                                {{ project.funding }}
+                                            {% else %}
+                                                <div class="no_data_table_placeholder">No funding set</div>
+                                            {% endif %}</td>
                                             <td class="dept_involvement_td ext_table_td">{% with members=project.team_members|is_staff_filter %}{% for member in members %}{% if not forloop.first %}, {% endif %}{{ member.user.first_name }} {{ member.user.last_name }}{% endfor %}{% endwith %}</td>
                                         </tr>
                                     {% endfor %}
@@ -889,12 +902,12 @@
                         <div class="progress_report_container">
                             <div class="progress_report_top_container">
                                 {% if not forloop.counter|divisibleby:2 %}
-
                                 <div class="pr_img_container_lhs">
-                                    <img class="pr_image"
-                                        alt="{{report.document.project.title}} Image"
-                                        src="{{server_url}}{{report.document.project.image.file}}"
-                                    />
+                                    {% if report.document.project.image.file %}
+                                        <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
+                                    {% else %}
+                                        <div class="pr_image_placeholder"></div>
+                                    {% endif %}
                                 </div>
                                 <div class="pr_data_rhs">
                                 {% else %}
@@ -928,10 +941,14 @@
                                 </div>
                                 {% if forloop.counter|divisibleby:2 %}
                                 <div class="pr_img_container_rhs">
-                                    <img class="pr_image"
+                                    {% if report.document.project.image.file %}
+                                        <img class="pr_image"
                                         alt="{{report.document.project.title}} Image"
                                         src="{{server_url}}{{report.document.project.image.file}}"
                                     />
+                                    {% else %}
+                                        <div class="pr_image_placeholder"></div>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
                                 <div class="pr_top_filler">
