@@ -787,7 +787,7 @@
                                             <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
                                                 {{report.document.project.title | safe | extract_text_content }}
                                             </h2>
-                                            <div class="track-page-number" data-project-title="{{ report.document.project.title }}"></div>
+                                            <div class="track-page-number"></div>
                                         </div>
                                         <div class="project_tag_container">
                                             <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
@@ -1017,7 +1017,7 @@
                                     <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
                                         {{report.document.project.title | safe | extract_text_content }}
                                     </h2>
-                                    <div class="track-page-number" data-project-title="{{ report.document.project.title }}"></div>
+                                    <div class="track-page-number"></div>
                                 </div>
                                     {% comment %} <div class="project_tag_container">
                                         <p class="project_text_section_title">Tag:</p>
@@ -1117,11 +1117,6 @@
                     </div>
                 </div>
 
-                <!-- Debug output to check the page_numbers context -->
-{% comment %} <pre>
-    Page Numbers Context:
-    {{ page_numbers|default:"No page numbers found" }}
-</pre> {% endcomment %}
                 <div class="section_content_container"> 
                     {% for ba_item in sorted_ba_data_and_pr_dict %}
                         <div class="ba_table_section_container">
