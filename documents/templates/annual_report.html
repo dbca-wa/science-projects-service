@@ -372,6 +372,12 @@
                 z-index: 2;
                 color: orange;
                 content: " ";
+                background-image: none; 
+                background-size: contain; 
+                background-repeat: no-repeat; 
+                background-position: center; 
+                height: 0%;
+                width: 0%;
             }
             @top-left {
                 font-weight: bold;
@@ -380,6 +386,12 @@
                 z-index: 2;
                 color: orange;
                 content: " ";
+                background-image: none; 
+                background-size: contain; 
+                background-repeat: no-repeat; 
+                background-position: center; 
+                height: 0%;
+                width: 0%;
             }
         }
 
@@ -388,13 +400,18 @@
             border-top: none !important;
         }
        
-
+        .track-page-number {
+            position: absolute;
+            top: 0;
+            left: 0;
+            counter-increment: page;
+            visibility: hidden;
+        }
     </style>
 </head>
 {% comment %} <div class="top-left-image"><img src="{{ dbca_image_path }}" alt="Top Left Image"></div> {% endcomment %}
 
 <script>
-
     // Function to get subheadings between given heading indices
     // NOTE: Prince does not have access to all js dom traversal functions
     // nor does it have full access to all css classes utilised in browsers
@@ -428,105 +445,105 @@
         return subheadings;
     }
     
-        // Function to generate the table of contents
-        function generateTableOfContents(elementType) {
-            // Get the toc container
-            const tocList = document.getElementById("toc");
+    // Function to generate the table of contents
+    function generateTableOfContents(elementType) {
+        // Get the toc container
+        const tocList = document.getElementById("toc");
 
-            // Find all headings of specified type
-            const headings = document.querySelectorAll(elementType);
-            // const subheadings = document.querySelectorAll('.subheading');
+        // Find all headings of specified type
+        const headings = document.querySelectorAll(elementType);
+        // const subheadings = document.querySelectorAll('.subheading');
 
-            // Loop through each heading
-            for (let i = 0; i < headings.length; i++) {
-                const heading = headings[i];
+        // Loop through each heading
+        for (let i = 0; i < headings.length; i++) {
+            const heading = headings[i];
 
-                // Create a list item for the heading
-                const listItem = document.createElement("li");
-                listItem.classList.add("toc_list_item");
+            // Create a list item for the heading
+            const listItem = document.createElement("li");
+            listItem.classList.add("toc_list_item");
 
-                const contentContainer = document.createElement("div");
-                contentContainer.classList.add("toc_li_content_container");
-                const textContainer = document.createElement("div");
-                textContainer.classList.add("toc_text_container");
-                const pageNumberContainer = document.createElement("div");
-                pageNumberContainer.classList.add("toc_page_number_container");
+            const contentContainer = document.createElement("div");
+            contentContainer.classList.add("toc_li_content_container");
+            const textContainer = document.createElement("div");
+            textContainer.classList.add("toc_text_container");
+            const pageNumberContainer = document.createElement("div");
+            pageNumberContainer.classList.add("toc_page_number_container");
 
 
 
-                // Create an anchor element with href pointing to the heading
-                const titledAnchor = document.createElement("a");
-                titledAnchor.href = "#" + heading.id;
-                titledAnchor.classList.add("toc_anchor_title")
-                titledAnchor.textContent = heading.textContent;
+            // Create an anchor element with href pointing to the heading
+            const titledAnchor = document.createElement("a");
+            titledAnchor.href = "#" + heading.id;
+            titledAnchor.classList.add("toc_anchor_title")
+            titledAnchor.textContent = heading.textContent;
 
-                const pagedAnchor = document.createElement("a");
-                pagedAnchor.classList.add("toc_page_number")
-                pagedAnchor.href = "#" + heading.id;
+            const pagedAnchor = document.createElement("a");
+            pagedAnchor.classList.add("toc_page_number")
+            pagedAnchor.href = "#" + heading.id;
 
-                // Append the anchor to the list item
-                textContainer.appendChild(titledAnchor);
-                contentContainer.appendChild(textContainer);
-                pageNumberContainer.appendChild(pagedAnchor);
-                contentContainer.appendChild(pageNumberContainer);
-                listItem.appendChild(contentContainer);
+            // Append the anchor to the list item
+            textContainer.appendChild(titledAnchor);
+            contentContainer.appendChild(textContainer);
+            pageNumberContainer.appendChild(pagedAnchor);
+            contentContainer.appendChild(pageNumberContainer);
+            listItem.appendChild(contentContainer);
 
-                // Append the list item to the table of contents list
-                tocList.appendChild(listItem);
+            // Append the list item to the table of contents list
+            tocList.appendChild(listItem);
 
-                const subheadings = findSubheadingsFollowing(headings, i)
+            const subheadings = findSubheadingsFollowing(headings, i)
+            
+            // If subheadings exist, create subitems for them
+            if (subheadings.length > 0) {
+                const subList = document.createElement("ul");
+
+                // Loop through subheadings
+                for (let j = 0; j < subheadings.length; j++) {
+                    const subheading = subheadings[j];
+                    const subItem = document.createElement("li");
+                    subItem.classList.add("toc_sub_list_item");
+    
+                    const subcontentContainer = document.createElement("div");
+                    subcontentContainer.classList.add("toc_li_content_container");
+                    const subTextContainer = document.createElement("div");
+                    subTextContainer.classList.add("toc_text_container");
+                    const subPageContainer = document.createElement("div");
+                    subPageContainer.classList.add("toc_page_number_container");
+
+
+
+                    // Create an anchor element with href pointing to the heading
+                    const subTitledAnchor = document.createElement("a");
+                    subTitledAnchor.href = "#" + subheading.id;
+                    subTitledAnchor.classList.add("toc_anchor_subtitle")
+                    subTitledAnchor.textContent = subheading.textContent;
+
+                    const subPageAnchor = document.createElement("a");
+                    subPageAnchor.classList.add("toc_page_number")
+                    subPageAnchor.href = "#" + subheading.id;
+
+                    // Append the anchor to the list item
+                    subTextContainer.appendChild(subTitledAnchor);
+                    subcontentContainer.appendChild(subTextContainer);
+                    subPageContainer.appendChild(subPageAnchor);
+                    subcontentContainer.appendChild(subPageContainer);
+
                 
-                // If subheadings exist, create subitems for them
-                if (subheadings.length > 0) {
-                    const subList = document.createElement("ul");
-
-                    // Loop through subheadings
-                    for (let j = 0; j < subheadings.length; j++) {
-                        const subheading = subheadings[j];
-                        const subItem = document.createElement("li");
-                        subItem.classList.add("toc_sub_list_item");
-        
-                        const subcontentContainer = document.createElement("div");
-                        subcontentContainer.classList.add("toc_li_content_container");
-                        const subTextContainer = document.createElement("div");
-                        subTextContainer.classList.add("toc_text_container");
-                        const subPageContainer = document.createElement("div");
-                        subPageContainer.classList.add("toc_page_number_container");
-
-
-
-                        // Create an anchor element with href pointing to the heading
-                        const subTitledAnchor = document.createElement("a");
-                        subTitledAnchor.href = "#" + subheading.id;
-                        subTitledAnchor.classList.add("toc_anchor_subtitle")
-                        subTitledAnchor.textContent = subheading.textContent;
-
-                        const subPageAnchor = document.createElement("a");
-                        subPageAnchor.classList.add("toc_page_number")
-                        subPageAnchor.href = "#" + subheading.id;
-
-                        // Append the anchor to the list item
-                        subTextContainer.appendChild(subTitledAnchor);
-                        subcontentContainer.appendChild(subTextContainer);
-                        subPageContainer.appendChild(subPageAnchor);
-                        subcontentContainer.appendChild(subPageContainer);
-
-                   
-                        subItem.appendChild(subcontentContainer);
-                        subList.appendChild(subItem);
-                    }
-        
-                    // Append the sublist to the current list item
-                    const sublistContainer = document.createElement("li");
-                    sublistContainer.classList.add("toc_sublist_container");
-                    sublistContainer.appendChild(subList);
-
-                    tocList.appendChild(sublistContainer);
-                } else {
-                    continue;
+                    subItem.appendChild(subcontentContainer);
+                    subList.appendChild(subItem);
                 }
+    
+                // Append the sublist to the current list item
+                const sublistContainer = document.createElement("li");
+                sublistContainer.classList.add("toc_sublist_container");
+                sublistContainer.appendChild(subList);
+
+                tocList.appendChild(sublistContainer);
+            } else {
+                continue;
             }
         }
+    }
 
     function adjustBaFirstPage() {
         var page = document.querySelector('.ba_pages');
@@ -539,11 +556,92 @@
         }
     }
 
+    
+    function generateResearchSummaryPageNumbers() {
+        // Establish dictionary for storing id links to jump to
+        var pageNumbers = {};
+        // Get all elements with class of track-page-number
+        const pageNumberTrackers = Array.from(document.querySelectorAll('.track-page-number'));
+        // Iterate over these and set the dictionary
+        pageNumberTrackers.forEach(el => {
+            // Find the sibling h2
+            const siblingH2 = el.previousElementSibling;
+            let projectTitle;
+            let pageNumberHref;
+            if (siblingH2 !== null && siblingH2.tagName === "H2")
+            {
+                projectTitle = siblingH2.textContent.trim();
+                pageNumberHref = siblingH2.id
+            } else {
+                projectTItle = "NO"
+                pageNumberHref = "ha"
+            }
+            pageNumbers[projectTitle] = pageNumberHref;
+        })
+        
+        
+        // Get the tables
+        const tableBodies = Array.from(document.querySelectorAll('.ba_table_body'));
+        // Loop through each table
+        tableBodies.forEach(el => {
+            
+            const rows = Array.from(el.querySelectorAll('tr')); 
+            rows.forEach(row => {
+                const titleCell = row.querySelector('.project_title_td');
+                const projectTitle = titleCell.textContent.trim();
+                // Establish the cell for page numbers (its a td with the class page_td)
+                const pageCell = row.querySelector('.page_td');
+                const pageNumberHref = pageNumbers[projectTitle];
+
+                // Create and set the content for the pageCell
+                const textContainer = document.createElement("div");
+                textContainer.classList.add("table_page_number_text_container");
+
+                const pagedAnchor = document.createElement("a");
+                pagedAnchor.classList.add("table_page_number")
+                pagedAnchor.href = '#' + pageNumberHref;
+
+                textContainer.appendChild(pagedAnchor);
+                pageCell.appendChild(textContainer);
+            })
+
+        })
+
+        const studentTableBodies = Array.from(document.querySelectorAll('.student_table_body'));
+            // Loop through each table
+            studentTableBodies.forEach(el => {
+            
+                const rows = Array.from(el.querySelectorAll('tr')); 
+                rows.forEach(row => {
+                    const titleCell = row.querySelector('.student_project_title_td');
+                    const projectTitle = titleCell.textContent.trim();
+                    // Establish the cell for page numbers (its a td with the class page_td)
+                    const pageCell = row.querySelector('.page_td');
+                    const pageNumberHref = pageNumbers[projectTitle];
+    
+                    // Create and set the content for the pageCell
+                    const textContainer = document.createElement("div");
+                    textContainer.classList.add("table_page_number_text_container");
+    
+                    const pagedAnchor = document.createElement("a");
+                    pagedAnchor.classList.add("table_page_number")
+                    pagedAnchor.href = '#' + pageNumberHref;
+    
+                    textContainer.appendChild(pagedAnchor);
+                    pageCell.appendChild(textContainer);
+                })
+    
+            })
+    }
+        
     function runLoad() {
         generateTableOfContents('h1');
         adjustBaFirstPage();
+        generateResearchSummaryPageNumbers();
     }
 </script>
+
+
 <body class="page_body" onload="runLoad()"> 
 
     {% comment %} PRINCE BLOCK {% endcomment %}
@@ -671,6 +769,7 @@
                         {% for report in ba_item.progress_reports %}
                             <div class="progress_report_container">
                                 <div class="progress_report_top_container">
+                                    {% comment %} {% store_page_number report.document.project.title forloop.counter %} {% endcomment %}
                                     {% if not forloop.counter|divisibleby:2 %}
 
                                     <div class="pr_img_container_lhs">
@@ -686,8 +785,9 @@
                                     {% endif %}
                                         <div class="pr_title_container">
                                             <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                                {{report.document.project.title | safe}}
+                                                {{report.document.project.title | safe | extract_text_content }}
                                             </h2>
+                                            <div class="track-page-number" data-project-title="{{ report.document.project.title }}"></div>
                                         </div>
                                         <div class="project_tag_container">
                                             <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
@@ -862,16 +962,16 @@
                                             <th class="page_td sr_table_th">Page</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="table_body">
+                                    <tbody class="table_body student_table_body">
                                         {% for report in sorted_student_report_array %}
                                             <tr class="sr_table_tr">
-                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe}}</td>
+                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe | extract_text_content }}</td>
                                                 <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
                                                 <td class="duration_td sr_table_td">2023 - 2024</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
                                                 <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% if not academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% if forloop.last and academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% endfor %}{% endwith %}</td>
                                                 <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}{% endwith %}</td>
-                                                <td class="page_td sr_table_td">100</td>
+                                                <td class="page_td sr_table_td"></td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>
@@ -913,11 +1013,12 @@
                                 {% else %}
                                 <div class="pr_data_lhs">
                                 {% endif %}
-                                    <div class="pr_title_container">
-                                        <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                            {{report.document.project.title | safe}}
-                                        </h2>
-                                    </div>
+                                <div class="pr_title_container">
+                                    <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
+                                        {{report.document.project.title | safe | extract_text_content }}
+                                    </h2>
+                                    <div class="track-page-number" data-project-title="{{ report.document.project.title }}"></div>
+                                </div>
                                     {% comment %} <div class="project_tag_container">
                                         <p class="project_text_section_title">Tag:</p>
                                         <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
@@ -1015,6 +1116,12 @@
                         <h1 id="researchprojsummary" class="chapter_title_text">Summary of Research Projects</h1>
                     </div>
                 </div>
+
+                <!-- Debug output to check the page_numbers context -->
+{% comment %} <pre>
+    Page Numbers Context:
+    {{ page_numbers|default:"No page numbers found" }}
+</pre> {% endcomment %}
                 <div class="section_content_container"> 
                     {% for ba_item in sorted_ba_data_and_pr_dict %}
                         <div class="ba_table_section_container">
@@ -1034,7 +1141,7 @@
                                     <tbody class="ba_table_body">
                                     {% for report in ba_item.progress_reports %}
                                         <tr class="ba_table_tr">
-                                            <td class="project_title_td ba_table_td">{{report.document.project.title | safe}}</td>
+                                            <td class="project_title_td ba_table_td">{{report.document.project.title | safe | extract_text_content }}</td>
                                            
                                             <td class="dbca_region_td ba_table_td">
                                                 {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"dbcaregion" %}
@@ -1057,7 +1164,7 @@
                                                     {% endfor %}
                                                 {% endwith %}
                                             </td>
-                                            <td class="page_td ba_table_td">Page</td>
+                                            <td class="page_td ba_table_td"></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>

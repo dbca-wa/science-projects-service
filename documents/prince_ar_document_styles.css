@@ -28,6 +28,21 @@
 }
 
 
+.table_page_number_text_container {
+
+}
+
+.table_page_number_link {
+
+}
+
+.table_page_number {
+    margin-top: auto;
+    content: target-counter(attr(href), page);
+    text-decoration: none;
+    color:#6888cc;
+
+}
 
 
 /* For setting the page counter */
@@ -165,6 +180,7 @@
     margin-top: auto;
     content: target-counter(attr(href), page);
 }
+
 
 
 

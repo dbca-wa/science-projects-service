@@ -5,6 +5,21 @@ from bs4 import BeautifulSoup
 register = template.Library()
 
 
+@register.simple_tag(takes_context=True)
+def store_page_number(context, project_title, page_number):
+    if "page_numbers" not in context:
+        context["page_numbers"] = {}
+    context["page_numbers"][project_title] = page_number
+    return ""
+
+
+@register.filter
+def get_item(dictionary, key):
+    if isinstance(dictionary, dict):
+        return dictionary.get(key)
+    return None
+
+
 @register.filter
 def replace_backslashes(value):
     return value.replace("\\", "/")
