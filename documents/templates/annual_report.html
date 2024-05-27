@@ -769,48 +769,51 @@
                         {% for report in ba_item.progress_reports %}
                             <div class="progress_report_container">
                                 <div class="progress_report_top_container">
-                                    {% comment %} {% store_page_number report.document.project.title forloop.counter %} {% endcomment %}
-                                    {% if not forloop.counter|divisibleby:2 %}
+                                    <div class="progress_report_top_container_main_section">
+                                        {% if not forloop.counter|divisibleby:2 %}
 
-                                    <div class="pr_img_container_lhs">
-                                        {% if report.document.project.image.file %}
-                                            <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
-                                        {% else %}
-                                            <div class="pr_image_placeholder"></div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="pr_data_rhs">
-                                    {% else %}
-                                        <div class="pr_data_lhs">
-                                    {% endif %}
-                                        <div class="pr_title_container">
-                                            <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                                {{report.document.project.title | safe | extract_text_content }}
-                                            </h2>
-                                            <div class="track-page-number"></div>
-                                        </div>
-                                        <div class="project_tag_container">
-                                            <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
-                                        </div>
-                                        <div class="pr_member_container">
-                                            <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}</p>
-                                        </div>
-                                    </div>
-                                    {% if forloop.counter|divisibleby:2 %}
-                                        <div class="pr_img_container_rhs">
+                                        <div class="pr_img_container_lhs">
                                             {% if report.document.project.image.file %}
-                                                <img class="pr_image"
-                                                alt="{{report.document.project.title}} Image"
-                                                src="{{server_url}}{{report.document.project.image.file}}"
-                                            />
+                                                <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
                                             {% else %}
                                                 <div class="pr_image_placeholder"></div>
                                             {% endif %}
                                         </div>
-                                    {% endif %}
-                                    <div class="pr_top_filler">
-                                        <p style="display: none;"></p>
-                                    </div>
+                                        <div class="pr_data_rhs">
+                                        {% else %}
+                                            <div class="pr_data_lhs">
+                                        {% endif %}
+                                            <div class="pr_title_container">
+                                                <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
+                                                    {{report.document.project.title | safe | extract_text_content }}
+                                                </h2>
+                                                <div class="track-page-number"></div>
+                                            </div>
+                                            <div class="project_tag_container">
+                                                <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
+                                            </div>
+                                            <div class="pr_member_container">
+                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}</p>
+                                            </div>
+                                        </div>
+                                        {% if forloop.counter|divisibleby:2 %}
+                                            <div class="pr_img_container_rhs">
+                                                {% if report.document.project.image.file %}
+                                                    <img class="pr_image"
+                                                    alt="{{report.document.project.title}} Image"
+                                                    src="{{server_url}}{{report.document.project.image.file}}"
+                                                />
+                                                {% else %}
+                                                    <div class="pr_image_placeholder"></div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+
+                                    </div> 
+                                    {% comment %} <div class="pr_top_filler"> {% endcomment %}
+                                        <p class="small_text">spacer</p>
+                                        <p class="small_text">spacer</p>
+                                    {% comment %} </div> {% endcomment %}
                                 </div>
                             </div>
                                 {% if forloop.counter|divisibleby:2 %}
@@ -1001,60 +1004,63 @@
                     {% for report in sorted_student_report_array %}
                         <div class="progress_report_container">
                             <div class="progress_report_top_container">
-                                {% if not forloop.counter|divisibleby:2 %}
-                                <div class="pr_img_container_lhs">
-                                    {% if report.document.project.image.file %}
-                                        <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
+                                <div class ="progress_report_top_container_main_section">
+                                    {% if not forloop.counter|divisibleby:2 %}
+                                    <div class="pr_img_container_lhs">
+                                        {% if report.document.project.image.file %}
+                                            <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
+                                        {% else %}
+                                            <div class="pr_image_placeholder"></div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="pr_data_rhs">
                                     {% else %}
-                                        <div class="pr_image_placeholder"></div>
+                                    <div class="pr_data_lhs">
+                                    {% endif %}
+                                    <div class="pr_title_container">
+                                        <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
+                                            {{report.document.project.title | safe | extract_text_content }}
+                                        </h2>
+                                        <div class="track-page-number"></div>
+                                    </div>
+                                        {% comment %} <div class="project_tag_container">
+                                            <p class="project_text_section_title">Tag:</p>
+                                            <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
+                                        </div> {% endcomment %}
+                                        <div class="student_pr_member_container">
+                                            <p class="project_text_section_title">Student:</p>
+                                            <p class="pr_member_string">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</p>
+                                        </div>
+                                        <div class="student_pr_member_container">
+                                            <p class="project_text_section_title">Academic(s):</p>
+                                            <p class="pr_member_string">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% endfor %}{% endwith %}</p>
+                                        </div>
+                                        <div class="student_pr_member_container">
+                                            <p class="project_text_section_title">Scientist(s):</p>
+                                            <p class="pr_member_string">
+                                                {% with scientists=report.team_members|get_scientists %}
+                                                    {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}
+                                                {% endwith %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {% if forloop.counter|divisibleby:2 %}
+                                    <div class="pr_img_container_rhs">
+                                        {% if report.document.project.image.file %}
+                                            <img class="pr_image"
+                                            alt="{{report.document.project.title}} Image"
+                                            src="{{server_url}}{{report.document.project.image.file}}"
+                                        />
+                                        {% else %}
+                                            <div class="pr_image_placeholder"></div>
+                                        {% endif %}
+                                    </div>
                                     {% endif %}
                                 </div>
-                                <div class="pr_data_rhs">
-                                {% else %}
-                                <div class="pr_data_lhs">
-                                {% endif %}
-                                <div class="pr_title_container">
-                                    <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                        {{report.document.project.title | safe | extract_text_content }}
-                                    </h2>
-                                    <div class="track-page-number"></div>
-                                </div>
-                                    {% comment %} <div class="project_tag_container">
-                                        <p class="project_text_section_title">Tag:</p>
-                                        <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
-                                    </div> {% endcomment %}
-                                    <div class="student_pr_member_container">
-                                        <p class="project_text_section_title">Student:</p>
-                                        <p class="pr_member_string">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</p>
-                                    </div>
-                                    <div class="student_pr_member_container">
-                                        <p class="project_text_section_title">Academic(s):</p>
-                                        <p class="pr_member_string">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% endfor %}{% endwith %}</p>
-                                    </div>
-                                    <div class="student_pr_member_container">
-                                        <p class="project_text_section_title">Scientist(s):</p>
-                                        <p class="pr_member_string">
-                                            {% with scientists=report.team_members|get_scientists %}
-                                                {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}
-                                            {% endwith %}
-                                        </p>
-                                    </div>
-                                </div>
-                                {% if forloop.counter|divisibleby:2 %}
-                                <div class="pr_img_container_rhs">
-                                    {% if report.document.project.image.file %}
-                                        <img class="pr_image"
-                                        alt="{{report.document.project.title}} Image"
-                                        src="{{server_url}}{{report.document.project.image.file}}"
-                                    />
-                                    {% else %}
-                                        <div class="pr_image_placeholder"></div>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                                <div class="pr_top_filler">
-                                    <p style="display: none;"></p>
-                                </div>
+                                {% comment %} <div class="pr_top_filler"> {% endcomment %}
+                                    <p class="small_text">spacer</p>
+                                    <p class="small_text">spacer</p>
+                                {% comment %} </div> {% endcomment %}
                             </div>
                             {% if forloop.counter|divisibleby:2 %}
                             <div class="progress_report_bottom_container_rhs">

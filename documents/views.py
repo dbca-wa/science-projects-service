@@ -7371,9 +7371,9 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
         if small_user_object and small_user_object.work.business_area:
             # user_work = UserWork.objects.get(user=req.user.pk)
-            is_directorate = small_user_object.work.business_area.name = (
-                "Directorate" or req.user.is_superuser
-            )
+            is_directorate = (
+                small_user_object.work.business_area.name == "Directorate" 
+            ) or req.user.is_superuser
 
             active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
 

@@ -694,24 +694,44 @@ ul li {
     padding: 0;
     margin: 0;
     margin-bottom: 8px;
+    page-break-before: avoid;
+    orphans: 3;
+    widows: 3;
+
+    /* page-break-inside: avoid; */
     /* color: orange !important; */
     /* widows: 2;
     orphans: 3; */
 }
 
 
+
 .orphanage_widow li {
     /* color: green !important; */
     page-break-inside: avoid;
+    widows: 2;
 }
 
-.progress_report_top_container p,
-.progress_report_top_container li 
-{
-    /* color: yellowgreen !important; */
-    /* widows: 3; */
-    /* orphans: 2; */
+
+/* .pr_top_filler {
+    background: red;
+    margin: 0;
+    padding: 0;
+    break-inside: avoid;
 }
+
+.pr_top_filler p {
+    margin: 0;
+    padding: 0;
+    break-after: avoid;
+    break-inside: avoid;
+    orphans: 1;
+    widows: 1;
+} */
+/* .pr_top_filler p:nth-child(2) {
+    page-break-before: always; 
+} */
+
 
 .pr_subsection_title h3 {
     font-weight: bold;
@@ -720,25 +740,75 @@ ul li {
     margin-bottom: 5px;
     /* color: pink !important;  */
     /* orphans: 4; */
+    page-break-after: avoid;
+    page-break-inside: avoid;
+
 }
 
 
-.progress_report_top_container {
+
+.progress_report_top_container_main_section {
     display: flex;
     flex-direction: row;
+    /* height: 100%;
+    width: 100%; */
+    /* flex: 1; */
+    /* background-color: orange; */
+    /* color: red;
+    background-color: pink; */
+    /* page-break-inside: avoid;
+    page-break-after: avoid; */
+}
+
+
+
+.progress_report_top_container_main_section p,
+.progress_report_top_container_main_section li 
+{
+    /* break-after: avoid; */
+    /* color: yellowgreen !important; */
+    /* widows: 3; */
+    /* orphans: 2; */
+}
+
+.progress_report_container {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     width: 100%;
     /* flex: 1; */
     /* background-color: orange; */
     /* color: red;
     background-color: pink; */
-    page-break-inside: avoid;
+    /* page-break-inside: avoid;
+    page-break-after: avoid;
+    orphans: 1;
+    widows: 1; */
 }
 
-.pr_top_filler {
-    height: 30px;
-    width: 0px;
+.progress_report_top_container {
+    break-inside: avoid;
+    break-after: avoid;
 }
+
+.progress_report_top_container p {
+    margin: 0;
+    padding: 0;
+    orphans: 0;
+    widows: 1;
+}
+
+.small_text {
+    font-size: 5px;
+    visibility: hidden;
+}
+
+.progress_report_container p {
+    /* orphans: 1;
+    widows: 1; */
+}
+
+
 
 .progress_report_container {
     display: flex;
@@ -749,12 +819,15 @@ ul li {
 
 
 .progress_report_bottom_container {
-    margin-top: 8px;
+    /* margin-top: 8px; */
+    margin-top: -5px;
+    page-break-before: avoid;
 }
 
 
 .progress_report_bottom_container_rhs {
-    margin-top: -15px;
+    margin-top: -20px;
+    page-break-before: avoid;
 }
 
 .progress_report_bottom_container li, .progress_report_bottom_container_rhs li {
