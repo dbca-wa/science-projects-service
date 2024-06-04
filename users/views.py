@@ -49,7 +49,7 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import (
     IsAuthenticated,
-    IsAuthenticatedOrReadOnly,
+    IsAuthenticated,
     AllowAny,
 )
 from rest_framework.exceptions import ParseError
@@ -126,7 +126,7 @@ class ChangePassword(APIView):
 
 
 class CheckEmailExists(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         email = request.data.get("email")
@@ -141,7 +141,7 @@ class CheckEmailExists(APIView):
 
 
 class CheckNameExists(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         first_name = request.data.get("first_name")
@@ -197,7 +197,7 @@ class Me(APIView):
 
 
 class SmallInternalUserSearch(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         page = 1
@@ -256,7 +256,7 @@ class SmallInternalUserSearch(APIView):
 
 
 class Users(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         settings.LOGGER.info(msg=f"{request.user} is viewing/filtering users")
@@ -379,7 +379,7 @@ class Users(APIView):
 
 
 class ToggleUserActive(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -402,7 +402,7 @@ class ToggleUserActive(APIView):
 
 
 class UserDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -453,7 +453,7 @@ class UserDetail(APIView):
 
 
 class UserProfileDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -503,7 +503,7 @@ class UserProfileDetail(APIView):
 
 
 class UserProfiles(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = UserProfile.objects.all()
@@ -537,7 +537,7 @@ class UserProfiles(APIView):
 
 
 class UserWorkDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -588,7 +588,7 @@ class UserWorkDetail(APIView):
 
 
 class UserWorks(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = UserWork.objects.all()
@@ -621,7 +621,7 @@ class UserWorks(APIView):
 
 
 class DirectorateUsers(ListAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
     serializer_class = TinyUserSerializer
 
     def get_queryset(self):

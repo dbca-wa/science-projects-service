@@ -17,7 +17,7 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db import IntegrityError, transaction
 from django.conf import settings
@@ -185,7 +185,7 @@ from datetime import datetime as dt
 
 
 class SmallProjectSearch(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         page = 1
@@ -223,7 +223,7 @@ class SmallProjectSearch(APIView):
 
 
 class MyProjects(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         # Handle not logged in
@@ -254,7 +254,7 @@ class MyProjects(APIView):
 
 
 class ProjectYears(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         # Get all unique years from the Project model
@@ -270,7 +270,7 @@ class ProjectYears(APIView):
 
 
 class Projects(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def determine_db_kind(self, provided):
         if provided.startswith("CF"):
@@ -1253,7 +1253,7 @@ class Projects(APIView):
 
 
 class SuspendProject(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -1735,7 +1735,7 @@ class ProjectDetails(APIView):
 
 
 class ProjectDocs(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def gos(pk):
         try:
@@ -2002,7 +2002,7 @@ class ExternalProjectAdditionalDetail(APIView):
 
 
 class SelectedProjectAdditionalDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -2178,7 +2178,7 @@ class PromoteToLeader(APIView):
 
 
 class ProjectLeaderDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, project_id):
         try:
@@ -2194,7 +2194,7 @@ class ProjectLeaderDetail(APIView):
 
 
 class ProjectMemberDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, user_id, project_id):
         try:
@@ -2241,7 +2241,7 @@ class ProjectMemberDetail(APIView):
 
 
 class MembersForProject(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -2396,7 +2396,7 @@ class ProjectAreaDetail(APIView):
 
 
 class AreasForProject(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:

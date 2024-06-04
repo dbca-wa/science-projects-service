@@ -15,7 +15,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticated
 from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
@@ -66,7 +66,7 @@ import os
 
 
 class ProjectDocPDFS(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = ProjectDocumentPDF.objects.all()
@@ -102,7 +102,7 @@ class ProjectDocPDFS(APIView):
 
 
 class AnnualReportPDFs(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = AnnualReportPDF.objects.all()
@@ -142,7 +142,7 @@ class AnnualReportPDFs(APIView):
 
 
 class AnnualReportPDFDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -197,7 +197,7 @@ class AnnualReportPDFDetail(APIView):
 
 
 class AnnualReportMedias(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = AnnualReportMedia.objects.all()
@@ -230,7 +230,7 @@ class AnnualReportMedias(APIView):
 
 
 class AnnualReportMediaDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -285,7 +285,7 @@ class AnnualReportMediaDetail(APIView):
 
 
 class LatestReportMedia(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting latest report's media")
@@ -310,7 +310,7 @@ class LatestReportMedia(APIView):
 
 
 class AnnualReportMediaUpload(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req, pk):
         def go(pk):
@@ -380,7 +380,7 @@ class AnnualReportMediaUpload(APIView):
                 settings.LOGGER.error(msg=f"{serializer.errors}")
                 return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
 
 class AnnualReportMediaDelete(APIView):
@@ -406,7 +406,7 @@ class AnnualReportMediaDelete(APIView):
 
 
 class BusinessAreaPhotos(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = BusinessAreaPhoto.objects.all()
@@ -513,7 +513,7 @@ class BusinessAreaPhotoDetail(APIView):
 
 
 class ProjectPhotos(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = ProjectPhoto.objects.all()
@@ -618,7 +618,7 @@ class ProjectPhotoDetail(APIView):
 
 class MethodologyPhotos(APIView):
 
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = ProjectPlanMethodologyPhoto.objects.all()
@@ -660,7 +660,7 @@ class MethodologyPhotos(APIView):
 
 
 class MethodologyPhotoDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -730,7 +730,7 @@ class MethodologyPhotoDetail(APIView):
 
 
 class AgencyPhotos(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = AgencyImage.objects.all()
@@ -834,7 +834,7 @@ class AgencyPhotoDetail(APIView):
 
 
 class UserAvatars(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = UserAvatar.objects.all()

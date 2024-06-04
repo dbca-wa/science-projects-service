@@ -13,7 +13,7 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
@@ -31,7 +31,7 @@ from .serializers import (
 
 
 class DBCADistricts(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Area.objects.filter(area_type="dbcadistrict").all()
@@ -46,7 +46,7 @@ class DBCADistricts(APIView):
 
 
 class DBCARegions(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Area.objects.filter(area_type="dbcaregion").all()
@@ -61,7 +61,7 @@ class DBCARegions(APIView):
 
 
 class Imcras(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Area.objects.filter(area_type="imcra").all()
@@ -76,7 +76,7 @@ class Imcras(APIView):
 
 
 class Ibras(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Area.objects.filter(area_type="ibra").all()
@@ -91,7 +91,7 @@ class Ibras(APIView):
 
 
 class Nrms(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Area.objects.filter(area_type="nrm").all()
@@ -140,7 +140,7 @@ class Areas(APIView):
 
 
 class AreaDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:

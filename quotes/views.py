@@ -22,11 +22,11 @@ from .serializers import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 
 
 class AddQuotesFromUniques(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is adding all unique quotes")

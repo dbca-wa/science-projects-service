@@ -15,7 +15,7 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
@@ -62,7 +62,7 @@ import os
 
 
 class Affiliations(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         try:
@@ -127,7 +127,7 @@ class Affiliations(APIView):
 
 
 class AffiliationsMerge(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is merging affiliations")
@@ -190,7 +190,7 @@ class AffiliationsMerge(APIView):
 
 
 # class AffiliationByName(APIView):
-#     permission_classes = [IsAuthenticatedOrReadOnly]
+#     permission_classes = [IsAuthenticated]
 
 #     def go(self, name):
 #         try:
@@ -209,7 +209,7 @@ class AffiliationsMerge(APIView):
 
 
 class Agencies(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Agency.objects.all()
@@ -242,7 +242,7 @@ class Agencies(APIView):
 
 
 class Branches(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         try:
@@ -301,7 +301,7 @@ class Branches(APIView):
 
 
 class BusinessAreas(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = BusinessArea.objects.all()
@@ -528,7 +528,7 @@ class DepartmentalServices(APIView):
 
 
 class AffiliationDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -580,7 +580,7 @@ class AffiliationDetail(APIView):
 
 
 class AgencyDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -628,7 +628,7 @@ class AgencyDetail(APIView):
 
 
 class BranchDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -676,7 +676,7 @@ class BranchDetail(APIView):
 
 
 class BusinessAreaDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
