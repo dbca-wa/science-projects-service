@@ -115,7 +115,7 @@ from django.db.models import Max
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 
 from django.db import transaction
 from django.conf import settings
@@ -143,7 +143,7 @@ def determine_doc_kind_url_string(dockind:str):
                     return "closure"
                 
 class BeginReportDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -691,7 +691,7 @@ class BeginReportDocGeneration(APIView):
 
 
 class CancelReportDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_main_doc(self, pk):
         # Gets the primary document that the concept plan belongs to
@@ -731,7 +731,7 @@ class CancelReportDocGeneration(APIView):
 
 
 class BeginProjectDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_main_doc(self, pk):
         # Gets the primary document that the concept plan belongs to
@@ -2177,7 +2177,7 @@ class BeginProjectDocGeneration(APIView):
 
 
 class CancelProjectDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_main_doc(self, pk):
         # Gets the primary document that the concept plan belongs to
@@ -2234,7 +2234,7 @@ class DownloadProjectDocument(APIView):
 
 
 class GetConceptPlanData(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -2443,7 +2443,7 @@ class GetConceptPlanData(APIView):
 
 
 class BeginAnnualReportDocGeneration(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -2457,7 +2457,7 @@ class BeginAnnualReportDocGeneration(APIView):
 
 
 class LatestYearsProgressReports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"Getting Approved Progress Reports for current year")
@@ -2490,7 +2490,7 @@ class LatestYearsProgressReports(APIView):
 
 
 class LatestYearsStudentReports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(
@@ -2525,7 +2525,7 @@ class LatestYearsStudentReports(APIView):
 
 
 class LatestYearsInactiveReports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
 
@@ -2580,7 +2580,7 @@ class LatestYearsInactiveReports(APIView):
 
 
 class FullLatestReport(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
 
@@ -2604,7 +2604,7 @@ class FullLatestReport(APIView):
 
 
 class ReviewDocumentEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -2773,7 +2773,7 @@ class ReviewDocumentEmail(APIView):
 
 
 class ProjectClosureEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -2889,7 +2889,7 @@ class ProjectClosureEmail(APIView):
 
 
 class DocumentReadyEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3016,7 +3016,7 @@ class DocumentReadyEmail(APIView):
 
 
 class DocumentSentBackEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3152,7 +3152,7 @@ class DocumentSentBackEmail(APIView):
 
 
 class ConceptPlanEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3242,7 +3242,7 @@ class ConceptPlanEmail(APIView):
 
 
 class DocumentApprovedEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3374,7 +3374,7 @@ class DocumentApprovedEmail(APIView):
 
 
 class SendProjectLeadEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3454,7 +3454,7 @@ class SendProjectLeadEmail(APIView):
 
 
 class FeedbackReceivedEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3549,7 +3549,7 @@ class FeedbackReceivedEmail(APIView):
 
 
 class DocumentRecalledEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -3703,7 +3703,7 @@ class DocumentRecalledEmail(APIView):
 
 
 class DocApproval(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_document(self, pk):
         try:
@@ -4284,7 +4284,7 @@ class DocApproval(APIView):
 
 
 class DocRecall(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_document(self, pk):
         try:
@@ -4582,7 +4582,7 @@ class DocRecall(APIView):
 
 
 class DocSendBack(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_document(self, pk):
         try:
@@ -4818,7 +4818,7 @@ class DocSendBack(APIView):
 
 
 class DocReopenProject(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_document(self, pk):
         try:
@@ -5004,7 +5004,7 @@ class DocReopenProject(APIView):
 
 # Emails admin part
 class NewCycleOpenEmail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.info(
@@ -5135,7 +5135,7 @@ class NewCycleOpenEmail(APIView):
 
 
 class NewCycleOpen(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         print(req.data)
@@ -5483,7 +5483,7 @@ class NewCycleOpen(APIView):
 
 # No Email
 class FinalDocApproval(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get_document(self, pk):
         try:
@@ -5583,7 +5583,7 @@ class DownloadAnnualReport(APIView):
 
 
 class BatchApprove(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.warning(
@@ -5663,7 +5663,7 @@ class BatchApprove(APIView):
 
 
 class BatchApproveOld(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def post(self, req):
         settings.LOGGER.warning(
@@ -5748,7 +5748,7 @@ class BatchApproveOld(APIView):
 
 
 class Reports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is viewing reports")
@@ -5956,7 +5956,7 @@ class Reports(APIView):
 
 
 class ReportDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -6021,7 +6021,7 @@ class ReportDetail(APIView):
 
 
 class GetLatestReportYear(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         latest_year = AnnualReport.objects.aggregate(Max("year"))["year__max"]
@@ -6041,7 +6041,7 @@ class GetLatestReportYear(APIView):
 
 
 class GetAvailableReportYearsForStudentReport(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     # Returns a list of serialized reports with the following:
     # year, report id
@@ -6077,7 +6077,7 @@ class GetAvailableReportYearsForStudentReport(APIView):
 
 
 class GetAvailableReportYearsForProgressReport(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     # Returns a list of serialized reports with the following:
     # year, report id
@@ -6113,7 +6113,7 @@ class GetAvailableReportYearsForProgressReport(APIView):
 
 
 class GetWithoutPDFs(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         reports_without_pdfs = AnnualReport.objects.exclude(pdf__isnull=False)
@@ -6130,7 +6130,7 @@ class GetWithoutPDFs(APIView):
 
 
 class GetReportPDF(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -6158,7 +6158,7 @@ class GetReportPDF(APIView):
 
 
 class GetWithPDFs(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         reports_with_pdfs = AnnualReport.objects.exclude(pdf__isnull=True)
@@ -6175,7 +6175,7 @@ class GetWithPDFs(APIView):
 
 
 class GetCompletedReports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         completed_reports = AnnualReport.objects.filter(is_published=True).all()
@@ -6230,9 +6230,40 @@ class DocumentSpawner(APIView):
                 HTTP_400_BAD_REQUEST,
             )
 
+class GetPreviousReportsData(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, req):
+        project_pk = req.data["project_pk"]
+        doc_kind = req.data["writeable_document_kind"]
+        section = req.data["section"]
+
+        if doc_kind == "Progress Report":
+            documents_of_type_from_project = ProgressReport.objects.filter(project=project_pk).order_by('-year')
+        elif doc_kind == "Student Report":
+            documents_of_type_from_project = StudentReport.objects.filter(project=project_pk).order_by('-year')
+        else:
+            return Response(status=HTTP_400_BAD_REQUEST)
+        
+        # Check if there are at least two documents (IE can actually prepopulate with prior data)
+        if documents_of_type_from_project.count() < 2:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        # Get the second-to-last document
+        second_last_one = documents_of_type_from_project[1]
+        # print(second_last_one.year)
+
+        # Get the specified section data
+        try:
+            section_data = getattr(second_last_one, section)
+        except AttributeError:
+            return Response(status=HTTP_400_BAD_REQUEST)
+        
+        return Response(data=section_data, status=HTTP_200_OK)
+
+
 
 class ProjectDocuments(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_projects = ProjectDocument.objects.all()
@@ -6991,7 +7022,7 @@ class ProjectDocuments(APIView):
 
 
 class EndorsementsPendingMyAction(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting endorsements pending action")
@@ -7075,7 +7106,7 @@ class EndorsementsPendingMyAction(APIView):
 
 
 class ProjectDocsPendingMyActionStageOne(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting docs pending stage 1 action")
@@ -7145,7 +7176,7 @@ class ProjectDocsPendingMyActionStageOne(APIView):
 
 
 class ProjectDocsPendingMyActionStageTwo(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting docs pending stage 2 action")
@@ -7204,7 +7235,7 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
 
 
 class ProjectDocsPendingMyActionStageThree(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting docs pending stage 3 action")
@@ -7355,7 +7386,7 @@ class ProjectDocsPendingMyActionStageThree(APIView):
 
 
 class ProjectDocsPendingMyActionAllStages(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(
@@ -7518,7 +7549,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
 
 class ProjectDocumentDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -7569,7 +7600,7 @@ class ProjectDocumentDetail(APIView):
 
 
 class ProjectDocumentComments(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req, pk):
         comments = Comment.objects.filter(document_id=pk).all()
@@ -7607,7 +7638,7 @@ class ProjectDocumentComments(APIView):
 
 
 class ConceptPlans(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_concept_plans = ConceptPlan.objects.all()
@@ -7640,7 +7671,7 @@ class ConceptPlans(APIView):
 
 
 class ProjectPlans(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_project_plans = ProjectPlan.objects.all()
@@ -7674,7 +7705,7 @@ class ProjectPlans(APIView):
 
 
 class ProgressReports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_progress_reports = ProgressReport.objects.all()
@@ -7708,7 +7739,7 @@ class ProgressReports(APIView):
 
 
 class StudentReports(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_student_reports = StudentReport.objects.all()
@@ -7740,7 +7771,7 @@ class StudentReports(APIView):
 
 
 class ProjectClosures(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_project_closures = ProjectClosure.objects.all()
@@ -7774,7 +7805,7 @@ class ProjectClosures(APIView):
 
 
 class ConceptPlanDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -7812,7 +7843,7 @@ class ConceptPlanDetail(APIView):
         )
         if ser.is_valid():
             u_concept_plan = ser.save()
-            u_concept_plan.document.updated_at = datetime.datetime.now()
+            # u_concept_plan.document.updated_at = datetime.datetime.now()
             u_concept_plan.document.modifier = req.user
             u_concept_plan.document.save()
 
@@ -7829,7 +7860,7 @@ class ConceptPlanDetail(APIView):
 
 
 class ProjectPlanDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -7906,6 +7937,9 @@ class ProjectPlanDetail(APIView):
         )
         if ser.is_valid():
             u_project_plan = ser.save()
+            u_project_plan.document.modifier = req.user
+            u_project_plan.document.save()
+
             return Response(
                 TinyProjectPlanSerializer(u_project_plan).data,
                 status=HTTP_202_ACCEPTED,
@@ -7919,7 +7953,7 @@ class ProjectPlanDetail(APIView):
 
 
 class ProgressReportByYear(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, project, year):
         try:
@@ -7941,7 +7975,7 @@ class ProgressReportByYear(APIView):
 
 
 class StudentReportByYear(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, project, year):
         try:
@@ -7963,7 +7997,7 @@ class StudentReportByYear(APIView):
 
 
 class ProgressReportDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8006,6 +8040,9 @@ class ProgressReportDetail(APIView):
         )
         if ser.is_valid():
             u_progress_report = ser.save()
+            u_progress_report.document.modifier = req.user
+            u_progress_report.document.save()
+
             return Response(
                 TinyProgressReportSerializer(u_progress_report).data,
                 status=HTTP_202_ACCEPTED,
@@ -8019,7 +8056,7 @@ class ProgressReportDetail(APIView):
 
 
 class UpdateStudentReport(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8054,7 +8091,7 @@ class UpdateStudentReport(APIView):
 
 
 class UpdateProgressReport(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8091,7 +8128,7 @@ class UpdateProgressReport(APIView):
 
 
 class StudentReportDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8132,6 +8169,8 @@ class StudentReportDetail(APIView):
         )
         if ser.is_valid():
             u_student_report = ser.save()
+            u_student_report.document.modifier = req.user
+            u_student_report.document.save()
             return Response(
                 TinyStudentReportSerializer(u_student_report).data,
                 status=HTTP_202_ACCEPTED,
@@ -8145,7 +8184,7 @@ class StudentReportDetail(APIView):
 
 
 class ProjectClosureDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8185,6 +8224,8 @@ class ProjectClosureDetail(APIView):
         )
         if ser.is_valid():
             u_project_closure = ser.save()
+            u_project_closure.document.modifier = req.user
+            u_project_closure.document.save()
             return Response(
                 TinyProjectClosureSerializer(u_project_closure).data,
                 status=HTTP_202_ACCEPTED,
@@ -8198,7 +8239,7 @@ class ProjectClosureDetail(APIView):
 
 
 class RepoenProject(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     # def get_project(self, pk):
     #     try:
@@ -8379,7 +8420,7 @@ class RepoenProject(APIView):
 
 
 class Endorsements(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_endorsements = Endorsement.objects.all()
@@ -8412,7 +8453,7 @@ class Endorsements(APIView):
 
 
 class SeekEndorsement(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8492,7 +8533,7 @@ class SeekEndorsement(APIView):
 
 
 class DeleteAECEndorsement(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8544,7 +8585,7 @@ class DeleteAECEndorsement(APIView):
 
 
 class EndorsementDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -8590,7 +8631,7 @@ class EndorsementDetail(APIView):
 
 
 class Publications(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all_publications = Publication.objects.all()
@@ -8623,7 +8664,7 @@ class Publications(APIView):
 
 
 class PublicationDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:

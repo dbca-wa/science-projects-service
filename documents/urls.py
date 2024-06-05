@@ -28,6 +28,8 @@ urlpatterns = [
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("projectdocuments", views.ProjectDocuments.as_view()),
+    # PR Population
+    path("get_previous_reports_data", views.GetPreviousReportsData.as_view()),
     # Admin Latest Report
     path("actions/finalApproval", views.FinalDocApproval.as_view()),
     path("student_reports/update_progress", views.UpdateStudentReport.as_view()),

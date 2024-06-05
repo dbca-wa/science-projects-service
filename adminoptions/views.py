@@ -14,7 +14,7 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import render
 from django.db import transaction
 from django.conf import settings
@@ -29,7 +29,7 @@ from adminoptions.serializers import (
 
 
 class AdminControls(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = AdminOptions.objects.all()
@@ -62,7 +62,7 @@ class AdminControls(APIView):
 
 
 class GetMaintainer(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -82,7 +82,7 @@ class GetMaintainer(APIView):
 
 
 class AdminControlsDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:

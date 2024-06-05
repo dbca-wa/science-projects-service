@@ -25,11 +25,11 @@ from .serializers import (
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 
 
 class Tasks(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         tasks = Task.objects.all()
@@ -62,7 +62,7 @@ class Tasks(APIView):
 
 
 class Feedbacks(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         feedbacks = UserFeedback.objects.all()
@@ -97,7 +97,7 @@ class Feedbacks(APIView):
 
 
 class FeedbackDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -148,7 +148,7 @@ class FeedbackDetail(APIView):
 
 
 class TaskDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -199,7 +199,7 @@ class TaskDetail(APIView):
 
 
 class MyTasks(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         # Handle not logged in
@@ -209,7 +209,11 @@ class MyTasks(APIView):
             )
 
         # Fetch tasks that belong to the authenticated user (req.user) and order by date added
-        tasks = Task.objects.select_related('user').filter(user=req.user).order_by("-created_at")
+        tasks = (
+            Task.objects.select_related("user")
+            .filter(user=req.user)
+            .order_by("-created_at")
+        )
 
         return Response(
             TinyTaskSerializer(tasks, many=True).data,

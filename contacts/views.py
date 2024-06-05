@@ -13,7 +13,7 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 
 from .models import UserContact, BranchContact, AgencyContact, Address
@@ -30,7 +30,7 @@ from .serializers import (
 
 
 class Addresses(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = Address.objects.all()
@@ -63,7 +63,7 @@ class Addresses(APIView):
 
 
 class AgencyContacts(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = AgencyContact.objects.all()
@@ -96,7 +96,7 @@ class AgencyContacts(APIView):
 
 
 class BranchContacts(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = BranchContact.objects.all()
@@ -129,7 +129,7 @@ class BranchContacts(APIView):
 
 
 class UserContacts(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def get(self, req):
         all = UserContact.objects.all()
@@ -167,7 +167,7 @@ class UserContacts(APIView):
 
 
 class AddressDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -216,7 +216,7 @@ class AddressDetail(APIView):
 
 
 class BranchContactDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -268,7 +268,7 @@ class BranchContactDetail(APIView):
 
 
 class AgencyContactDetail(APIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
