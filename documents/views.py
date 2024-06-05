@@ -3380,25 +3380,38 @@ class SendProjectLeadEmail(APIView):
         settings.LOGGER.info(
                 msg=f"{req.user} is requesting active project lead emails to send a message to"
             )  
-        states = ["active", "suspended", "update_requested"]
-        active_project_leaders = ProjectMember.objects.filter(
-                    is_leader=True, project__status__in=states
-                    ).all()
+        states = ["active", "suspended", "updating"]
+        activeproj_leaders = ProjectMember.objects.filter(is_leader=True, project__status__in=states).all()
         unique_active_project_leads = list(
                 set(
                     lead_member_object.user
-                    for lead_member_object in active_project_leaders
-                    if lead_member_object.user.is_active
+                    for lead_member_object in activeproj_leaders
+                    if lead_member_object.user.is_active and lead_member_object.user.is_staff
+                    # if lead_member_object.user.is_active and lead_member_object.user.is_staff
                 )
             )
+        unique_inactive_leads = list(
+            set(
+                lead_member_object.user
+                for lead_member_object in activeproj_leaders
+                if not lead_member_object.user.is_active or not lead_member_object.user.is_staff
+            )
+        )
 
         file_content = []
+
         dbca_users = []
         dbca_emails = []
         other_users = []
+        other_emails = []
+
+
+        inactive_leaders = []
+
         file_content.append(
-            "-------------------------------------------------------------------------------------\nUnique DBCA Project Leads (Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+            "-------------------------------------------------------------------------------------\nUnique Project Leads marked as staff and active (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
         )
+  
 
         for leader in unique_active_project_leads:
             print(
@@ -3410,20 +3423,69 @@ class SendProjectLeadEmail(APIView):
             else:
                 other_users.append(leader)
 
+        file_content.append(
+            "------\nWith DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
+        )
+  
         for user in dbca_users:
             file_content.append(f"{user.email}\n")
             dbca_emails.append(user.email)
 
+        # for lead in dbca_users:
+        #     projmembers = activeproj_leaders.filter(user=lead).all()
+        #     file_content.append(
+        #         f"\nUser: {lead.email} | {lead.first_name} {lead.last_name}\nProjects Led:\n"
+        #     )
+        #     for p in projmembers:
+        #         file_content.append(
+        #             f"\t-Link: {settings.SITE_URL}/projects/{p.project.pk}\n"
+        #         )
+        #         file_content.append(f"\t-Project: {p.project.title}\n\n")
+
+        #     file_content.append("\n")
+
+
+    
         file_content.append(
-            "\n\n-------------------------------------------------------------------------------------\nUnique Non-DBCA Emails of Project Leads (Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+            "\n------\nWith NON-DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
         )
 
-        for other in other_users:
-            projmembers = active_project_leaders.filter(user=other).all()
-            file_content.append(
-                f"User: {other.email} | {other.first_name} {other.last_name}\nProjects:\n"
+        for user in other_users:
+            file_content.append(f"{user.email}\n")
+            other_emails.append(user.email)
+
+        # for other in other_users:
+        #     projmembers = activeproj_leaders.filter(user=other).all()
+        #     file_content.append(
+        #         f"\nUser: {other.email} | {other.first_name} {other.last_name}\nProjects Led:\n"
+        #     )
+        #     for p in projmembers:
+        #         file_content.append(
+        #             f"\t-Link: {settings.SITE_URL}/projects/{p.project.pk}\n"
+        #         )
+        #         file_content.append(f"\t-Project: {p.project.title}\n\n")
+
+        #     file_content.append("\n")
+
+
+
+
+        file_content.append(
+            "\n\n-------------------------------------------------------------------------------------\nUnique Project Leads marked as NOT staff or INACTIVE (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+        )
+        for leader in unique_inactive_leads:
+            print(
+                f"handling inactive leader {leader.email} | {leader.first_name} {leader.last_name}"
             )
-            for p in projmembers:
+            inactive_leaders.append(leader)
+
+        for leader in inactive_leaders:
+            # file_content.append(f"{user.email}\n")
+            projects_belonging_to = activeproj_leaders.filter(user=leader).all()
+            file_content.append(
+                f"\nUser: {leader.email} | {leader.first_name} {leader.last_name}\nProjects Led:\n"
+            )
+            for p in projects_belonging_to:
                 file_content.append(
                     f"\t-Link: {settings.SITE_URL}/projects/{p.project.pk}\n"
                 )
