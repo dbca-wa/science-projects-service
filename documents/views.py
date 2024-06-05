@@ -6230,6 +6230,37 @@ class DocumentSpawner(APIView):
                 HTTP_400_BAD_REQUEST,
             )
 
+class GetPreviousReportsData(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, req):
+        project_pk = req.data["project_pk"]
+        doc_kind = req.data["writeable_document_kind"]
+        section = req.data["section"]
+
+        if doc_kind == "Progress Report":
+            documents_of_type_from_project = ProgressReport.objects.filter(project=project_pk).order_by('-year')
+        elif doc_kind == "Student Report":
+            documents_of_type_from_project = StudentReport.objects.filter(project=project_pk).order_by('-year')
+        else:
+            return Response(status=HTTP_400_BAD_REQUEST)
+        
+        # Check if there are at least two documents (IE can actually prepopulate with prior data)
+        if documents_of_type_from_project.count() < 2:
+            return Response(status=HTTP_400_BAD_REQUEST)
+
+        # Get the second-to-last document
+        second_last_one = documents_of_type_from_project[1]
+        # print(second_last_one.year)
+
+        # Get the specified section data
+        try:
+            section_data = getattr(second_last_one, section)
+        except AttributeError:
+            return Response(status=HTTP_400_BAD_REQUEST)
+        
+        return Response(data=section_data, status=HTTP_200_OK)
+
+
 
 class ProjectDocuments(APIView):
     permission_classes = [IsAuthenticated]
@@ -7812,7 +7843,7 @@ class ConceptPlanDetail(APIView):
         )
         if ser.is_valid():
             u_concept_plan = ser.save()
-            u_concept_plan.document.updated_at = datetime.datetime.now()
+            # u_concept_plan.document.updated_at = datetime.datetime.now()
             u_concept_plan.document.modifier = req.user
             u_concept_plan.document.save()
 
@@ -7906,6 +7937,9 @@ class ProjectPlanDetail(APIView):
         )
         if ser.is_valid():
             u_project_plan = ser.save()
+            u_project_plan.document.modifier = req.user
+            u_project_plan.document.save()
+
             return Response(
                 TinyProjectPlanSerializer(u_project_plan).data,
                 status=HTTP_202_ACCEPTED,
@@ -8006,6 +8040,9 @@ class ProgressReportDetail(APIView):
         )
         if ser.is_valid():
             u_progress_report = ser.save()
+            u_progress_report.document.modifier = req.user
+            u_progress_report.document.save()
+
             return Response(
                 TinyProgressReportSerializer(u_progress_report).data,
                 status=HTTP_202_ACCEPTED,
@@ -8132,6 +8169,8 @@ class StudentReportDetail(APIView):
         )
         if ser.is_valid():
             u_student_report = ser.save()
+            u_student_report.document.modifier = req.user
+            u_student_report.document.save()
             return Response(
                 TinyStudentReportSerializer(u_student_report).data,
                 status=HTTP_202_ACCEPTED,
@@ -8185,6 +8224,8 @@ class ProjectClosureDetail(APIView):
         )
         if ser.is_valid():
             u_project_closure = ser.save()
+            u_project_closure.document.modifier = req.user
+            u_project_closure.document.save()
             return Response(
                 TinyProjectClosureSerializer(u_project_closure).data,
                 status=HTTP_202_ACCEPTED,
