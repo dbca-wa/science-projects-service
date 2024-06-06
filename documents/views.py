@@ -3380,7 +3380,7 @@ class SendProjectLeadEmail(APIView):
         settings.LOGGER.info(
                 msg=f"{req.user} is requesting active project lead emails to send a message to"
             )  
-        states = ["active", "suspended", "updating"]
+        states = [Project.StatusChoices.ACTIVE, Project.StatusChoices.UPDATING, Project.StatusChoices.SUSPENDED]
         activeproj_leaders = ProjectMember.objects.filter(is_leader=True, project__status__in=states).all()
         unique_active_project_leads = list(
                 set(
@@ -5087,7 +5087,7 @@ class NewCycleOpenEmail(APIView):
         if also_updating == True or also_updating == "True":
             active_project_leads = (
                 ProjectMember.objects.filter(
-                    project__status__in=["active", "updating"], is_leader=True
+                    project__status__in=[Project.StatusChoices.ACTIVE, Project.StatusChoices.UPDATING], is_leader=True
                 )
                 .values_list("user__pk", flat=True)
                 .distinct()
@@ -5095,7 +5095,7 @@ class NewCycleOpenEmail(APIView):
         else:
             active_project_leads = (
                 ProjectMember.objects.filter(
-                    project__status__in=["active"], is_leader=True
+                    project__status__in=[Project.StatusChoices.ACTIVE], is_leader=True
                 )
                 .values_list("user__pk", flat=True)
                 .distinct()
@@ -6358,7 +6358,7 @@ class ProjectDocuments(APIView):
         data={
             "old_id": 1,
             "kind": kind,
-            "status": "new",
+            "status": ProjectDocument.StatusChoices.NEW,
             "project": project_pk,
             "creator": req.user.pk,
             "modifier": req.user.pk,
@@ -6368,6 +6368,7 @@ class ProjectDocuments(APIView):
             data["project_lead_approval_granted"] = True
             data["business_area_lead_approval_granted"] = True
             data["directorate_approval_granted"] = True
+            data["status"] = ProjectDocument.StatusChoices.APPROVED
 
 
         document_serializer = ProjectDocumentCreateSerializer(data=data)
