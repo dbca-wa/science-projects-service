@@ -7465,12 +7465,19 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         directorate_input_required = []
 
         small_user_object = User.objects.filter(pk=req.user.pk).first()
+        print("small user obj", small_user_object)
 
-        if small_user_object and small_user_object.work.business_area:
+
+        # Change it so that 
+        if small_user_object:
+            # and small_user_object.work.business_area
             # user_work = UserWork.objects.get(user=req.user.pk)
-            is_directorate = (
-                small_user_object.work.business_area.name == "Directorate" 
-            ) or req.user.is_superuser
+            ba = small_user_object.work.business_area
+            is_directorate = (ba and 
+                ba.name == "Directorate" 
+            ) or req.user.is_superuser                
+
+            print("is_directorate", is_directorate)
 
             active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
 
@@ -7478,7 +7485,12 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             business_areas_led = small_user_object.business_areas_led.values_list(
                 "id", flat=True
             )
+
+            print("ba led", business_areas_led)
+
             is_ba_leader = len(business_areas_led) >= 1
+
+            print("is_ba_leader", is_ba_leader)
 
             if is_ba_leader:
                 # filter further for only projects which the user leads
