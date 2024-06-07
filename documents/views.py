@@ -5300,17 +5300,31 @@ class NewCycleOpen(APIView):
                         # Check if a progress report for the latest year somehow exists
                         if not exists:
                             if not should_prepopulate:
+                                # check for previous aims and context as this doesnt usually change
+                                # so prepopulate that anyway
+                                try:
+                                    last_one = ProgressReport.objects.filter(project=project.pk).order_by('-year').first()
+                                except ProgressReport.DoesNotExist:
+                                    last_one = None
+
+                                prepopulated_aims = "<p></p>"
+                                prepopulated_context = "<p></p>"
+
+                                if last_one != None:
+                                    prepopulated_aims = last_one.aims 
+                                    prepopulated_context = last_one.context
+
                                 progress_report_data = {
                                     "document": doc.pk,
                                     "project": project.pk,
                                     "report": last_report.pk,
                                     "project": project.pk,
                                     "year": last_report.year,
-                                    "context": "<p></p>",
+                                    "context": prepopulated_context,
                                     "implications": "<p></p>",
                                     "future": "<p></p>",
                                     "progress": "<p></p>",
-                                    "aims": "<p></p>",
+                                    "aims": prepopulated_aims,
                                 }
                             else:
                                 # PREPOPULATE WITH LAST YEARS DATA

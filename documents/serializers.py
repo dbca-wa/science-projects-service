@@ -50,6 +50,7 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
             "media",
             "pdf",
             "pdf_generation_in_progress",
+            "is_published",
         ]
 
 

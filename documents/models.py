@@ -88,7 +88,7 @@ class AnnualReport(CommonModel):
     pdf_generation_in_progress = models.BooleanField(default=False)
 
     is_published = models.BooleanField(
-        default=True,
+        default=False,
     )
 
     def __str__(self) -> str:
