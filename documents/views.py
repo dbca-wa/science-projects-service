@@ -7479,7 +7479,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         directorate_input_required = []
 
         small_user_object = User.objects.filter(pk=req.user.pk).first()
-        print("small user obj", small_user_object)
+        # print("small user obj", small_user_object)
 
 
         # Change it so that 
@@ -7487,11 +7487,11 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             # and small_user_object.work.business_area
             # user_work = UserWork.objects.get(user=req.user.pk)
             ba = small_user_object.work.business_area
-            is_directorate = (ba and 
-                ba.name == "Directorate" 
+            is_directorate = (
+                ba != None and ba.name == "Directorate" 
             ) or req.user.is_superuser                
 
-            print("is_directorate", is_directorate)
+            # print("is_directorate", is_directorate)
 
             active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
 
@@ -7500,11 +7500,11 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 "id", flat=True
             )
 
-            print("ba led", business_areas_led)
+            # print("ba led", business_areas_led)
 
             is_ba_leader = len(business_areas_led) >= 1
 
-            print("is_ba_leader", is_ba_leader)
+            # print("is_ba_leader", is_ba_leader)
 
             if is_ba_leader:
                 # filter further for only projects which the user leads
@@ -7581,8 +7581,25 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 documents.append(doc)
                 if doc.project_id in lead_project_ids:
                     pl_input_required.append(doc)
-                else:
-                    member_input_required.append(doc)
+            
+            # Project membership attention required
+            my_non_leader_memberships = ProjectMember.objects.filter(user=req.user, is_leader=False).all()
+            my_projects = []
+            for membership in my_non_leader_memberships:
+                my_projects.append(membership.project)
+            docs_requiring_team_attention = (
+                ProjectDocument.objects.exclude(
+                    status=ProjectDocument.StatusChoices.APPROVED
+                )
+                .filter(
+                    project_lead_approval_granted=False,
+                    project__in=my_projects
+                )
+                .all()
+            )
+            for doc in docs_requiring_team_attention:
+                member_input_required.append(doc)
+
 
             filtered_documents = list({doc.id: doc for doc in documents}.values())
             filtered_pm_input_required = list(
@@ -7597,6 +7614,17 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             filtered_directorate_input_required = list(
                 {doc.id: doc for doc in directorate_input_required}.values()
             )
+            # print("filtered_pm_input_required:", filtered_pm_input_required)
+            # print("\nfiltered_pl_input_required:", filtered_pl_input_required)
+
+            # print(
+            #     {
+            #         "filtered_pm_input_required": filtered_pm_input_required,
+            #         "filtered_pl_input_required": filtered_pl_input_required,
+            #         "filtered_ba_input_required": filtered_ba_input_required,
+            #         "filtered_directorate_input_required": filtered_directorate_input_required,
+            #     }
+            # )
 
             ser = TinyProjectDocumentSerializer(
                 filtered_documents,
