@@ -73,6 +73,7 @@ from .serializers import (
     ProjectDetailViewSerializer,
     ProjectSerializer,
     ProjectMemberSerializer,
+    ProjectUpdateSerializer,
     # MiniProjectMemberSerializer,
     StudentProjectDetailSerializer,
     TinyExternalProjectDetailSerializer,
@@ -1499,6 +1500,11 @@ class ProjectDetails(APIView):
         start_date_str = req.data.get("startDate")
         end_date_str = req.data.get("endDate")
 
+        service = req.data.get("service")
+        # research_function = req.data.get("research_function")
+        business_area = req.data.get("businessArea")
+        # print(business_area)
+
         # Check if start_date_str is not None and not empty
         if start_date_str:
             start_date = dt.strptime(start_date_str, "%Y-%m-%dT%H:%M:%S.%fZ").date()
@@ -1511,16 +1517,14 @@ class ProjectDetails(APIView):
         else:
             end_date = None
 
-        service = req.data.get("service")
-        # research_function = req.data.get("research_function")
-        business_area = req.data.get("business_area")
+        # print(proj)
 
         updated_base_proj_data = {
             key: value
             for key, value in {
                 "title": title,
                 "description": description,
-                "business_area": business_area,
+                "business_area": int(business_area),
                 "keywords": keywords,
                 "status": status,
                 "start_date": start_date,
@@ -1528,6 +1532,7 @@ class ProjectDetails(APIView):
             }.items()
             if value is not None and (not isinstance(value, list) or value)
         }
+        print(updated_base_proj_data)
 
         updated_proj_detail_data = {
             key: value
@@ -1605,13 +1610,15 @@ class ProjectDetails(APIView):
             if value is not None and (not isinstance(value, list) or value)
         }
 
-        base_ser = ProjectSerializer(
+        base_ser = ProjectUpdateSerializer(
             proj,
             data=updated_base_proj_data,
             partial=True,
         )
 
         if base_ser.is_valid():
+            # print("BASE SER IS VALID")
+            # print(base_ser)
             with transaction.atomic():
                 # Create the image or update the file if an image is present
                 uproj = base_ser.save()

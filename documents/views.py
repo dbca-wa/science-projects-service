@@ -8369,12 +8369,10 @@ class RepoenProject(APIView):
     #     return obj
 
     def get_base_document(self, project_pk):
-        try:
-            obj = ProjectDocument.objects.get(project=project_pk, kind="projectclosure")
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
+        obj = ProjectDocument.objects.filter(project=project_pk, kind="projectclosure").first()
+        if obj is None:
+            return None
         return obj
-
     # def get_closure(self, project_pk):
     #     try:
     #         obj = ProjectClosure.objects.get(pr=project_pk)
@@ -8390,19 +8388,24 @@ class RepoenProject(APIView):
             try:
                 settings.LOGGER.info(msg=f"{req.user} is reopening project {pk}")
                 project_document = self.get_base_document(pk)
-                project_document.project.status = "updating"
-                project_document.project.save()
-                project = Project.objects.filter(pk=project_document.project.pk).first()
-                # Get document kind information
-                document_kind_dict = {
-                    "concept": "Science Concept Plan",
-                    "projectplan": "Science Project Plan",
-                    "progressreport": "Progress Report",
-                    "studentreport": "Student Report",
-                    "projectclosure": "Project Closure",
-                }
-                document_kind_as_title = document_kind_dict[project_document.kind]
-                project_document.delete()
+                if project_document == None:
+                    project = Project.objects.filter(pk=pk).first()
+                    project.status = Project.StatusChoices.UPDATING
+                    project.save()
+                else:
+                    project_document.project.status = "updating"
+                    project_document.project.save()
+                    project = Project.objects.filter(pk=project_document.project.pk).first()
+                    # Get document kind information
+                    document_kind_dict = {
+                        "concept": "Science Concept Plan",
+                        "projectplan": "Science Project Plan",
+                        "progressreport": "Progress Report",
+                        "studentreport": "Student Report",
+                        "projectclosure": "Project Closure",
+                    }
+                    document_kind_as_title = document_kind_dict[project_document.kind]
+                    project_document.delete()
                 print("SENDING PROJECT REOPENED EMAIL")
                 # Preset info
                 from_email = settings.DEFAULT_FROM_EMAIL
@@ -8416,8 +8419,6 @@ class RepoenProject(APIView):
                     plain_project_name = html2text.html2text(
                         html_project_title
                     ).strip()  # nicely rendered html title
-
-       
 
                     actioning_user = User.objects.get(pk=req.user.pk)
                     actioning_user_name = (
@@ -8531,6 +8532,8 @@ class RepoenProject(APIView):
 
 
                 return Response(status=HTTP_204_NO_CONTENT)
+                # settings.LOGGER.error(msg=f"There is no project doc to delete")
+                # return Response(f"There is no project doc to delete", status=HTTP_400_BAD_REQUEST)
             except Exception as e:
                 settings.LOGGER.error(msg=f"{e}")
                 return Response(f"{e}", status=HTTP_400_BAD_REQUEST)
