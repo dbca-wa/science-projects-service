@@ -16,11 +16,12 @@ from .models import (
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
+from django.db.models import Max
 
 
 @admin.register(AnnualReport)
 class AnnualReportAdmin(admin.ModelAdmin):
-    list_display = ("pk", "year", "is_published", "pdf_generation_in_progress")
+    list_display = ("pk", "year", "is_published", "pdf_generation_in_progress", "pdf")
 
     ordering = ["year"]
 
@@ -111,11 +112,53 @@ class ProjectPlanAdmin(admin.ModelAdmin):
     doc_status.short_description = "Document Status"
 
 
+@admin.action(description="(latest year) Populate Aims and Context")
+def populate_aims_and_context(model_admin, req, selected):
+    if len(selected) != 1:
+        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
+        return
+
+    try:
+        sections_to_populate = [
+            "aims",
+            "context",
+        ]
+
+        # Get Annual reports and sort by year (highest year comes first) to get latest year and eligible reports
+        latest_year = AnnualReport.objects.aggregate(latest_year=Max("year"))[
+            "latest_year"
+        ]
+        eligible_prs = ProgressReport.objects.filter(year=latest_year)
+        updated_count = 0
+
+        # Check each report/project to see if it can be populated, and populate each section if it can
+        for pr in eligible_prs:
+            all_prs_for_project = ProgressReport.objects.filter(
+                project=pr.project
+            ).order_by("-year")
+            if all_prs_for_project.count() > 1:
+                previous_data_object = all_prs_for_project[1]
+                # data_to_update = {}
+                for section in sections_to_populate:
+                    setattr(pr, section, getattr(previous_data_object, section))
+                pr.save()
+                updated_count += 1
+
+        model_admin.message_user(
+            req,
+            f"Successfully populated aims and context for {updated_count} progress reports.",
+        )
+    except Exception as e:
+        print(f"ERROR: {e}")
+
+    return
+
+
 @admin.register(ProgressReport)
 class ProgressReportAdmin(admin.ModelAdmin):
     list_display = ("pk", "doc_status", "document")
 
-    list_filter = ("document__created_at",)
+    list_filter = ("document__created_at", "year")
 
     search_fields = ["document__project__title"]
 
@@ -125,6 +168,7 @@ class ProgressReportAdmin(admin.ModelAdmin):
         return obj.document.get_status_display()
 
     doc_status.short_description = "Document Status"
+    actions = [populate_aims_and_context]
 
 
 @admin.register(StudentReport)
