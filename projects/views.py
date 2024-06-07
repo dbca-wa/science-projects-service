@@ -410,6 +410,18 @@ class Projects(APIView):
         total_projects = projects.count()
         total_pages = ceil(total_projects / page_size)
 
+        # Annotate projects to prioritize completed and terminated projects
+        projects = projects.extra(
+            select={
+                "custom_ordering": """
+                    CASE
+                        WHEN status IN ('suspended', 'completed', 'terminated') THEN 1
+                        ELSE 0
+                    END
+                """
+            }
+        ).order_by("custom_ordering", "-year")
+
         serialized_projects = ProjectSerializer(
             projects[start:end],
             many=True,
