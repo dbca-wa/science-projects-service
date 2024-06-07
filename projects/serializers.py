@@ -1,5 +1,6 @@
 # from amqp import NotFound
 from rest_framework.exceptions import NotFound
+from agencies.models import BusinessArea
 from agencies.serializers import AffiliationSerializer, TinyBusinessAreaSerializer
 from documents.templatetags.custom_filters import extract_text_content
 from locations.models import Area
@@ -144,6 +145,31 @@ class ProjectSerializer(ModelSerializer):
     # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        # Get the serialized data from the parent class
+        representation = super().to_representation(instance)
+
+        # Check if the custom context key is present and use 'pk' instead of 'id'
+        if self.context.get("use_pk_for_id"):
+            representation["pk"] = representation.pop("id")
+
+        return representation
+
+
+class ProjectBAUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = BusinessArea
+
+
+class ProjectUpdateSerializer(ModelSerializer):
+    # image = ProjectPhotoSerializer(read_only=True)
+    image = ProjectPhotoSerializer(read_only=True)
+    # business_area = ProjectBAUpdateSerializer()
 
     class Meta:
         model = Project
