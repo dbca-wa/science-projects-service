@@ -782,11 +782,11 @@ class BeginProjectDocGeneration(APIView):
         return sr
 
     def post(self, req, pk):
-        settings.LOGGER.info(msg=f"Generating Project Doc PDF")
 
         # print(req.data)
 
         doc = self.get_main_doc(pk=pk)
+        settings.LOGGER.info(msg=f"{req.user} is generating Project Doc PDF for document {doc}")
         document_type = doc.kind
 
         # General Helper Funcs
@@ -1126,9 +1126,8 @@ class BeginProjectDocGeneration(APIView):
             return kind_dict[kind]
 
         def get_associated_service(pk):
-            print("projects pk:", pk)
             details = ProjectDetail.objects.get(project=pk)
-            print(details.__dict__)
+            # print(details.__dict__)
             service = details.service
             return service
 
@@ -7487,6 +7486,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             # and small_user_object.work.business_area
             # user_work = UserWork.objects.get(user=req.user.pk)
             ba = small_user_object.work.business_area
+            # print(ba)
             is_directorate = (
                 ba != None and ba.name == "Directorate" 
             ) or req.user.is_superuser                
@@ -7530,7 +7530,6 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
                 # Append the documents to the respective lists
                 documents.extend(docs_requiring_ba_attention)
-                ba_input_required.extend(docs_requiring_ba_attention)
 
             # Directorate Filtering
             if is_directorate:
@@ -7584,6 +7583,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
             
             # Project membership attention required
             my_non_leader_memberships = ProjectMember.objects.filter(user=req.user, is_leader=False).all()
+            # print(my_non_leader_memberships)
             my_projects = []
             for membership in my_non_leader_memberships:
                 my_projects.append(membership.project)
@@ -7598,8 +7598,10 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 .all()
             )
             for doc in docs_requiring_team_attention:
+                documents.append(doc)
                 member_input_required.append(doc)
 
+            # print(member_input_required)
 
             filtered_documents = list({doc.id: doc for doc in documents}.values())
             filtered_pm_input_required = list(
