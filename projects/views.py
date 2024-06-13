@@ -1524,7 +1524,6 @@ class ProjectDetails(APIView):
             for key, value in {
                 "title": title,
                 "description": description,
-                "business_area": int(business_area),
                 "keywords": keywords,
                 "status": status,
                 "start_date": start_date,
@@ -1532,6 +1531,15 @@ class ProjectDetails(APIView):
             }.items()
             if value is not None and (not isinstance(value, list) or value)
         }
+
+        # Add business_area separately if it's not None / skip it if error
+        if business_area is not None:
+            try:
+                updated_base_proj_data["business_area"] = int(business_area)
+            except Exception as e:
+                settings.LOGGER.error(msg=f"BA not convertable to int: {business_area}")
+                pass
+
         print(updated_base_proj_data)
 
         updated_proj_detail_data = {
