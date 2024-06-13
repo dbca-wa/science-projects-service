@@ -1651,7 +1651,9 @@ class ProjectDetails(APIView):
                     try:
                         project_photo = ProjectPhoto.objects.get(project=pk)
                     except ProjectPhoto.DoesNotExist as e:
-                        settings.LOGGER.error(msg=f"{e}")
+                        settings.LOGGER.warning(
+                            msg=f"{req.user} is creating new Project Photo instance as one does not exist for Project ID: {pk}"
+                        )
                         # Create the object with the data
                         try:
                             image_data = {
