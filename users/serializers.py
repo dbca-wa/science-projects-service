@@ -299,4 +299,5 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "phone",
             "fax",
             "affiliation",
+            "business_areas_led",
         )

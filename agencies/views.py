@@ -5,6 +5,7 @@ from rest_framework.exceptions import (
     ParseError,
     PermissionDenied,
 )
+from pprint import pprint
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -298,6 +299,21 @@ class Branches(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class MyBusinessAreas(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = BusinessArea.objects.filter(leader=req.user.pk)
+        ser = TinyBusinessAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
 
 
 class BusinessAreas(APIView):
@@ -743,7 +759,7 @@ class BusinessAreaDetail(APIView):
 
     def put(self, req, pk):
         ba = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is udpating business area {ba}")
+        settings.LOGGER.info(msg=f"{req.user} is updating business area {ba}")
 
         image = req.data.get("image")
         print(req.data)
@@ -765,21 +781,9 @@ class BusinessAreaDetail(APIView):
 
         division_id = req.data.get("division")
         print("DIV ID: ", division_id)
-        if division_id:
-            ba_data = {
-                "old_id": req.data.get("old_id"),
-                "division": int(division_id),
-                "name": req.data.get("name"),
-                "slug": req.data.get("slug"),
-                "agency": req.data.get("agency"),
-                "focus": req.data.get("focus"),
-                "introduction": req.data.get("introduction"),
-                "data_custodian": req.data.get("data_custodian"),
-                "finance_admin": req.data.get("finance_admin"),
-                "leader": req.data.get("leader"),
-            }
-        else:
-            ba_data = {
+        ba_data = {
+            key: value
+            for key, value in {
                 "old_id": req.data.get("old_id"),
                 "name": req.data.get("name"),
                 "slug": req.data.get("slug"),
@@ -789,7 +793,17 @@ class BusinessAreaDetail(APIView):
                 "data_custodian": req.data.get("data_custodian"),
                 "finance_admin": req.data.get("finance_admin"),
                 "leader": req.data.get("leader"),
-            }
+            }.items()
+            if value is not None
+            #   and (not isinstance(value, list) or value)
+        }
+
+        if division_id is not None:
+            try:
+                ba_data["division"] = (int(division_id))
+            except (ValueError, TypeError) as e:
+                print(e)
+                pass
 
         ser = BusinessAreaSerializer(
             ba,
@@ -825,6 +839,8 @@ class BusinessAreaDetail(APIView):
                     status=HTTP_202_ACCEPTED,
                 )
         else:
+            print("\nSerializer invalid\n")
+            pprint(ser.data)
             settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(
                 ser.errors,

@@ -9,6 +9,7 @@ urlpatterns = [
     path("business_areas", views.BusinessAreas.as_view()),
     path("business_areas/setactive/<int:pk>", views.SetBusinessAreaActive.as_view()),
     path("business_areas/<int:pk>", views.BusinessAreaDetail.as_view()),
+    path("business_areas/mine", views.MyBusinessAreas.as_view()),
     path("affiliations", views.Affiliations.as_view()),
     path("affiliations/<int:pk>", views.AffiliationDetail.as_view()),
     path("affiliations/merge", views.AffiliationsMerge.as_view()),
