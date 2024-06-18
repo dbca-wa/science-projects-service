@@ -142,6 +142,584 @@ def determine_doc_kind_url_string(dockind:str):
                 else:
                     return "closure"
                 
+
+class BeginUnapprovedReportDocGeneration(APIView):
+    permission_classes = [IsAuthenticated]
+
+
+    def go(self, pk):
+        try:
+            obj = AnnualReport.objects.get(pk=pk)
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_ar_media(self, pk, kind):
+        try:
+            obj = AnnualReportMedia.objects.get(report=pk, kind=kind)
+        except AnnualReportMedia.DoesNotExist:
+            print(f"AR MEDIA OF TYPE {kind} DOES NOT EXIST FOR AR {pk}")
+            return None
+        return obj
+
+    def get_external_projects_for_ar(self, report):
+        settings.LOGGER.info(
+            msg=f"Getting All Valid External Project..."
+        )
+        if report:
+            # print(report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            active_external_projects = Project.objects.filter(
+                Q(status__in=Project.NOT_TERMINATED_OR_CLOSED)
+                & Q(
+                    kind__in=[
+                        Project.CategoryKindChoices.EXTERNAL,
+                    ]
+                )
+            ).exclude(
+                Q(business_area__division__name__isnull=True)
+                | ~Q(
+                    business_area__division__name="Biodiversity and Conservation Science"
+                )
+            )
+
+            # REPLACE WITH AR EXT PROJECT SERIALIAZER
+            proj_ser = ARExternalProjectSerializer(
+                active_external_projects,
+                many=True,
+            )
+
+            return proj_ser.data
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
+    def get_reports_for_ar(self, report):
+        settings.LOGGER.info(
+            msg=f"Getting All Student & Progress Reports for current year"
+        )
+        if report:
+            active_sr_docs = StudentReport.objects.filter(
+                Q(project__status__in=Project.NOT_TERMINATED_OR_CLOSED)
+                & Q(report=report)
+            ).exclude(
+                Q(project__business_area__division__name__isnull=True)
+                    | ~Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+            )
+
+            print(f"\n\nACTIVE SR: {active_sr_docs}\n\n")
+            # print(report)
+            # Get progress report documents which belong to it and belong to active and approved projects
+            # active_sr_docs = StudentReport.objects.filter(
+            #     report=report, project__status="active"
+            # ).exclude(
+            #     Q(project__business_area__division__name__isnull=True)
+            #     | ~Q(
+            #         project__business_area__division__name="Biodiversity and Conservation Science"
+            #     )
+            # )
+            active_pr_docs = ProgressReport.objects.filter(
+                Q(project__status__in=Project.NOT_TERMINATED_OR_CLOSED)
+                & Q(report=report)
+            ).exclude(
+                Q(project__business_area__division__name__isnull=True)
+                    | ~Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+            )
+            print(f"\n\nACTIVE PR: {active_sr_docs}\n\n")
+
+            # active_pr_docs = ProgressReport.objects.filter(
+            #     report=report, project__status="active"
+            # ).exclude(
+            #     Q(project__business_area__division__name__isnull=True)
+            #     | ~Q(
+            #         project__business_area__division__name="Biodiversity and Conservation Science"
+            #     )
+            # )
+
+            def removeempty_p(html_content):
+                html_content = re.sub(r"<p>(&nbsp;|\s)*</p>", "", html_content)
+                html_content = re.sub(r"&nbsp;", " ", html_content)
+
+                return html_content
+
+            for report in active_pr_docs:
+                report.context = removeempty_p(report.context)
+                report.aims = removeempty_p(report.aims)
+                report.progress = removeempty_p(report.progress)
+                report.implications = removeempty_p(report.implications)
+                report.future = removeempty_p(report.future)
+
+            # print(active_sr_docs)
+
+            for sreport in active_sr_docs:
+                sreport.progress_report = removeempty_p(sreport.progress_report)
+
+            sr_ser = StudentReportAnnualReportSerializer(
+                active_sr_docs,
+                many=True,
+            )
+            pr_ser = ProgressReportAnnualReportSerializer(
+                active_pr_docs,
+                many=True,
+            )
+
+            # print(active_pr_docs)
+            data_object = {
+                "student_reports": sr_ser.data,
+                "progress_reports": pr_ser.data,
+            }
+            # print(data_object["student_reports"])
+            # print(data_object)
+            return data_object
+        else:
+            return Response(
+                HTTP_404_NOT_FOUND,
+            )
+
+    def post(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating a pdf for report with id {pk}"
+        )
+
+        def set_report_generation_status(report, is_generating: bool):
+            report.pdf_generation_in_progress = is_generating
+            report.save()
+
+        # Fetch Data for the templates
+        report = self.go(pk=pk)
+        # Return if already generating for report
+        if report.pdf_generation_in_progress == True:
+            return Response(
+                {"error": "PDF Generation already in progress"},
+                HTTP_400_BAD_REQUEST,
+            )
+        set_report_generation_status(report=report, is_generating=True)
+        start_time = time.time()
+
+        # Director's Message
+        directors_message_data = report.dm
+
+        # Publications
+        publications_data = report.publications
+
+        # Service Delivery Structure, ch img and chart
+
+        generic_chapter_image = (
+            os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.jpg")
+            if os.path.exists(
+                os.path.join(
+                    settings.BASE_DIR, "documents", "generic_chapter_image.jpg"
+                )
+            )
+            else ""
+        )
+        chart_image_obj = self.get_ar_media(pk=report.pk, kind="sdchart")
+        sds_chapter_image_obj = self.get_ar_media(pk=report.pk, kind="service_delivery")
+        sds_data = {
+            "intro": report.service_delivery_intro,
+            "chart": chart_image_obj.file.url if chart_image_obj else "",
+            "chapter_image": (
+                sds_chapter_image_obj.file.url
+                if sds_chapter_image_obj
+                else generic_chapter_image
+            ),
+        }
+        # print(sds_data)
+
+        # Other Chapter Images & Covers
+        settings.LOGGER.info(msg=f"Fetching Annual Report Media...")
+        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
+        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
+
+        research_chapter_image = self.get_ar_media(pk=report.pk, kind="research")
+        partnerships_chapter_image = self.get_ar_media(
+            pk=report.pk, kind="partnerships"
+        )
+        collaborations_chapter_image = self.get_ar_media(
+            pk=report.pk, kind="collaborations"
+        )
+        student_projects_chapter_image = self.get_ar_media(
+            pk=report.pk, kind="student_projects"
+        )
+        publications_chapter_image = self.get_ar_media(
+            pk=report.pk, kind="publications"
+        )
+
+        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
+        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
+
+        research_chapter_image = (
+            research_chapter_image.file.url
+            if research_chapter_image
+            else generic_chapter_image
+        )
+        partnerships_chapter_image = (
+            partnerships_chapter_image.file.url
+            if partnerships_chapter_image
+            else generic_chapter_image
+        )
+        collaborations_chapter_image = (
+            collaborations_chapter_image.file.url
+            if collaborations_chapter_image
+            else generic_chapter_image
+        )
+        student_projects_chapter_image = (
+            student_projects_chapter_image.file.url
+            if student_projects_chapter_image
+            else generic_chapter_image
+        )
+        publications_chapter_image = (
+            publications_chapter_image.file.url
+            if publications_chapter_image
+            else generic_chapter_image
+        )
+
+        cover_chapter_image = (
+            cover_chapter_image.file.url
+            if cover_chapter_image
+            else generic_chapter_image
+        )
+        rear_cover_chapter_image = (
+            rear_cover_chapter_image.file.url
+            if rear_cover_chapter_image
+            else generic_chapter_image
+        )
+
+        participating_external_projects = self.get_external_projects_for_ar(
+            report=report
+        )
+        # ext = []
+        # for proj in participating_external_projects:
+        #     title = proj["title"]
+        #     partners = proj["partners"]
+        #     funding = proj["funding"]
+        #     members = proj.team_members
+
+        # Participating Reports (Dict in format of student_reports, progress_reports)
+        try:
+            participating_reports = self.get_reports_for_ar(report=report)
+        except Exception as e:
+            print(f"\n\n{e}\n\n")
+            set_report_generation_status(report, False)
+
+        # print(participating_reports["student_reports"])
+        # print(participating_reports["progress_reports"])
+
+        # Business Areas with Participating Projects
+        bas = []
+        for pr in participating_reports["progress_reports"]:
+            document = pr["document"]
+            project = document["project"]
+            ba = project["business_area"]
+            bas.append(ba)
+        # print(bas)
+        # order alphabetically
+        sorted_bas = sorted(bas, key=lambda x: x["name"])
+
+        def get_user_full_name(pk):
+            try:
+                u = User.objects.get(pk=pk)
+            except User.DoesNotExist:
+                return ""
+            return f"{u.first_name} {u.last_name}"
+
+        def get_distilled_title(html_string):
+            # Parse the HTML using BeautifulSoup
+            soup = BeautifulSoup(html_string, "html.parser")
+
+            # Extract the text content
+            inner_text = soup.get_text(separator=" ", strip=True)
+
+            return inner_text
+
+        # Create a dictionary to group progress reports by business area pk
+        progress_reports_by_ba = {}
+
+        # Group progress reports based on business area pk
+        for item in participating_reports["progress_reports"]:
+            ba_pk = item["document"]["project"]["business_area"]["pk"]
+
+            if ba_pk not in progress_reports_by_ba:
+                progress_reports_by_ba[ba_pk] = []
+
+            progress_reports_by_ba[ba_pk].append(item)
+
+        sorted_external_project_data = []
+        sorted_ba_data = []
+        existing_ba_names = set()  # To keep track of existing ba_names
+
+        # For each business area
+        for ba in sorted_bas:
+            ba_name = ba["name"]
+            # Check if an object with the same ba_name already exists
+            if ba_name not in existing_ba_names:
+                # Create an object
+                ba_object = {
+                    "ba_name": ba_name,
+                    "ba_image": ba["image"] if ba["image"] else "",
+                    "ba_leader": get_user_full_name(ba["leader"]),
+                    "ba_introduction": ba["introduction"],
+                    # Prepare progress reports that match the business area's pk
+                    "progress_reports": sorted(
+                        progress_reports_by_ba.get(ba["pk"], []),
+                        key=lambda x: get_distilled_title(
+                            x["document"]["project"]["title"]
+                        ),
+                    ),
+                }
+                # Append the new ba_object
+                sorted_ba_data.append(ba_object)
+
+                # Add the ba_name to the set of existing ba_names
+                existing_ba_names.add(ba_name)
+        # Prep sections for each ba with the relevant projects
+        # print(sorted_ba_data)
+
+        # for item in sorted_ba_data:
+        #     print(
+        #         f"\n {item['ba_name']}\n{item['progress_reports'][0]['document']['project']['title']}"
+        #     )
+
+        sorted_srs = sorted(
+            [
+                report
+                for report in participating_reports["student_reports"]
+                if report["document"]["project"]
+            ],
+            key=lambda x: get_distilled_title(x["document"]["project"]["title"]),
+        )
+
+        external_partnerships_table_data = []
+        #  Partners, Project Title, External Funding, Departmental Involvement (team)
+        # (Alphabetical)
+
+        student_projects_table_data = []
+        # DBCA Officer, Student - student (level), Academic, Project Title, Duration, Page
+        # (Alphabetical)
+
+        research_projects_table_data = []
+        # Use pre-existing data
+        # BA, DBCA Region, IBRA/IMCRA, NRM Region, Project Title, Page
+        # (Alphabetical BA Section & Project Title per section)
+
+        # Handle Generation
+        rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        prince_css_path = os.path.join(
+            settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
+        )
+
+        # Used the received css file to populate the backend css file
+        css_content = req.data["css_content"]
+        # print(css_content)
+        formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
+        formatted_css = formatted_css.strip('"')
+        # print(formatted_css)
+
+        if css_content:
+            with open(rte_css_path, "w") as saved_css_file:
+                saved_css_file.write(formatted_css)
+
+        dbca_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "BCSTransparent.png"
+        )
+        dbca_cropped_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
+        )
+        no_image_path = os.path.join(
+            settings.BASE_DIR, "documents", "image_not_available.png"
+        )
+
+        # HTML content for the PDF
+        def get_formatted_datetime(now):
+            # Format the date and time
+            day_with_suffix = "{}".format(now.day) + (
+                "th"
+                if 10 <= now.day % 100 <= 20
+                else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
+            )
+
+            formatted_datetime = now.strftime(f"{day_with_suffix} %B, %Y @ %I:%M%p")
+
+            return formatted_datetime
+
+        # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
+
+        settings.LOGGER.warn(msg=f"Annual Report Data Rendering to Template...")
+        html_content = get_template("annual_report.html").render(
+            {
+                # Styles & url
+                # "rte_css_path": rte_css_path,
+                "time_generated": get_formatted_datetime(datetime.datetime.now()),
+                "prince_css_path": prince_css_path,
+                "dbca_image_path": dbca_image_path,
+                "dbca_cropped_image_path": dbca_cropped_image_path,
+                "no_image_path": no_image_path,
+                "server_url": (
+                    "http://127.0.0.1:8000"
+                    if settings.DEBUG == True
+                    # else settings.SITE_URL
+                    else settings.PRINCE_SERVER_URL
+                ),
+                "frontend_url": (
+                    "http://127.0.0.1:3000"
+                    if settings.DEBUG == True
+                    else settings.SITE_URL
+                ),
+                "base_url": settings.BASE_DIR,
+                # Chapter Images
+                "cover_chapter_image": cover_chapter_image,
+                "rear_cover_chapter_image": rear_cover_chapter_image,
+                "research_chapter_image": research_chapter_image,
+                "partnerships_chapter_image": partnerships_chapter_image,
+                "collaborations_chapter_image": collaborations_chapter_image,
+                "student_projects_chapter_image": student_projects_chapter_image,
+                "publications_chapter_image": publications_chapter_image,
+                "generic_chapter_image_path": generic_chapter_image,
+                # Cover page
+                "financial_year_string": f"FY {int(report.year-1)}-{int(report.year)}",
+                # ED Message
+                "directors_message_data": directors_message_data,
+                # TABLE CONTENTS
+                # SDS
+                "sds_data": sds_data,
+                # BA & Progress Reports
+                "sorted_ba_data_and_pr_dict": sorted_ba_data,
+                # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
+                "sorted_external_project_data": participating_external_projects,
+                # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
+                # Student Reports
+                "sorted_student_report_array": sorted_srs,
+                # Publications and Reports
+                "publications_data": publications_data,
+                # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
+                "population_time": f"{float(time.time() - start_time):.3f}",
+            }
+        )
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
+
+        # Specify the file path where you want to save the HTML file on the server
+        html_file_path = os.path.join(
+            settings.BASE_DIR,
+            "documents",
+            f"_Annual_Report_{report.pk}.html",
+        )
+
+        with open(html_file_path, "w", encoding="utf-8") as html_file:
+            html_file.write(html_content)
+
+        # pdf_file_path = os.path.join(
+        #     settings.BASE_DIR,
+        #     "documents",
+        #     f'{document_type}_{doc_data["project_pk"]}.pdf',
+        # )
+
+        # Combine all stylesheet paths into a single string separated by commas
+        all_css_paths = ",".join([rte_css_path, prince_css_path])
+
+        p = subprocess.Popen(
+            ["prince", "-", f"--style={all_css_paths}", f"--javascript"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        outs, errs = p.communicate(f"{html_content}".encode("utf-8"))
+
+        if p.returncode:
+            # Handle `errs`.
+            print(p.returncode)
+            set_report_generation_status(report, False)
+
+        else:
+            pdf = outs
+            # with open(pdf_file_path, "wb") as pdf_file:
+            #     pdf_file.write(outs)
+            #     print(f"Saved pdf file to {pdf_file_path}")
+
+            pdf_filename = f"_Annual_Report_{report.pk}.pdf"
+            file_content = ContentFile(pdf, name=pdf_filename)
+
+            set_report_generation_status(report=report, is_generating=False)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            megabytes_size = len(pdf) / (1024**2)
+            formatted_size = "{:.2f}".format(megabytes_size)
+            settings.LOGGER.info(msg=f"PDF is " + str(formatted_size) + " MB in size")
+            settings.LOGGER.info(
+                msg=f"Annual Report PDF generated in {elapsed_time:.6f} seconds."
+            )
+
+            try:
+                # Update item if it exists
+                doc_pdf = AnnualReportPDF.objects.get(
+                    report=report,
+                )
+                if doc_pdf:
+                    ser = AnnualReportPDFSerializer(
+                        doc_pdf,
+                        data={
+                            "file": file_content,
+                        },
+                        partial=True,
+                    )
+                    if ser.is_valid():
+                        # Delete the previous file
+                        pdfs_file_path = doc_pdf.file.path
+                        default_storage.delete(pdfs_file_path)
+                        doc_pdf = ser.save()
+                        return Response(
+                            AnnualReportPDFSerializer(doc_pdf).data,
+                            status=HTTP_202_ACCEPTED,
+                        )
+
+                    else:
+                        print("\n\nERROR HERE 1\n\n")
+                        print("error on try ser")
+                        print(ser.errors)
+
+            except AnnualReportPDF.DoesNotExist:
+                # If the item doesn't exist, create a new one
+                ser = AnnualReportPDFCreateSerializer(
+                    data={
+                        "file": file_content,
+                        "report": report.pk,
+                        "creator": req.user.pk,
+                    }
+                )
+                if ser.is_valid():
+                    doc_pdf = ser.save()
+                    return Response(
+                        AnnualReportPDFSerializer(doc_pdf).data,
+                        status=HTTP_201_CREATED,
+                    )
+                else:
+                    print("error on except ser")
+                    print(ser.errors)
+
+        set_report_generation_status(report=report, is_generating=False)
+        return Response(
+            {"error": True},
+            status=HTTP_400_BAD_REQUEST,
+        )
+
+        # set_report_generation_status(report=report, is_generating=False)
+
+        return Response(
+            {"msg": "ok"},
+            HTTP_202_ACCEPTED,
+        )
+
+
+
+
 class BeginReportDocGeneration(APIView):
     permission_classes = [IsAuthenticated]
 

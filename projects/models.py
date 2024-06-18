@@ -92,6 +92,17 @@ class Project(CommonModel):
         TERMINATED = ("terminated", "Terminated and Closed")
         SUSPENDED = ("suspended", "Suspended")
 
+    NOT_TERMINATED_OR_CLOSED = (
+        StatusChoices.NEW,
+        StatusChoices.PENDING,
+        StatusChoices.ACTIVE,
+        StatusChoices.UPDATING,
+        StatusChoices.CLOSUREREQ,
+        StatusChoices.CLOSING,
+        StatusChoices.FINAL_UPDATE,
+        StatusChoices.SUSPENDED,
+    )
+
     ACTIVE_ONLY = (
         StatusChoices.NEW,
         StatusChoices.PENDING,
