@@ -348,10 +348,20 @@ class Users(APIView):
             try:
                 # Ensures everything is rolled back if there is an error.
                 with transaction.atomic():
-                    new_user = ser.save(
-                        first_name=req.data.get("firstName"),
-                        last_name=req.data.get("lastName"),
-                    )
+                    staff = req.data.get("isStaff")
+                    first_name = req.data.get("firstName").capitalize()
+                    last_name = req.data.get("lastName").capitalize()
+                    if staff:
+                        new_user = ser.save(
+                            first_name=first_name,
+                            last_name=last_name,
+                            is_staff=True,
+                        )
+                    else:
+                        new_user = ser.save(
+                            first_name=first_name,
+                            last_name=last_name,
+                        )
 
                     # Creates UserWork entry
                     UserWork.objects.create(user=new_user)

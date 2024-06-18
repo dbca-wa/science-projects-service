@@ -189,13 +189,23 @@ class StudentReportAdmin(admin.ModelAdmin):
 
 @admin.register(ProjectClosure)
 class ProjectClosureAdmin(admin.ModelAdmin):
-    list_display = ("pk", "doc_status", "document")
+    list_display = (
+        "pk",
+        "doc_created_data",
+        "doc_status",
+        "document",
+    )
 
     list_filter = ("document__created_at",)
 
     search_fields = ["document__project__title"]
 
     ordering = ["-document__created_at"]
+
+    def doc_created_data(self, obj):
+        return obj.document.created_at
+
+    doc_created_data.short_description = "Created At"
 
     def doc_status(self, obj):
         return obj.document.get_status_display()
