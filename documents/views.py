@@ -169,9 +169,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
         if report:
             # print(report)
             # Get progress report documents which belong to it and belong to active and approved projects
-            active_external_projects = Project.objects.filter(
-                Q(status__in=Project.NOT_TERMINATED_OR_CLOSED)
-                & Q(
+            active_external_projects = Project.objects.filter(Q(
                     kind__in=[
                         Project.CategoryKindChoices.EXTERNAL,
                     ]
@@ -201,8 +199,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
         )
         if report:
             active_sr_docs = StudentReport.objects.filter(
-                Q(project__status__in=Project.NOT_TERMINATED_OR_CLOSED)
-                & Q(report=report)
+                 Q(report=report)
             ).exclude(
                 Q(project__business_area__division__name__isnull=True)
                     | ~Q(
@@ -222,8 +219,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
             #     )
             # )
             active_pr_docs = ProgressReport.objects.filter(
-                Q(project__status__in=Project.NOT_TERMINATED_OR_CLOSED)
-                & Q(report=report)
+                Q(report=report)
             ).exclude(
                 Q(project__business_area__division__name__isnull=True)
                     | ~Q(
@@ -774,7 +770,7 @@ class BeginReportDocGeneration(APIView):
             # print(report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_sr_docs = StudentReport.objects.filter(
-                report=report, project__status="active"
+                report=report, document__status="approved"
             ).exclude(
                 Q(project__business_area__division__name__isnull=True)
                 | ~Q(
@@ -783,7 +779,7 @@ class BeginReportDocGeneration(APIView):
             )
 
             active_pr_docs = ProgressReport.objects.filter(
-                report=report, project__status="active"
+                report=report, document__status="approved"
             ).exclude(
                 Q(project__business_area__division__name__isnull=True)
                 | ~Q(
@@ -3045,7 +3041,7 @@ class LatestYearsProgressReports(APIView):
             # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = ProgressReport.objects.filter(
-                report=latest_report, project__status="active"
+                report=latest_report, document__status="approved"
             ).exclude(
                 Q(project__business_area__division__name__isnull=True)
                 | ~Q(
@@ -3080,7 +3076,7 @@ class LatestYearsStudentReports(APIView):
             # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = StudentReport.objects.filter(
-                report=latest_report, project__status="active"
+                report=latest_report, document__status="approved"
             ).exclude(
                 Q(project__business_area__division__name__isnull=True)
                 | ~Q(
@@ -3113,7 +3109,7 @@ class LatestYearsInactiveReports(APIView):
             # Get progress report documents which belong to it and belong to active and approved projects
             inactive_srs = (
                 StudentReport.objects.filter(report=latest_report)
-                .exclude(project__status__in=["active"])
+                .exclude(document__status__in=["approved"])
                 .exclude(
                     Q(project__business_area__division__name__isnull=True)
                     | ~Q(
@@ -3124,7 +3120,7 @@ class LatestYearsInactiveReports(APIView):
             )
             inactive_prs = (
                 ProgressReport.objects.filter(report=latest_report)
-                .exclude(project__status__in=["active"])
+                .exclude(document__status__in=["approved"])
                 .exclude(
                     Q(project__business_area__division__name__isnull=True)
                     | ~Q(
