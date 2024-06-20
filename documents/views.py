@@ -8104,6 +8104,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
                 # Append the documents to the respective lists
                 documents.extend(docs_requiring_ba_attention)
+                ba_input_required.extend(docs_requiring_ba_attention)
 
             # Directorate Filtering
             if is_directorate:
