@@ -3,6 +3,7 @@ import json
 import os
 import uuid
 import requests
+from agencies.models import Affiliation, Agency, Branch, BusinessArea
 from rest_framework.views import APIView
 from math import ceil
 
@@ -349,6 +350,7 @@ class Users(APIView):
                 # Ensures everything is rolled back if there is an error.
                 with transaction.atomic():
                     staff = req.data.get("isStaff")
+
                     first_name = req.data.get("firstName").capitalize()
                     last_name = req.data.get("lastName").capitalize()
                     if staff:
@@ -363,8 +365,55 @@ class Users(APIView):
                             last_name=last_name,
                         )
 
+                    # Extracting the work details from the request data
+                    branch_id = req.data.get("branch")
+                    business_area_id = req.data.get("businessArea")
+                    affiliation_id = req.data.get("affiliation")
+                    role = req.data.get(
+                        "role", ""
+                    )  # Default to empty string if role is not provided
+
+                    # Initialize variables for related objects
+                    branch = None
+                    business_area = None
+                    affiliation = None
+
+                    # Retrieve related objects if IDs are provided
+                    if branch_id:
+                        branch = Branch.objects.get(pk=branch_id)
+                    if business_area_id:
+                        business_area = BusinessArea.objects.get(pk=business_area_id)
+                    if affiliation_id:
+                        affiliation = Affiliation.objects.get(pk=affiliation_id)
+
                     # Creates UserWork entry
-                    UserWork.objects.create(user=new_user)
+                    if staff:
+                        agency = Agency.objects.get(pk=1)
+                        if branch and business_area:
+                            print(branch, business_area)
+                            UserWork.objects.create(
+                                user=new_user,
+                                agency=agency,
+                                branch=branch,
+                                business_area=business_area,
+                                affiliation=affiliation,
+                                role="",
+                            )
+                        else:
+                            UserWork.objects.create(user=new_user)
+                    else:
+                        if affiliation:
+                            affiliation = Affiliation.objects.get(pk=affiliation_id)
+                            UserWork.objects.create(
+                                user=new_user,
+                                branch=None,
+                                business_area=None,
+                                affiliation=affiliation,
+                                role=None,
+                            )
+                        else:
+                            UserWork.objects.create(user=new_user)
+
                     # Creates UserProfile entry
                     UserProfile.objects.create(user=new_user)
                     # Creates UserContact entry
