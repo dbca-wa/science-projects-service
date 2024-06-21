@@ -1,13 +1,16 @@
-# Python downgraded to suit Prince libs (from 3.11.6)
-# FROM python:3.11.4
-# FROM python:3.11.6
-# FROM python:3.12.3
-# FROM python:3.13.0b1
 FROM python:latest
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV TZ="Australia/Perth"
+
+# Non-root user
+ARG UID=10001
+ARG GID=10001
+RUN groupadd -g "${GID}" appuser \
+    && useradd --no-create-home --no-log-init --uid "${UID}" --gid "${GID}" appuser
+
+
 RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
@@ -55,6 +58,9 @@ RUN prince --version
 COPY . ./backend
 WORKDIR /usr/src/app/backend
 
+# Change ownership of the app directory to the non-root user
+RUN chown -R ${UID}:${GID} /usr/src/app
+
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
     'fromdate="03.04.2023"\n' \
@@ -100,8 +106,8 @@ RUN poetry add brotli dj-database-url django-cors-headers django-environ \
     beautifulsoup4 sentry-sdk[django] html2text pillow tqdm
 # celery pika channels
 
-
-
+# Switch to non-root user
+USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
 # RUN rabbitmq-server
