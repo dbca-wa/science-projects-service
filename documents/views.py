@@ -8965,6 +8965,7 @@ class RepoenProject(APIView):
             try:
                 settings.LOGGER.info(msg=f"{req.user} is reopening project {pk}")
                 project_document = self.get_base_document(pk)
+                
                 if project_document == None:
                     project = Project.objects.filter(pk=pk).first()
                     project.status = Project.StatusChoices.UPDATING
@@ -8974,14 +8975,15 @@ class RepoenProject(APIView):
                     project_document.project.save()
                     project = Project.objects.filter(pk=project_document.project.pk).first()
                     # Get document kind information
-                    document_kind_dict = {
-                        "concept": "Science Concept Plan",
-                        "projectplan": "Science Project Plan",
-                        "progressreport": "Progress Report",
-                        "studentreport": "Student Report",
-                        "projectclosure": "Project Closure",
-                    }
-                    document_kind_as_title = document_kind_dict[project_document.kind]
+                    # document_kind_dict = {
+                    #     "concept": "Science Concept Plan",
+                    #     "projectplan": "Science Project Plan",
+                    #     "progressreport": "Progress Report",
+                    #     "studentreport": "Student Report",
+                    #     "projectclosure": "Project Closure",
+                    # }
+                    # document_kind_as_title = document_kind_dict[project_document.kind]
+
                     project_document.delete()
                 print("SENDING PROJECT REOPENED EMAIL")
                 # Preset info
@@ -9023,7 +9025,7 @@ class RepoenProject(APIView):
                             if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                                 print(f"PRODUCTION: Sending email to {recipient["name"]}")
                                 # if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                                email_subject = f"SPMS: {plain_project_name} Re-Opened"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -9035,7 +9037,7 @@ class RepoenProject(APIView):
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
                                     "document_type": "closure",
-                                    "document_type_title": document_kind_as_title,
+                                    # "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
                                 }
@@ -9064,7 +9066,7 @@ class RepoenProject(APIView):
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
                                     # if recipient["pk"] == 101073:
-                                    email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                                    email_subject = f"SPMS: {plain_project_name} Re-Opened"
                                     to_email = [recipient["email"]]
 
                                     template_props = {
@@ -9076,7 +9078,7 @@ class RepoenProject(APIView):
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
                                         "document_type": "closure",
-                                        "document_type_title": document_kind_as_title,
+                                        # "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
                                     }
