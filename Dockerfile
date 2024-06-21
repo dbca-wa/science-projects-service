@@ -1,4 +1,6 @@
-FROM python:latest
+FROM python:3.12.3
+# FROM python:latest
+
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -60,7 +62,6 @@ WORKDIR /usr/src/app/backend
 
 # Change ownership of the app directory to the non-root user
 RUN chown -R ${UID}:${GID} /usr/src/app
-
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
     'fromdate="03.04.2023"\n' \
@@ -93,10 +94,12 @@ RUN echo '# Custom .bashrc modifications\n' \
     'settz\n'>> ~/.bashrc
 
 # Configure Poetry
+
 RUN poetry config virtualenvs.create false
 RUN poetry init
 # Necessary to fix pandas/numpy installation issues on 3.11-12 with poetry
 # RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
+RUN echo "Python version:" && python --version
 RUN sed -i 's/python = "^3.12"/python = "<=3.13.1,>=3.12"/' pyproject.toml
 
 # Base django app dependencies
