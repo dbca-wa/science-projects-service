@@ -85,8 +85,9 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias connect_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME"\n' \
     'alias dump_test="PGPASSWORD=$UAT_PASSWORD pg_dump -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -f uat_dump.sql"\n' \
     'alias res_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n' \
-    'settz\n'>> /home/spmsuser/.bashrc
-RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
+    'settz\n'>> ~/.bashrc
+#     >> /home/spmsuser/.bashrc
+# RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 
 
 # Configure Poetry to not use virtualenv
