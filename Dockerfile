@@ -12,8 +12,8 @@ ARG UID=10001
 ARG GID=10001
 # Create Non-root: use vars to create group and user assigned to it, 
 # without home or log files
-RUN groupadd -g "${GID}" appuser \
-    && useradd --no-create-home --no-log-init --uid "${UID}" --gid "${GID}" appuser
+RUN groupadd -g "${GID}" spmsuser \
+    && useradd --create-home --home-dir /home/spmsuser --no-log-init --uid "${UID}" --gid "${GID}" spmsuser
 
 # Install os level deps.
 RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
@@ -57,7 +57,7 @@ WORKDIR /usr/src/app/backend
 RUN chown -R ${UID}:${GID} /usr/src/app
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
-    'fromdate="03.04.2023"\n' \
+    'fromdate="21.06.2024"\n' \
     'todate=$date\n' \
     'from=`echo $fromdate | awk  -F\. '\''{print $3$2$1}'\''`\n' \
     'to=`echo $todate | awk  -F\. '\''{print $3$2$1}'\''`\n' \
@@ -84,7 +84,9 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias connect_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME"\n' \
     'alias dump_test="PGPASSWORD=$UAT_PASSWORD pg_dump -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -f uat_dump.sql"\n' \
     'alias res_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n' \
-    'settz\n'>> ~/.bashrc
+    'settz\n'>> /home/spmsuser/.bashrc
+RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
+
 
 # Configure Poetry to not use virtualenv
 RUN poetry config virtualenvs.create false
