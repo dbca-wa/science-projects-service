@@ -1,5 +1,7 @@
-poetry.lock
-pyproject.toml
+# poetry.lock
+# pyproject.toml
+publish-ghcr.yaml
+.github
 *.git
 *.env
 docker-compose.yaml
