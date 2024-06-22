@@ -48,7 +48,7 @@ RUN echo "Installing Prince stuff" \
     && rm -f ${DEB_FILE}
 # Prince ENV 
 ENV PATH="${PATH}:/usr/lib/prince/bin"
-RUN prince --version
+# RUN prince --version
 
 # Move local files over
 COPY . ./backend
@@ -102,4 +102,9 @@ RUN poetry install
 # USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
-CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
+# CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
+# Copy entrypoint script
+COPY entrypoint.sh /usr/src/app/backend/entrypoint.sh
+
+# Set entrypoint
+ENTRYPOINT ["/usr/src/app/backend/entrypoint.sh"]
