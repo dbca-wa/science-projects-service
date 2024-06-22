@@ -55,8 +55,7 @@ COPY . ./backend
 WORKDIR /usr/src/app/backend
 # Change ownership of the app directory to the non-root user
 RUN chown -R ${UID}:${GID} /usr/src/app
-# Try fix error caused by permissions on files folder
-RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
+
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
     'fromdate="21.06.2024"\n' \
@@ -94,7 +93,8 @@ RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 RUN poetry config virtualenvs.create false
 # Install deps from poetry lock file made in dev
 RUN poetry install 
-
+# Try fix error caused by permissions on files folder
+RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
 # Switch to non-root user
 USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
