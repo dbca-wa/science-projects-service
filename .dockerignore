@@ -25,3 +25,4 @@ extracted_table_data
 extract_data.py
 .gitattributes
 .github
+build.sh
