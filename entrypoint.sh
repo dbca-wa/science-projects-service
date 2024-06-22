@@ -18,7 +18,7 @@ EOF
 
 # Output the license template to license.dat
 echo "$LICENSE_TEMPLATE" > /usr/lib/prince/license/license.dat
-cat /usr/lib/prince/license/license.dat
 
 # Start your application (replace with your actual command)
+echo "Launching gunicorn..."
 exec gunicorn config.wsgi --bind 0.0.0.0:8000 --timeout 300
