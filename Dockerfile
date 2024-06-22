@@ -55,6 +55,8 @@ COPY . ./backend
 WORKDIR /usr/src/app/backend
 # Change ownership of the app directory to the non-root user
 RUN chown -R ${UID}:${GID} /usr/src/app
+# Try fix error caused by permissions on files folder
+RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
     'fromdate="21.06.2024"\n' \
