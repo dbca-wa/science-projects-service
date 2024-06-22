@@ -7,13 +7,13 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Set timezone to Perth for logging
 ENV TZ="Australia/Perth"
 
-# Create Non-root: assign build time vars UID and GID to same value 10001
-ARG UID=10001
-ARG GID=10001
-# Create Non-root: use vars to create group and user assigned to it, 
-# without home or log files
-RUN groupadd -g "${GID}" spmsuser \
-    && useradd --create-home --home-dir /home/spmsuser --no-log-init --uid "${UID}" --gid "${GID}" spmsuser
+# # Create Non-root: assign build time vars UID and GID to same value 10001
+# ARG UID=10001
+# ARG GID=10001
+# # Create Non-root: use vars to create group and user assigned to it, 
+# # without home or log files
+# RUN groupadd -g "${GID}" spmsuser \
+#     && useradd --create-home --home-dir /home/spmsuser --no-log-init --uid "${UID}" --gid "${GID}" spmsuser
 
 # Install os level deps.
 RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
@@ -53,8 +53,8 @@ RUN prince --version
 # Move local files over
 COPY . ./backend
 WORKDIR /usr/src/app/backend
-# Change ownership of the app directory to the non-root user
-RUN chown -R ${UID}:${GID} /usr/src/app
+# # Change ownership of the app directory to the non-root user
+# RUN chown -R ${UID}:${GID} /usr/src/app
 
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
@@ -93,12 +93,12 @@ RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 RUN poetry config virtualenvs.create false
 # Install deps from poetry lock file made in dev
 RUN poetry install 
-# Try fix error caused by permissions on files folder
-# RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
-RUN mkdir -p /usr/src/app/backend/files && \
-    chown -R ${UID}:${GID} /usr/src/app/backend/files
-# Switch to non-root user
-USER ${UID}
+# # Try fix error caused by permissions on files folder
+# # RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
+# RUN mkdir -p /usr/src/app/backend/files && \
+#     chown -R ${UID}:${GID} /usr/src/app/backend/files
+# # Switch to non-root user
+# USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
