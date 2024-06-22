@@ -94,7 +94,9 @@ RUN poetry config virtualenvs.create false
 # Install deps from poetry lock file made in dev
 RUN poetry install 
 # Try fix error caused by permissions on files folder
-RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
+# RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
+RUN mkdir -p /usr/src/app/backend/files && \
+    chown -R ${UID}:${GID} /usr/src/app/backend/files
 # Switch to non-root user
 USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
