@@ -1,18 +1,21 @@
+# Use the local version that works with poetry config when testing in dev (3.12.3)
 FROM python:3.12.3
-# FROM python:latest
-
-
+# Ensures Python output sent to terminal for logging
 ENV PYTHONUNBUFFERED=1
+# Prevent additional .pyc files on disk
 ENV PYTHONDONTWRITEBYTECODE 1
+# Set timezone to Perth for logging
 ENV TZ="Australia/Perth"
 
-# Non-root user
+# Create Non-root: assign build time vars UID and GID to same value 10001
 ARG UID=10001
 ARG GID=10001
+# Create Non-root: use vars to create group and user assigned to it, 
+# without home or log files
 RUN groupadd -g "${GID}" appuser \
     && useradd --no-create-home --no-log-init --uid "${UID}" --gid "${GID}" appuser
 
-
+# Install os level deps.
 RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
@@ -20,46 +23,36 @@ RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     openssh-client rsync vim ncdu wget systemctl \
     # Postgres
     postgresql postgresql-client 
-# \ 
-# Queing and Scheduling
-# celery rabbitmq-server
 
-# Installer for Prince
-RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
-    gdebi
-
+# Set working dir of project
 WORKDIR /usr/src/app
 
-# Poetry
+# Install Poetry
 RUN pip install --upgrade pip
 RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/etc/poetry python3 -
 ENV PATH="${PATH}:/etc/poetry/bin"
 
-# Prince .deb file download and install
+# Prince Download
 RUN echo "Downloading Prince Package" \
     && DEB_FILE=prince.deb \
     && wget -O ${DEB_FILE} \
-    # Latest version that suits Python image
-    # https://www.princexml.com/download/prince-books_20220701-1_debian11_amd64.deb
-    # https://www.princexml.com/download/prince-books_20220701-1_ubuntu22.04_amd64.deb
-    # https://www.princexml.com/download/prince_15.2-1_debian12_amd64.deb
     https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
-# https://www.princexml.com/download/prince_15.3-1_ubuntu22.04_amd64.deb
-
+# Prince installer
+RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
+    gdebi
+# Prince Install
 RUN echo "Installing Prince stuff" \
     && DEB_FILE=prince.deb \
     && yes | gdebi ${DEB_FILE}  \
     && echo "Cleaning up" \
     && rm -f ${DEB_FILE}
-
-# Ensure prince is in path so it can be called in command line 
+# Prince ENV 
 ENV PATH="${PATH}:/usr/lib/prince/bin"
 RUN prince --version
 
 # Move local files over
 COPY . ./backend
 WORKDIR /usr/src/app/backend
-
 # Change ownership of the app directory to the non-root user
 RUN chown -R ${UID}:${GID} /usr/src/app
 # Add the alias commands and configure the bash file
@@ -93,25 +86,13 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias res_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n' \
     'settz\n'>> ~/.bashrc
 
-# Configure Poetry
-
+# Configure Poetry to not use virtualenv
 RUN poetry config virtualenvs.create false
-RUN poetry init
-# Necessary to fix pandas/numpy installation issues on 3.11-12 with poetry
-# RUN sed -i 's/python = "^3.11"/python = "<3.13,>=3.10"/' pyproject.toml
-RUN echo "Python version:" && python --version
-RUN sed -i 's/python = "^3.12"/python = "<=3.13.1,>=3.12"/' pyproject.toml
-
-# Base django app dependencies
-RUN poetry add brotli dj-database-url django-cors-headers django-environ \
-    djangorestframework django psycopg2-binary python-dotenv python-dateutil \
-    requests whitenoise[brotli] gunicorn pandas \
-    beautifulsoup4 sentry-sdk[django] html2text pillow tqdm
-# celery pika channels
+# Install deps from poetry lock file made in dev
+RUN poetry install 
 
 # Switch to non-root user
 USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
-# RUN rabbitmq-server
 CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
