@@ -104,7 +104,8 @@ RUN poetry install
 EXPOSE 8000
 # CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
 # Copy entrypoint script
-COPY entrypoint.sh /usr/src/app/backend/entrypoint.sh
+# COPY entrypoint.sh /usr/src/app/backend/entrypoint.sh
+RUN chmod +x /usr/src/app/backend/entrypoint.sh
 
 # Set entrypoint
 ENTRYPOINT ["/usr/src/app/backend/entrypoint.sh"]
