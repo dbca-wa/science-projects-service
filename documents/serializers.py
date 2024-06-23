@@ -198,6 +198,8 @@ class SuperSmallProjSerializer(serializers.ModelSerializer):
             "pk",
             "title",
             "kind",
+            "year",
+            "number",
         ]
 
 
