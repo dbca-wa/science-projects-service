@@ -55,6 +55,7 @@ COPY . ./backend
 WORKDIR /usr/src/app/backend
 # # Change ownership of the app directory to the non-root user
 # RUN chown -R ${UID}:${GID} /usr/src/app
+RUN chmod +x /usr/src/app/backend/entrypoint.sh
 
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
@@ -105,7 +106,6 @@ EXPOSE 8000
 # CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
 # Copy entrypoint script
 # COPY entrypoint.sh /usr/src/app/backend/entrypoint.sh
-RUN chmod +x /usr/src/app/backend/entrypoint.sh
 
 # Set entrypoint
 ENTRYPOINT ["/usr/src/app/backend/entrypoint.sh"]

@@ -23,7 +23,7 @@ from django.db import IntegrityError, transaction
 from django.conf import settings
 from django.utils import timezone
 from math import ceil
-from django.db.models import Q, Case, When, Value, F
+from django.db.models import Q, Case, When, Value, F, IntegerField
 from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -412,16 +412,26 @@ class Projects(APIView):
         total_pages = ceil(total_projects / page_size)
 
         # Annotate projects to prioritize completed and terminated projects
-        projects = projects.extra(
-            select={
-                "custom_ordering": """
-                    CASE
-                        WHEN status IN ('suspended', 'completed', 'terminated') THEN 1
-                        ELSE 0
-                    END
-                """
-            }
-        ).order_by("custom_ordering", "-year")
+        # projects = projects.extra(
+        #     select={
+        #         "custom_ordering": """
+        #             CASE
+        #                 WHEN status IN ('suspended', 'completed', 'terminated') THEN 1
+        #                 ELSE 0
+        #             END
+        #         """
+        #     }
+        # ).order_by("custom_ordering", "-year")
+        projects = projects.annotate(
+            custom_ordering=Case(
+                When(
+                    status__in=["suspended", "completed", "terminated"], then=Value(1)
+                ),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by("custom_ordering", "-year", "id")
+        projects = projects.distinct()
 
         serialized_projects = ProjectSerializer(
             projects[start:end],
