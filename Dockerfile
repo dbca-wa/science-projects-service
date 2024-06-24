@@ -85,8 +85,13 @@ RUN echo '# Custom .bashrc modifications\n' \
 #     >> /home/spmsuser/.bashrc
 # Ensure bashrc belongs to correct user and runs
 RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
+# Own app
+RUN chown -R ${UID}:${GID} /usr/src/app
+# Own the license file to update it
+RUN chown -R ${UID}:${GID} /usr/lib/prince/license
 # Ensure entrypoint script can run for prince license and gunicorn
 RUN chmod +x /usr/src/app/backend/entrypoint.sh
+
 # Ownership set of files etc. in init container
 # chown -R ${UID}:${GID} /usr/src/app/backend/files
 
