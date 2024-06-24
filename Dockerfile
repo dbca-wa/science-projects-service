@@ -1,3 +1,4 @@
+# ====================== CONFIG ======================
 # Use the local version that works with poetry config when testing in dev (3.12.3)
 FROM python:3.12.3
 # Ensures Python output sent to terminal for logging
@@ -7,7 +8,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Set timezone to Perth for logging
 ENV TZ="Australia/Perth"
 
-# Install os level deps.
+# ====================== OS LEVEL DEPENDENCIES ======================
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     # Sys Utils
@@ -37,7 +38,18 @@ RUN echo "Installing Prince stuff" \
 # Prince ENV 
 ENV PATH="${PATH}:/usr/lib/prince/bin"
 
+# ====================== DEV FILES AND DEPENDENCIES ======================
 
+# Move local files over
+COPY . ./backend
+WORKDIR /usr/src/app/backend
+
+# Configure Poetry to not use virtualenv
+RUN poetry config virtualenvs.create false
+# Install deps from poetry lock file made in dev
+RUN poetry install 
+
+# ====================== USER & PERMISSIONS ======================
 # # Create Non-root: assign build time vars UID and GID to same value 10001
 ARG UID=10001
 ARG GID=10001
@@ -45,11 +57,6 @@ ARG GID=10001
 # without home or log files
 RUN groupadd -g "${GID}" spmsuser \
     && useradd --create-home --home-dir /home/spmsuser --no-log-init --uid "${UID}" --gid "${GID}" spmsuser
-
-# Move local files over
-COPY . ./backend
-WORKDIR /usr/src/app/backend
-
 
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
@@ -83,6 +90,7 @@ RUN echo '# Custom .bashrc modifications\n' \
     'settz\n'>> /home/spmsuser/.bashrc
 # >> ~/.bashrc
 #     >> /home/spmsuser/.bashrc
+
 # Ensure bashrc belongs to correct user and runs
 RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 # Own app
@@ -91,17 +99,13 @@ RUN chown -R ${UID}:${GID} /usr/src/app
 RUN chown -R ${UID}:${GID} /usr/lib/prince/license
 # Ensure entrypoint script can run for prince license and gunicorn
 RUN chmod +x /usr/src/app/backend/entrypoint.sh
-
-# Ownership set of files etc. in init container
+# Ownership of files etc. is set in init container
 # chown -R ${UID}:${GID} /usr/src/app/backend/files
-
-# Configure Poetry to not use virtualenv
-RUN poetry config virtualenvs.create false
-# Install deps from poetry lock file made in dev
-RUN poetry install 
 
 # # Switch to non-root user
 USER ${UID}
+
+# ====================== LAUNCH ======================
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
 # Set entrypoint
