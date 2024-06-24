@@ -1,4 +1,4 @@
-# ====================== CONFIG ======================
+# ====================== IMAGE & CONFIG ======================
 # Use the local version that works with poetry config when testing in dev (3.12.3)
 FROM python:3.12.3
 # Ensures Python output sent to terminal for logging
@@ -9,10 +9,16 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV TZ="Australia/Perth"
 
 # ====================== OS LEVEL DEPENDENCIES ======================
+# POSTGRES REQUIRED FOR MIGRATION SCRIPT / PERFORMING SQL ACTIONS AND CUSTOM COMMANDS - Commented out
+# RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     # Sys Utils
     rsync vim ncdu wget systemctl
+# Sys Utils with Postgres
+# rsync vim ncdu wget systemctl \
+# postgresql postgresql-client 
+
 # Set working dir of project
 WORKDIR /usr/src/app
 
