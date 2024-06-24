@@ -7,23 +7,11 @@ ENV PYTHONDONTWRITEBYTECODE 1
 # Set timezone to Perth for logging
 ENV TZ="Australia/Perth"
 
-# # Create Non-root: assign build time vars UID and GID to same value 10001
-# ARG UID=10001
-# ARG GID=10001
-# # Create Non-root: use vars to create group and user assigned to it, 
-# # without home or log files
-# RUN groupadd -g "${GID}" spmsuser \
-#     && useradd --create-home --home-dir /home/spmsuser --no-log-init --uid "${UID}" --gid "${GID}" spmsuser
-
 # Install os level deps.
-RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     # Sys Utils
-    openssh-client rsync vim ncdu wget systemctl \
-    # Postgres
-    postgresql postgresql-client 
-
+    rsync vim ncdu wget systemctl
 # Set working dir of project
 WORKDIR /usr/src/app
 
@@ -48,14 +36,20 @@ RUN echo "Installing Prince stuff" \
     && rm -f ${DEB_FILE}
 # Prince ENV 
 ENV PATH="${PATH}:/usr/lib/prince/bin"
-# RUN prince --version
+
+
+# # Create Non-root: assign build time vars UID and GID to same value 10001
+ARG UID=10001
+ARG GID=10001
+# Create Non-root: use vars to create group and user assigned to it, 
+# without home or log files
+RUN groupadd -g "${GID}" spmsuser \
+    && useradd --create-home --home-dir /home/spmsuser --no-log-init --uid "${UID}" --gid "${GID}" spmsuser
 
 # Move local files over
 COPY . ./backend
 WORKDIR /usr/src/app/backend
-# # Change ownership of the app directory to the non-root user
-# RUN chown -R ${UID}:${GID} /usr/src/app
-RUN chmod +x /usr/src/app/backend/entrypoint.sh
+
 
 # Add the alias commands and configure the bash file
 RUN echo '# Custom .bashrc modifications\n' \
@@ -86,26 +80,24 @@ RUN echo '# Custom .bashrc modifications\n' \
     'alias connect_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME"\n' \
     'alias dump_test="PGPASSWORD=$UAT_PASSWORD pg_dump -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -f uat_dump.sql"\n' \
     'alias res_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n' \
-    'settz\n'>> ~/.bashrc
+    'settz\n'>> /home/spmsuser/.bashrc
+# >> ~/.bashrc
 #     >> /home/spmsuser/.bashrc
-# RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
-
+# Ensure bashrc belongs to correct user and runs
+RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
+# Ensure entrypoint script can run for prince license and gunicorn
+RUN chmod +x /usr/src/app/backend/entrypoint.sh
+# Ownership set of files etc. in init container
+# chown -R ${UID}:${GID} /usr/src/app/backend/files
 
 # Configure Poetry to not use virtualenv
 RUN poetry config virtualenvs.create false
 # Install deps from poetry lock file made in dev
 RUN poetry install 
-# # Try fix error caused by permissions on files folder
-# # RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
-# RUN mkdir -p /usr/src/app/backend/files && \
-#     chown -R ${UID}:${GID} /usr/src/app/backend/files
+
 # # Switch to non-root user
-# USER ${UID}
+USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
-# CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300"]
-# Copy entrypoint script
-# COPY entrypoint.sh /usr/src/app/backend/entrypoint.sh
-
 # Set entrypoint
 ENTRYPOINT ["/usr/src/app/backend/entrypoint.sh"]
