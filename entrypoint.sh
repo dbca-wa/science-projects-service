@@ -19,6 +19,6 @@ EOF
 # Output the license template to license.dat
 echo "$LICENSE_TEMPLATE" > /usr/lib/prince/license/license.dat
 
-# Start your application (replace with your actual command)
+# Launch backend (moved from Dockerfile to run after securely setting Prince license)
 echo "Launching gunicorn..."
 exec gunicorn config.wsgi --bind 0.0.0.0:8000 --timeout 300
