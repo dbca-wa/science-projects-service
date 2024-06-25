@@ -14,9 +14,9 @@ ENV TZ="Australia/Perth"
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     # Sys Utils
-    rsync vim ncdu wget systemctl
+    vim wget ncdu systemctl
 # Sys Utils with Postgres
-# rsync vim ncdu wget systemctl \
+# vim wget ncdu systemctl \
 # postgresql postgresql-client 
 
 # Set working dir of project
@@ -104,11 +104,12 @@ RUN echo '# Custom .bashrc modifications\n' \
 # RUN chown -R ${UID}:${GID} /usr/src/app
 # # Own the license file to update it
 # RUN chown -R ${UID}:${GID} /usr/lib/prince/license
-# # Ensure entrypoint script can run for prince license and gunicorn
-RUN chmod +x /usr/src/app/backend/entrypoint.sh
+
 # Ownership of files etc. is set in init container
 # chown -R ${UID}:${GID} /usr/src/app/backend/files
 
+# # Ensure entrypoint script can run for prince license and gunicorn
+RUN chmod +x /usr/src/app/backend/entrypoint.sh
 # # Switch to non-root user
 # USER ${UID}
 

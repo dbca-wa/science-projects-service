@@ -16,6 +16,7 @@ from communications.serializers import (
 from django.core.exceptions import ObjectDoesNotExist
 
 # from config.tasks import generate_pdf
+from documents.templatetags.custom_filters import extract_text_content
 from projects.models import Project, ProjectDetail, ProjectMember
 from django.template.loader import render_to_string
 import html2text
@@ -509,16 +510,16 @@ class BeginUnapprovedReportDocGeneration(APIView):
             settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
         )
 
-        # Used the received css file to populate the backend css file
-        css_content = req.data["css_content"]
-        # print(css_content)
-        formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
-        formatted_css = formatted_css.strip('"')
-        # print(formatted_css)
+        # # Used the received css file to populate the backend css file
+        # css_content = req.data["css_content"]
+        # # print(css_content)
+        # formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
+        # formatted_css = formatted_css.strip('"')
+        # # print(formatted_css)
 
-        if css_content:
-            with open(rte_css_path, "w") as saved_css_file:
-                saved_css_file.write(formatted_css)
+        # if css_content:
+        #     with open(rte_css_path, "w") as saved_css_file:
+        #         saved_css_file.write(formatted_css)
 
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
@@ -1059,16 +1060,16 @@ class BeginReportDocGeneration(APIView):
             settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
         )
 
-        # Used the received css file to populate the backend css file
-        css_content = req.data["css_content"]
-        # print(css_content)
-        formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
-        formatted_css = formatted_css.strip('"')
-        # print(formatted_css)
+        # # Used the received css file to populate the backend css file
+        # css_content = req.data["css_content"]
+        # # print(css_content)
+        # formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
+        # formatted_css = formatted_css.strip('"')
+        # # print(formatted_css)
 
-        if css_content:
-            with open(rte_css_path, "w") as saved_css_file:
-                saved_css_file.write(formatted_css)
+        # if css_content:
+        #     with open(rte_css_path, "w") as saved_css_file:
+        #         saved_css_file.write(formatted_css)
 
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
@@ -2215,16 +2216,16 @@ class BeginProjectDocGeneration(APIView):
             settings.BASE_DIR, "documents", "prince_project_document_styles.css"
         )
 
-        # Used the received css file to populate the backend css file
-        css_content = req.data["css_content"]
-        # print(css_content)
-        formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
-        formatted_css = formatted_css.strip('"')
-        # print(formatted_css)
+        # # Used the received css file to populate the backend css file
+        # css_content = req.data["css_content"]
+        # # print(css_content)
+        # formatted_css = css_content.replace("\\r\\n", "\n").replace('\\"', '"').strip()
+        # formatted_css = formatted_css.strip('"')
+        # # print(formatted_css)
 
-        if css_content:
-            with open(rte_css_path, "w") as saved_css_file:
-                saved_css_file.write(formatted_css)
+        # if css_content:
+        #     with open(rte_css_path, "w") as saved_css_file:
+        #         saved_css_file.write(formatted_css)
 
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
@@ -8314,7 +8315,7 @@ class ProjectDocumentComments(APIView):
         )
 
     def post(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is trying to post a comment to doc {pk}")
+        settings.LOGGER.info(msg=f"{req.user} is trying to post a comment to doc {pk}:\n{extract_text_content(req.data['payload'])}")
         ser = TinyCommentCreateSerializer(
             data={
                 "document": pk,

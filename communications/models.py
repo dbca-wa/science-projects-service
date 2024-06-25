@@ -4,6 +4,9 @@ from django.forms import ValidationError
 from common.models import CommonModel
 from django.conf import settings
 
+from documents.templatetags.custom_filters import extract_text_content
+
+
 # DONE
 class ChatRoom(CommonModel):
     """
@@ -90,7 +93,7 @@ class Comment(CommonModel):
             return None
 
     def __str__(self) -> str:
-        return f"{self.text[:40]}"
+        return f"'{extract_text_content(self.text)}'"
 
     class Meta:
         verbose_name = "Comment"
@@ -156,9 +159,11 @@ class Reaction(CommonModel):
         return (
             f"Reaction to {self.comment}"
             if self.comment
-            else f"Reaction to {self.direct_message}"
-            if self.direct_message
-            else "Reaction object null"
+            else (
+                f"Reaction to {self.direct_message}"
+                if self.direct_message
+                else "Reaction object null"
+            )
         )
 
     class Meta:
