@@ -72,7 +72,9 @@ class GetMaintainer(APIView):
         return obj
 
     def get(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is getting maintainer")
+        settings.LOGGER.info(
+            msg=f"{req.user} is using a rich text editor / getting maintainer"
+        )
         AdminControl = self.go(1)
         ser = AdminOptionsMaintainerSerializer(AdminControl)
         return Response(

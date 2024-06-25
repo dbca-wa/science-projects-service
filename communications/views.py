@@ -10,6 +10,7 @@ from rest_framework.status import (
     HTTP_202_ACCEPTED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
+    HTTP_403_FORBIDDEN,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +21,8 @@ from django.conf import settings
 from django.utils import timezone
 
 import time
+
+from documents.templatetags.custom_filters import extract_text_content
 
 from .models import Comment, DirectMessage, ChatRoom, Reaction
 from .serializers import (
@@ -123,6 +126,13 @@ class Comments(APIView):
 
 
 class Reactions(APIView):
+    def get_comment(self, pk):
+        try:
+            com = Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            raise NotFound
+        return com
+
     def get(self, req):
         all = Reaction.objects.all()
         ser = TinyReactionSerializer(
@@ -136,22 +146,29 @@ class Reactions(APIView):
 
     def post(self, req):
         if req.data.get("comment"):
-            settings.LOGGER.info(msg=f"{req.user} is reacting to a comment")
+            com = self.get_comment(int(req.data.get("comment")))
+
+            settings.LOGGER.info(
+                msg=f"{req.user} is interacting with a comment ({req.data.get('comment')})"
+            )
             data = {
                 # "comment": get_comment(),
                 "comment": int(req.data.get("comment")),
-                "user": req.data.get("user")["pk"],
+                "user": req.data.get("user"),
                 "reaction": Reaction.ReactionChoices.THUMBUP,
                 "direct_message": None,
             }
 
             # First check if there is a reaction by that user for the comment
             exists = Reaction.objects.filter(
-                user=int(req.data.get("user")["pk"]),
+                user=int(req.data.get("user")),
                 reaction=Reaction.ReactionChoices.THUMBUP,
                 comment=int(req.data.get("comment")),
             ).first()
             if exists:
+                settings.LOGGER.info(
+                    msg=f"{req.user} removed their reaction to:\n{extract_text_content(com.text)}"
+                )
                 exists.delete()
                 return Response(
                     status=HTTP_204_NO_CONTENT,
@@ -161,6 +178,9 @@ class Reactions(APIView):
             ser = ReactionCreateSerializer(data=data)
             if ser.is_valid():
                 dm_reaction = ser.save()
+                settings.LOGGER.info(
+                    msg=f"{req.user} reacted to comment ({req.data.get('comment')}):\n{extract_text_content(com.text)}"
+                )
                 return Response(
                     TinyReactionSerializer(dm_reaction).data,
                     status=HTTP_201_CREATED,
@@ -291,7 +311,18 @@ class CommentDetail(APIView):
 
     def delete(self, req, pk):
         comment = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting a comment detail {comment}")
+
+        # Block deletion by non superusers/non-creators
+        if not req.user.is_superuser and req.user != comment.user:
+            return Response(
+                status=HTTP_403_FORBIDDEN,
+                data={"detail": "You do not have permission to delete this comment."},
+            )
+
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting a comment from {comment.document}:\n{comment}"
+        )
+
         comment.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
