@@ -215,6 +215,22 @@ class Project(CommonModel):
 
         return inner_text
 
+    def project_kind_to_tag(self) -> str:
+        project_kind = self.kind
+        project_kind_dict = {
+            "core_function": "CF",
+            "science": "SP",
+            "student": "STP",
+            "external": "EXT",
+        }
+        return project_kind_dict.get(project_kind, "UNKNOWN")
+
+    def get_project_tag(self) -> str:
+        kind_tag = self.project_kind_to_tag()
+        year = self.year
+        number = self.number
+        return f"{kind_tag}-{year}-{number}"
+
     def __str__(self) -> str:
         return f"({self.kind.upper()}) {self.extract_inner_text(self.title)}"
 
