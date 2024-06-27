@@ -131,17 +131,18 @@ from django.core.files.storage import default_storage
 
 # PDF GENERATION ===================================================
 
+
 def determine_doc_kind_url_string(dockind:str):
-                if dockind == "conceptplan" or dockind == "concept":
-                    return "concept"
-                elif dockind == "projectplan" or dockind == "project":
-                    return "project"
-                elif dockind == "progressreport" or dockind == "progress":
-                    return "progress"
-                elif dockind == "studentreport" or dockind == "student":
-                    return "student"
-                else:
-                    return "closure"
+    if dockind == "conceptplan" or dockind == "concept":
+        return "concept"
+    elif dockind == "projectplan" or dockind == "project":
+        return "project"
+    elif dockind == "progressreport" or dockind == "progress":
+        return "progress"
+    elif dockind == "studentreport" or dockind == "student":
+        return "student"
+    else:
+        return "closure"
                 
 
 class BeginUnapprovedReportDocGeneration(APIView):
@@ -3224,7 +3225,8 @@ class ReviewDocumentEmail(APIView):
                 "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
-            email_subject = f"SPMS: Review {document_kind_as_title}"
+            project_tag = project.get_project_tag()
+            email_subject = f"SPMS: Review {document_kind_as_title} ({project_tag})"
 
             processed = []
             for recipient in recipients_list:
@@ -3384,12 +3386,13 @@ class ProjectClosureEmail(APIView):
                 ).strip()  # nicely rendered html title
 
                 processed = []
+                project_tag = project.get_project_tag()
                 for recipient in recipients_list:
                     if recipient["pk"] not in processed:
                         if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                             print(f"PRODUCTION: Sending email to {recipient["name"]}")
                             # if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: Project Closed"
+                            email_subject = f"SPMS: {project_tag} Closed"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -3422,8 +3425,9 @@ class ProjectClosureEmail(APIView):
                                 )
                         else:  # test
                             print(f"TEST: Sending email to {recipient["name"]}")
+                            project_tag = project.get_project_tag()
                             if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: Project Closed"
+                                email_subject = f"SPMS: {project_tag} Closed"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -3504,14 +3508,14 @@ class DocumentReadyEmail(APIView):
                 "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
-
+            project_tag = project.get_project_tag()
             processed = []
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
                     # if recipient["pk"] == 101073:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = f"SPMS: New {document_kind_as_title} Ready"
+                        email_subject = f"SPMS: New {document_kind_as_title} Ready ({project_tag})"
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -3548,7 +3552,7 @@ class DocumentReadyEmail(APIView):
                         print(f"TEST: Sending email to {recipient["name"]}")
                         # test
                         if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: New {document_kind_as_title} Ready"
+                            email_subject = f"SPMS: New {document_kind_as_title} Ready ({project_tag})"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -3634,6 +3638,7 @@ class DocumentSentBackEmail(APIView):
                 "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
+            project_tag = project.get_project_tag()
 
             processed = []
             for recipient in recipients_list:
@@ -3641,7 +3646,7 @@ class DocumentSentBackEmail(APIView):
                     # if recipient["pk"] == 101073:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = f"SPMS: {document_kind_as_title} Sent Back"
+                        email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -3680,8 +3685,9 @@ class DocumentSentBackEmail(APIView):
                     else:
                         print(f"TEST: Sending email to {recipient["name"]}")
                         # test
+                        project_tag = project.get_project_tag()
                         if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Sent Back"
+                            email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -3767,6 +3773,7 @@ class ConceptPlanEmail(APIView):
                 "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
+            project_tag = project.get_project_tag()
 
             processed = []
             for recipient in recipients_list:
@@ -3774,7 +3781,7 @@ class ConceptPlanEmail(APIView):
                     if (
                         recipient["pk"] == 101073
                     ):  # Change to if settings.DEBUG == True mass replace
-                        email_subject = f"SPMS: Concept Plan Review"
+                        email_subject = f"SPMS: Review {document_kind_as_title} ({project_tag})"
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -3857,6 +3864,7 @@ class DocumentApprovedEmail(APIView):
                 "projectclosure": "Project Closure",
             }
             document_kind_as_title = document_kind_dict[document_kind]
+            project_tag = project.get_project_tag()
 
             processed = []
             for recipient in recipients_list:
@@ -3864,7 +3872,7 @@ class DocumentApprovedEmail(APIView):
                 # if recipient["pk"] == 101073:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = f"SPMS: {document_kind_as_title} Approved"
+                        email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -3899,9 +3907,10 @@ class DocumentApprovedEmail(APIView):
                             )
                     else:
                         # test
+                        project_tag = project.get_project_tag()
                         print(f"TEST: Sending email to {recipient["name"]}")
                         if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Approved"
+                            email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -4237,12 +4246,13 @@ class DocumentRecalledEmail(APIView):
                 stage = int(stage)
 
             processed = []
+            project_tag = project.get_project_tag()
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
                         # if recipient["pk"] == 101073:
-                        email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                        email_subject = f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -4282,9 +4292,10 @@ class DocumentRecalledEmail(APIView):
                             )
                     else:
                         # test
+                        project_tag = project.get_project_tag()
                         print(f"TEST: Sending email to {recipient["name"]}")
                         if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Recalled"
+                            email_subject = f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -4811,6 +4822,7 @@ class DocApproval(APIView):
                             "email": user_email,
                         }
                         recipients_list.append(ba_data_obj)
+                    project_tag = project.get_project_tag()
 
                     processed = []
                     for recipient in recipients_list:
@@ -4818,7 +4830,7 @@ class DocApproval(APIView):
                             if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                                 print(f"PRODUCTION: Sending email to {recipient["name"]}")
                                 # if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {document_kind_as_title} Approved"
+                                email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -4855,11 +4867,12 @@ class DocApproval(APIView):
                                         status=HTTP_400_BAD_REQUEST,
                                     )
                             else:
+                                project_tag = project.get_project_tag()
                                 # test
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
                                     email_subject = (
-                                        f"SPMS: {document_kind_as_title} Approved"
+                                        f"SPMS: {document_kind_as_title} Approved ({project_tag})"
                                     )
                                     to_email = [recipient["email"]]
 
@@ -5061,7 +5074,7 @@ class DocRecall(APIView):
 
                     if stage == 3:
                         if u_document.kind == "projectclosure":
-                            # Reopen project, keeping closure
+                            # Reopen project, keeping closure (recalling an approved stage 3 for a closure means that the project was closed - and is being reopened)
                             templ = "./email_templates/project_reopened_email.html"
                             project = document.project
                             project.status = "closure_requested"
@@ -5107,12 +5120,13 @@ class DocRecall(APIView):
                     print(recipients_list)
 
                     processed = []
+                    project_tag = project.get_project_tag()
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
 
                             if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                                 print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                                email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
+                                email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'} ({project_tag})"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -5153,9 +5167,10 @@ class DocRecall(APIView):
                                         status=HTTP_400_BAD_REQUEST,
                                     )
                             else:
+                                project_tag = project.get_project_tag()
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
-                                    email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'}"
+                                    email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'} ({project_tag})"
                                     to_email = [recipient["email"]]
 
                                     template_props = {
@@ -5336,12 +5351,13 @@ class DocSendBack(APIView):
                         recipients_list.append(data_obj)
 
                     processed = []
+                    project_tag = project.get_project_tag()
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
                             if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                                 print(f"PRODUCTION: Sending email to {recipient["name"]}")
                                 # if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {document_kind_as_title} Sent Back"
+                                email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -5386,7 +5402,7 @@ class DocSendBack(APIView):
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
                                     email_subject = (
-                                        f"SPMS: {document_kind_as_title} Sent Back"
+                                        f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
                                     )
                                     to_email = [recipient["email"]]
                                     
@@ -5539,12 +5555,13 @@ class DocReopenProject(APIView):
                 recipients_list.append(p_leader_data_obj)
 
                 processed = []
+                project_tag = project.get_project_tag()
                 for recipient in recipients_list:
                     if recipient["pk"] not in processed:
                         if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                             print(f"PRODUCTION: Sending email to {recipient["name"]}")
                             # if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                            email_subject = f"SPMS: {project_tag} Re-Opened"
                             to_email = [recipient["email"]]
 
                             template_props = {
@@ -5586,7 +5603,7 @@ class DocReopenProject(APIView):
                             # test
                             print(f"TEST: Sending email to {recipient["name"]}")
                             if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {document_kind_as_title} Re-Opened"
+                                email_subject = f"SPMS: {project_tag} Re-Opened"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -9020,13 +9037,16 @@ class RepoenProject(APIView):
                     }
                     recipients_list.append(p_leader_data_obj)
 
+
+                    project_tag = project.get_project_tag()
+
                     processed = []
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
                             if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                                 print(f"PRODUCTION: Sending email to {recipient["name"]}")
                                 # if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {plain_project_name} Re-Opened"
+                                email_subject = f"SPMS: {project_tag} Re-Opened"
                                 to_email = [recipient["email"]]
 
                                 template_props = {
@@ -9067,7 +9087,7 @@ class RepoenProject(APIView):
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
                                     # if recipient["pk"] == 101073:
-                                    email_subject = f"SPMS: {plain_project_name} Re-Opened"
+                                    email_subject = f"SPMS: {project_tag} Re-Opened"
                                     to_email = [recipient["email"]]
 
                                     template_props = {
