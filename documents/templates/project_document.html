@@ -191,6 +191,7 @@
     
             @page main_pages {
                 @bottom-right {
+                    color: rgb(121, 121, 121);
                     border-top: 0.25pt solid #666;
                     content: "Page " counter(page) " of " counter(pages);
                     font-family: system-ui, -apple-system, "Segoe UI", Roboto,
@@ -519,7 +520,11 @@
                         </div>
                         <div class="project_document_section_content_container">
                             {% if value.data and value.data|extract_text_content != "" %} 
+                                {% if value.title == "Intended Outcome" %}
+                                <p>{{ value.data | safe | title }}</p>
+                                {% else %}
                                 {{ value.data | safe }} 
+                                {% endif %}
                             {% else %}
                                 <p>None</p>
                             {% endif %} 
