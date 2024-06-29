@@ -1,290 +1,541 @@
+{% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{rte_css_path}}">
-    <link rel="stylesheet" href="{{prince_css_path}}">
-    <style>
-        @page {
-            @top-left {
-                border-bottom: 0.25pt solid #666;
-                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-size: 10pt;
-                margin: 0 0 0.3cm 0;
-                padding: 0;
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="stylesheet" href="{{rte_css_path}}" />
+		<link rel="stylesheet" href="{{prince_css_path}}" />
 
+		<style>
+
+            {% comment %} Bold {% endcomment %}
+            @font-face {
+                font-family: 'Red Hat Display Bold';
+                src: url("{{fonts_folder_path|replace_backslashes}}{{'/RedHatDisplay-Bold.ttf'|replace_backslashes}}");
+                font-weight: normal;
+                font-style: normal;
             }
 
-            @bottom-left {
-                border-top: 0.25pt solid #666;
-                content: string(doctitle);
-                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-size: 10pt;
-                margin: 1cm 0 0 0;
-                padding: 0;
-
+            @font-face {
+                font-family: "Libre Caslon Bold";
+                src: url("{{fonts_folder_path|replace_backslashes}}{{'/LibreCaslonText-Bold.ttf'|replace_backslashes}}");
+                font-weight: bold;
+                font-style: normal;
             }
 
-            @bottom-right {
-                border-top: 0.25pt solid #666;
-                content: "Page " counter(page) " of " counter(pages);
-                font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-                font-size: 10pt;
-                margin: 1cm 0 0 0;
-                padding: 0;
+
+            {% comment %} Italic {% endcomment %}
+            @font-face {
+                font-family: 'Red Hat Display Italic';
+                src: url("{{fonts_folder_path|replace_backslashes}}{{'/RedHatDisplay-Italic.ttf'|replace_backslashes}}");
+                font-weight: normal;
+                font-style: normal;
             }
-        }
 
-        .footer-image {
-            bottom: 0;
-            left: 0;
-            display: block;
-            width: 200px;
-            height: auto;
-            margin-right: 5px;
-        }
+            @font-face {
+                font-family: "Libre Caslon Italic";
+                src: url("{{fonts_folder_path|replace_backslashes}}{{'/LibreCaslonText-Italic.ttf'|replace_backslashes}}");
+                font-weight: normal;
+                font-style: italic;
+            }
 
-        .header-text {
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-            font-size: 10pt;
-            margin: 0;
-            padding: 0;
-        }
-    </style>
-</head>
+            {% comment %} Regular {% endcomment %}
+            @font-face {
+                font-family: 'Red Hat Display';
+                src: url("{{fonts_folder_path|replace_backslashes}}{{'/RedHatDisplay-Regular.ttf'|replace_backslashes}}");
+                font-weight: normal;
+                font-style: normal;
+            }
 
-<body class="project_document_body">
+            @font-face {
+                font-family: "Libre Caslon";
+                src: url("{{fonts_folder_path|replace_backslashes}}{{'/LibreCaslonText-Regular.ttf'|replace_backslashes}}");
+                font-weight: normal;
+                font-style: normal;
+            }
 
-    <!-- KIND & DATE -->
-    <p class="project_document_doc_kind_text">{{document_kind_string}} 
-        {% if financial_year_string %}
-            ({{ financial_year_string }})
-        {% endif %}
-    </p>
+            {% comment %} Classes {% endcomment %}
 
-    <p class="project_document_date_text">
-        Current as of {{ current_date_time_string }}
-    </p>
+            
+            .redhat-normal {
+                font-family: "Red Hat Display";
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
 
+            .redhat-bold {
+                font-family: "Red Hat Display Bold";
+                font-optical-sizing: auto;
+                font-weight: 700;
+                font-style: bold;
+            }
 
-   <!-- PROJECT TITLE -->
-   <a 
-   class="project_document_title_link"
-   href="{{frontend_url}}/projects/{{ project_id }}/{{document_kind_url}}">
-   <h1 class="project_document_title_h1">
-   {{ project_title | safe }}
-    </h1>
-    </a>
-
-    <!-- PROJECT IMAGE -->
-    <div class="project_document_project_image_container">
-        <img class="project_document_project_image" alt="Project Image" 
-            src="{% if not project_image_path or project_image_path is None %}
-                {{no_image_path}}
-            {% else %}
-                {{ base_url }}{{ project_image_path }}
-            {% endif %}"
-        />
-    </div>
+            .redhat-italic {
+                font-family: "Red Hat Display Italic";
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: italic;
+            }
 
 
-    <!-- PROJECT TAG -->
-    <h1 class="project_document_tag_h1">
-        {{ project_tag }}
-    </h1>
+            .libre-normal {
+                font-family: "Libre Caslon";
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: normal;
+            }
+
+            .libre-bold {
+                font-family: "Libre Caslon Bold";
+                font-optical-sizing: auto;
+                font-weight: 700;
+                font-style: bold;
+            }
+
+            .libre-italic {
+                font-family: "Libre Caslon Italic";
+                font-optical-sizing: auto;
+                font-weight: 400;
+                font-style: italic;
+            }
+
+            
+            body {
+                font-family: "Red Hat Display";
+            } 
+
+            .project_document_title_h1, project_document_section_h1_title {
+                font-family: "Libre Caslon";
+            }
+
+            .project_document_date_text, .project_document_doc_kind_text{
+                font-family: "Times New Roman";
+            } 
+
+			@page {
+				{% comment %} @top-left {
+					border-bottom: 0.25pt solid #666;
+					font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+						"Helvetica Neue", "Noto Sans", "Liberation Sans", Arial,
+						sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+						"Segoe UI Symbol", "Noto Color Emoji";
+					font-size: 10pt;
+					margin: 0 0 0.3cm 0;
+					padding: 0;
+				} {% endcomment %}
+
+				@bottom-left {
+					border-top: 0.25pt solid #666;
+					font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+						"Helvetica Neue", "Noto Sans", "Liberation Sans", Arial,
+						sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+						"Segoe UI Symbol", "Noto Color Emoji";
+					font-size: 10pt;
+					margin: 1cm 0 0 0;
+					padding: 0;
+				}
+
+	
+			}
+
+			.footer-image {
+				bottom: 0;
+				left: 0;
+				display: block;
+				width: 200px;
+				height: auto;
+				margin-right: 5px;
+			}
+
+			.header-text {
+				font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+					"Helvetica Neue", "Noto Sans", "Liberation Sans", Arial,
+					sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+					"Segoe UI Symbol", "Noto Color Emoji";
+				font-size: 10pt;
+				margin: 0;
+				padding: 0;
+			}
 
 
-    <!-- Dept. Service -->
-    <h1 class="project_document_service_h1">
-        {{ departmental_service_name }}
-    </h1>
 
-    <!-- BUSINESS AREA -->
-    <h1 class="project_document_business_area_h1">
-        {{ business_area_name }}
-    </h1>
-
-    <!-- TEAM MEMBERS -->
-    <div class="project_document_team_container">
-        <h1 class="project_document_team_h1">
-            Team
-        </h1>
-        <h1 class="project_document_team_member_text">
-            {{ team_as_string }}            
-        </h1>
-    </div>
-
-    <!-- APPROVALS -->
-    <div class="project_document_approvals_container">
-        <div class="project_document_approvals_subcontainer">
-            <!-- PROJECT LEAD -->
-            <div class="project_document_approvals_row">
-                <p class="project_document_approvals_text">
-                    Project Lead Approval
-                </p>
-                <div class="css-zov4ca project_document_approvals_svg_container">
-                    {% if project_lead_approval %}
-                        <!-- Green tick for true -->
-                        <svg class="project_document_approvals_svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-                            <g id="surface1">
-                                <path
-                                    style=" stroke:none;fill-rule:nonzero;fill:rgb(26.27451%,62.745098%,27.843137%);fill-opacity:1;"
-                                    d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 " />
-                            </g>
-                        </svg>
-
-                    {% else %}
-                        <!-- Red cross for false -->
-                        <svg class="project_document_approvals_svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-                        <defs>
-                            <clipPath id="clip1">
-                            <rect x="0" y="0" width="30" height="30"/>
-                            </clipPath>
-                            <g id="surface5" clip-path="url(#clip1)">
-                            <path style=" stroke:none;fill-rule:nonzero;fill:rgb(86.666667%,20%,20%);fill-opacity:1;" d="M 30 15 C 30 23.285156 23.285156 30 15 30 C 6.714844 30 0 23.285156 0 15 C 0 6.71875 6.714844 0 15 0 C 23.285156 0 30 6.71875 30 15 Z M 30 15 "/>
-                            <path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:1;" d="M 18.375 15.378906 L 22.085938 11.667969 C 22.320312 11.433594 22.441406 11.144531 22.441406 10.808594 C 22.441406 10.472656 22.320312 10.1875 22.085938 9.949219 L 20.371094 8.234375 C 20.132812 8 19.847656 7.882812 19.511719 7.882812 C 19.175781 7.882812 18.886719 7.996094 18.652344 8.234375 L 14.941406 11.945312 L 11.230469 8.234375 C 10.992188 8 10.707031 7.882812 10.371094 7.882812 C 10.035156 7.882812 9.746094 7.996094 9.511719 8.234375 L 7.792969 9.949219 C 7.558594 10.1875 7.441406 10.472656 7.441406 10.808594 C 7.441406 11.148438 7.558594 11.433594 7.792969 11.667969 L 11.503906 15.378906 L 7.792969 19.089844 C 7.558594 19.324219 7.441406 19.613281 7.441406 19.949219 C 7.441406 20.289062 7.558594 20.574219 7.792969 20.808594 L 9.511719 22.523438 C 9.746094 22.761719 10.035156 22.878906 10.371094 22.878906 C 10.707031 22.878906 10.992188 22.761719 11.230469 22.523438 L 14.941406 18.8125 L 18.652344 22.523438 C 18.890625 22.761719 19.175781 22.878906 19.511719 22.878906 C 19.847656 22.878906 20.136719 22.761719 20.371094 22.523438 L 22.085938 20.808594 C 22.324219 20.574219 22.441406 20.285156 22.441406 19.949219 C 22.441406 19.613281 22.324219 19.328125 22.085938 19.089844 L 18.375 15.378906 "/>
-                            </g>
-                            </defs>
-                            <g id="surface1">
-                            <use xlink:href="#surface5"/>
-                            </g>
-
-                        </svg>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- BA LEAD -->
-            <div class="project_document_approvals_row">
-                <p class="project_document_approvals_text">
-                    Business Area Lead Approval
-                </p>
-                <div class="css-zov4ca project_document_approvals_svg_container">
-                    {% if business_area_lead_approval %}
-                        <!-- Green tick for true -->
-                        <svg class="project_document_approvals_svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-                            <g id="surface1">
-                                <path
-                                    style=" stroke:none;fill-rule:nonzero;fill:rgb(26.27451%,62.745098%,27.843137%);fill-opacity:1;"
-                                    d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 " />
-                            </g>
-                        </svg>
-
-                    {% else %}
-                        <!-- Red cross for false -->
-                        <svg class="project_document_approvals_svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-                        <defs>
-                            <clipPath id="clip1">
-                            <rect x="0" y="0" width="30" height="30"/>
-                            </clipPath>
-                            <g id="surface5" clip-path="url(#clip1)">
-                            <path style=" stroke:none;fill-rule:nonzero;fill:rgb(86.666667%,20%,20%);fill-opacity:1;" d="M 30 15 C 30 23.285156 23.285156 30 15 30 C 6.714844 30 0 23.285156 0 15 C 0 6.71875 6.714844 0 15 0 C 23.285156 0 30 6.71875 30 15 Z M 30 15 "/>
-                            <path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:1;" d="M 18.375 15.378906 L 22.085938 11.667969 C 22.320312 11.433594 22.441406 11.144531 22.441406 10.808594 C 22.441406 10.472656 22.320312 10.1875 22.085938 9.949219 L 20.371094 8.234375 C 20.132812 8 19.847656 7.882812 19.511719 7.882812 C 19.175781 7.882812 18.886719 7.996094 18.652344 8.234375 L 14.941406 11.945312 L 11.230469 8.234375 C 10.992188 8 10.707031 7.882812 10.371094 7.882812 C 10.035156 7.882812 9.746094 7.996094 9.511719 8.234375 L 7.792969 9.949219 C 7.558594 10.1875 7.441406 10.472656 7.441406 10.808594 C 7.441406 11.148438 7.558594 11.433594 7.792969 11.667969 L 11.503906 15.378906 L 7.792969 19.089844 C 7.558594 19.324219 7.441406 19.613281 7.441406 19.949219 C 7.441406 20.289062 7.558594 20.574219 7.792969 20.808594 L 9.511719 22.523438 C 9.746094 22.761719 10.035156 22.878906 10.371094 22.878906 C 10.707031 22.878906 10.992188 22.761719 11.230469 22.523438 L 14.941406 18.8125 L 18.652344 22.523438 C 18.890625 22.761719 19.175781 22.878906 19.511719 22.878906 C 19.847656 22.878906 20.136719 22.761719 20.371094 22.523438 L 22.085938 20.808594 C 22.324219 20.574219 22.441406 20.285156 22.441406 19.949219 C 22.441406 19.613281 22.324219 19.328125 22.085938 19.089844 L 18.375 15.378906 "/>
-                            </g>
-                            </defs>
-                            <g id="surface1">
-                            <use xlink:href="#surface5"/>
-                            </g>
-
-                        </svg>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- DIRECTORATE -->
-            <div class="project_document_approvals_row">
-                <p class="project_document_approvals_text">
-                    Directorate Approval
-                </p>
-                <div class="css-zov4ca project_document_approvals_svg_container">
-                    {% if directorate_approval %}
-                        <!-- Green tick for true -->
-                        <svg class="project_document_approvals_svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"
-                            xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-                            <g id="surface1">
-                                <path
-                                    style=" stroke:none;fill-rule:nonzero;fill:rgb(26.27451%,62.745098%,27.843137%);fill-opacity:1;"
-                                    d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 " />
-                            </g>
-                        </svg>
-
-                    {% else %}
-                        <!-- Red cross for false -->
-                        <svg class="project_document_approvals_svg" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"
-                        xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-                        <defs>
-                            <clipPath id="clip1">
-                            <rect x="0" y="0" width="30" height="30"/>
-                            </clipPath>
-                            <g id="surface5" clip-path="url(#clip1)">
-                            <path style=" stroke:none;fill-rule:nonzero;fill:rgb(86.666667%,20%,20%);fill-opacity:1;" d="M 30 15 C 30 23.285156 23.285156 30 15 30 C 6.714844 30 0 23.285156 0 15 C 0 6.71875 6.714844 0 15 0 C 23.285156 0 30 6.71875 30 15 Z M 30 15 "/>
-                            <path style=" stroke:none;fill-rule:nonzero;fill:rgb(100%,100%,100%);fill-opacity:1;" d="M 18.375 15.378906 L 22.085938 11.667969 C 22.320312 11.433594 22.441406 11.144531 22.441406 10.808594 C 22.441406 10.472656 22.320312 10.1875 22.085938 9.949219 L 20.371094 8.234375 C 20.132812 8 19.847656 7.882812 19.511719 7.882812 C 19.175781 7.882812 18.886719 7.996094 18.652344 8.234375 L 14.941406 11.945312 L 11.230469 8.234375 C 10.992188 8 10.707031 7.882812 10.371094 7.882812 C 10.035156 7.882812 9.746094 7.996094 9.511719 8.234375 L 7.792969 9.949219 C 7.558594 10.1875 7.441406 10.472656 7.441406 10.808594 C 7.441406 11.148438 7.558594 11.433594 7.792969 11.667969 L 11.503906 15.378906 L 7.792969 19.089844 C 7.558594 19.324219 7.441406 19.613281 7.441406 19.949219 C 7.441406 20.289062 7.558594 20.574219 7.792969 20.808594 L 9.511719 22.523438 C 9.746094 22.761719 10.035156 22.878906 10.371094 22.878906 C 10.707031 22.878906 10.992188 22.761719 11.230469 22.523438 L 14.941406 18.8125 L 18.652344 22.523438 C 18.890625 22.761719 19.175781 22.878906 19.511719 22.878906 C 19.847656 22.878906 20.136719 22.761719 20.371094 22.523438 L 22.085938 20.808594 C 22.324219 20.574219 22.441406 20.285156 22.441406 19.949219 C 22.441406 19.613281 22.324219 19.328125 22.085938 19.089844 L 18.375 15.378906 "/>
-                            </g>
-                            </defs>
-                            <g id="surface1">
-                            <use xlink:href="#surface5"/>
-                            </g>
-
-                        </svg>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+            @page coverpage {
+                @bottom-right {
+                    content: normal
+                }
+                @bottom-left {
+                    content: normal
+                }
+                @top-right {
+                    content: normal
+                }
+                @top-left {
+                    content: normal
+                }
+                @top-left {
+                    content: " ";
+                }
+                @top-right {
+                    content: " ";
+                }
+                border-top: none;
+                border-bottom: none;
+                margin-top: 0cm;
+                padding-top: 0cm;
+            }
 
     
+            @page main_pages {
+                @bottom-right {
+                    border-top: 0.25pt solid #666;
+                    content: "Page " counter(page) " of " counter(pages);
+                    font-family: system-ui, -apple-system, "Segoe UI", Roboto,
+                    "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial,
+                    sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+                    "Segoe UI Symbol", "Noto Color Emoji";
+                    font-size: 8pt;
+                    font-weight: 700;
+                    margin: 1cm 0 0 0;
+                        padding: 0;              
+                }
+    
+                @bottom-left {
+                    padding: 0;   
+                    font-weight: bold;
+                    font-size: 12px;
+                }
+            }
+    
 
-<!-- Iterate over items in html_data_items dictionary -->
-<div class="project_document_data_container">
-{% for key, value in html_data_items.items %}
 
-        <div class="project_document_section_data_container">
-            <div class="project_document_section_title_container">
-                <h1 class="project_document_section_h1_title">
-                    {{ value.title | safe}}
+		</style>
+	</head>
+
+	<body class="project_document_body">
+        <div class="coverpage_page">
+            <!-- KIND & DATE -->
+            <p class="project_document_doc_kind_text">
+                {{document_kind_string}} {% if financial_year_string %} ({{financial_year_string }}) {% endif %}
+            </p>
+            <!-- PROJECT TITLE -->
+            <a
+                class="project_document_title_link"
+                href="{{frontend_url}}/projects/{{ project_id }}/{{document_kind_url}}"
+            >
+                <h1 class="project_document_title_h1">
+                    {{ project_title | safe }}
                 </h1>
-                <hr class="project_document_section_h1_title_hr">    
-            </div>
-            <div class="project_document_section_content_container">
-                {% if value.data %}
-                {{ value.data | safe }}
+            </a>
+
+            <!-- TIMESTAMP -->
+            <p class="project_document_date_text">
+                Current as of {{ current_date_time_string }}
+            </p>
+
+            <!-- PROJECT IMAGE -->
+            <div class="project_document_project_image_container">
+                <img
+                    class="project_document_project_image"
+                    alt="Project Image"
+                    src="{% if not project_image_path or project_image_path is None %}
+                    {{no_image_path}}
                 {% else %}
-                <p>None</p>
-                {% endif %}
-                {% if value.title == "Methodology" and methodology_image and methodology_image != "" %}
-                    <div
-                        class="meth_image_container"
-                    >
-                        <img 
-                        class="meth_image"
-                        src="{{base_url}}{{methodology_image}}"
-                        alt="Methodology Image"
-                        />
-                    </div>
-                {% endif %}
+                    {{ base_url }}{{ project_image_path }}
+                {% endif %}"
+                />
             </div>
+
+            <!-- Dept. Service -->
+            <h1 class="project_document_service_h1">
+                {{ departmental_service_name }}
+            </h1>
+
+            <!-- BUSINESS AREA -->
+            <h1 class="project_document_business_area_h1">
+                {{ business_area_name }}
+            </h1>
+
+            <!-- PROJECT TAG -->
+            <h1 class="project_document_tag_h1">{{ project_tag }}</h1>
+
+            <!-- TEAM MEMBERS -->
+            <div class="project_document_team_container">
+                <h1 class="project_document_team_h1">Team</h1>
+                <h1 class="project_document_team_member_text">
+                    {{ team_as_string }}
+                </h1>
+            </div>
+
+            <!-- APPROVALS -->
+            {% if document_kind_string != "Science Project Plan" and document_kind_string != "Science Concept Plan" %}
+                <div class="project_document_approvals_container">
+                    <div class="project_document_approvals_subcontainer">
+                        <!-- PROJECT LEAD -->
+                        <div class="project_document_approvals_row">
+                            <p class="project_document_approvals_text">
+                                Project Lead Approval
+                            </p>
+                            <div
+                                class="css-zov4ca project_document_approvals_svg_container"
+                            >
+                                {% if project_lead_approval %}
+                                <!-- Green tick for true -->
+                                <svg
+                                    class="project_document_approvals_svg"
+                                    viewBox="0 0 30 30"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1"
+                                >
+                                    <g id="surface1">
+                                        <path
+                                            style="
+                                                stroke: none;
+                                                fill-rule: nonzero;
+                                                fill: rgb(
+                                                    26.27451%,
+                                                    62.745098%,
+                                                    27.843137%
+                                                );
+                                                fill-opacity: 1;
+                                            "
+                                            d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 "
+                                        />
+                                    </g>
+                                </svg>
+
+                                {% else %}
+                                <!-- Red cross for false -->
+                                <svg
+                                    class="project_document_approvals_svg"
+                                    viewBox="0 0 30 30"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1"
+                                >
+                                    <defs>
+                                        <clipPath id="clip1">
+                                            <rect x="0" y="0" width="30" height="30" />
+                                        </clipPath>
+                                        <g id="surface5" clip-path="url(#clip1)">
+                                            <path
+                                                style="
+                                                    stroke: none;
+                                                    fill-rule: nonzero;
+                                                    fill: rgb(86.666667%, 20%, 20%);
+                                                    fill-opacity: 1;
+                                                "
+                                                d="M 30 15 C 30 23.285156 23.285156 30 15 30 C 6.714844 30 0 23.285156 0 15 C 0 6.71875 6.714844 0 15 0 C 23.285156 0 30 6.71875 30 15 Z M 30 15 "
+                                            />
+                                            <path
+                                                style="
+                                                    stroke: none;
+                                                    fill-rule: nonzero;
+                                                    fill: rgb(100%, 100%, 100%);
+                                                    fill-opacity: 1;
+                                                "
+                                                d="M 18.375 15.378906 L 22.085938 11.667969 C 22.320312 11.433594 22.441406 11.144531 22.441406 10.808594 C 22.441406 10.472656 22.320312 10.1875 22.085938 9.949219 L 20.371094 8.234375 C 20.132812 8 19.847656 7.882812 19.511719 7.882812 C 19.175781 7.882812 18.886719 7.996094 18.652344 8.234375 L 14.941406 11.945312 L 11.230469 8.234375 C 10.992188 8 10.707031 7.882812 10.371094 7.882812 C 10.035156 7.882812 9.746094 7.996094 9.511719 8.234375 L 7.792969 9.949219 C 7.558594 10.1875 7.441406 10.472656 7.441406 10.808594 C 7.441406 11.148438 7.558594 11.433594 7.792969 11.667969 L 11.503906 15.378906 L 7.792969 19.089844 C 7.558594 19.324219 7.441406 19.613281 7.441406 19.949219 C 7.441406 20.289062 7.558594 20.574219 7.792969 20.808594 L 9.511719 22.523438 C 9.746094 22.761719 10.035156 22.878906 10.371094 22.878906 C 10.707031 22.878906 10.992188 22.761719 11.230469 22.523438 L 14.941406 18.8125 L 18.652344 22.523438 C 18.890625 22.761719 19.175781 22.878906 19.511719 22.878906 C 19.847656 22.878906 20.136719 22.761719 20.371094 22.523438 L 22.085938 20.808594 C 22.324219 20.574219 22.441406 20.285156 22.441406 19.949219 C 22.441406 19.613281 22.324219 19.328125 22.085938 19.089844 L 18.375 15.378906 "
+                                            />
+                                        </g>
+                                    </defs>
+                                    <g id="surface1">
+                                        <use xlink:href="#surface5" />
+                                    </g>
+                                </svg>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- BA LEAD -->
+                        <div class="project_document_approvals_row">
+                            <p class="project_document_approvals_text">
+                                Business Area Lead Approval
+                            </p>
+                            <div
+                                class="css-zov4ca project_document_approvals_svg_container"
+                            >
+                                {% if business_area_lead_approval %}
+                                <!-- Green tick for true -->
+                                <svg
+                                    class="project_document_approvals_svg"
+                                    viewBox="0 0 30 30"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1"
+                                >
+                                    <g id="surface1">
+                                        <path
+                                            style="
+                                                stroke: none;
+                                                fill-rule: nonzero;
+                                                fill: rgb(
+                                                    26.27451%,
+                                                    62.745098%,
+                                                    27.843137%
+                                                );
+                                                fill-opacity: 1;
+                                            "
+                                            d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 "
+                                        />
+                                    </g>
+                                </svg>
+
+                                {% else %}
+                                <!-- Red cross for false -->
+                                <svg
+                                    class="project_document_approvals_svg"
+                                    viewBox="0 0 30 30"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1"
+                                >
+                                    <defs>
+                                        <clipPath id="clip1">
+                                            <rect x="0" y="0" width="30" height="30" />
+                                        </clipPath>
+                                        <g id="surface5" clip-path="url(#clip1)">
+                                            <path
+                                                style="
+                                                    stroke: none;
+                                                    fill-rule: nonzero;
+                                                    fill: rgb(86.666667%, 20%, 20%);
+                                                    fill-opacity: 1;
+                                                "
+                                                d="M 30 15 C 30 23.285156 23.285156 30 15 30 C 6.714844 30 0 23.285156 0 15 C 0 6.71875 6.714844 0 15 0 C 23.285156 0 30 6.71875 30 15 Z M 30 15 "
+                                            />
+                                            <path
+                                                style="
+                                                    stroke: none;
+                                                    fill-rule: nonzero;
+                                                    fill: rgb(100%, 100%, 100%);
+                                                    fill-opacity: 1;
+                                                "
+                                                d="M 18.375 15.378906 L 22.085938 11.667969 C 22.320312 11.433594 22.441406 11.144531 22.441406 10.808594 C 22.441406 10.472656 22.320312 10.1875 22.085938 9.949219 L 20.371094 8.234375 C 20.132812 8 19.847656 7.882812 19.511719 7.882812 C 19.175781 7.882812 18.886719 7.996094 18.652344 8.234375 L 14.941406 11.945312 L 11.230469 8.234375 C 10.992188 8 10.707031 7.882812 10.371094 7.882812 C 10.035156 7.882812 9.746094 7.996094 9.511719 8.234375 L 7.792969 9.949219 C 7.558594 10.1875 7.441406 10.472656 7.441406 10.808594 C 7.441406 11.148438 7.558594 11.433594 7.792969 11.667969 L 11.503906 15.378906 L 7.792969 19.089844 C 7.558594 19.324219 7.441406 19.613281 7.441406 19.949219 C 7.441406 20.289062 7.558594 20.574219 7.792969 20.808594 L 9.511719 22.523438 C 9.746094 22.761719 10.035156 22.878906 10.371094 22.878906 C 10.707031 22.878906 10.992188 22.761719 11.230469 22.523438 L 14.941406 18.8125 L 18.652344 22.523438 C 18.890625 22.761719 19.175781 22.878906 19.511719 22.878906 C 19.847656 22.878906 20.136719 22.761719 20.371094 22.523438 L 22.085938 20.808594 C 22.324219 20.574219 22.441406 20.285156 22.441406 19.949219 C 22.441406 19.613281 22.324219 19.328125 22.085938 19.089844 L 18.375 15.378906 "
+                                            />
+                                        </g>
+                                    </defs>
+                                    <g id="surface1">
+                                        <use xlink:href="#surface5" />
+                                    </g>
+                                </svg>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- DIRECTORATE -->
+                        <div class="project_document_approvals_row">
+                            <p class="project_document_approvals_text">
+                                Directorate Approval
+                            </p>
+                            <div
+                                class="css-zov4ca project_document_approvals_svg_container"
+                            >
+                                {% if directorate_approval %}
+                                <!-- Green tick for true -->
+                                <svg
+                                    class="project_document_approvals_svg"
+                                    viewBox="0 0 30 30"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1"
+                                >
+                                    <g id="surface1">
+                                        <path
+                                            style="
+                                                stroke: none;
+                                                fill-rule: nonzero;
+                                                fill: rgb(
+                                                    26.27451%,
+                                                    62.745098%,
+                                                    27.843137%
+                                                );
+                                                fill-opacity: 1;
+                                            "
+                                            d="M 15 0.9375 C 7.234375 0.9375 0.9375 7.234375 0.9375 15 C 0.9375 22.765625 7.234375 29.0625 15 29.0625 C 22.765625 29.0625 29.0625 22.765625 29.0625 15 C 29.0625 7.234375 22.765625 0.9375 15 0.9375 Z M 11.730469 23.4375 L 11.722656 23.429688 L 11.714844 23.4375 L 5.15625 16.6875 L 8.449219 13.328125 L 11.722656 16.695312 L 21.566406 6.5625 L 24.84375 9.9375 Z M 11.730469 23.4375 "
+                                        />
+                                    </g>
+                                </svg>
+
+                                {% else %}
+                                <!-- Red cross for false -->
+                                <svg
+                                    class="project_document_approvals_svg"
+                                    viewBox="0 0 30 30"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    xmlns:xlink="http://www.w3.org/1999/xlink"
+                                    version="1.1"
+                                >
+                                    <defs>
+                                        <clipPath id="clip1">
+                                            <rect x="0" y="0" width="30" height="30" />
+                                        </clipPath>
+                                        <g id="surface5" clip-path="url(#clip1)">
+                                            <path
+                                                style="
+                                                    stroke: none;
+                                                    fill-rule: nonzero;
+                                                    fill: rgb(86.666667%, 20%, 20%);
+                                                    fill-opacity: 1;
+                                                "
+                                                d="M 30 15 C 30 23.285156 23.285156 30 15 30 C 6.714844 30 0 23.285156 0 15 C 0 6.71875 6.714844 0 15 0 C 23.285156 0 30 6.71875 30 15 Z M 30 15 "
+                                            />
+                                            <path
+                                                style="
+                                                    stroke: none;
+                                                    fill-rule: nonzero;
+                                                    fill: rgb(100%, 100%, 100%);
+                                                    fill-opacity: 1;
+                                                "
+                                                d="M 18.375 15.378906 L 22.085938 11.667969 C 22.320312 11.433594 22.441406 11.144531 22.441406 10.808594 C 22.441406 10.472656 22.320312 10.1875 22.085938 9.949219 L 20.371094 8.234375 C 20.132812 8 19.847656 7.882812 19.511719 7.882812 C 19.175781 7.882812 18.886719 7.996094 18.652344 8.234375 L 14.941406 11.945312 L 11.230469 8.234375 C 10.992188 8 10.707031 7.882812 10.371094 7.882812 C 10.035156 7.882812 9.746094 7.996094 9.511719 8.234375 L 7.792969 9.949219 C 7.558594 10.1875 7.441406 10.472656 7.441406 10.808594 C 7.441406 11.148438 7.558594 11.433594 7.792969 11.667969 L 11.503906 15.378906 L 7.792969 19.089844 C 7.558594 19.324219 7.441406 19.613281 7.441406 19.949219 C 7.441406 20.289062 7.558594 20.574219 7.792969 20.808594 L 9.511719 22.523438 C 9.746094 22.761719 10.035156 22.878906 10.371094 22.878906 C 10.707031 22.878906 10.992188 22.761719 11.230469 22.523438 L 14.941406 18.8125 L 18.652344 22.523438 C 18.890625 22.761719 19.175781 22.878906 19.511719 22.878906 C 19.847656 22.878906 20.136719 22.761719 20.371094 22.523438 L 22.085938 20.808594 C 22.324219 20.574219 22.441406 20.285156 22.441406 19.949219 C 22.441406 19.613281 22.324219 19.328125 22.085938 19.089844 L 18.375 15.378906 "
+                                            />
+                                        </g>
+                                    </defs>
+                                    <g id="surface1">
+                                        <use xlink:href="#surface5" />
+                                    </g>
+                                </svg>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
-{% endfor %}
-</div>
-
-
-
-
-<!-- VIEW PROJECT BUTTON -->
-{% comment %} <div style="text-align: right; margin-top: 32px; margin-bottom: 32px;">
-    <a href="{{frontend_url}}/projects/{{ project_id }}/{{document_kind_url}}"
-        style="line-height: 100%; text-decoration: none; display: inline-block; max-width: 100%; background-color: rgb(0, 0, 0); border-radius: 0.25rem; color: rgb(255, 255, 255); font-size: 12px; font-weight: 600; text-decoration-line: none; text-align: center; padding-left: 1.25rem; padding-right: 1.25rem; padding-top: 0.75rem; padding-bottom: 0.75rem; padding: 12px 20px 12px 20px;"
-        target="_blank">
-        <span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%; mso-text-raise: 18" hidden>&nbsp;</i><![endif]--></span><span
-            style="max-width: 100%; display: inline-block; line-height: 120%; mso-padding-alt: 0px; mso-text-raise: 9px;">View
-            Project</span><span><!--[if mso]><i style="letter-spacing: 20px; mso-font-width: -100%" hidden>&nbsp;</i><![endif]--></span>
-    </a>
-</div> {% endcomment %}
-
-</body>
+		<!-- Iterate over items in html_data_items dictionary -->
+         
+		<div class="project_document_data_container">
+            <div class="main_pages">
+                {% for key, value in html_data_items.items %}
+                    <div class="project_document_section_data_container">
+                        <div class="project_document_section_title_container">
+                            <h1 class="project_document_section_h1_title">
+                                {{ value.title | safe}}
+                            </h1>
+                            <hr class="project_document_section_h1_title_hr" />
+                        </div>
+                        <div class="project_document_section_content_container">
+                            {% if value.data and value.data|extract_text_content != "" %} 
+                                {{ value.data | safe }} 
+                            {% else %}
+                                <p>None</p>
+                            {% endif %} 
+                            {% if value.title == "Methodology" and methodology_image and methodology_image != "" %}
+                                <div class="meth_image_container">
+                                    <img
+                                        class="meth_image"
+                                        src="{{base_url}}{{methodology_image}}"
+                                        alt="Methodology Image"
+                                    />
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+		</div>
+	</body>
 </html>

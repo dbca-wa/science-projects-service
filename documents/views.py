@@ -2213,6 +2213,7 @@ class BeginProjectDocGeneration(APIView):
 
         # Doc Wide Variables
         rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
+        fonts_folder_path = os.path.join(settings.BASE_DIR, "documents", "static", "fonts")
         prince_css_path = os.path.join(
             settings.BASE_DIR, "documents", "prince_project_document_styles.css"
         )
@@ -2258,6 +2259,7 @@ class BeginProjectDocGeneration(APIView):
         # Begin
         doc.pdf_generation_in_progress = True
         doc.save()
+        print(f"FONTS PATH:\n{fonts_folder_path}\n")
 
         if document_type == "concept":
             doc_data = get_concept_plan_data()
@@ -2265,6 +2267,7 @@ class BeginProjectDocGeneration(APIView):
             html_content = get_template("project_document.html").render(
                 {
                     # Styles & url
+                    "fonts_folder_path": fonts_folder_path,
                     "rte_css_path": rte_css_path,
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_image_path,
@@ -2400,7 +2403,7 @@ class BeginProjectDocGeneration(APIView):
                             "data": apply_styling(doc_data["knowledge_transfer"]),
                         },
                         "project_tasks": {
-                            "title": "Tasks and Milestones",
+                            "title": "Milestones",
                             "data": apply_styling(doc_data["project_tasks"]),
                         },
                         "listed_references": {
