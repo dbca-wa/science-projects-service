@@ -1,3 +1,15 @@
+.coverpage_page {
+	page: coverpage;
+	prince-page-group: start;
+}
+
+.main_pages {
+	page: main_pages;
+	counter-reset: page 1;
+	prince-page-group: start;
+	prince-start-page: right;
+}
+
 /* TABLES */
 
 .table-light {
@@ -36,18 +48,22 @@ tr {
 /* PROJECT DOCUMENT COVER PAGE */
 
 .project_document_doc_kind_text {
-	font-size: 28px;
+	font-size: 20px;
 	font-weight: 900;
 	line-height: 14px;
 	margin: 16px 0;
+	margin-top: 100px;
 	text-align: center;
+
+	/* font-family: "Red Hat Display"; */
 }
 
 .project_document_date_text {
 	font-size: 14px;
 	line-height: 14px;
-	margin: 16px 0;
+	margin-top: 16px;
 	text-align: center;
+	color: rgb(71, 71, 71);
 }
 
 .project_document_title_link {
@@ -56,13 +72,13 @@ tr {
 
 .project_document_title_h1 {
 	color: rgb(0, 102, 204);
-	font-size: 28px;
+	font-size: 24px !important;
 	font-weight: 400;
 	padding: 0px;
 	padding-left: 60px;
 	padding-right: 60px;
-	margin-top: 2.5rem;
-	margin-bottom: 30px;
+	margin-top: 10px;
+	margin-bottom: 10px;
 	margin-left: 0px;
 	margin-right: 0px;
 	cursor: pointer;
@@ -79,7 +95,8 @@ tr {
 	height: 300px;
 	overflow: hidden;
 	border-radius: 25px;
-	margin: 0 auto;
+	margin: 36px auto;
+	/* margin: 0 auto; */
 	position: relative;
 }
 
@@ -92,75 +109,79 @@ tr {
 	object-fit: cover;
 }
 
-.project_document_tag_h1 {
-	color: rgb(0, 0, 0);
-	font-size: 14px;
+.project_document_service_h1 {
+	/* color: rgb(0, 0, 0); */
+	color: rgb(48, 48, 48);
+
+	font-size: 16px;
+	font-style: bold;
 	font-weight: 700;
 	text-align: center;
 	padding: 0px;
 	margin-top: 20px;
-	margin-bottom: 30px;
+	margin-bottom: 0;
+	/* margin-bottom: 30px;  */
 	margin-left: 0px;
 	margin-right: 0px;
 }
 
 .project_document_business_area_h1 {
-	color: rgb(0, 0, 0);
-	font-size: 20px;
-	font-weight: 700;
+	/* color: rgb(0, 0, 0); */
+	color: rgb(71, 71, 71);
+
+	font-size: 16px;
+	font-style: bold;
+	font-weight: 600;
 	text-align: center;
 	padding: 0px;
-	margin-top: 0.5rem;
-	/* margin-bottom: 30px;  */
-	margin-left: 0px;
-	margin-right: 0px;
+	margin: 0px;
+	margin-bottom: 5px;
 }
 
-.project_document_service_h1 {
-	color: rgb(0, 0, 0);
-	font-size: 16px;
+.project_document_tag_h1 {
+	/* color: rgb(0, 0, 0); */
+	color: rgb(71, 71, 71);
+
+	font-size: 14px;
 	font-weight: 700;
 	text-align: center;
 	padding: 0px;
-	margin-top: 0.5rem;
-	/* margin-bottom: 30px;  */
-	margin-left: 0px;
-	margin-right: 0px;
+	margin: 0px;
 }
 
 .project_document_team_container {
-	justify-content: center;
+	/* justify-content: center; */
 }
 
 .project_document_team_h1 {
-	color: rgb(0, 0, 0);
-	font-size: 14px;
+	color: rgb(48, 48, 48);
+	font-size: 15px;
 	font-weight: 700;
 	text-align: center;
 	text-wrap: balance;
 
 	padding: 0px;
 	margin-top: 40px;
+	margin-bottom: 2px;
+	padding-bottom: 2px;
 	margin-left: 0px;
 	margin-right: 0px;
 }
 
 .project_document_team_member_text {
-	color: rgb(0, 0, 0);
+	color: rgb(48, 48, 48);
+	/* background-color: red; */
+	padding: 0px;
+	margin: 0 180px;
+
 	font-size: 14px;
 	font-weight: 400;
+
 	text-align: center;
-	text-wrap: balance;
-	-prince-text-wrap: balance;
 
-	padding: 0px;
-	padding-left: 100px;
-	padding-right: 100px;
-
-	margin-top: 20px;
-	margin-bottom: 30px;
-	margin-left: 0px;
-	margin-right: 0px;
+	/* NOT SUPPORTED IN PRINCE */
+	/* text-wrap: balance;
+    -prince-text-wrap: balance;  */
 }
 
 .project_document_approvals_container {
@@ -184,10 +205,10 @@ tr {
 }
 
 .project_document_approvals_text {
-	font-size: 16px;
-	line-height: 16px;
+	font-size: 14px;
+	line-height: 14px;
 	margin: 0px;
-	color: rgb(0, 0, 0);
+	color: rgb(75, 75, 75);
 	font-weight: 700;
 	text-align: right;
 }
@@ -212,13 +233,12 @@ tr {
 
 .project_document_section_data_container {
 	text-align: left;
-	margin-bottom: 50px;
-	margin-bottom: 50px;
+	margin-bottom: 30px;
 	page-break-inside: avoid; /* Avoid breaking inside the elements */
 }
 
 .project_document_section_data_container * {
-	font-size: 16px;
+	font-size: 14px;
 }
 
 .project_document_section_title_container {
@@ -226,17 +246,29 @@ tr {
 }
 
 .project_document_section_h1_title {
-	color: rgb(0, 0, 0);
-	font-size: 20px;
+	color: rgb(46, 46, 46);
+	font-size: 18px;
 	font-weight: 700;
+	margin-bottom: 8px;
 }
 
 .project_document_section_h1_title_hr {
-	margin-bottom: 30px;
+	margin: 0;
+	padding: 0;
+	margin-bottom: -5px;
+	height: 0.01px;
+	background-color: #cccccc;
+	border: none;
+}
+.project_document_section_content_container * {
+	page-break-before: auto;
+	text-align: justify !important;
 }
 
-.project_document_section_content_container {
-	page-break-before: auto;
+/* Override text alignment for tables and their children */
+.project_document_section_content_container table,
+.project_document_section_content_container table * {
+	text-align: initial !important; /* or left, center, right, depending on your preference */
 }
 
 .project_document_view_project_container {
@@ -276,13 +308,13 @@ tr {
 }
 
 /* Lists */
-ol,
-ul {
-	margin-left: 0; /* Removes left margin */
-	padding-left: 0; /* Removes left padding */
-}
 
 li {
-	margin-left: 0; /* Removes left margin */
-	padding-left: 10px; /* Adds some padding for readability */
+	padding-left: 1px !important; /* Adds some padding for readability */
+	line-height: 16px !important;
+}
+
+ol,
+ul {
+	margin-top: 15px !important;
 }
