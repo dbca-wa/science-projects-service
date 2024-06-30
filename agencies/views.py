@@ -1,4 +1,6 @@
 from math import ceil
+from documents.models import ProjectDocument
+from documents.serializers import ProjectDocumentSerializer
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -449,6 +451,37 @@ class BusinessAreas(APIView):
             )
 
 
+class BusinessAreasUnapprovedDocs(APIView):
+    def get_unapproved_docs_for_ba(self, pk):
+        try:
+            docs = ProjectDocument.objects.filter(
+                project__business_area=pk, project_lead_approval_granted=False
+            )
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+        return docs
+
+    def post(self, req):
+        try:
+            pksArray = req.data.get("baArray")
+            print(f"Getting My BA Data: {pksArray}")
+            data = {}
+            for baPk in pksArray:
+                unapproved = self.get_unapproved_docs_for_ba(baPk)
+                ser = ProjectDocumentSerializer(unapproved, many=True)
+                data[baPk] = ser.data
+            # print(data)
+            return Response(
+                data=data,
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            print(e)
+            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+
+
 class SetBusinessAreaActive(APIView):
     def go(self, pk):
         try:
@@ -800,7 +833,7 @@ class BusinessAreaDetail(APIView):
 
         if division_id is not None:
             try:
-                ba_data["division"] = (int(division_id))
+                ba_data["division"] = int(division_id)
             except (ValueError, TypeError) as e:
                 print(e)
                 pass
