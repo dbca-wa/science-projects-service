@@ -141,6 +141,14 @@ class ARExternalProjectSerializer(ModelSerializer):
         return representation
 
 
+# class ProblematicProjectSerializer(ModelSerializer):
+
+#     tag = serializers.SerializerMethodField()
+#     class Meta:
+#          model = Project
+#          fields = ["pk", "title", "tag"]
+
+
 class ProjectSerializer(ModelSerializer):
     # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
@@ -189,7 +197,7 @@ class ProjectUpdateSerializer(ModelSerializer):
 class UserProfileProjectSerializer(ModelSerializer):
     tag = serializers.SerializerMethodField()
     image = TinyProjectPhotoSerializer(read_only=True)
-    print(tag)
+    # print(tag)
 
     class Meta:
         model = Project

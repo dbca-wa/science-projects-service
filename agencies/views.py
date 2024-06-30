@@ -1,6 +1,12 @@
 from math import ceil
 from documents.models import ProjectDocument
 from documents.serializers import ProjectDocumentSerializer
+from projects.models import Project, ProjectMember
+from projects.serializers import (
+    ProjectMemberSerializer,
+    ProjectSerializer,
+    UserProfileProjectSerializer,
+)
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -473,6 +479,77 @@ class BusinessAreasUnapprovedDocs(APIView):
                 ser = ProjectDocumentSerializer(unapproved, many=True)
                 data[baPk] = ser.data
             # print(data)
+            return Response(
+                data=data,
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            print(e)
+            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+
+
+class BusinessAreasProblematicProjects(APIView):
+    def get_projects_in_ba(self, pk):
+        try:
+            projects = Project.objects.filter(business_area=pk)
+        except Project.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+        return projects
+
+    def post(self, req):
+        try:
+            pksArray = req.data.get("baArray")
+            print(f"Getting My BA Data: {pksArray}")
+            data = {}
+            for baPk in pksArray:
+
+                projects_in_ba = self.get_projects_in_ba(baPk)
+                memberless_projects = []
+                no_leader_tag_projects = []
+                multiple_leader_tag_projects = []
+                externally_led_projects = []
+                for p in projects_in_ba:
+                    members = p.members.all()
+                    leader_tag_count = 0
+                    external_leader = False
+                    for mem in members:
+                        if mem.role == ProjectMember.RoleChoices.SUPERVISING:
+                            leader_tag_count += 1
+                        if mem.is_leader == True:
+                            if mem.user.is_staff == False:
+                                external_leader = True
+
+                    # Handle Memberless
+                    if len(members) < 1:
+                        memberless_projects.append(p)
+                    # Handle Multiple Leader Tags
+                    if leader_tag_count > 1:
+                        multiple_leader_tag_projects.append(p)
+                    # Handle No Leader Tags
+                    elif leader_tag_count == 0:
+                        no_leader_tag_projects.append(p)
+                    # Handle external Leader tag
+                    elif leader_tag_count == 1:
+                        if external_leader:
+                            externally_led_projects.append(p)
+
+                data[baPk] = {}
+
+                data[baPk]["no_members"] = UserProfileProjectSerializer(
+                    memberless_projects, many=True
+                ).data
+                data[baPk]["no_leader"] = UserProfileProjectSerializer(
+                    no_leader_tag_projects, many=True
+                ).data
+                data[baPk]["external_leader"] = UserProfileProjectSerializer(
+                    externally_led_projects, many=True
+                ).data
+                data[baPk]["multiple_leads"] = UserProfileProjectSerializer(
+                    multiple_leader_tag_projects, many=True
+                ).data
+            print(data)
             return Response(
                 data=data,
                 status=HTTP_200_OK,
