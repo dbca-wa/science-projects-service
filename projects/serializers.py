@@ -186,6 +186,19 @@ class ProjectUpdateSerializer(ModelSerializer):
         return representation
 
 
+class UserProfileProjectSerializer(ModelSerializer):
+    tag = serializers.SerializerMethodField()
+    image = TinyProjectPhotoSerializer(read_only=True)
+    print(tag)
+
+    class Meta:
+        model = Project
+        fields = ["pk", "title", "tag", "image"]
+
+    def get_tag(self, obj):
+        return obj.get_project_tag()
+
+
 class TinyProjectSerializer(ModelSerializer):
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)

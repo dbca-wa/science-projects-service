@@ -4,6 +4,7 @@ import os
 import uuid
 import requests
 from agencies.models import Affiliation, Agency, Branch, BusinessArea
+from projects.serializers import TinyProjectSerializer, UserProfileProjectSerializer
 from rest_framework.views import APIView
 from math import ceil
 
@@ -458,6 +459,30 @@ class ToggleUserActive(APIView):
             ser,
             HTTP_202_ACCEPTED,
         )
+
+
+class UsersProjects(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            data = ProjectMember.objects.filter(user=pk)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        return data
+
+    def get(self, req, pk):
+        users_memberships = self.go(pk=pk)
+        projects = [membership.project for membership in users_memberships]
+        serialized_projects = UserProfileProjectSerializer(projects, many=True)
+        print(serialized_projects)
+        return Response(serialized_projects.data, HTTP_200_OK)
+
+        # interface ITinyProjectData {
+        # pk?: number | undefined;
+        # id?: number | undefined;
+        # title: string;
+        # }
 
 
 class UserDetail(APIView):
