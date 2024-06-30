@@ -141,6 +141,12 @@ class ARExternalProjectSerializer(ModelSerializer):
         return representation
 
 
+class TinyProjectSerializer(ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ["pk", "title"]
+
+
 class ProjectSerializer(ModelSerializer):
     # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
