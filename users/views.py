@@ -4,7 +4,7 @@ import os
 import uuid
 import requests
 from agencies.models import Affiliation, Agency, Branch, BusinessArea
-from projects.serializers import TinyProjectSerializer
+from projects.serializers import TinyProjectSerializer, UserProfileProjectSerializer
 from rest_framework.views import APIView
 from math import ceil
 
@@ -474,7 +474,8 @@ class UsersProjects(APIView):
     def get(self, req, pk):
         users_memberships = self.go(pk=pk)
         projects = [membership.project for membership in users_memberships]
-        serialized_projects = TinyProjectSerializer(projects, many=True)
+        serialized_projects = UserProfileProjectSerializer(projects, many=True)
+        print(serialized_projects)
         return Response(serialized_projects.data, HTTP_200_OK)
 
         # interface ITinyProjectData {
