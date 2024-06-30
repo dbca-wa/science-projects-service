@@ -8,6 +8,10 @@ urlpatterns = [
     path("branches/<int:pk>", views.BranchDetail.as_view()),
     path("business_areas", views.BusinessAreas.as_view()),
     path("business_areas/unapproved_docs", views.BusinessAreasUnapprovedDocs.as_view()),
+    path(
+        "business_areas/problematic_projects",
+        views.BusinessAreasProblematicProjects.as_view(),
+    ),
     path("business_areas/setactive/<int:pk>", views.SetBusinessAreaActive.as_view()),
     path("business_areas/<int:pk>", views.BusinessAreaDetail.as_view()),
     path("business_areas/mine", views.MyBusinessAreas.as_view()),
