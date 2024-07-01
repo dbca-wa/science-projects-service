@@ -547,7 +547,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
 
         # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
 
-        settings.LOGGER.warn(msg=f"Annual Report Data Rendering to Template...")
+        settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
         html_content = get_template("annual_report.html").render(
             {
                 # Styles & url
@@ -1097,7 +1097,7 @@ class BeginReportDocGeneration(APIView):
 
         # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
 
-        settings.LOGGER.warn(msg=f"Annual Report Data Rendering to Template...")
+        settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
         html_content = get_template("annual_report.html").render(
             {
                 # Styles & url
