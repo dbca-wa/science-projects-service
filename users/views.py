@@ -473,9 +473,11 @@ class UsersProjects(APIView):
 
     def get(self, req, pk):
         users_memberships = self.go(pk=pk)
+        user_obj = users_memberships[0].user
         projects = [membership.project for membership in users_memberships]
         serialized_projects = UserProfileProjectSerializer(projects, many=True)
-        print(serialized_projects)
+        settings.LOGGER.info(msg=f"{req.user} is viewing {user_obj} and their projects")
+        # print(serialized_projects)
         return Response(serialized_projects.data, HTTP_200_OK)
 
         # interface ITinyProjectData {
