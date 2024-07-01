@@ -3,6 +3,7 @@ from documents.models import ProjectDocument
 from documents.serializers import ProjectDocumentSerializer
 from projects.models import Project, ProjectMember
 from projects.serializers import (
+    ProblematicProjectSerializer,
     ProjectMemberSerializer,
     ProjectSerializer,
     UserProfileProjectSerializer,
@@ -462,29 +463,54 @@ class BusinessAreasUnapprovedDocs(APIView):
         try:
             docs = ProjectDocument.objects.filter(
                 project__business_area=pk, project_lead_approval_granted=False
-            )
+            ).distinct()  # Ensure unique documents
+            # print(f"Unapproved Count for BA {pk}: {docs.count()}")
         except ProjectDocument.DoesNotExist:
             raise NotFound
         except Exception as e:
-            print(e)
+            settings.LOGGER.error(f"Error: {e}")
+            docs = (
+                ProjectDocument.objects.none()
+            )  # Return an empty QuerySet on exception
         return docs
 
     def post(self, req):
         try:
             pksArray = req.data.get("baArray")
-            print(f"Getting My BA Data: {pksArray}")
+            settings.LOGGER.info(
+                msg=f"{req.user} is Getting My BA Unapproved Docs: {pksArray}"
+            )
             data = {}
             for baPk in pksArray:
                 unapproved = self.get_unapproved_docs_for_ba(baPk)
-                ser = ProjectDocumentSerializer(unapproved, many=True)
-                data[baPk] = ser.data
-            # print(data)
+                processed_unapproved = []
+                seen_pks = set()
+                unlinked_docs = []
+                for item in unapproved:
+                    if item.pk not in seen_pks:
+                        if item.has_project_document_data() == False:
+                            unlinked_docs.append(item)
+                        else:
+                            processed_unapproved.append(item)
+                            seen_pks.add(item.pk)
+                ser = ProjectDocumentSerializer(processed_unapproved, many=True)
+                ser2 = ProjectDocumentSerializer(unlinked_docs, many=True)
+                data[baPk] = {
+                    "linked": ser.data,
+                    "unlinked": ser2.data,
+                }
+                # ba_name = unapproved[0].business_area
+                settings.LOGGER.warning(
+                    f"Unapproved Doc Count for BA '{data[baPk]["linked"][0]['project']['business_area']['name']}' ({baPk}): {len(processed_unapproved)}\nUnlinked Doc Count for BA {(len(unlinked_docs))}"
+                    if len(data[baPk]) > 0
+                    else f"Unapproved Doc Count for BA {baPk}: {len(processed_unapproved)}\nUnlinked Doc Count for BA: {(len(unlinked_docs))}"
+                )
             return Response(
                 data=data,
                 status=HTTP_200_OK,
             )
         except Exception as e:
-            print(e)
+            settings.LOGGER.error(msg=f"{e}")
             return Response({"msg": e}, HTTP_400_BAD_REQUEST)
 
 
@@ -501,7 +527,9 @@ class BusinessAreasProblematicProjects(APIView):
     def post(self, req):
         try:
             pksArray = req.data.get("baArray")
-            print(f"Getting My BA Data: {pksArray}")
+            settings.LOGGER.info(
+                msg=f"{req.user} is Getting My BA Problem Projects: {pksArray}"
+            )
             data = {}
             for baPk in pksArray:
 
@@ -524,38 +552,37 @@ class BusinessAreasProblematicProjects(APIView):
                     # Handle Memberless
                     if len(members) < 1:
                         memberless_projects.append(p)
-                    # Handle Multiple Leader Tags
-                    if leader_tag_count > 1:
-                        multiple_leader_tag_projects.append(p)
-                    # Handle No Leader Tags
-                    elif leader_tag_count == 0:
-                        no_leader_tag_projects.append(p)
-                    # Handle external Leader tag
-                    elif leader_tag_count == 1:
+                    else:
+                        # Handle external Leader tag
                         if external_leader:
                             externally_led_projects.append(p)
+                        # Handle No Leader Tags
+                        if leader_tag_count == 0:
+                            no_leader_tag_projects.append(p)
+                        elif leader_tag_count > 1:
+                            multiple_leader_tag_projects.append(p)
 
                 data[baPk] = {}
 
-                data[baPk]["no_members"] = UserProfileProjectSerializer(
+                data[baPk]["no_members"] = ProblematicProjectSerializer(
                     memberless_projects, many=True
                 ).data
-                data[baPk]["no_leader"] = UserProfileProjectSerializer(
+                data[baPk]["no_leader"] = ProblematicProjectSerializer(
                     no_leader_tag_projects, many=True
                 ).data
-                data[baPk]["external_leader"] = UserProfileProjectSerializer(
+                data[baPk]["external_leader"] = ProblematicProjectSerializer(
                     externally_led_projects, many=True
                 ).data
-                data[baPk]["multiple_leads"] = UserProfileProjectSerializer(
+                data[baPk]["multiple_leads"] = ProblematicProjectSerializer(
                     multiple_leader_tag_projects, many=True
                 ).data
-            print(data)
+            # print(data)
             return Response(
                 data=data,
                 status=HTTP_200_OK,
             )
         except Exception as e:
-            print(e)
+            settings.LOGGER.error(msg=f"{e}")
             return Response({"msg": e}, HTTP_400_BAD_REQUEST)
 
 

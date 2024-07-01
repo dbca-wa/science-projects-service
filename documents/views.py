@@ -2347,6 +2347,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "fonts_folder_path": fonts_folder_path,
                     "departmental_service_name": doc_data["departmental_service_name"],
                     # Styles & url
                     "rte_css_path": rte_css_path,
@@ -2451,6 +2452,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "fonts_folder_path": fonts_folder_path,
                     "departmental_service_name": doc_data["departmental_service_name"],
                     "financial_year_string": doc_data["financial_year_string"],
                     # Styles & url
@@ -2519,6 +2521,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "fonts_folder_path": fonts_folder_path,
                     "departmental_service_name": doc_data["departmental_service_name"],
                     "financial_year_string": doc_data["financial_year_string"],
                     # Styles & url
@@ -2571,6 +2574,7 @@ class BeginProjectDocGeneration(APIView):
             # HTML content for the PDF
             html_content = get_template("project_document.html").render(
                 {
+                    "fonts_folder_path": fonts_folder_path,
                     "departmental_service_name": doc_data["departmental_service_name"],
                     # Styles & url
                     "rte_css_path": rte_css_path,
