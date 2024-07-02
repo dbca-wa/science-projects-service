@@ -480,7 +480,7 @@ class UsersProjects(APIView):
             )
         else:
             settings.LOGGER.info(
-                msg=f"{req.user} is viewing user with {pk} and their projects (none)"
+                msg=f"{req.user} is viewing user with pk {pk} and their projects (none)"
             )
         projects = [membership.project for membership in users_memberships]
         serialized_projects = UserProfileProjectSerializer(projects, many=True)
