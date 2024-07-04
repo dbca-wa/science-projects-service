@@ -2125,6 +2125,17 @@ class ProjectMembers(APIView):
             msg=f"{req.user} is updating project membership for {project}"
         )
 
+        # Check if any other members exist,
+        # if they dont set is_leader to true.
+        # If exists, but none of them have is_leader, set it to true
+        existing_members = ProjectMember.objects.filter(project=project)
+        if not existing_members.exists():
+            is_leader = True
+            role = "supervising"
+        elif not existing_members.filter(is_leader=True).exists():
+            is_leader = True
+            role = "supervising"
+
         data_to_serialize = {
             "user": user,
             "project": project,
