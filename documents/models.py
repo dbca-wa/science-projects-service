@@ -174,6 +174,7 @@ class ProjectDocument(CommonModel):
 
         return DynamicSerializer
 
+
     def has_project_document_data(self):
         related_data = False
         if self.kind == ProjectDocument.CategoryKindChoices.CONCEPTPLAN:

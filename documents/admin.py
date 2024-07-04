@@ -26,22 +26,46 @@ class AnnualReportAdmin(admin.ModelAdmin):
     ordering = ["year"]
 
 
-@admin.action(description="(Concept Plans) Provide all approvals if Next Doc exists")
-def provide_final_approval_for_concepts_where_projectplans_exist(
-    model_admin, req, selected
-):
+@admin.action(
+    description="(Project/Concept Plans) Provide all approvals if Next Doc exists"
+)
+def provide_final_approval_for_docs_if_next_exist(model_admin, req, selected):
     if len(selected) != 1:
         print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
         return
+    try:
+        # Get docs of each type that do not have corresponding data on the model they refer to
+        all_docs = ProjectDocument.objects.all()
+        doc_approval_update_count = 0
+        doc_process_count = 0
+        for doc in all_docs:
+            doc_process_count += 1
+            next_exists = False
+            if doc.kind == ProjectDocument.CategoryKindChoices.CONCEPTPLAN:
+                next_exists = ProjectDocument.objects.filter(
+                    project=doc.project,
+                    kind=ProjectDocument.CategoryKindChoices.PROJECTPLAN,
+                ).exists()
+            elif doc.kind == ProjectDocument.CategoryKindChoices.PROJECTPLAN:
+                next_exists = ProjectDocument.objects.filter(
+                    project=doc.project,
+                    kind=ProjectDocument.CategoryKindChoices.PROGRESSREPORT,
+                ).exists()
+            else:
+                next_exists = False
+            # return next_exists
 
-
-@admin.action(description="(Project Plans) Provide all approvals if Next Doc exists")
-def provide_final_approval_for_projectplans_where_progressreports_exist(
-    model_admin, req, selected
-):
-    if len(selected) != 1:
-        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
-        return
+            if next_exists and doc.directorate_approval_granted == False:
+                doc.project_lead_approval_granted = True
+                doc.business_area_lead_approval_granted = True
+                doc.directorate_approval_granted = True
+                doc_approval_update_count += 1
+        print(
+            f"Provided full approvals for docs! {doc_approval_update_count}/{doc_process_count} documents didn't have full approval, but the next doc type existed."
+        )
+    except Exception as e:
+        print(e)
+    return
 
 
 @admin.action(description="Delete unlinked docs")
@@ -117,7 +141,10 @@ class ProjectDocumentAdmin(admin.ModelAdmin):
     # Orders based on year (lastest year first)
     ordering = ["-created_at__year"]
 
-    actions = [delete_unlinked_docs]
+    actions = [
+        delete_unlinked_docs,
+        provide_final_approval_for_docs_if_next_exist,
+    ]
 
 
 @admin.register(ConceptPlan)
