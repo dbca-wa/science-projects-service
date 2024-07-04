@@ -26,6 +26,48 @@ class AnnualReportAdmin(admin.ModelAdmin):
     ordering = ["year"]
 
 
+@admin.action(description="(Concept Plans) Provide all approvals if Next Doc exists")
+def provide_final_approval_for_concepts_where_projectplans_exist(
+    model_admin, req, selected
+):
+    if len(selected) != 1:
+        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
+        return
+
+
+@admin.action(description="(Project Plans) Provide all approvals if Next Doc exists")
+def provide_final_approval_for_projectplans_where_progressreports_exist(
+    model_admin, req, selected
+):
+    if len(selected) != 1:
+        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
+        return
+
+
+@admin.action(description="Delete unlinked docs")
+def delete_unlinked_docs(model_admin, req, selected):
+    if len(selected) != 1:
+        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
+        return
+
+    try:
+        # Get docs of each type that do not have corresponding data on the model they refer to
+        all_docs = ProjectDocument.objects.all()
+        doc_deletion_count = 0
+        doc_process_count = 0
+        for doc in all_docs:
+            doc_process_count += 1
+            if doc.has_project_document_data() == False:
+                doc.delete()
+                doc_deletion_count += 1
+        print(
+            f"Deleted empty docs! {doc_deletion_count}/{doc_process_count} documents were empty."
+        )
+    except Exception as e:
+        print(e)
+    return
+
+
 @admin.register(ProjectDocument)
 class ProjectDocumentAdmin(admin.ModelAdmin):
     list_display = (
@@ -74,6 +116,8 @@ class ProjectDocumentAdmin(admin.ModelAdmin):
 
     # Orders based on year (lastest year first)
     ordering = ["-created_at__year"]
+
+    actions = [delete_unlinked_docs]
 
 
 @admin.register(ConceptPlan)
