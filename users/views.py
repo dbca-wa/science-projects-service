@@ -4,7 +4,12 @@ import os
 import uuid
 import requests
 from agencies.models import Affiliation, Agency, Branch, BusinessArea
-from projects.serializers import TinyProjectSerializer, UserProfileProjectSerializer
+from projects.serializers import (
+    ProjectDataTableSerializer,
+    ProjectSerializer,
+    TinyProjectSerializer,
+    UserProfileProjectSerializer,
+)
 from rest_framework.views import APIView
 from math import ceil
 
@@ -482,8 +487,16 @@ class UsersProjects(APIView):
             settings.LOGGER.info(
                 msg=f"{req.user} is viewing user with pk {pk} and their projects (none)"
             )
-        projects = [membership.project for membership in users_memberships]
-        serialized_projects = UserProfileProjectSerializer(projects, many=True)
+        projects_with_roles = [
+            (membership.project, membership.role) for membership in users_memberships
+        ]
+
+        serialized_projects = ProjectDataTableSerializer(
+            [proj for proj, _ in projects_with_roles],
+            many=True,
+            context={"projects_with_roles": projects_with_roles},
+        )
+
         # print(serialized_projects)
         return Response(serialized_projects.data, HTTP_200_OK)
 

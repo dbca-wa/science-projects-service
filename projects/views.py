@@ -69,6 +69,7 @@ from .serializers import (
     CreateProjectSerializer,
     ExternalProjectDetailSerializer,
     ProjectAreaSerializer,
+    ProjectDataTableSerializer,
     ProjectDetailSerializer,
     ProjectDetailViewSerializer,
     ProjectSerializer,
@@ -238,18 +239,26 @@ class MyProjects(APIView):
         # Fetch project memberships of the authenticated user (req.user)
         user_memberships = ProjectMember.objects.filter(user=req.user)
 
-        # Get the project IDs from the memberships
-        project_ids = user_memberships.values_list("project__id", flat=True)
+        # # Get the project IDs from the memberships
+        # project_ids = user_memberships.values_list("project__id", flat=True)
 
-        # Fetch projects where the user is a member (based on the project IDs)
-        active_projects = Project.objects.filter(id__in=project_ids).order_by(
-            "-created_at"
+        # # Fetch projects where the user is a member (based on the project IDs)
+        # active_projects = Project.objects.filter(id__in=project_ids).order_by(
+        #     "-created_at"
+        # )
+
+        projects_with_roles = [
+            (membership.project, membership.role) for membership in user_memberships
+        ]
+
+        serialized_projects = ProjectDataTableSerializer(
+            [proj for proj, _ in projects_with_roles],
+            many=True,
+            context={"projects_with_roles": projects_with_roles},
         )
 
-        ser = ProjectSerializer(active_projects, many=True)
-
         return Response(
-            ser.data,
+            serialized_projects.data,
             status=HTTP_200_OK,
         )
 

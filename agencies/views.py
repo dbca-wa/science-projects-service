@@ -502,7 +502,7 @@ class BusinessAreasUnapprovedDocs(APIView):
                 # ba_name = unapproved[0].business_area
                 settings.LOGGER.warning(
                     f"Unapproved Doc Count for BA '{data[baPk]["linked"][0]['project']['business_area']['name']}' ({baPk}): {len(processed_unapproved)}\nUnlinked Doc Count for BA {(len(unlinked_docs))}"
-                    if len(data[baPk]) > 0
+                    if data[baPk]["linked"]
                     else f"Unapproved Doc Count for BA {baPk}: {len(processed_unapproved)}\nUnlinked Doc Count for BA: {(len(unlinked_docs))}"
                 )
             return Response(
