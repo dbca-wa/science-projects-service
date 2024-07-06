@@ -120,6 +120,13 @@ class DivisionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class BusinessAreaNameViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessArea
+        fields = ["name"]
+        ordering = ["name"]
+
+
 class TinyBusinessAreaSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     division = TinyDivisionSerializer(read_only=True)
