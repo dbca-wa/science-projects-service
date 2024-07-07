@@ -4021,7 +4021,16 @@ class GetProjectLeadEmail(APIView):
         for user in dbca_users:
             file_content.append(f"{user.email}\n")
             image = user.get_image()
-            dbca_emails.append({'pk': user.pk, 'name': f'{user.first_name} {user.last_name}', 'email': f'{user.email}', 'image': image['file'] if image is not None else None})
+            print(f"Active: {user.is_active}")
+            print(f"Staff: {user.is_staff}")
+            dbca_emails.append({
+                'pk': user.pk, 
+                'name': f'{user.first_name} {user.last_name}', 
+                'email': f'{user.email}', 
+                'is_staff': user.is_staff, 
+                'is_active': user.is_active,
+                'image': image['file'] if image is not None else None,
+                })
 
         # for lead in dbca_users:
         #     projmembers = activeproj_leaders.filter(user=lead).all()
@@ -4074,7 +4083,16 @@ class GetProjectLeadEmail(APIView):
         inactive_email_list = []
         for leader in inactive_leaders:
             image = leader.get_image()
-            inactive_email_list.append({'pk': leader.pk, 'name': f'{leader.first_name} {leader.last_name}', 'email': f'{leader.email}', 'image': image['file'] if image is not None else None})
+            print(f"Active: {leader.is_active}")
+            print(f"Staff: {leader.is_staff}")
+            inactive_email_list.append({
+                'pk': leader.pk, 
+                'name': f'{leader.first_name} {leader.last_name}', 
+                'email': f'{leader.email}', 
+                'is_staff': leader.is_staff, 
+                'is_active': leader.is_active,
+                'image': image['file'] if image is not None else None,
+                })
             # file_content.append(f"{user.email}\n")
             projects_belonging_to = activeproj_leaders.filter(user=leader).all()
             file_content.append(
