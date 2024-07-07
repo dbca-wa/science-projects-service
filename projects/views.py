@@ -68,6 +68,7 @@ from medias.serializers import TinyProjectPhotoSerializer
 from .serializers import (
     CreateProjectSerializer,
     ExternalProjectDetailSerializer,
+    ProblematicProjectSerializer,
     ProjectAreaSerializer,
     ProjectDataTableSerializer,
     ProjectDetailSerializer,
@@ -2161,6 +2162,73 @@ class ProjectMembers(APIView):
         else:
             settings.LOGGER.error(msg=f"{ser.errors}")
             return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class ProblematicProjects(APIView):
+    def get_projects(self):
+        try:
+            projects = Project.objects.all()
+        except Project.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+        return projects
+
+    def get(self, req):
+        try:
+            settings.LOGGER.info(msg=f"{req.user} is Getting All Problematic Projects")
+
+            all_projects = self.get_projects()
+            memberless_projects = []
+            no_leader_tag_projects = []
+            multiple_leader_tag_projects = []
+            externally_led_projects = []
+            for p in all_projects:
+                members = p.members.all()
+                leader_tag_count = 0
+                external_leader = False
+                for mem in members:
+                    if mem.role == ProjectMember.RoleChoices.SUPERVISING:
+                        leader_tag_count += 1
+                    if mem.is_leader == True:
+                        if mem.user.is_staff == False:
+                            external_leader = True
+
+                # Handle Memberless
+                if len(members) < 1:
+                    memberless_projects.append(p)
+                else:
+                    # Handle external Leader tag
+                    if external_leader:
+                        externally_led_projects.append(p)
+                    # Handle No Leader Tags
+                    if leader_tag_count == 0:
+                        no_leader_tag_projects.append(p)
+                    elif leader_tag_count > 1:
+                        multiple_leader_tag_projects.append(p)
+
+                data = {}
+                data["no_members"] = ProblematicProjectSerializer(
+                    memberless_projects, many=True
+                ).data
+                data["no_leader"] = ProblematicProjectSerializer(
+                    no_leader_tag_projects, many=True
+                ).data
+                data["external_leader"] = ProblematicProjectSerializer(
+                    externally_led_projects, many=True
+                ).data
+                data["multiple_leads"] = ProblematicProjectSerializer(
+                    multiple_leader_tag_projects, many=True
+                ).data
+
+            # print(data)
+            return Response(
+                data=data,
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
 
 
 class PromoteToLeader(APIView):

@@ -44,6 +44,7 @@ from medias.serializers import (
     TinyAnnualReportPDFSerializer,
     TinyMethodologyImageSerializer,
     TinyProjectPhotoSerializer,
+    UserAvatarSerializer,
 )
 from projects.serializers import ARExternalProjectSerializer, ProjectSerializer
 from users.models import User, UserWork
@@ -3963,7 +3964,7 @@ class DocumentApprovedEmail(APIView):
             )
 
 
-class SendProjectLeadEmail(APIView):
+class GetProjectLeadEmail(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, req):
@@ -4004,9 +4005,9 @@ class SendProjectLeadEmail(APIView):
   
 
         for leader in unique_active_project_leads:
-            print(
-                f"handling leader {leader.email} | {leader.first_name} {leader.last_name}"
-            )
+            # print(
+            #     f"handling leader {leader.email} | {leader.first_name} {leader.last_name}"
+            # )
             if leader.email.endswith("dbca.wa.gov.au"):
                 dbca_users.append(leader)
 
@@ -4019,7 +4020,17 @@ class SendProjectLeadEmail(APIView):
   
         for user in dbca_users:
             file_content.append(f"{user.email}\n")
-            dbca_emails.append(user.email)
+            image = user.get_image()
+            print(f"Active: {user.is_active}")
+            print(f"Staff: {user.is_staff}")
+            dbca_emails.append({
+                'pk': user.pk, 
+                'name': f'{user.first_name} {user.last_name}', 
+                'email': f'{user.email}', 
+                'is_staff': user.is_staff, 
+                'is_active': user.is_active,
+                'image': image['file'] if image is not None else None,
+                })
 
         # for lead in dbca_users:
         #     projmembers = activeproj_leaders.filter(user=lead).all()
@@ -4042,7 +4053,7 @@ class SendProjectLeadEmail(APIView):
 
         for user in other_users:
             file_content.append(f"{user.email}\n")
-            other_emails.append(user.email)
+            other_emails.append({user.email})
 
         # for other in other_users:
         #     projmembers = activeproj_leaders.filter(user=other).all()
@@ -4064,12 +4075,24 @@ class SendProjectLeadEmail(APIView):
             "\n\n-------------------------------------------------------------------------------------\nUnique Project Leads marked as NOT staff or INACTIVE (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
         )
         for leader in unique_inactive_leads:
-            print(
-                f"handling inactive leader {leader.email} | {leader.first_name} {leader.last_name}"
-            )
+            # print(
+            #     f"handling inactive leader {leader.email} | {leader.first_name} {leader.last_name}"
+            # )
             inactive_leaders.append(leader)
 
+        inactive_email_list = []
         for leader in inactive_leaders:
+            image = leader.get_image()
+            print(f"Active: {leader.is_active}")
+            print(f"Staff: {leader.is_staff}")
+            inactive_email_list.append({
+                'pk': leader.pk, 
+                'name': f'{leader.first_name} {leader.last_name}', 
+                'email': f'{leader.email}', 
+                'is_staff': leader.is_staff, 
+                'is_active': leader.is_active,
+                'image': image['file'] if image is not None else None,
+                })
             # file_content.append(f"{user.email}\n")
             projects_belonging_to = activeproj_leaders.filter(user=leader).all()
             file_content.append(
@@ -4086,6 +4109,7 @@ class SendProjectLeadEmail(APIView):
         return_data = {
             "file_content": file_content,
             "unique_dbca_emails_list": dbca_emails,
+            "unique_non_dbca_emails_list": inactive_email_list,
         }
         settings.LOGGER.warning(
                 msg=f"{req.user} has been sent the email list"

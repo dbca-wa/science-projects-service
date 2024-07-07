@@ -2,6 +2,16 @@ from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from common.models import CommonModel
+from medias.models import UserAvatar
+from rest_framework.serializers import (
+    ModelSerializer,
+)
+
+
+class TinyImageSerializer(ModelSerializer):
+    class Meta:
+        model = UserAvatar
+        fields = ["file"]
 
 
 # TODO: serializers, admin, views, urls
@@ -70,6 +80,18 @@ class User(AbstractUser):
             return f"{self.last_name.capitalize()}, {self.first_name[0]}. {initials_with_dot}"
         else:
             return f"{self.last_name.capitalize()}, {self.first_name[0]}."
+
+    def get_image(self):
+        try:
+            avatar = UserAvatar.objects.get(user=self.pk)
+        except UserAvatar.DoesNotExist:
+            return None
+        # if not avatar.file:
+        #     return None
+        # else:
+        #     return avatar.file
+        ser = TinyImageSerializer(avatar)
+        return ser.data
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name} ({self.username})"
