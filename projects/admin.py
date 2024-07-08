@@ -242,15 +242,31 @@ def convert_ext_collaborator_to_consulted(model_admin, req, selected):
 
 
 @admin.action(description="Set Leaders to have Leader Tag")
-def set_leaders_with_leader_tag(model_admin, req, selected):
+def set_leaders_to_have_leader_tag(model_admin, req, selected):
     if len(selected) > 1:
         print("PLEASE SELECT ONLY ONE")
         return
 
+    # look at each project
+
+    # get its membership
+
+    # ==== if is_leader is not is_staff, set leader to creator of project
+    # if they are in the membership list
+    #
+
+    # find all users with leader tag
+
+    # if leader doesnt have is_leader, set them to science support
+
+    # if leader has is_leader, set them to project leader
+
+    # make sure real leader is first in terms of position and others reorganised
+
 
 # If the leader is external, set the leader to the creator of the project
 @admin.action(description="Change external leader to internal project creator")
-def set_external_leaders_to_creator_of_project(model_admin, req, selected):
+def set_leader_to_dbca_creator_of_project_if_external_lead(model_admin, req, selected):
     if len(selected) > 1:
         print("PLEASE SELECT ONLY ONE")
         return

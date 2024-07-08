@@ -4023,14 +4023,16 @@ class GetProjectLeadEmail(APIView):
             image = user.get_image()
             print(f"Active: {user.is_active}")
             print(f"Staff: {user.is_staff}")
-            dbca_emails.append({
+            dbca_emails.append(
+                {
                 'pk': user.pk, 
                 'name': f'{user.first_name} {user.last_name}', 
                 'email': f'{user.email}', 
                 'is_staff': user.is_staff, 
                 'is_active': user.is_active,
                 'image': image['file'] if image is not None else None,
-                })
+                }
+            )
 
         # for lead in dbca_users:
         #     projmembers = activeproj_leaders.filter(user=lead).all()
