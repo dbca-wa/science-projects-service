@@ -4021,8 +4021,8 @@ class GetProjectLeadEmail(APIView):
         for user in dbca_users:
             file_content.append(f"{user.email}\n")
             image = user.get_image()
-            print(f"Active: {user.is_active}")
-            print(f"Staff: {user.is_staff}")
+            # print(f"Active: {user.is_active}")
+            # print(f"Staff: {user.is_staff}")
             dbca_emails.append(
                 {
                 'pk': user.pk, 
@@ -4085,8 +4085,8 @@ class GetProjectLeadEmail(APIView):
         inactive_email_list = []
         for leader in inactive_leaders:
             image = leader.get_image()
-            print(f"Active: {leader.is_active}")
-            print(f"Staff: {leader.is_staff}")
+            # print(f"Active: {leader.is_active}")
+            # print(f"Staff: {leader.is_staff}")
             inactive_email_list.append({
                 'pk': leader.pk, 
                 'name': f'{leader.first_name} {leader.last_name}', 

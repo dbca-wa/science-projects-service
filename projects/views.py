@@ -2231,6 +2231,344 @@ class ProblematicProjects(APIView):
             return Response({"msg": e}, HTTP_400_BAD_REQUEST)
 
 
+# Where the project has 0 members
+class RemedyMemberlessProjects(APIView):
+    # Get the project itself
+    def get_project(self, project_pk):
+        try:
+            project = Project.objects.get(pk=project_pk)
+        except Project.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            return None
+        return project
+
+    # Check to see if the project has any documents, return the first one if it does
+    # (concept, project, progress/student rep, closure)
+    def get_first_document_if_exists(self, project_pk):
+        documents_list = ProjectDocument.objects.filter(project=project_pk)
+        concept_plan = None
+        project_plan = None
+        progress_report = None
+        student_report = None
+        closure = None
+
+        progress_reports = []
+        student_reports = []
+        for doc in documents_list:
+            if doc.kind == "concept":
+                concept_plan = doc
+            elif doc.kind == "project":
+                project_plan = doc
+            elif doc.kind == "progress_report":
+                progress_reports.append(doc)
+            elif doc.kind == "student_report":
+                student_reports.append(doc)
+            else:
+                closure = doc
+
+        if len(progress_reports) >= 1:
+            progress_reports = sorted(progress_reports, key=lambda x: x.created_at)
+            progress_report = progress_reports[0]
+
+        if len(student_reports) >= 1:
+            student_reports = sorted(student_reports, key=lambda x: x.created_at)
+            student_report = student_reports[0]
+
+        if concept_plan is not None:
+            return concept_plan
+        elif project_plan is not None:
+            return project_plan
+        elif progress_report is not None:
+            return progress_report
+        elif student_report is not None:
+            return student_report
+        elif closure is not None:
+            return closure
+        else:
+            return None
+
+    def post(self, req):
+        try:
+            # get the array of pks
+            memberless_projects_pk_array = req.data.get("projects")
+            settings.LOGGER.warning(
+                msg=f"{req.user} is remedying memberless projects\nArray: {memberless_projects_pk_array}"
+            )
+            for proj in memberless_projects_pk_array:
+                # check to see if the project has any documents.
+                first_doc = self.get_first_document_if_exists(project_pk=proj)
+                # If it does, add the creator of the first document  and set them as the leader
+                if first_doc is not None:
+                    creator = first_doc.creator
+                    print(creator)
+                    project = self.get_project(project_pk=proj)
+                    new_leader_member = ProjectMember.objects.create(
+                        project=project,
+                        user=creator,
+                        is_leader=True,
+                        role=ProjectMember.RoleChoices.SUPERVISING,
+                        time_allocation=1,
+                        position=1,
+                        short_code="",
+                        comments="Added to memberless project",
+                        old_id=0,
+                    )
+                    print(f"New leader member created: {new_leader_member}")
+                # If it doesn't have either, do nothing
+            return Response(
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"e": e}, status=HTTP_400_BAD_REQUEST)
+
+
+# Where there are users but no one has leader tag
+class RemedyNoLeaderProjects(APIView):
+    def get_members(self, project_pk):
+        try:
+            members = ProjectMember.objects.filter(project=project_pk)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            return None
+        return members
+
+    def post(self, req):
+        try:
+            # get the array of pks
+            leaderless_projects_pk_array = req.data.get("projects")
+            settings.LOGGER.warning(
+                msg=f"{req.user} is remedying leaderless projects\nArray: {leaderless_projects_pk_array}"
+            )
+            for proj in leaderless_projects_pk_array:
+                members = self.get_members(project_pk=proj)
+                # Adjust position of members
+                for mem in members:
+                    if mem.is_leader == False:
+                        mem.position += 1
+                    else:
+                        # Update the leader role and move them to position 1
+                        mem.role = "supervising"
+                        mem.position = 1
+                    mem.save()
+            return Response(
+                HTTP_200_OK,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"e": e}, status=HTTP_400_BAD_REQUEST)
+
+
+# Where there are multiple users with the leader tag
+class RemedyMultipleLeaderProjects(APIView):
+    def get_members(self, project_pk):
+        try:
+            members = ProjectMember.objects.filter(project=project_pk)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            return None
+        return members
+
+    def post(self, req):
+        try:
+            # get the array of pks
+            multiple_leader_projects_pk_array = req.data.get("projects")
+            settings.LOGGER.warning(
+                msg=f"{req.user} is remedying multiple lead projects\nArray: {multiple_leader_projects_pk_array}"
+            )
+            for proj in multiple_leader_projects_pk_array:
+                members = self.get_members(project_pk=proj)
+                lead_roles = members.filter(role="supervising")
+                # Adjust position of members
+                for mem in lead_roles:
+                    if mem.is_leader == False:
+                        mem.position += 1
+                        if mem.project.kind is not Project.CategoryKindChoices.STUDENT:
+                            if mem.user.is_staff == False:
+                                mem.role = ProjectMember.RoleChoices.CONSULTED
+                            else:
+                                mem.role = ProjectMember.RoleChoices.RESEARCH
+                        else:
+                            if mem.user.is_staff == False:
+                                if members.filter(
+                                    role=ProjectMember.RoleChoices.STUDENT
+                                ).exists():
+                                    mem.role = ProjectMember.RoleChoices.ACADEMICSUPER
+                                else:
+                                    mem.role = ProjectMember.RoleChoices.STUDENT
+                            else:
+                                mem.role = ProjectMember.RoleChoices.RESEARCH
+                    else:
+                        if mem.user.is_staff:
+                            mem.role = ProjectMember.RoleChoices.SUPERVISING
+                            mem.position = 1
+                        # Do nothing for externals
+
+                    mem.save()
+
+                # Ensure that the leader has the role/post in case they didnt have the project lead role
+                for user in members:
+                    if user.is_leader and user.user.is_staff:
+                        user.role = ProjectMember.RoleChoices.SUPERVISING
+                        user.position = 1
+                        user.save()
+
+            return Response(
+                HTTP_200_OK,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"e": e}, status=HTTP_400_BAD_REQUEST)
+
+
+# Where an external leader is set with the is_leader tag
+class RemedyExternalLeaderProjects(APIView):
+    def get_members(self, project_pk):
+        try:
+            members = ProjectMember.objects.filter(project=project_pk)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            return None
+        return members
+
+    # Check to see if the project has any documents, return the first one if it does
+    # (concept, project, progress/student rep, closure)
+    def get_first_document_if_exists(self, project_pk):
+        documents_list = ProjectDocument.objects.filter(project=project_pk)
+        concept_plan = None
+        project_plan = None
+        progress_report = None
+        student_report = None
+        closure = None
+
+        progress_reports = []
+        student_reports = []
+        for doc in documents_list:
+            if doc.kind == "concept":
+                concept_plan = doc
+            elif doc.kind == "project":
+                project_plan = doc
+            elif doc.kind == "progress_report":
+                progress_reports.append(doc)
+            elif doc.kind == "student_report":
+                student_reports.append(doc)
+            else:
+                closure = doc
+
+        if len(progress_reports) >= 1:
+            progress_reports = sorted(progress_reports, key=lambda x: x.created_at)
+            progress_report = progress_reports[0]
+
+        if len(student_reports) >= 1:
+            student_reports = sorted(student_reports, key=lambda x: x.created_at)
+            student_report = student_reports[0]
+
+        if concept_plan is not None:
+            return concept_plan
+        elif project_plan is not None:
+            return project_plan
+        elif progress_report is not None:
+            return progress_report
+        elif student_report is not None:
+            return student_report
+        elif closure is not None:
+            return closure
+        else:
+            return None
+
+    def post(self, req):
+        try:
+            # get the array of pks
+            externally_led_project_pk_array = req.data.get("projects")
+            settings.LOGGER.warning(
+                msg=f"{req.user} is remedying externally led projects\nArray: {externally_led_project_pk_array}"
+            )
+            # Perform similar logic to memberless projects - searching creators of documents and setting them as leader if they are in the team
+            for proj in externally_led_project_pk_array:
+                # Get members list
+                members = self.get_members(project_pk=proj)
+                # skup if no members
+                if not members:
+                    continue
+
+                # Extract users from the membership list
+                users_in_membership = [membership.user for membership in members]
+                # Check if a doc exists
+                first_doc = self.get_first_document_if_exists(project_pk=proj)
+                # If it does, add the creator of the first document and set them as the leader if they are on the team
+                if first_doc is not None:
+                    creator = first_doc.creator
+                    print(creator)
+                    # set the creator to the leader if they are staff and in the team
+                    if creator.is_staff and creator in users_in_membership:
+                        # set any external leaders membership to is_leader = False
+                        for mem in members:
+                            if mem.user.is_staff == False:
+                                mem.is_leader = False
+                                mem.position += 1
+                            if mem.user == creator:
+                                mem.role == ProjectMember.RoleChoices.SUPERVISING
+                                mem.position = 1
+                                mem.is_leader = True
+                            mem.save()
+                # If no docs, check members to set the leader to the highest level staff member
+                else:
+                    leader = members.filter(
+                        is_leader=True, user__is_staff=False
+                    ).first()
+                    staff_non_leaders = members.filter(
+                        is_leader=False, user__is_staff=True
+                    )
+                    staff_exists = staff_non_leaders.exists()
+
+                    if staff_exists and leader:
+                        leader.is_leader = False
+                        leader.position += 1
+                        leader.save()
+
+                        # If there is only one staff, set them as the leader
+                        if len(staff_non_leaders) == 1:
+                            the_staff_membership = staff_non_leaders.first()
+                            the_staff_membership.is_leader = True
+                            the_staff_membership.role = (
+                                ProjectMember.RoleChoices.SUPERVISING
+                            )
+                            the_staff_membership.position = 1
+                            the_staff_membership.save()
+                        # If there are multiple, set the one that was created first as leader
+                        else:
+                            # order by created first
+                            sorted_staff = staff_non_leaders.order_by("created_at")
+
+                            # grab the first one
+                            the_staff_membership = sorted_staff.first()
+                            # set the stats and save
+                            the_staff_membership.is_leader = True
+                            the_staff_membership.role = (
+                                ProjectMember.RoleChoices.SUPERVISING
+                            )
+                            the_staff_membership.position = 1
+                            the_staff_membership.save()
+
+            return Response(
+                HTTP_200_OK,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"e": e}, status=HTTP_400_BAD_REQUEST)
+
+
 class PromoteToLeader(APIView):
     def go(self, user_id, project_id):
         try:

@@ -3,6 +3,10 @@ from . import views
 
 urlpatterns = [
     path("problematic", views.ProblematicProjects.as_view()),
+    path("remedy/memberless", views.RemedyMemberlessProjects.as_view()),
+    path("remedy/leaderless", views.RemedyNoLeaderProjects.as_view()),
+    path("remedy/multiple_leaders", views.RemedyMultipleLeaderProjects.as_view()),
+    path("remedy/external_leaders", views.RemedyExternalLeaderProjects.as_view()),
     path("promote", views.PromoteToLeader.as_view()),
     path("", views.Projects.as_view()),
     path("listofyears", views.ProjectYears.as_view()),
