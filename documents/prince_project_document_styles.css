@@ -5,7 +5,7 @@
 
 .main_pages {
 	page: main_pages;
-	counter-reset: page 1;
+	counter-reset: page 1 pages 1;
 	prince-page-group: start;
 	prince-start-page: right;
 }
