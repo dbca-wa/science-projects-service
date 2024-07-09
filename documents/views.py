@@ -5933,9 +5933,11 @@ class NewCycleOpen(APIView):
 
                                 prepopulated_aims = "<p></p>"
                                 prepopulated_context = "<p></p>"
+                                prepopulated_implications = "<p></p>"
 
                                 if last_one != None:
                                     prepopulated_aims = last_one.aims 
+                                    prepopulated_implications = last_one.implications
                                     prepopulated_context = last_one.context
 
                                 progress_report_data = {
@@ -5945,7 +5947,7 @@ class NewCycleOpen(APIView):
                                     "project": project.pk,
                                     "year": last_report.year,
                                     "context": prepopulated_context,
-                                    "implications": "<p></p>",
+                                    "implications": prepopulated_implications,
                                     "future": "<p></p>",
                                     "progress": "<p></p>",
                                     "aims": prepopulated_aims,
