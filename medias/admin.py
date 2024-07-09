@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.db import models
+
+
 from .models import (
     AnnualReportMedia,
     AnnualReportPDF,
@@ -10,7 +13,6 @@ from .models import (
     AECEndorsementPDF,
     ProjectPlanMethodologyPhoto,
 )
-
 from django import forms
 
 
@@ -29,7 +31,34 @@ class AgencyImageAdmin(admin.ModelAdmin):
     list_display = (
         "agency",
         "file",
+        "size_in_mb",
     )
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = AgencyImage.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(ProjectDocumentPDF)
@@ -38,6 +67,7 @@ class ProjectDocumentPDFAdmin(admin.ModelAdmin):
         "pk",
         # "old_file",
         "file",
+        "size_in_mb",
         "document",
         "project",
     ]
@@ -50,6 +80,31 @@ class ProjectDocumentPDFAdmin(admin.ModelAdmin):
     #     "project",
     #     "document",
     # ]
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = ProjectDocumentPDF.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} pdf sizes.")
+
+    recalculate_photo_sizes.short_description = "Recalculate pdf sizes"
 
 
 @admin.register(AECEndorsementPDF)
@@ -57,12 +112,38 @@ class AECEndorsementPDFAdmin(admin.ModelAdmin):
     list_display = [
         "endorsement",
         "file",
+        "size_in_mb",
         "creator",
     ]
 
     # list_filter = [
     #     "en",
     # ]
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = AECEndorsementPDF.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(AnnualReportPDF)
@@ -72,12 +153,39 @@ class AnnualReportPDFAdmin(admin.ModelAdmin):
         "report",
         # "old_file",
         "file",
+        "size_in_mb",
         "creator",
     ]
 
     list_filter = [
         "report",
     ]
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = AnnualReportPDF.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(AnnualReportMedia)
@@ -87,6 +195,7 @@ class AnnualReportMediaAdmin(admin.ModelAdmin):
         "kind",
         # "old_file",
         "file",
+        "size_in_mb",
         "uploader",
     ]
 
@@ -94,6 +203,32 @@ class AnnualReportMediaAdmin(admin.ModelAdmin):
         "report",
         "kind",
     ]
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = AnnualReportMedia.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(BusinessAreaPhoto)
@@ -103,27 +238,115 @@ class BusinessAreaPhotoAdmin(admin.ModelAdmin):
         "business_area",
         # "old_file",
         "file",
+        "size_in_mb",
         "uploader",
     )
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = BusinessAreaPhoto.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(ProjectPhoto)
 class ProjectPhotoAdmin(admin.ModelAdmin):
     list_display = (
-        "project",
+        "pk",
         # "old_file",
         "file",
+        # "size_display",
+        # "size_mb",
+        # "size",
+        "size_in_mb",
+        "project",
         "uploader",
     )
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = ProjectPhoto.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(ProjectPlanMethodologyPhoto)
 class ProjectPlanMethodologyPhotoAdmin(admin.ModelAdmin):
     list_display = (
-        "project_plan",
+        "pk",
         "file",
+        "size_in_mb",
+        "project_plan",
         "uploader",
     )
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = (
+            ProjectPlanMethodologyPhoto.objects.all()
+        )  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
 
 
 @admin.register(UserAvatar)
@@ -132,5 +355,32 @@ class UserAvatarAdmin(admin.ModelAdmin):
         # "old_file",
         "pk",
         "file",
+        "size_in_mb",
         "user",
     )
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_photos = UserAvatar.objects.all()  # Get all ProjectPhoto instances
+        for photo in all_photos:
+            if photo.file:
+                photo.size = photo.file.size
+                photo.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} photos.")
+
+    recalculate_photo_sizes.short_description = "Recalculate photo sizes"
