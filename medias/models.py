@@ -9,6 +9,7 @@ from django.db.models import UniqueConstraint
 class ProjectDocumentPDF(CommonModel):
 
     file = models.FileField(upload_to="project_documents/", null=True, blank=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
     document = models.OneToOneField(
         "documents.ProjectDocument",
         on_delete=models.CASCADE,
@@ -22,6 +23,11 @@ class ProjectDocumentPDF(CommonModel):
 
     def __str__(self) -> str:
         return f"PDF for {self.document.kind} - {self.project.title}"
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Project Document PDF"
@@ -49,6 +55,7 @@ class AnnualReportMedia(
 
     # old_file = models.URLField(null=True, blank=True)
     file = models.ImageField(upload_to="annual_reports/images/", null=True, blank=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
     kind = models.CharField(
         max_length=140,
         choices=MediaTypes.choices,
@@ -69,6 +76,11 @@ class AnnualReportMedia(
     def __str__(self) -> str:
         return f"({self.report.year}) {self.kind.capitalize()} Annual Report Media"
 
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Annual Report Image"
         verbose_name_plural = "Annual Report Images"
@@ -88,6 +100,7 @@ class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
 
     # old_file = models.URLField(null=True, blank=True)
     file = models.FileField(upload_to="annual_reports/pdfs/", null=True, blank=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
     report = models.OneToOneField(
         "documents.AnnualReport",
         on_delete=models.CASCADE,
@@ -100,6 +113,11 @@ class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
         null=True,
         related_name="annual_report_pdf_generated",
     )
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"({self.report.year}) Annual Report PDF"
@@ -115,6 +133,7 @@ class AECEndorsementPDF(CommonModel):  #  The latest pdf for a given annual repo
     """
 
     file = models.FileField(upload_to="aec_endorsements/", null=True, blank=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
     endorsement = models.OneToOneField(
         "documents.Endorsement",
         on_delete=models.CASCADE,
@@ -131,6 +150,11 @@ class AECEndorsementPDF(CommonModel):  #  The latest pdf for a given annual repo
     def __str__(self) -> str:
         return f" AEC PDF ({self.endorsement})"
 
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "AEC PDF"
         verbose_name_plural = "AEC PDFs"
@@ -145,6 +169,7 @@ class BusinessAreaPhoto(CommonModel):
     # old_file = models.URLField(null=True, blank=True)
     # file = models.URLField(null=True, blank=True)
     file = models.ImageField(upload_to="business_areas/", blank=True, null=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
 
     business_area = models.OneToOneField(
         "agencies.BusinessArea",
@@ -163,6 +188,11 @@ class BusinessAreaPhoto(CommonModel):
 
     def __str__(self) -> str:
         return "Business Area Photo File"
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Business Area Image"
@@ -192,6 +222,12 @@ class ProjectPhoto(CommonModel):  # Includes student projects
         null=True,
         related_name="project_photos_uploaded",
     )
+    size = models.PositiveIntegerField(default=0)  # New size field
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return "Project Photo File"
@@ -207,6 +243,7 @@ class ProjectPlanMethodologyPhoto(CommonModel):  # Includes student projects
     """
 
     file = models.ImageField(upload_to="methodology_images/", blank=True, null=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
     project_plan = models.OneToOneField(
         "documents.ProjectPlan",
         on_delete=models.CASCADE,
@@ -223,6 +260,11 @@ class ProjectPlanMethodologyPhoto(CommonModel):  # Includes student projects
     def __str__(self) -> str:
         return f"Methodology Image File: {self.file}"
 
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Methodology Image File"
         verbose_name_plural = "Methodology Image Files"
@@ -236,6 +278,7 @@ class AgencyImage(CommonModel):
 
     # old_file = models.URLField(null=True, blank=True)
     file = models.ImageField(upload_to="agencies/")
+    size = models.PositiveIntegerField(default=0)  # New size field
     agency = models.OneToOneField(
         "agencies.Agency",
         on_delete=models.CASCADE,
@@ -246,6 +289,11 @@ class AgencyImage(CommonModel):
 
     def __str__(self) -> str:
         return "Agency Photo File"
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Agency Image"
@@ -261,6 +309,7 @@ class UserAvatar(CommonModel):
     # old_file = models.URLField(null=True, blank=True)
     # file = models.URLField(null=True, blank=True)
     file = models.ImageField(upload_to="user_avatars/", blank=True, null=True)
+    size = models.PositiveIntegerField(default=0)  # New size field
     user = models.ForeignKey(
         "users.User",
         on_delete=models.CASCADE,
@@ -271,6 +320,11 @@ class UserAvatar(CommonModel):
 
     def __str__(self) -> str:
         return f"User: {self.user} | {self.file.name}"
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "User Avatar Image"
