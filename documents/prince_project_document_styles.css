@@ -125,6 +125,10 @@ tr {
 	margin-right: 0px;
 }
 
+p br {
+	display: none;
+}
+
 .project_document_business_area_h1 {
 	/* color: rgb(0, 0, 0); */
 	color: rgb(71, 71, 71);
@@ -319,5 +323,4 @@ ul {
 	margin: 0 !important;
 	padding: 0 !important;
 	margin-top: 15px !important;
-
 }
