@@ -3219,9 +3219,10 @@ class ReviewDocumentEmail(APIView):
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(
-                html_project_title
-            ).strip()  # nicely rendered html title
+            plain_project_name = html_project_title
+            # plain_project_name = html2text.html2text(
+            #     html_project_title
+            # ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -3389,9 +3390,10 @@ class ProjectClosureEmail(APIView):
             print("PROJECT: ", project)
             if project:
                 html_project_title = project.title
-                plain_project_name = html2text.html2text(
-                    html_project_title
-                ).strip()  # nicely rendered html title
+                plain_project_name = html_project_title
+                # plain_project_name = html2text.html2text(
+                #     html_project_title
+                # ).strip()  # nicely rendered html title
 
                 processed = []
                 project_tag = project.get_project_tag()
@@ -3502,9 +3504,10 @@ class DocumentReadyEmail(APIView):
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(
-                html_project_title
-            ).strip()  # nicely rendered html title
+            plain_project_name = html_project_title
+            # plain_project_name = html2text.html2text(
+            #     html_project_title
+            # ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -3632,9 +3635,10 @@ class DocumentSentBackEmail(APIView):
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(
-                html_project_title
-            ).strip()  # nicely rendered html title
+            plain_project_name = html_project_title
+            # plain_project_name = html2text.html2text(
+            #     html_project_title
+            # ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -3767,9 +3771,10 @@ class ConceptPlanEmail(APIView):
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(
-                html_project_title
-            ).strip()  # nicely rendered html title
+            plain_project_name = html_project_title
+            # plain_project_name = html2text.html2text(
+            #     html_project_title
+            # ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -3858,9 +3863,10 @@ class DocumentApprovedEmail(APIView):
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(
-                html_project_title
-            ).strip()  # nicely rendered html title
+            plain_project_name = html_project_title
+            # plain_project_name = html2text.html2text(
+            #     html_project_title
+            # ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -4254,9 +4260,10 @@ class DocumentRecalledEmail(APIView):
         project = Project.objects.filter(pk=project_pk).first()
         if project:
             html_project_title = project.title
-            plain_project_name = html2text.html2text(
-                html_project_title
-            ).strip()  # nicely rendered html title
+            plain_project_name = html_project_title
+            # plain_project_name = html2text.html2text(
+            #     html_project_title
+            # ).strip()  # nicely rendered html title
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -4773,9 +4780,11 @@ class DocApproval(APIView):
                     # print("project")
                     # print(project)
                     html_project_title = project.title
-                    plain_project_name = html2text.html2text(
-                        html_project_title
-                    ).strip()  # nicely rendered html title
+                    plain_project_name = html_project_title
+
+                    # plain_project_name = html2text.html2text(
+                    #     html_project_title
+                    # ).strip()  # nicely rendered html title
 
                     # Get document kind information
 
@@ -5053,9 +5062,11 @@ class DocRecall(APIView):
 
                 if project:
                     html_project_title = project.title
-                    plain_project_name = html2text.html2text(
-                        html_project_title
-                    ).strip()  # nicely rendered html title
+                    plain_project_name = html_project_title
+
+                    # plain_project_name = html2text.html2text(
+                    #     html_project_title
+                    # ).strip()  # nicely rendered html title
 
                     # Get document kind information
 
@@ -5331,9 +5342,10 @@ class DocSendBack(APIView):
 
                 if project:
                     html_project_title = project.title
-                    plain_project_name = html2text.html2text(
-                        html_project_title
-                    ).strip()  # nicely rendered html title
+                    plain_project_name = html_project_title
+                    # plain_project_name = html2text.html2text(
+                    #     html_project_title
+                    # ).strip()  # nicely rendered html title
 
                     # Get document kind information
 
@@ -5552,9 +5564,11 @@ class DocReopenProject(APIView):
 
             if project:
                 html_project_title = project.title
-                plain_project_name = html2text.html2text(
-                    html_project_title
-                ).strip()  # nicely rendered html title
+                plain_project_name = html_project_title
+
+                # plain_project_name = html2text.html2text(
+                #     html_project_title
+                # ).strip()  # nicely rendered html title
 
                 # Get document kind information
 
@@ -9048,9 +9062,11 @@ class RepoenProject(APIView):
 
                 if project:
                     html_project_title = project.title
-                    plain_project_name = html2text.html2text(
-                        html_project_title
-                    ).strip()  # nicely rendered html title
+                    plain_project_name = html_project_title
+                    
+                    # html2text.html2text(
+                    #     html_project_title
+                    # ).strip()  # nicely rendered html title
 
                     actioning_user = User.objects.get(pk=req.user.pk)
                     actioning_user_name = (
