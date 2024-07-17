@@ -1,5 +1,6 @@
 import ast
 import json
+from turtle import position
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -2585,8 +2586,18 @@ class PromoteToLeader(APIView):
         return objects
 
     def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to promote a user to leader"
+        )
         project_id = req.data["project"]
         user_id = req.data["user"]
+        if not project_id or not user_id:
+            settings.LOGGER.error(msg=f"Project ID and User ID are required")
+            return Response(
+                {"detail": "Project ID and User ID are required"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
         user_to_become_leader_obj = self.go(user_id=user_id, project_id=project_id)
         settings.LOGGER.info(
             msg=f"{req.user} is promoting {user_to_become_leader_obj} to leader"
@@ -2596,10 +2607,8 @@ class PromoteToLeader(APIView):
 
         # Set is_leader to False for all members in the team
         try:
-
-            team.update(
-                is_leader=False,
-            )
+            # Update leaders/set pos to +1 of its prev num
+            team.update(is_leader=False, position=F("position") + 1)
 
             # Get the IDs of team members with role "supervising" and associated users with is_staff=True
             staff_ids = team.filter(
@@ -2624,6 +2633,7 @@ class PromoteToLeader(APIView):
             data={
                 "is_leader": True,
                 "role": "supervising",
+                "position": 1,
             },  # Include is_leader=True in the data
             partial=True,
         )

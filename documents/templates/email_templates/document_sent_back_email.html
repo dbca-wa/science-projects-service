@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html dir="ltr" lang="en">
 <head>
@@ -21,7 +23,7 @@
             </table>
             <h1 class="" style="color:rgb(0,0,0);font-size:24px;font-weight:400;text-align:center;padding:0px;margin-top:1rem;margin-bottom:30px;margin-left:0px;margin-right:0px">{{document_type_title}} Sent Back</h1>
             <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hello {{recipient_name}},</p>
-            <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">A {{document_type_title}} you submitted for your project <strong>&#x27;{% spaceless %}{{ plain_project_name }}{% endspaceless %}&#x27;</strong> has been sent back to you. Please review and edit the document before resubmitting for approval.</p>
+            <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">A {{document_type_title}} you submitted for your project <strong>&#x27;{% spaceless %}{{ plain_project_name|extract_text_content }}{% endspaceless %}&#x27;</strong> has been sent back to you. Please review and edit the document before resubmitting for approval.</p>
             <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="text-align:center;margin-top:32px;margin-bottom:32px">
               <tbody>
                 <tr>
