@@ -4136,6 +4136,98 @@ class GetProjectLeadEmail(APIView):
         # return response
 
 
+class SPMSInviteEmail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (SPMS Invite Link) for users {req.data['invitee']}"
+        )
+        from_email = settings.DEFAULT_FROM_EMAIL
+        inviting_email = req.data['invitor']
+        templ = "./email_templates/spms_link_email.html"
+        invitee = req.data["invitee"]  
+
+        recipients_list = []
+        # Validate
+        if invitee.endswith('@dbca.wa.gov.au'):
+            recipients_list.append(invitee)
+
+        processed = []
+        for recipient in recipients_list:
+            if recipient not in processed:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient}")
+                    email_subject = f"SPMS Invite"
+                    to_email = [recipient]
+
+                    template_props = {
+                        "inviting_email": inviting_email,
+                        "email_subject": email_subject,
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                    }
+
+                    template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_mail(
+                            email_subject,
+                            template_content,  # plain text
+                            from_email,
+                            to_email,
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    # test
+                    print(f"TEST: Sending email to {recipient}")
+                    if recipient == 'jarid.prince@dbca.wa.gov.au':
+                        email_subject = f"SPMS Invite"
+                        to_email = [recipient]
+
+                        template_props = {
+                            "inviting_email": inviting_email,
+                            "email_subject": email_subject,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_mail(
+                                email_subject,
+                                template_content,  # plain text
+                                from_email,
+                                to_email,
+                                fail_silently=False,  # Set this to False to see errors
+                                html_message=template_content,
+                            )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                processed.append(recipient)
+                print(f"Sent invite to {recipient}")
+        
+        return Response(
+            "Email Sent!",
+            status=HTTP_202_ACCEPTED,
+        )
+
 
 class FeedbackReceivedEmail(APIView):
     permission_classes = [IsAuthenticated]
