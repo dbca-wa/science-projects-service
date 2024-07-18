@@ -210,7 +210,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     )
             )
 
-            print(f"\n\nACTIVE SR: {active_sr_docs}\n\n")
+            # print(f"\n\nACTIVE SR: {active_sr_docs}\n\n")
             # print(report)
             # Get progress report documents which belong to it and belong to active and approved projects
             # active_sr_docs = StudentReport.objects.filter(
@@ -229,7 +229,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
             )
-            print(f"\n\nACTIVE PR: {active_sr_docs}\n\n")
+            # print(f"\n\nACTIVE PR: {active_sr_docs}\n\n")
 
             # active_pr_docs = ProgressReport.objects.filter(
             #     report=report, project__status="active"
