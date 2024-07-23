@@ -32,6 +32,7 @@ from .models import (
     AnnualReportMedia,
     AnnualReportPDF,
     BusinessAreaPhoto,
+    LegacyAnnualReportPDF,
     ProjectDocumentPDF,
     ProjectPhoto,
     ProjectPlanMethodologyPhoto,
@@ -44,6 +45,8 @@ from .serializers import (
     AnnualReportPDFCreateSerializer,
     AnnualReportPDFSerializer,
     BusinessAreaPhotoSerializer,
+    LegacyAnnualReportPDFCreateSerializer,
+    LegacyAnnualReportPDFSerializer,
     MethodologyImageCreateSerializer,
     MethodologyImageSerializer,
     ProjectDocumentPDFSerializer,
@@ -52,6 +55,7 @@ from .serializers import (
     TinyAnnualReportMediaSerializer,
     TinyAnnualReportPDFSerializer,
     TinyBusinessAreaPhotoSerializer,
+    TinyLegacyAnnualReportPDFSerializer,
     TinyMethodologyImageSerializer,
     TinyProjectPhotoSerializer,
     TinyUserAvatarSerializer,
@@ -139,6 +143,46 @@ class AnnualReportPDFs(APIView):
                 new_instance.errors,
                 HTTP_400_BAD_REQUEST,
             )
+        
+class LegacyAnnualReportPDFs(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = LegacyAnnualReportPDF.objects.all()
+        ser = TinyLegacyAnnualReportPDFSerializer(
+            all,
+            many=True,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a legacy annual report pdf")
+        file = req.FILES.get("file")
+        year = req.data.get("year")
+
+        data = {
+            "file": file,
+            "year": year,
+            "creator": req.user.pk,
+        }
+        new_instance = LegacyAnnualReportPDFCreateSerializer(data=data)
+        if new_instance.is_valid():
+            saved_instance = new_instance.save()
+            return Response(
+                TinyLegacyAnnualReportPDFSerializer(saved_instance).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{new_instance.errors}")
+            return Response(
+                new_instance.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
 
 
 class AnnualReportPDFDetail(APIView):
@@ -186,6 +230,61 @@ class AnnualReportPDFDetail(APIView):
             u_reportmedia = ser.save()
             return Response(
                 TinyAnnualReportPDFSerializer(u_reportmedia).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class LegacyAnnualReportPDFDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = LegacyAnnualReportPDF.objects.get(pk=pk)
+        except LegacyAnnualReportPDF.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        reportmedia = self.go(pk)
+        ser = LegacyAnnualReportPDFSerializer(
+            reportmedia,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        reportmedia = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting legacy annual report detail {reportmedia}"
+        )
+        reportmedia.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        reportmedia = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating legacy annual report detail {reportmedia}"
+        )
+        ser = LegacyAnnualReportPDFSerializer(
+            reportmedia,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_reportmedia = ser.save()
+            return Response(
+                TinyLegacyAnnualReportPDFSerializer(u_reportmedia).data,
                 status=HTTP_202_ACCEPTED,
             )
         else:

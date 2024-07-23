@@ -6,6 +6,7 @@ from .models import (
     AnnualReportMedia,
     AnnualReportPDF,
     BusinessAreaPhoto,
+    LegacyAnnualReportPDF,
     UserAvatar,
     ProjectPhoto,
     AgencyImage,
@@ -186,6 +187,49 @@ class AnnualReportPDFAdmin(admin.ModelAdmin):
         self.message_user(request, f"Successfully updated {updated_count} photos.")
 
     recalculate_photo_sizes.short_description = "Recalculate photo sizes"
+
+
+@admin.register(LegacyAnnualReportPDF)
+class LegacyAnnualReportPDFAdmin(admin.ModelAdmin):
+    list_display = [
+        "pk",
+        "year",
+        "file",
+        "size_in_mb",
+        "creator",
+    ]
+
+    list_filter = [
+        "year",
+    ]
+
+    def size_in_mb(self, obj):
+        if obj.size:
+            return "{:.2f} MB".format(obj.size / (1024 * 1024))
+        else:
+            return "Unknown"
+
+    size_in_mb.admin_order_field = "size"  # Enables sorting by size
+    size_in_mb.short_description = "Size (MB)"
+
+    actions = ["recalculate_photo_sizes"]
+
+    def recalculate_photo_sizes(self, request, selected):
+        if len(selected) > 1:
+            print("PLEASE SELECT ONLY ONE")
+            return
+        updated_count = 0
+        all_items = (
+            LegacyAnnualReportPDF.objects.all()
+        )  # Get all ProjectPhoto instances
+        for item in all_items:
+            if item.file:
+                item.size = item.file.size
+                item.save()
+                updated_count += 1
+        self.message_user(request, f"Successfully updated {updated_count} items.")
+
+    recalculate_photo_sizes.short_description = "Recalculate file sizes"
 
 
 @admin.register(AnnualReportMedia)

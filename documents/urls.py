@@ -122,6 +122,7 @@ urlpatterns = [
     ),
     path("reports/withoutPDF", views.GetWithoutPDFs.as_view()),
     path("reports/withPDF", views.GetWithPDFs.as_view()),
+    path("reports/legacyPDF", views.GetLegacyPDFs.as_view()),
     path("reports/pdf/<int:pk>", views.GetReportPDF.as_view()),
     path("reports/completed", views.GetCompletedReports.as_view()),
     path("endorsements", views.ProjectDocuments.as_view()),
