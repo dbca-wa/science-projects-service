@@ -1,6 +1,7 @@
 from django.db import models
 from common.models import CommonModel
 from django.db.models import UniqueConstraint
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # NOTE: I have split the photos into different models, rather than keeping them all together.
 # This is to avoid empty foreign keys depending on the type of photo, and for organisational purposes.
@@ -91,6 +92,42 @@ class AnnualReportMedia(
                 fields=["kind", "report"],
             )
         ]
+
+
+# This class is for uploading a PDF for older years that do not have
+# an annual report w/o breaking how AnnualReportPDF works or rewriting
+# code to ignore these years
+class LegacyAnnualReportPDF(CommonModel):
+    """
+    PDF for Older Published Reports
+    """
+
+    file = models.FileField(
+        upload_to="annual_reports/legacy/pdfs/", null=True, blank=True
+    )
+    size = models.PositiveIntegerField(default=0)  # New size field
+    year = models.PositiveBigIntegerField(
+        validators=[MinValueValidator(2005), MaxValueValidator(2019)]
+    )
+    creator = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="legacy_annual_report_pdf_generated",
+    )
+
+    def save(self, *args, **kwargs):
+        if self.file:
+            self.size = self.file.size
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return f"({self.year}) Annual Report PDF"
+
+    class Meta:
+        verbose_name = "Legacy Annual Report PDF"
+        verbose_name_plural = "Legacy Annual Report PDFs"
 
 
 class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report

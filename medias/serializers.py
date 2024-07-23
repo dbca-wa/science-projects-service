@@ -12,6 +12,7 @@ from .models import (
     AnnualReportMedia,
     AnnualReportPDF,
     BusinessAreaPhoto,
+    LegacyAnnualReportPDF,
     ProjectDocumentPDF,
     ProjectPlanMethodologyPhoto,
     UserAvatar,
@@ -119,6 +120,25 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
         return None
 
 
+class TinyLegacyAnnualReportPDFSerializer(ModelSerializer):
+    report = SerializerMethodField()
+
+    class Meta:
+        model = LegacyAnnualReportPDF
+        fields = [
+            "pk",
+            "file",
+            "year",
+            "report",
+        ]
+
+    def get_report(self, obj):
+        return {
+            "id": 0,
+            "year": obj.year,
+        }
+
+
 class AECPDFSerializer(ModelSerializer):
     class Meta:
         model = AECEndorsementPDF
@@ -143,8 +163,20 @@ class AnnualReportPDFCreateSerializer(ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        cp = AnnualReportPDF.objects.create(**validated_data)
-        return cp
+        arp = AnnualReportPDF.objects.create(**validated_data)
+        return arp
+
+
+class LegacyAnnualReportPDFCreateSerializer(ModelSerializer):
+    # report = SerializerMethodField()
+
+    class Meta:
+        model = LegacyAnnualReportPDF
+        fields = "__all__"
+
+    def create(self, validated_data):
+        arp = LegacyAnnualReportPDF.objects.create(**validated_data)
+        return arp
 
 
 class AnnualReportPDFSerializer(ModelSerializer):
@@ -164,6 +196,22 @@ class AnnualReportPDFSerializer(ModelSerializer):
                 "pdf_generation_in_progress": report.pdf_generation_in_progress,
             }
         return None
+
+    def get_pdf_data(self, obj):
+        if obj.file:
+            with open(obj.file.path, "rb") as file:
+                pdf_data = file.read()
+                return base64.b64encode(pdf_data).decode("utf-8")
+
+        return None
+
+
+class LegacyAnnualReportPDFSerializer(ModelSerializer):
+    pdf_data = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = LegacyAnnualReportPDF
+        fields = "__all__"
 
     def get_pdf_data(self, obj):
         if obj.file:
