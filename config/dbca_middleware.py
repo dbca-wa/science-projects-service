@@ -74,7 +74,7 @@ class DBCAMiddleware(MiddlewareMixin):
                 user = User.objects.filter(username=email).first()
                 if user:
                     request.user = user
-                    # Logout user if requested
+                    # Logout user if requested url is logout
                     if (
                         (
                             request.path.startswith("/logout")
