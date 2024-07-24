@@ -370,3 +370,4 @@ LOGGING = {
 }
 
 LOGGER = logging.getLogger(__name__)
+ALLOWED_EMAIL_SUFFIXES = "@dbca.wa.gov.au"
