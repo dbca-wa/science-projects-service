@@ -114,11 +114,19 @@ ALLOW_LIST = [
     "dbcab2c.b2clogin.com",
     "dbcab2c.onmicrosoft.com",
     "login.microsoftonline.com",
+    "scienceprojects-test.dbca.wa.gov.au",
+    "scienceprojects.dbca.wa.gov.au",
+    "auth2.dbca.wa.gov.au",
+    "auth2-uat.dbca.wa.gov.au",
     "http://localhost",
     "http://0.0.0.0",
     "http://0.0.0.0:8000",
     "http://127.0.0.1",
     "http://127.0.0.1:3000",
+    "https://scienceprojects-test.dbca.wa.gov.au",
+    "https://scienceprojects.dbca.wa.gov.au",
+    "https://auth2.dbca.wa.gov.au",
+    "https://auth2-uat.dbca.wa.gov.au",
 ]
 
 if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
@@ -178,8 +186,14 @@ CORS_ALLOW_METHODS = [
     "DELETE",
 ]
 CORS_ALLOW_HEADERS = [
+    # "X-CSRFToken",
+    # "Content-Type",
     "X-CSRFToken",
     "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+    "Origin",
 ]
 
 
