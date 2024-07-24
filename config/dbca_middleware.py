@@ -2,6 +2,7 @@ import os
 from django import http
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.backends import ModelBackend
+from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth import login, logout, get_user_model
 from agencies.models import Agency
@@ -52,30 +53,53 @@ class DBCAMiddleware(MiddlewareMixin):
             file.write(str(meta_data) + "\n")
 
     def __call__(self, request):
+        # Checks if headers are present - if they are not,
         if (
             "HTTP_REMOTE_USER" not in request.META
             or not request.META["HTTP_REMOTE_USER"]
         ):
             return self.get_response(request)
+            # return redirect(f"{settings.SITE_URL}/login")
 
-        # if (
-        #     (
-        #         request.path.startswith("/logout")
-        #         or request.path.startswith("/api/v1/users/log-out")
-        #         or request.path.startswith("/api/v1/users/logout")
-        #     )
-        #     and "HTTP_X_LOGOUT_URL" in request.META
-        #     and request.META["HTTP_X_LOGOUT_URL"]
-        # ):
-        #     settings.LOGGER.info(msg=f"{request.user} is logging out from call")
-        #     # self.save_request_meta_to_file(request.META)
-        #     logout(request)
-        #     data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
-        #     return HttpResponse(data, HTTP_200_OK)
-
+        # Check to see if user is authenticated
         user_auth = request.user.is_authenticated
-        if not user_auth:
-            # Not authenticated before
+        # If authenticated, get the user and update the last login
+        if user_auth:
+            username = request.META.get("HTTP_REMOTE_USER")
+            first_name = request.META.get("HTTP_X_FIRST_NAME")
+            last_name = request.META.get("HTTP_X_LAST_NAME")
+            email = request.META.get("HTTP_X_EMAIL")
+
+            if first_name and last_name and username and email:
+                user = User.objects.filter(username=email).first()
+                if user:
+                    request.user = user
+                    # Logout user if requested
+                    if (
+                        (
+                            request.path.startswith("/logout")
+                            or request.path.startswith("/api/v1/users/log-out")
+                            or request.path.startswith("/api/v1/users/logout")
+                        )
+                        and "HTTP_X_LOGOUT_URL" in request.META
+                        and request.META["HTTP_X_LOGOUT_URL"]
+                    ):
+                        settings.LOGGER.info(
+                            msg=f"{request.user} is logging out from call"
+                        )
+                        # self.save_request_meta_to_file(request.META)
+                        logout(request)
+                        data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
+                        return HttpResponse(data, HTTP_200_OK)
+
+                    # Otherwise continue with original req
+                    user.save(update_fields=["last_login"])
+                    return self.get_response(request)
+
+            return self.get_response(request)
+
+        # If not authenticated, try login
+        else:
             attributemap = {
                 "username": "HTTP_REMOTE_USER",
                 "last_name": "HTTP_X_LAST_NAME",
@@ -87,38 +111,28 @@ class DBCAMiddleware(MiddlewareMixin):
                 if value in request.META:
                     attributemap[key] = request.META[value]
 
+            # If there is an email in the attribute map (registered user), log them in
             if (
                 attributemap["email"]
                 and User.objects.filter(email__iexact=attributemap["email"]).exists()
             ):
                 user = User.objects.filter(email__iexact=attributemap["email"])[0]
-            elif (
-                User.__name__ != "EmailUser"
-                and User.objects.filter(
-                    username__iexact=attributemap["username"]
-                ).exists()
-            ):
-                user = User.objects.filter(username__iexact=attributemap["username"])[0]
+                user.backend = "django.contrib.auth.backends.ModelBackend"
+                login(request, user)
+            # elif (
+            #     User.__name__ != "EmailUser"
+            #     and User.objects.filter(
+            #         username__iexact=attributemap["username"]
+            #     ).exists()
+            # ):
+            #     user = User.objects.filter(username__iexact=attributemap["username"])[0]
+
+            # If they are not a registered user, create an account
             else:
                 user = self.create_user_and_associated_entries(request, attributemap)
-
-            # user.__dict__.update(attributemap)
-            # Set is_staff to True
-            # user.is_staff = True
-            # user.save()
-            user.backend = "django.contrib.auth.backends.ModelBackend"
-            login(request, user)
-
-        username = request.META.get("HTTP_REMOTE_USER")
-        first_name = request.META.get("HTTP_X_FIRST_NAME")
-        last_name = request.META.get("HTTP_X_LAST_NAME")
-        email = request.META.get("HTTP_X_EMAIL")
-
-        if first_name and last_name and username and email:
-            user = User.objects.filter(username=email).first()
-            if user:
-                request.user = user
-                user.save(update_fields=["last_login"])
-                return self.get_response(request)
-
-        return self.get_response(request)
+                user.__dict__.update(attributemap)
+                # Set is_staff to True
+                user.is_staff = True
+                user.save()
+                user.backend = "django.contrib.auth.backends.ModelBackend"
+                login(request, user)
