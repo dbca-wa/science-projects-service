@@ -186,14 +186,14 @@ CORS_ALLOW_METHODS = [
     "DELETE",
 ]
 CORS_ALLOW_HEADERS = [
-    # "X-CSRFToken",
-    # "Content-Type",
     "X-CSRFToken",
     "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-    "Origin",
+    # "X-CSRFToken",
+    # "Content-Type",
+    # "Authorization",
+    # "X-Requested-With",
+    # "Accept",
+    # "Origin",
 ]
 
 
@@ -218,6 +218,13 @@ CORS_ALLOWED_ORIGINS = [
     url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"
 ]
 CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS))
+
+CSRF_COOKIE_NAME = "csrftoken"
+if DEBUG:
+    CSRF_COOKIE_SECURE = False
+else:
+    CSRF_COOKIE_SECURE = True
+
 
 # print(CORS_ALLOWED_ORIGINS)
 
