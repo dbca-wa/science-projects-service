@@ -235,7 +235,6 @@ CUSTOM_APPS = [
     "projects.apps.ProjectsConfig",
     "communications.apps.CommunicationsConfig",
     "documents.apps.DocumentsConfig",
-    "tasks.apps.TasksConfig",
     "adminoptions.apps.AdminoptionsConfig",
 ]
 

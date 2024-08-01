@@ -16,7 +16,7 @@ urlpatterns = [
     path("document_sent_back_email", views.DocumentSentBackEmail.as_view()),
     path("document_approved_email", views.DocumentApprovedEmail.as_view()),
     path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
-    path("feedback_received_email", views.FeedbackReceivedEmail.as_view()),
+    # path("feedback_received_email", views.FeedbackReceivedEmail.as_view()),
     path("spms_link_email", views.SPMSInviteEmail.as_view()),
     path("get_project_lead_emails", views.GetProjectLeadEmail.as_view()),
     # Actions (Project Docs)
