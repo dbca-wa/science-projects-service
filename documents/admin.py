@@ -11,7 +11,7 @@ from .models import (
     ProgressReport,
     StudentReport,
     ProjectClosure,
-    Publication,
+    # Publication,
 )
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -347,49 +347,49 @@ class UserFilterWidget(FilteredSelectMultiple):
         return [str(v) for v in value]  # Convert each value to a string
 
 
-class PublicationForm(forms.ModelForm):
-    User = get_user_model()
-    internal_authors = forms.ModelMultipleChoiceField(
-        queryset=User.objects.all().order_by("first_name"),
-        widget=UserFilterWidget("Internal Authors", is_stacked=False),
-    )
+# class PublicationForm(forms.ModelForm):
+#     User = get_user_model()
+#     internal_authors = forms.ModelMultipleChoiceField(
+#         queryset=User.objects.all().order_by("first_name"),
+#         widget=UserFilterWidget("Internal Authors", is_stacked=False),
+#     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        instance = kwargs.get("instance")
-        if instance:
-            self.initial["internal_authors"] = list(
-                instance.internal_authors.values_list("id", flat=True)
-            )
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         instance = kwargs.get("instance")
+#         if instance:
+#             self.initial["internal_authors"] = list(
+#                 instance.internal_authors.values_list("id", flat=True)
+#             )
 
-        self.fields["internal_authors"].queryset = User.objects.all().order_by(
-            "first_name"
-        )
+#         self.fields["internal_authors"].queryset = User.objects.all().order_by(
+#             "first_name"
+#         )
 
-    class Meta:
-        model = Publication
-        fields = "__all__"
+#     class Meta:
+#         model = Publication
+#         fields = "__all__"
 
 
-@admin.register(Publication)
-class PublicationAdmin(admin.ModelAdmin):
-    list_display = (
-        "pk",
-        "title",
-        "year",
-        "kind",
-        "doi",
-        "apa_citation",
-    )
-    form = PublicationForm
+# @admin.register(Publication)
+# class PublicationAdmin(admin.ModelAdmin):
+#     list_display = (
+#         "pk",
+#         "title",
+#         "year",
+#         "kind",
+#         "doi",
+#         "apa_citation",
+#     )
+#     form = PublicationForm
 
-    def apa_citation(self, obj):
-        return obj.get_apa_citation()
+#     def apa_citation(self, obj):
+#         return obj.get_apa_citation()
 
-    apa_citation.short_description = "APA Citation"
+#     apa_citation.short_description = "APA Citation"
 
-    list_filter = ("kind",)
+#     list_filter = ("kind",)
 
-    search_fields = ["title"]
+#     search_fields = ["title"]
 
-    ordering = ["-created_at"]
+#     ordering = ["-created_at"]

@@ -1,4 +1,5 @@
 from datetime import timezone
+from tracemalloc import start
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from common.models import CommonModel
@@ -212,3 +213,159 @@ class UserProfile(CommonModel):
     class Meta:
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
+
+
+class PublicStaffProfile(CommonModel):
+
+    is_hidden = models.BooleanField(
+        default=False, help_text="Indicates if the profile is hidden from public view."
+    )
+    aucode = models.CharField(
+        max_length=50, blank=True, help_text="AU code for internal use."
+    )
+
+    # Base details (Header) ===========================================
+    user = models.OneToOneField(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="public_profile",
+        help_text="Linked user account for this staff profile.",
+    )
+    # title = (DISPLAY fk to User.UserProfile (user.profile.title) - frontend will only display it if Dr.)
+    # first_name = (DISPLAY fk to User.last_name )
+    # last_name = (DISPLAY fk to User.first_name )
+    # branch = (DISPLAY fk to User.work.branch)
+
+    dbca_position_title = models.CharField(
+        max_length=200, help_text="Position title within DBCA."
+    )
+    keyword_tags = models.TextField(
+        blank=True, help_text="Comma-separated tags describing areas of expertise."
+    )
+
+    # Overview section ===========================================
+
+    about_me = models.TextField(
+        blank=True, help_text="Short biography or personal statement."
+    )
+    expertise = models.TextField(
+        blank=True, help_text="Areas of expertise or specializations."
+    )
+
+    # Projects section  ===========================================
+    # (pulled directly from fk, no adjustments)
+    project_memberships = models.ManyToManyField(
+        "projects.ProjectMember",
+        related_name="staff_profiles",
+        help_text="Projects associated with this staff member.",
+    )
+
+    # Publications section  ===========================================
+
+    publications = models.ManyToManyField(
+        "users.AdditionalPublicationEntry",
+        related_name="staff_profiles",
+        help_text="Publications associated with this staff member.",
+    )
+
+    # CV section  ===========================================
+    employment = models.ManyToManyField(
+        "users.EmploymentEntry",
+        related_name="staff_profiles",
+        help_text="Employment history for this staff member.",
+    )
+    education = models.ManyToManyField(
+        "users.EducationEntry",
+        related_name="staff_profiles",
+        help_text="Educational qualifications for this staff member.",
+    )
+
+    def __str__(self) -> str:
+        return f"Staff Profile | {f'{self.user.first_name} {self.user.last_name}' if self.user else 'No User'}"
+
+    class Meta:
+        verbose_name = "Staff Profile"
+        verbose_name_plural = "Staff Profiles"
+
+
+class AdditionalPublicationEntry(models.Model):
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="additional_publications",
+    )
+    year_published = models.PositiveIntegerField()
+    entry = models.TextField()
+
+    def __str__(self):
+        return f"Publication in {self.year_published}: {self.entry[:30]}..."
+
+
+class EmploymentEntry(models.Model):
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="employment_entries",
+    )
+    position_title = models.CharField(max_length=200)
+    start_year = models.PositiveIntegerField()
+    end_year = models.PositiveIntegerField(blank=True, null=True)
+    section = models.CharField(max_length=200, blank=True, null=True)
+    employer = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.position_title} at {self.employer} ({self.start_year}-{self.end_year})"
+
+
+class EducationEntry(models.Model):
+    class QualificationKindChoices(models.TextChoices):
+        POSTDOCTORAL = "Postdoctoral in", "Postdoctoral in"
+        DOCTOR = "Doctor of", "Doctor of"  # including philosophy (phd)
+        # PHD = 'PhD in', 'PhD in'
+        MASTER = "Master of", "Master of"
+        GRADUATE_DIPLOMA = "Graduate Diploma in", "Graduate Diploma in"
+        BACHELOR = "Bachelor of", "Bachelor of"
+        ASSOCIATE_DEGREE = "Associate Degree in", "Associate Degree in"
+        DIPLOMA = "Diploma in", "Diploma in"
+        CERTIFICATE = "Certificate in", "Certificate in"
+        NANODEGREE = "Nanodegree in", "Nanodegree in"
+
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="education_entries",
+    )
+    #
+    qualification_field = models.CharField(max_length=200)
+    with_honours = models.BooleanField(default=False)
+    #
+    qualification_kind = models.CharField(
+        max_length=50, choices=QualificationKindChoices.choices
+    )
+    qualification_name = models.CharField(max_length=200)
+    #
+    start_year = models.PositiveIntegerField(blank=True, null=True)
+    end_year = models.PositiveIntegerField()
+    institution = models.CharField(max_length=200)
+    city = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
+
+
+class StaffProfileProjectEntry(CommonModel):
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="project_entries",
+    )
+    project_membership = models.ManyToManyField(
+        "projects.ProjectMembership"
+    )  # with related project
+    flavour_text = (
+        models.TextField()
+    )  # appeal the merits of this project for your CV, otherwise use the project_membership.project.description
+
+    def __str__(self):
+        return f"{self.project_membership.project.title}"

@@ -59,7 +59,7 @@ from .models import (
     ProjectDocument,
     AnnualReport,
     Endorsement,
-    Publication,
+    # Publication,
 )
 from django.db.models import Q, F, Prefetch
 
@@ -80,7 +80,7 @@ from .serializers import (
     ProjectDocumentSerializer,
     ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
-    PublicationSerializer,
+    # PublicationSerializer,
     StudentReportAnnualReportSerializer,
     StudentReportCreateSerializer,
     StudentReportSerializer,
@@ -91,7 +91,7 @@ from .serializers import (
     TinyProjectClosureSerializer,
     TinyProjectDocumentSerializer,
     TinyProjectPlanSerializer,
-    TinyPublicationSerializer,
+    # TinyPublicationSerializer,
     TinyStudentReportSerializer,
 )
 
@@ -9514,86 +9514,86 @@ class EndorsementDetail(APIView):
 # PUBLICATIONS ==========================================================
 
 
-class Publications(APIView):
-    permission_classes = [IsAuthenticated]
+# class Publications(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, req):
-        all_publications = Publication.objects.all()
-        ser = TinyPublicationSerializer(
-            all_publications,
-            many=True,
-            context={"request": req},
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
+#     def get(self, req):
+#         all_publications = Publication.objects.all()
+#         ser = TinyPublicationSerializer(
+#             all_publications,
+#             many=True,
+#             context={"request": req},
+#         )
+#         return Response(
+#             ser.data,
+#             status=HTTP_200_OK,
+#         )
 
-    def post(self, req):
-        settings.LOGGER.error(msg=f"{req.user} is posting a publication")
-        ser = PublicationSerializer(
-            data=req.data,
-        )
-        if ser.is_valid():
-            new_publication = ser.save()
-            return Response(
-                TinyPublicationSerializer(new_publication).data,
-                status=HTTP_201_CREATED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                HTTP_400_BAD_REQUEST,
-            )
+#     def post(self, req):
+#         settings.LOGGER.error(msg=f"{req.user} is posting a publication")
+#         ser = PublicationSerializer(
+#             data=req.data,
+#         )
+#         if ser.is_valid():
+#             new_publication = ser.save()
+#             return Response(
+#                 TinyPublicationSerializer(new_publication).data,
+#                 status=HTTP_201_CREATED,
+#             )
+#         else:
+#             settings.LOGGER.error(msg=f"{ser.errors}")
+#             return Response(
+#                 HTTP_400_BAD_REQUEST,
+#             )
 
 
-class PublicationDetail(APIView):
-    permission_classes = [IsAuthenticated]
+# class PublicationDetail(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def go(self, pk):
-        try:
-            obj = Publication.objects.get(pk=pk)
-        except Publication.DoesNotExist:
-            raise NotFound
-        return obj
+#     def go(self, pk):
+#         try:
+#             obj = Publication.objects.get(pk=pk)
+#         except Publication.DoesNotExist:
+#             raise NotFound
+#         return obj
 
-    def get(self, req, pk):
-        publication = self.go(pk)
-        ser = PublicationSerializer(
-            publication,
-            context={"request": req},
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
+#     def get(self, req, pk):
+#         publication = self.go(pk)
+#         ser = PublicationSerializer(
+#             publication,
+#             context={"request": req},
+#         )
+#         return Response(
+#             ser.data,
+#             status=HTTP_200_OK,
+#         )
 
-    # Commented out as accidentally deleting vai drf would cause errors (non-existent endorsements on frontend)
-    def delete(self, req, pk):
-        settings.LOGGER.error(msg=f"{req.user} is deleting publication {pk}")
-        publication = self.go(pk)
-        publication.delete()
-        return Response(
-            status=HTTP_204_NO_CONTENT,
-        )
+#     # Commented out as accidentally deleting vai drf would cause errors (non-existent endorsements on frontend)
+#     def delete(self, req, pk):
+#         settings.LOGGER.error(msg=f"{req.user} is deleting publication {pk}")
+#         publication = self.go(pk)
+#         publication.delete()
+#         return Response(
+#             status=HTTP_204_NO_CONTENT,
+#         )
 
-    def put(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is updating publication {pk}")
-        publication = self.go(pk)
-        ser = PublicationSerializer(
-            publication,
-            data=req.data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_publication = ser.save()
-            return Response(
-                TinyPublicationSerializer(u_publication).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
+#     def put(self, req, pk):
+#         settings.LOGGER.info(msg=f"{req.user} is updating publication {pk}")
+#         publication = self.go(pk)
+#         ser = PublicationSerializer(
+#             publication,
+#             data=req.data,
+#             partial=True,
+#         )
+#         if ser.is_valid():
+#             u_publication = ser.save()
+#             return Response(
+#                 TinyPublicationSerializer(u_publication).data,
+#                 status=HTTP_202_ACCEPTED,
+#             )
+#         else:
+#             settings.LOGGER.error(msg=f"{ser.errors}")
+#             return Response(
+#                 ser.errors,
+#                 status=HTTP_400_BAD_REQUEST,
+#             )

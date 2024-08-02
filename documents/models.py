@@ -174,7 +174,6 @@ class ProjectDocument(CommonModel):
 
         return DynamicSerializer
 
-
     def has_project_document_data(self):
         related_data = False
         if self.kind == ProjectDocument.CategoryKindChoices.CONCEPTPLAN:
@@ -1058,107 +1057,107 @@ class Endorsement(models.Model):
 
 
 # TODO: views
-class Publication(CommonModel):
-    """
-    Model Definition for publications
-    """
+# class Publication(CommonModel):
+#     """
+#     Model Definition for publications
+#     """
 
-    class PublicationChoices(models.TextChoices):
-        INTERNAL = "internal", "Internal"
-        EXTERNAL = "external", "External"
+#     class PublicationChoices(models.TextChoices):
+#         INTERNAL = "internal", "Internal"
+#         EXTERNAL = "external", "External"
 
-    title = models.CharField(max_length=500)
-    year = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        validators=[MinValueValidator(1800)],
-    )
-    kind = models.CharField(
-        max_length=100,
-        choices=PublicationChoices.choices,
-    )
-    internal_authors = models.ManyToManyField("users.User", related_name="publications")
-    external_authors = models.CharField(
-        max_length=1000,
-        blank=True,
-        null=True,
-    )
-    doc_link = models.CharField(
-        max_length=1500,
-        blank=True,
-        null=True,
-    )
-    page_range = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-    )
-    doi = models.CharField(
-        max_length=1000,
-        blank=True,
-        null=True,
-    )
-    volume = models.CharField(
-        max_length=100,
-        blank=True,
-        null=True,
-    )
+#     title = models.CharField(max_length=500)
+#     year = models.PositiveIntegerField(
+#         blank=True,
+#         null=True,
+#         validators=[MinValueValidator(1800)],
+#     )
+#     kind = models.CharField(
+#         max_length=100,
+#         choices=PublicationChoices.choices,
+#     )
+#     internal_authors = models.ManyToManyField("users.User", related_name="publications")
+#     external_authors = models.CharField(
+#         max_length=1000,
+#         blank=True,
+#         null=True,
+#     )
+#     doc_link = models.CharField(
+#         max_length=1500,
+#         blank=True,
+#         null=True,
+#     )
+#     page_range = models.CharField(
+#         max_length=100,
+#         blank=True,
+#         null=True,
+#     )
+#     doi = models.CharField(
+#         max_length=1000,
+#         blank=True,
+#         null=True,
+#     )
+#     volume = models.CharField(
+#         max_length=100,
+#         blank=True,
+#         null=True,
+#     )
 
-    def generate_apa_citation(self):
-        internal_authors = list(self.internal_authors.all())
-        external_authors = (
-            self.external_authors.strip() if self.external_authors else ""
-        )
-        all_authors = (
-            internal_authors + [external_authors]
-            if self.kind == "internal"
-            else [external_authors] + internal_authors
-        )
+#     def generate_apa_citation(self):
+#         internal_authors = list(self.internal_authors.all())
+#         external_authors = (
+#             self.external_authors.strip() if self.external_authors else ""
+#         )
+#         all_authors = (
+#             internal_authors + [external_authors]
+#             if self.kind == "internal"
+#             else [external_authors] + internal_authors
+#         )
 
-        formatted_authors = [
-            author.get_formatted_name() if isinstance(author, User) else author
-            for author in all_authors
-        ]
+#         formatted_authors = [
+#             author.get_formatted_name() if isinstance(author, User) else author
+#             for author in all_authors
+#         ]
 
-        key_author = formatted_authors[0] if formatted_authors else ""
-        authors = (
-            key_author
-            + ", "
-            + ", ".join(
-                str(author) for author in formatted_authors if author != key_author
-            )
-            + ". "
-        )
+#         key_author = formatted_authors[0] if formatted_authors else ""
+#         authors = (
+#             key_author
+#             + ", "
+#             + ", ".join(
+#                 str(author) for author in formatted_authors if author != key_author
+#             )
+#             + ". "
+#         )
 
-        citation_parts = [authors]
+#         citation_parts = [authors]
 
-        if self.year:
-            citation_parts.append(f"({self.year}).")
+#         if self.year:
+#             citation_parts.append(f"({self.year}).")
 
-        citation_parts.append(f"{self.title}.")
+#         citation_parts.append(f"{self.title}.")
 
-        if self.doc_link:
-            citation_parts.append(f"{self.doc_link}.")
+#         if self.doc_link:
+#             citation_parts.append(f"{self.doc_link}.")
 
-        if self.page_range:
-            citation_parts.append(f"pp. {self.page_range}.")
+#         if self.page_range:
+#             citation_parts.append(f"pp. {self.page_range}.")
 
-        if self.volume:
-            citation_parts.append(f"{self.volume}.")
+#         if self.volume:
+#             citation_parts.append(f"{self.volume}.")
 
-        citation = " ".join(citation_parts)
+#         citation = " ".join(citation_parts)
 
-        return citation
+#         return citation
 
-    def get_apa_citation(self):
-        # if not self.apa_citation:
-        self.apa_citation = self.generate_apa_citation()
-        self.save()
-        return self.apa_citation
+#     def get_apa_citation(self):
+#         # if not self.apa_citation:
+#         self.apa_citation = self.generate_apa_citation()
+#         self.save()
+#         return self.apa_citation
 
-    def __str__(self) -> str:
-        return f"Publication {self.kind} | {self.title}"
+#     def __str__(self) -> str:
+#         return f"Publication {self.kind} | {self.title}"
 
-    class Meta:
-        verbose_name = "Publication"
-        verbose_name_plural = "Publications"
+#     class Meta:
+#         verbose_name = "Publication"
+#         verbose_name_plural = "Publications"

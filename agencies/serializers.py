@@ -1,5 +1,8 @@
 from rest_framework import serializers
 
+from contacts.models import Address
+
+# from contacts.serializers import StaffProfileAddressSerializer
 from medias.models import BusinessAreaPhoto
 from users.models import User
 
@@ -68,6 +71,37 @@ class TinyBranchSerializer(serializers.ModelSerializer):
         ]
 
 
+class StaffProfileAddressSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Address
+        fields = (
+            "pk",
+            "street",
+            "city",
+            "state",
+            "country",
+            "zipcode",
+            "pobox",
+        )
+
+
+class StaffProfileBranchSerializer(serializers.ModelSerializer):
+    address = serializers.SerializerMethodField()
+
+    def get_address(self, obj):
+        try:
+            address = Address.objects.get(branch=obj)
+            serializer = StaffProfileAddressSerializer(address)
+            return serializer.data
+        except Address.DoesNotExist:
+            return None
+
+    class Meta:
+        model = Branch
+        fields = ["name", "address"]
+
+
 class MiniBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -125,6 +159,12 @@ class BusinessAreaNameViewSerializer(serializers.ModelSerializer):
         model = BusinessArea
         fields = ["name"]
         ordering = ["name"]
+
+
+class StaffProfileBASerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessArea
+        fields = "name"
 
 
 class TinyBusinessAreaSerializer(serializers.ModelSerializer):

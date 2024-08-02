@@ -5,13 +5,24 @@ from agencies.serializers import (
     AffiliationSerializer,
     MiniBASerializer,
     MiniBranchSerializer,
+    StaffProfileBASerializer,
+    StaffProfileBranchSerializer,
     TinyAgencySerializer,
     TinyBranchSerializer,
     TinyBusinessAreaSerializer,
 )
 from medias.models import UserAvatar
 from medias.serializers import UserAvatarSerializer
-from .models import User, UserWork, UserProfile
+from projects.models import ProjectMember
+from .models import (
+    EducationEntry,
+    EmploymentEntry,
+    PublicStaffProfile,
+    StaffProfileProjectEntry,
+    User,
+    UserWork,
+    UserProfile,
+)
 
 
 class PrivateTinyUserSerializer(serializers.ModelSerializer):
@@ -73,6 +84,24 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "branch",
             "business_area",
             "affiliation",
+        )
+
+
+class TinyStaffProfileSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="work.role")
+    branch = StaffProfileBranchSerializer(source="work.branch")
+    # business_area = StaffProfileBASerializer(source="work.business_area")
+
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "first_name",
+            "last_name",
+            "email",
+            "is_active",
+            "role",
+            "branch",
         )
 
 
@@ -255,6 +284,123 @@ class UpdateMembershipSerializer(serializers.ModelSerializer):
             "affiliation",
             "branch",
             "business_area",
+        )
+
+
+class StaffProfileUserSerializer(serializers.ModelSerializer):
+    branch_name = serializers.SerializerMethodField()
+    business_area_name = serializers.SerializerMethodField()
+    title = serializers.SerializerMethodField()
+
+    def get_branch_name(self, obj):
+        return obj.work.branch.name if obj.work and obj.work.branch else None
+
+    def get_business_area_name(self, obj):
+        return (
+            obj.work.business_area.name if obj.work and obj.work.business_area else None
+        )
+
+    def get_title(self, obj):
+        return obj.profile.title if obj.profile else None
+
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "first_name",
+            "last_name",
+            "email",
+            "title",
+            "branch_name",
+            "business_area_name",
+        )
+
+
+class EmploymentEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmploymentEntry
+        exclude = ("public_profile",)
+
+
+class EducationEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EducationEntry
+        exclude = ("public_profile",)
+
+
+class ProjectEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StaffProfileProjectEntry
+        fields = (
+            "public_profile",
+            "project_membership",
+            "flavour_text",
+        )
+
+
+class ProjectMembershipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectMember
+        fields = ("project",)
+
+    project = serializers.SerializerMethodField()
+
+    def get_project(self, obj):
+        return {
+            "title": obj.project.title,
+            "description": obj.project.description,
+            "start_date": obj.project.start_date,
+            "end_date": obj.project.start_date,
+        }
+
+
+class StaffProfileSerializer(serializers.ModelSerializer):
+    user = StaffProfileUserSerializer(read_only=True)
+    project_memberships = ProjectMembershipSerializer(
+        many=True, read_only=True, source="projects"
+    )
+    employment = EmploymentEntrySerializer(many=True, read_only=True)
+    education = EducationEntrySerializer(many=True, read_only=True)
+
+    def get_title():
+        pass
+
+    def get_first_name():
+        pass
+
+    def get_last_name():
+        pass
+
+    def get_business_area():
+        pass
+
+    def get_branch():
+        pass
+
+    def get_user_pk():
+        pass
+
+    # I want to serialize project_memberships to get the project.title and project.description and project.year only and return that
+
+    # I want to serialize employment so it doesnt return the staff profile part (should I just use related name with onetomany instead of fk?)
+
+    # I want to serialize education so it doesnt return the staff profile part (should I just use related name with onetomany instead of fk?)
+
+    class Meta:
+        model = PublicStaffProfile
+        fields = (
+            "pk",
+            "is_hidden",
+            "aucode",
+            "user",
+            "dbca_position_title",
+            "keyword_tags",
+            "about_me",
+            "expertise",
+            "education",
+            "project_memberships",
+            "employment",
+            "publications",
         )
 
 

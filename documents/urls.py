@@ -105,8 +105,6 @@ urlpatterns = [
     path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
     path("reports", views.Reports.as_view()),
     path("reports/<int:pk>", views.ReportDetail.as_view()),
-    path("publications", views.Publications.as_view()),
-    path("publications/<int:pk>", views.PublicationDetail.as_view()),
     # Helper
     path("downloadProjectDocument/<int:pk>", views.DownloadProjectDocument.as_view()),
     path("spawn", views.DocumentSpawner.as_view()),
@@ -132,3 +130,7 @@ urlpatterns = [
         views.GetConceptPlanData.as_view(),
     ),
 ]
+
+
+# path("publications", views.Publications.as_view()),
+# path("publications/<int:pk>", views.PublicationDetail.as_view()),

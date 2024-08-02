@@ -17,7 +17,7 @@ from .models import (
     ProjectClosure,
     Endorsement,
     ProjectDocument,
-    Publication,
+    # Publication,
     AnnualReport,
 )
 from medias.serializers import (
@@ -310,27 +310,27 @@ class TinyStudentReportSerializer(serializers.ModelSerializer):
         ]
 
 
-class TinyPublicationSerializer(serializers.ModelSerializer):
-    apa_citation = serializers.SerializerMethodField()
+# class TinyPublicationSerializer(serializers.ModelSerializer):
+#     apa_citation = serializers.SerializerMethodField()
 
-    def get_apa_citation(self, obj):
-        return obj.get_apa_citation()
+#     def get_apa_citation(self, obj):
+#         return obj.get_apa_citation()
 
-    class Meta:
-        model = Publication
-        fields = ["pk", "title", "kind", "year", "apa_citation"]
+#     class Meta:
+#         model = Publication
+#         fields = ["pk", "title", "kind", "year", "apa_citation"]
 
 
-class PublicationSerializer(serializers.ModelSerializer):
-    apa_citation = serializers.SerializerMethodField()
-    internal_authors = TinyUserSerializer(many=True, read_only=True)
+# class PublicationSerializer(serializers.ModelSerializer):
+#     apa_citation = serializers.SerializerMethodField()
+#     internal_authors = TinyUserSerializer(many=True, read_only=True)
 
-    def get_apa_citation(self, obj):
-        return obj.get_apa_citation()
+#     def get_apa_citation(self, obj):
+#         return obj.get_apa_citation()
 
-    class Meta:
-        model = Publication
-        fields = "__all__"
+#     class Meta:
+#         model = Publication
+#         fields = "__all__"
 
 
 class AnnualReportSerializer(serializers.ModelSerializer):

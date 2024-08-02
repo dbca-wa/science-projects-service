@@ -29,6 +29,7 @@ from rest_framework.exceptions import NotFound
 from .serializers import (
     PrivateTinyUserSerializer,
     ProfilePageSerializer,
+    TinyStaffProfileSerializer,
     TinyUserProfileSerializer,
     TinyUserSerializer,
     TinyUserWorkSerializer,
@@ -56,7 +57,7 @@ from rest_framework.status import (
 )
 from rest_framework.permissions import (
     IsAuthenticated,
-    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
     AllowAny,
 )
 from rest_framework.exceptions import ParseError
@@ -258,6 +259,66 @@ class SmallInternalUserSearch(APIView):
         ).data
 
         response_data = {"users": serialized_users}
+
+        return Response(response_data, status=HTTP_200_OK)
+
+
+class StaffProfiles(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, req):
+        settings.LOGGER.info(
+            msg=f"(Public) {req.user} is viewing/filtering STAFF PROFILES"
+        )
+        try:
+            page = int(req.query_params.get("page", 1))
+        except ValueError:
+            # If the user sends a non-integer value as the page parameter
+            page = 1
+
+        page_size = 16
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        search_term = req.GET.get("searchTerm")
+
+        if search_term:
+            # Check if there is a space in the search term (fn + ln)
+            search_parts = search_term.split(" ", 1)
+            # Apply filtering based on the search term
+            if len(search_parts) == 2:
+                first_name, last_name = search_parts
+                users = User.objects.filter(is_staff=True).filter(
+                    Q(first_name__icontains=first_name)
+                    & Q(last_name__icontains=last_name)
+                )
+
+            else:
+                # If the search term cannot be split, continue with the existing logic
+                users = User.objects.filter(is_staff=True).filter(
+                    Q(first_name__icontains=search_term)
+                    | Q(last_name__icontains=search_term)
+                )
+
+        else:
+            users = User.objects.filter(is_staff=True).all()
+
+        # Sort users alphabetically based on email
+        users = users.order_by("first_name")
+
+        total_users = users.count()
+        total_pages = ceil(total_users / page_size)
+
+        serialized_users = TinyStaffProfileSerializer(
+            users[start:end], many=True, context={"request": req}
+        ).data
+
+        response_data = {
+            "users": serialized_users,
+            "total_results": total_users,
+            "page": page,
+            "total_pages": total_pages,
+        }
 
         return Response(response_data, status=HTTP_200_OK)
 
@@ -505,6 +566,60 @@ class UsersProjects(APIView):
         # id?: number | undefined;
         # title: string;
         # }
+
+
+class StaffProfileDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            obj = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        user = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {user.first_name} {user.last_name}"
+        )
+        ser = ProfilePageSerializer(
+            user,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting user: {user}")
+        user.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        user = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating user: {user}")
+        ser = UserSerializer(
+            user,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_user = ser.save()
+            return Response(
+                TinyUserSerializer(u_user).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class UserDetail(APIView):
