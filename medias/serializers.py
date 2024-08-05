@@ -199,9 +199,12 @@ class AnnualReportPDFSerializer(ModelSerializer):
 
     def get_pdf_data(self, obj):
         if obj.file:
-            with open(obj.file.path, "rb") as file:
-                pdf_data = file.read()
-                return base64.b64encode(pdf_data).decode("utf-8")
+            try:
+                with open(obj.file.path, "rb") as file:
+                    pdf_data = file.read()
+                    return base64.b64encode(pdf_data).decode("utf-8")
+            except FileNotFoundError:
+                return None
 
         return None
 

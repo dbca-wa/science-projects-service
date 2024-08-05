@@ -582,7 +582,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 "publications_chapter_image": publications_chapter_image,
                 "generic_chapter_image_path": generic_chapter_image,
                 # Cover page
-                "financial_year_string": f"FY {int(report.year-1)}-{int(report.year)}",
+                "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
                 # ED Message
                 "directors_message_data": directors_message_data,
                 # TABLE CONTENTS
@@ -675,6 +675,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                         # Delete the previous file
                         pdfs_file_path = doc_pdf.file.path
                         default_storage.delete(pdfs_file_path)
+                        os.remove(html_file_path)
                         doc_pdf = ser.save()
                         return Response(
                             AnnualReportPDFSerializer(doc_pdf).data,
@@ -1132,7 +1133,7 @@ class BeginReportDocGeneration(APIView):
                 "publications_chapter_image": publications_chapter_image,
                 "generic_chapter_image_path": generic_chapter_image,
                 # Cover page
-                "financial_year_string": f"FY {int(report.year-1)}-{int(report.year)}",
+                "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
                 # ED Message
                 "directors_message_data": directors_message_data,
                 # TABLE CONTENTS
@@ -1225,6 +1226,7 @@ class BeginReportDocGeneration(APIView):
                         # Delete the previous file
                         pdfs_file_path = doc_pdf.file.path
                         default_storage.delete(pdfs_file_path)
+                        os.remove(html_file_path)
                         doc_pdf = ser.save()
                         return Response(
                             AnnualReportPDFSerializer(doc_pdf).data,
@@ -1668,27 +1670,27 @@ class BeginProjectDocGeneration(APIView):
                     "concept": [
                         "concept",
                         "Science Concept Plan",
-                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                        f"{int(doc_year-1)}-{int(doc_year)}",
                     ],
                     "projectplan": [
                         "project",
                         "Science Project Plan",
-                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                        f"{int(doc_year-1)}-{int(doc_year)}",
                     ],
                     "progressreport": [
                         "progress",
                         "Progress Report",
-                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                        f"{int(doc_year-1)}-{int(doc_year)}",
                     ],
                     "studentreport": [
                         "student",
                         "Student Report",
-                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                        f"{int(doc_year-1)}-{int(doc_year)}",
                     ],
                     "projectclosure": [
                         "closure",
                         "Project Closure",
-                        f"FY {int(doc_year-1)}-{int(doc_year)}",
+                        f"{int(doc_year-1)}-{int(doc_year)}",
                     ],
                 }
             else:
@@ -5849,7 +5851,7 @@ class NewCycleOpenEmail(APIView):
 
         # Get FY information
         financial_year = req.data["financial_year"]
-        financial_year_string = f"FY {int(financial_year-1)}-{int(financial_year)}"
+        financial_year_string = f"{int(financial_year-1)}-{int(financial_year)}"
 
         processed = []
         for recipient in recipients_list:
@@ -6194,7 +6196,7 @@ class NewCycleOpen(APIView):
             actioning_user_email = f"{actioning_user.email}"
 
             # Get report details:
-            financial_year_string = f"FY {int(last_report.year-1)}-{int(last_report.year)}"
+            financial_year_string = f"{int(last_report.year-1)}-{int(last_report.year)}"
             # Get recipient list
             recipients_list = []
             bas = BusinessArea.objects.all()
@@ -6957,6 +6959,7 @@ class GetReportPDF(APIView):
         ser = AnnualReportPDFSerializer(
             pdf_object,
         )
+        # print(ser.data)
         # pdf_data = ser.data.get('pdf_data')
         # Convert the serialized data to a dictionary
         serialized_data = json.loads(json.dumps(ser.data, cls=DjangoJSONEncoder))

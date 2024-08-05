@@ -361,7 +361,7 @@ class StaffProfileProjectEntry(CommonModel):
         related_name="project_entries",
     )
     project_membership = models.ManyToManyField(
-        "projects.ProjectMembership"
+        "projects.ProjectMember"
     )  # with related project
     flavour_text = (
         models.TextField()

@@ -24,7 +24,7 @@ from medias.models import UserAvatar
 from medias.serializers import TinyUserAvatarSerializer
 from medias.views import UserAvatarDetail, UserAvatars
 from projects.models import Project, ProjectMember
-from .models import User, UserProfile, UserWork
+from .models import PublicStaffProfile, User, UserProfile, UserWork
 from rest_framework.exceptions import NotFound
 from .serializers import (
     PrivateTinyUserSerializer,
@@ -263,64 +263,6 @@ class SmallInternalUserSearch(APIView):
         return Response(response_data, status=HTTP_200_OK)
 
 
-class StaffProfiles(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, req):
-        settings.LOGGER.info(
-            msg=f"(Public) {req.user} is viewing/filtering STAFF PROFILES"
-        )
-        try:
-            page = int(req.query_params.get("page", 1))
-        except ValueError:
-            # If the user sends a non-integer value as the page parameter
-            page = 1
-
-        page_size = 16
-        start = (page - 1) * page_size
-        end = start + page_size
-
-        search_term = req.GET.get("searchTerm")
-
-        if search_term:
-            # Check if there is a space in the search term (fn + ln)
-            search_parts = search_term.split(" ", 1)
-            # Apply filtering based on the search term
-            if len(search_parts) == 2:
-                first_name, last_name = search_parts
-                users = User.objects.filter(is_staff=True).filter(
-                    Q(first_name__icontains=first_name)
-                    & Q(last_name__icontains=last_name)
-                )
-
-            else:
-                # If the search term cannot be split, continue with the existing logic
-                users = User.objects.filter(is_staff=True).filter(
-                    Q(first_name__icontains=search_term)
-                    | Q(last_name__icontains=search_term)
-                )
-
-        else:
-            users = User.objects.filter(is_staff=True).all()
-
-        # Sort users alphabetically based on email
-        users = users.order_by("first_name")
-
-        total_users = users.count()
-        total_pages = ceil(total_users / page_size)
-
-        serialized_users = TinyStaffProfileSerializer(
-            users[start:end], many=True, context={"request": req}
-        ).data
-
-        response_data = {
-            "users": serialized_users,
-            "total_results": total_users,
-            "page": page,
-            "total_pages": total_pages,
-        }
-
-        return Response(response_data, status=HTTP_200_OK)
 
 
 class Users(APIView):
@@ -568,13 +510,99 @@ class UsersProjects(APIView):
         # }
 
 
+
+class MyStaffProfile(APIView):
+    permission_classes = [AllowAny]
+
+    def go(self, pk):
+        try:
+            obj = PublicStaffProfile.objects.get(user=pk)
+        except PublicStaffProfile.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        staff_profile = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is viewing their staff profile"
+        )
+        ser = StaffProfileSerializer(
+            staff_profile,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+class StaffProfiles(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, req):
+        settings.LOGGER.info(
+            msg=f"(Public) {req.user} is viewing/filtering STAFF PROFILES"
+        )
+        try:
+            page = int(req.query_params.get("page", 1))
+        except ValueError:
+            # If the user sends a non-integer value as the page parameter
+            page = 1
+
+        page_size = 16
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        search_term = req.GET.get("searchTerm")
+
+        if search_term:
+            # Check if there is a space in the search term (fn + ln)
+            search_parts = search_term.split(" ", 1)
+            # Apply filtering based on the search term
+            if len(search_parts) == 2:
+                first_name, last_name = search_parts
+                users = User.objects.filter(is_staff=True).filter(
+                    Q(first_name__icontains=first_name)
+                    & Q(last_name__icontains=last_name)
+                )
+
+            else:
+                # If the search term cannot be split, continue with the existing logic
+                users = User.objects.filter(is_staff=True).filter(
+                    Q(first_name__icontains=search_term)
+                    | Q(last_name__icontains=search_term)
+                )
+
+        else:
+            users = User.objects.filter(is_staff=True).all()
+
+        # Sort users alphabetically based on email
+        users = users.order_by("first_name")
+
+        total_users = users.count()
+        total_pages = ceil(total_users / page_size)
+
+        serialized_users = TinyStaffProfileSerializer(
+            users[start:end], many=True, context={"request": req}
+        ).data
+
+        response_data = {
+            "users": serialized_users,
+            "total_results": total_users,
+            "page": page,
+            "total_pages": total_pages,
+        }
+
+        return Response(response_data, status=HTTP_200_OK)
+
+
+
 class StaffProfileDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def go(self, pk):
         try:
-            obj = User.objects.get(pk=pk)
-        except User.DoesNotExist:
+            obj = PublicStaffProfile.objects.get(pk=pk)
+        except PublicStaffProfile.DoesNotExist:
             raise NotFound
         return obj
 
