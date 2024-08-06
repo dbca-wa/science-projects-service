@@ -103,32 +103,34 @@
 /* TOC */
 .toc_list_item {
 	font-weight: bold;
-	font-size: 14px;
+	font-size: 12.5px !important;
 	list-style-type: none;
 	margin-left: -40px;
 	padding: 0;
 	margin-bottom: 10px;
 	margin-top: 10px;
+	line-height: 1.15em;
 }
 
 .toc_anchor_title {
-	font-size: 13px;
+	font-size: 12.5px !important;
 }
 
 .toc_anchor_subtitle {
-	font-size: 13px;
+	font-size: 12px !important;
 }
 
 .toc_sub_list_item {
 	font-weight: normal;
-	font-size: 13px;
+	font-size: 12px !important;
 	list-style-type: none;
 	margin-left: 30px;
 	margin-bottom: 5px;
+	line-height: 1.15em;
 }
 
 .toc_sublist_container {
-	font-size: 13px;
+	font-size: 12px !important;
 	list-style-type: none;
 	margin-left: -40px;
 }
@@ -395,7 +397,7 @@ ul {
 
 .directors_message_container {
 	margin-top: 30px;
-	font-size: 12.5px;
+	font-size: 12px !important;
 	text-align: justify;
 }
 
@@ -632,6 +634,7 @@ ul {
 	/* padding: 0;
     margin: 0; */
 	text-align: justify !important;
+	line-height: 1.15em;
 }
 
 /* .orphanage_widow ul,

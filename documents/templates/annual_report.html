@@ -10,6 +10,7 @@
         @page {
             orphans: 3;
             widows: 3;
+            size: A4;
         }
         {% comment %} content: string(doctitle);
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -38,7 +39,7 @@
             border-top: none;
             border-bottom: none;
             margin-top: 0cm;
-            padding-top: 0cm;
+            padding-top: 1cm;
         }
 
         {% comment %} CATCH ALL FOR ALL NON-NAMED PAGES AFTER PREAMBLE {% endcomment %}
@@ -56,12 +57,10 @@
                 content: " ";
             }
 
-            padding-top: 10px;
-            margin-bottom: 60px;
+            margin-top: max(0cm, 1.4cm);
+            margin-bottom: 1.4cm;
             border-bottom: 0.25pt solid #666;
             border-top: 0.25pt solid #666;
-
-            {% comment %} padding-bottom: 15px; {% endcomment %}
 
         }
         
@@ -101,7 +100,7 @@
             @top-left {
                 font-weight: bold;
                 font-size: 14px;
-                margin-top: 1cm;
+                margin-top: 0cm;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
             }
@@ -123,7 +122,8 @@
             @top-left {
                 content: normal
             }
-            margin-bottom: 60px;
+            padding-top: 1cm;
+            margin-bottom: 1.4cm;
             padding-bottom: 20px;
             border-bottom: 0.25pt solid #666;
 
@@ -150,7 +150,7 @@
             }
             border-top: none;
             margin-top: 0cm;
-            padding-top: 2cm;
+            padding-top: 1.4cm;
 
         }
 
@@ -176,9 +176,7 @@
             }
             border-top: none;
             margin-top: 0cm;
-            padding-top: 2cm;
-            
-
+            padding-top: 1.4cm;
         }
 
         
@@ -196,7 +194,7 @@
             @top-right {
                 content: " ";
             }
-            margin-bottom: 60px;
+            margin-bottom: 1.4cm;
             border-bottom: 0.25pt solid #666;
 
         }
@@ -248,8 +246,9 @@
                 content: " ";
             }
 
-            padding-top: 10px;
-            margin-bottom: 60px;
+            margin-top: 1.4cm;
+            padding-top: 0.3cm;
+            margin-bottom: 1.4cm;
             border-bottom: 0.25pt solid #666;
             border-top: 0.25pt solid #666;
         }
@@ -271,8 +270,8 @@
                 content: " ";
             }
 
-            padding-top: 10px;
-            margin-bottom: 60px;
+            margin-top: max(0cm, 1.4cm);
+            margin-bottom: 1.4cm;
         }
 
 
@@ -300,9 +299,12 @@
             @top-right {
                 font-weight: bold;
                 font-size: 14px;
-                margin-top: 1cm;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
+                margin-top: max(0cm, 1.4cm);
+                margin-bottom: 0cm !important;
+                padding-top: 0cm !important;
+                padding-bottom: 0cm !important;      
             }
             @top-left {
                 z-index: 2;
@@ -313,7 +315,10 @@
                 background-position: center; 
                 height: 100%;
                 width: 30%;
-                margin-top: 0.7cm;
+                margin-top: max(0cm, 1.4cm);
+                margin-bottom: 0cm !important;
+                padding-top: 0cm !important;
+                padding-bottom: 0cm !important;             
             }
         }
 
@@ -341,9 +346,12 @@
             @top-left {
                 font-weight: bold;
                 font-size: 14px;
-                margin-top: 1cm;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
+                margin-top: max(0cm, 1.4cm);
+                margin-bottom: 0cm !important;
+                padding-top: 0cm !important;
+                padding-bottom: 0cm !important;      
             }         
             @top-right {
                 z-index: 2;
@@ -354,7 +362,10 @@
                 background-position: center; 
                 height: 100%;
                 width: 30%;
-                margin-top: 0.7cm;
+                margin-top: max(0cm, 1.4cm);
+                margin-bottom: 0cm !important;
+                padding-top: 0cm !important;
+                padding-bottom: 0cm !important;            
             }  
         }
 
@@ -368,7 +379,7 @@
             @top-right {
                 font-weight: bold;
                 font-size: 14px;
-                margin-top: 1cm;
+                margin-top: 0cm;
                 z-index: 2;
                 color: orange;
                 content: " ";
@@ -382,7 +393,7 @@
             @top-left {
                 font-weight: bold;
                 font-size: 14px;
-                margin-top: 1cm;
+                margin-top: 0cm;
                 z-index: 2;
                 color: orange;
                 content: " ";
@@ -645,14 +656,14 @@
 <body class="page_body" onload="runLoad()"> 
 
     {% comment %} PRINCE BLOCK {% endcomment %}
-    <div class="prince_page">
+    {% comment %} <div class="prince_page">
         <div class="prince_blocker">
             <p>Generated {{time_generated}}</p>
             <p>Template populated in {{population_time}} seconds</p>
             <p>Site URL: {{site_url}}</p>
             <p>Image URL: {{dbca_image_path}}</p>
         </div>
-    </div>
+    </div> {% endcomment %}
 
     {% comment %} COVER {% endcomment %}
     <div class="coverpage_page">
