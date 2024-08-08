@@ -97,7 +97,7 @@ if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
     ALLOW_LIST.append(PRINCE_SERVER_URL)
 
 ALLOW_LIST += [SITE_URL_HTTP]
-ALLOW_LIST += [env("PRODUCTION_SITE_URL")]
+# ALLOW_LIST += [env("SITE_URL")]
 
 
 ALLOW_LIST_HTTP = [
