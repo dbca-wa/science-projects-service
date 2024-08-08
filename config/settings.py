@@ -81,6 +81,9 @@ if not DEBUG and PRINCE_SERVER_URL == "":
     PRINCE_SERVER_URL = BASE_DIR
 
 ALLOW_LIST = [
+    "scienceprojects-test.dbca.wa.gov.au",
+    "scienceprojects.dbca.wa.gov.au",
+    "profiles.dbca.wa.gov.au",
     "127.0.0.1",
     "localhost",
     "dbcab2c.b2clogin.com",
