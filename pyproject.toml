@@ -14,7 +14,6 @@ dj-database-url = "^2.1.0"
 django-cors-headers = "^4.3.0"
 django-environ = "^0.11.2"
 djangorestframework = "^3.14.0"
-psycopg2-binary = "^2.9.9"
 python-dotenv = "^1.0.0"
 python-dateutil = "^2.8.2"
 requests = "^2.31.0"
@@ -28,6 +27,7 @@ cssutils = "^2.9.0"
 html2text = "^2024.2.25"
 tqdm = "^4.66.2"
 sentry-sdk = "^2.1.1"
+psycopg = {version = "3.2.1", extras = ["binary", "pool"]}
 
 
 [build-system]

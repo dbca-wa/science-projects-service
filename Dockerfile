@@ -68,11 +68,11 @@ RUN poetry install
 RUN echo '# Custom .bashrc modifications\n' \
     'fromdate="21.06.2024"\n' \
     'todate=$date\n' \
-    'from=`echo $fromdate | awk  -F\. '\''{print $3$2$1}'\''`\n' \
-    'to=`echo $todate | awk  -F\. '\''{print $3$2$1}'\''`\n' \
+    'from=`echo $fromdate | awk -F\. '\''{print $3$2$1}'\''`\n' \
+    'to=`echo $todate | awk -F\. '\''{print $3$2$1}'\''`\n' \
     'START_DATE=`date --date=$from +"%s"`\n' \
     'END_DATE=`date --date=$to +"%s"`\n' \
-    'DAYS=$((($END_DATE - $START_DATE  ) / 86400 ))\n' \
+    'DAYS=$((($END_DATE - $START_DATE) / 86400 ))\n' \
     'RED='\''\033[0;31m'\''\n' \
     'GREEN='\''\033[0;32m'\''\n' \
     'PURPLE='\''\033[0;35m'\''\n' \
@@ -80,20 +80,20 @@ RUN echo '# Custom .bashrc modifications\n' \
     'ORDBG='\''\033[0;48m'\''\n' \
     'GREENBG='\''\033[0;42m'\''\n' \
     'NC='\''\033[0m'\'' # No Color\n' \
-    'LB='\''\e[94m'\'' #Light Blue\n' \
+    'LB='\''\e[94m'\'' # Light Blue\n' \
     'PS1="\n\n\[$(tput sgr0)\]\[\033[38;5;105m\]\d\[$(tput sgr0)\], \[$(tput sgr0)\]\[\033[38;5;15m\]\D{%H:%M:%S}\[$(tput sgr0)\]\n\[$(tput sgr0)\]\[\033[38;5;76m\]\w\[$(tput sgr0)\]\n\[$(tput sgr0)\]\[\033[38;5;10m\]--------------------------------\[$(tput sgr0)\]\n\[$(tput sgr0)\]\[\033[38;5;14m\]>\[$(tput sgr0)\]"\n' \
     'alias home="cd ~"\n' \
     'alias settz="export TZ=$TZ"\n' \
     'alias edit="home && vim .bashrc"\n' \
     'alias cleardb="python manage.py sqlflush | python manage.py dbshell"\n' \
     'alias migrate="python manage.py makemigrations && python manage.py migrate"\n' \
-    'alias connect_prod="PGPASSWORD=$PRODUCTION_PASSWORD psql -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME"\n' \
-    'alias dump_prod="PGPASSWORD=$PRODUCTION_PASSWORD pg_dump -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -f -Fc prod.dump"\n' \
-    'alias res_prod="PGPASSWORD=$PRODUCTION_PASSWORD psql -h $PRODUCTION_HOST -d $PRODUCTION_DB_NAME -U $PRODUCTION_USERNAME -a -f prod.dump"\n' \
-    'alias connect_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME"\n' \
-    'alias dump_test="PGPASSWORD=$UAT_PASSWORD pg_dump -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -f uat_dump.sql"\n' \
-    'alias res_test="PGPASSWORD=$UAT_PASSWORD psql -h $PRODUCTION_HOST -d $UAT_DB_NAME -U $UAT_USERNAME -a -f uat_dump.sql"\n' \
-    'settz\n'>> ~/.bashrc
+    'settz\n' >> ~/.bashrc
+
+
+#  'alias connect_prod='"'"'eval $(echo $DB_URL | awk -F[/:@] '\''{print "USER="$4" PASSWORD="$5" HOST="$6" NAME="$7}'\'') && PGPASSWORD=$PASSWORD psql -h $HOST -d $NAME -U $USER'"'"'\n' \
+#     'alias dump_prod='"'"'eval $(echo $DB_URL | awk -F[/:@] '\''{print "USER="$4" PASSWORD="$5" HOST="$6" NAME="$7}'\'') && PGPASSWORD=$PASSWORD pg_dump -h $HOST -d $NAME -U $USER -f -Fc database_dump.sql'"'"'\n' \
+#     'alias res_prod='"'"'eval $(echo $DB_URL | awk -F[/:@] '\''{print "USER="$4" PASSWORD="$5" HOST="$6" NAME="$7}'\'') && PGPASSWORD=$PASSWORD psql -h $HOST -d $NAME -U $USER -a -f database_dump.sql'"'"'\n' \
+
 # >> /home/spmsuser/.bashrc
 # >> ~/.bashrc
 #     >> /home/spmsuser/.bashrc

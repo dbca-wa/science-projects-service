@@ -2,6 +2,7 @@ import logging
 from logging import LogRecord
 from pathlib import Path
 import os
+import dj_database_url
 import environ
 
 import sentry_sdk
@@ -14,7 +15,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 DEBUG = True if os.environ.get("DJANGO_DEBUG") != "False" else False
+DATABASE_URL = os.environ.get("DATABASE_URL")
 ON_TEST_NETWORK = True if os.environ.get("ON_TEST_NETWORK") != "False" else False
+SITE_URL_HTTP = f'https://{env("SITE_URL")}'
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 
@@ -49,38 +52,7 @@ ENVELOPE_USE_HTML_EMAIL = True
 
 
 # Database =============================================================
-if DEBUG:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": f"{env('LOCAL_DBNAME')}",
-            "USER": f"{env('PGUSER')}",
-            "PASSWORD": f"{env('PGPASS')}",
-            "OPTIONS": {
-                "options": "-c client_encoding=utf8",
-            },
-            "CONN_MAX_AGE": 600,
-            "HOST": "127.0.0.1",
-            "PORT": "5432",
-        }
-    }
-else:
-    # Azure provisioned DB
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql_psycopg2",
-            "NAME": env("PRODUCTION_DB_NAME"),
-            "USER": env("PRODUCTION_USERNAME"),
-            "PASSWORD": env("PRODUCTION_PASSWORD"),
-            "HOST": env("PRODUCTION_HOST"),
-            "PORT": "5432",
-            "OPTIONS": {
-                "options": "-c client_encoding=utf8",
-            },
-            "CONN_MAX_AGE": 600,
-        }
-    }
-
+DATABASES = {"default": dj_database_url.config()}
 
 # Auth =========================================================
 AUTH_USER_MODEL = "users.User"
@@ -124,18 +96,8 @@ ALLOW_LIST = [
 if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
     ALLOW_LIST.append(PRINCE_SERVER_URL)
 
-ALLOW_LIST += [env("PRODUCTION_SITE_URL_HTTP")]
+ALLOW_LIST += [SITE_URL_HTTP]
 ALLOW_LIST += [env("PRODUCTION_SITE_URL")]
-
-
-if not DEBUG:
-
-    if ON_TEST_NETWORK:
-        cluster_ip = os.getenv("UAT_CLUSTER_IP", None)
-    else:
-        cluster_ip = os.getenv("PRODUCTION_CLUSTER_IP", None)
-    if cluster_ip:
-        ALLOW_LIST += [cluster_ip]
 
 
 ALLOW_LIST_HTTP = [
@@ -147,27 +109,9 @@ ALLOW_LIST_HTTP = [
     for item in ALLOW_LIST
 ]
 ALLOWED_HOSTS = ALLOW_LIST
-additional_host = os.getenv("ADDITIONAL_HOST", default=None)
-if additional_host:
-    additional_host_list = additional_host.split(",")
-    ALLOWED_HOSTS += additional_host_list
-
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = ALLOW_LIST_HTTP
 CSRF_TRUSTED_ORIGINS = ALLOW_LIST_HTTP
-
-additional_url = os.environ.get("ADDITIONAL_URL", default=None)
-if additional_url:
-    additional_url_list = [
-        (
-            item
-            if item.startswith("http://") or item.startswith("https://")
-            else "http://" + item
-        )
-        for item in additional_url.split(",")
-    ]
-    CORS_ALLOWED_ORIGINS += additional_url_list
-    CSRF_TRUSTED_ORIGINS += additional_url_list
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -186,13 +130,13 @@ CORS_ALLOW_HEADERS = [
 if DEBUG:
     SITE_URL = "127.0.0.1:3000"
 else:
-    SITE_URL = env("PRODUCTION_SITE_URL_HTTP")
+    SITE_URL = SITE_URL_HTTP
 
 
 if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
-    INSTANCE_URL = env("PRODUCTION_SITE_URL_HTTP")
+    INSTANCE_URL = SITE_URL_HTTP
 
 CORS_ALLOWED_ORIGINS += [
     "https://dbcab2c.b2clogin.com",
