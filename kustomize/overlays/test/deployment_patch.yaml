@@ -1,0 +1,148 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spms-deployment
+  labels:
+    app: spms-test
+spec:
+  selector:
+    matchLabels:
+      app: spms-test
+  template:
+    metadata:
+      labels:
+        app: spms-test
+    spec:
+      initContainers:
+        - name: chown-files
+          image: busybox
+          command:
+            - /bin/chown
+            - -R
+            - "10001:10001"
+            - /usr/src/app/backend/files
+          volumeMounts:
+            - mountPath: /usr/src/app/backend/files
+              name: spms-media-test
+      containers:
+        - name: spms-backend
+          env:
+          - name: DJANGO_DEBUG
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: DJANGO_DEBUG
+          - name: ON_TEST_NETWORK
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: ON_TEST_NETWORK
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SECRET_KEY
+          - name: EXTERNAL_PASS
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: EXTERNAL_PASS
+          - name: DEFAULT_FROM_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: DEFAULT_FROM_EMAIL
+          - name: SPMS_MAINTAINER_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SPMS_MAINTAINER_EMAIL
+          - name: LOCAL_DBNAME
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: LOCAL_DBNAME
+          - name: PGUSER
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PGUSER
+          - name: PGPASS
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PGPASS
+          - name: PRODUCTION_DB_NAME
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_DB_NAME
+          - name: PRODUCTION_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_USERNAME
+          - name: PRODUCTION_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_PASSWORD
+          - name: PRODUCTION_HOST
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_HOST
+          - name: PRODUCTION_SITE_URL_HTTP
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_SITE_URL_HTTP
+          - name: PRODUCTION_SITE_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_SITE_URL
+          - name: SENTRY_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SENTRY_URL
+          - name: PRINCE_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_SERVER_URL
+          - name: PRINCE_LICENSE_ID
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_LICENSE_ID
+          - name: PRINCE_LICENSE_SIGNATURE
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_LICENSE_SIGNATURE
+          volumeMounts:
+            - mountPath: /usr/src/app/backend/files
+              name: spms-media-test
+        - name: spms-frontend
+          env:
+          - name: DEBUG
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: DEBUG
+          - name: PRODUCTION_API_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRODUCTION_API_URL
+          - name: REACT_APP_ENV
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: REACT_APP_ENV
+      volumes:
+        - name: spms-media-test
+          persistentVolumeClaim:
+            claimName: spms-media-data-test

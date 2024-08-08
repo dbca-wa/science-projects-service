@@ -1,0 +1,10 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: spms-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: spms-test
+      variant: test
