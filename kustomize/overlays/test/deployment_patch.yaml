@@ -28,91 +28,31 @@ spec:
         - name: spms-backend
           image: ghcr.io/dbca-wa/science-projects-service:3.1.10
           env:
-          - name: DJANGO_DEBUG
+          - name: DATABASE_URL
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: DJANGO_DEBUG
-          - name: ON_TEST_NETWORK
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: ON_TEST_NETWORK
-          - name: SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: SECRET_KEY
-          - name: EXTERNAL_PASS
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: EXTERNAL_PASS
+                key: DATABASE_URL
           - name: DEFAULT_FROM_EMAIL
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
                 key: DEFAULT_FROM_EMAIL
-          - name: SPMS_MAINTAINER_EMAIL
+          - name: DJANGO_DEBUG
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: SPMS_MAINTAINER_EMAIL
-          - name: LOCAL_DBNAME
+                key: DJANGO_DEBUG
+          - name: EXTERNAL_PASS
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: LOCAL_DBNAME
-          - name: PGUSER
+                key: EXTERNAL_PASS
+          - name: ON_TEST_NETWORK
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: PGUSER
-          - name: PGPASS
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PGPASS
-          - name: PRODUCTION_DB_NAME
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRODUCTION_DB_NAME
-          - name: PRODUCTION_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRODUCTION_USERNAME
-          - name: PRODUCTION_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRODUCTION_PASSWORD
-          - name: PRODUCTION_HOST
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRODUCTION_HOST
-          - name: PRODUCTION_SITE_URL_HTTP
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRODUCTION_SITE_URL_HTTP
-          - name: PRODUCTION_SITE_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRODUCTION_SITE_URL
-          - name: SENTRY_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: SENTRY_URL
-          - name: PRINCE_SERVER_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: PRINCE_SERVER_URL
+                key: ON_TEST_NETWORK
           - name: PRINCE_LICENSE_ID
             valueFrom:
               secretKeyRef:
@@ -123,22 +63,47 @@ spec:
               secretKeyRef:
                 name: spms-env-test
                 key: PRINCE_LICENSE_SIGNATURE
+          - name: PRINCE_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_SERVER_URL
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SECRET_KEY
+          - name: SENTRY_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SENTRY_URL
+          - name: SITE_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SITE_URL
+          - name: SPMS_MAINTAINER_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SPMS_MAINTAINER_EMAIL
           volumeMounts:
             - mountPath: /usr/src/app/backend/files
               name: spms-media-test
         - name: spms-frontend
-          image: ghcr.io/dbca-wa/science-projects-client:test3.1.9
+          image: ghcr.io/dbca-wa/science-projects-client:test3.1.10
           env:
           - name: DEBUG
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: DEBUG
+                key: DJANGO_DEBUG
           - name: PRODUCTION_API_URL
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: PRODUCTION_API_URL
+                key: VITE_PRODUCTION_BACKEND_API_URL
           - name: REACT_APP_ENV
             valueFrom:
               secretKeyRef:
