@@ -236,7 +236,13 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 # Logs and Tracking =======================================================================
 if not DEBUG:
+    env_type = (
+        "production"
+        if ON_TEST_NETWORK == False or ON_TEST_NETWORK == "False"
+        else "staging"
+    )
     sentry_sdk.init(
+        environment=env_type,
         dsn=env("SENTRY_URL"),
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
