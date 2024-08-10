@@ -81,17 +81,20 @@ if not DEBUG and PRINCE_SERVER_URL == "":
     PRINCE_SERVER_URL = BASE_DIR
 
 ALLOW_LIST = [
+    # prod
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
     "profiles.dbca.wa.gov.au",
+    # All the auth stuff
     "auth.dbca.wa.gov.au",
     "auth2.dbca.wa.gov.au",
     "auth2-uat.dbca.wa.gov.au",
-    "127.0.0.1",
-    "localhost",
     "dbcab2c.b2clogin.com",
     "dbcab2c.onmicrosoft.com",
     "login.microsoftonline.com",
+    # local
+    "127.0.0.1",
+    "localhost",
     "http://localhost",
     "http://0.0.0.0",
     "http://0.0.0.0:8000",

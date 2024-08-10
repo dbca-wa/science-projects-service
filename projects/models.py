@@ -157,7 +157,7 @@ class Project(CommonModel):
 
     title = models.CharField(
         max_length=500,
-        unique=True,
+        # unique=True,
     )
 
     description = models.TextField(
