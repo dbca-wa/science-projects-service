@@ -326,8 +326,8 @@ class MiniUserSerializer(ModelSerializer):
         model = User
         fields = [
             "pk",
-            "first_name",
-            "last_name",
+            "display_first_name",
+            "display_last_name",
             "email",
             "is_active",
             "is_staff",

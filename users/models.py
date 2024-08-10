@@ -66,11 +66,35 @@ class User(AbstractUser):
     #     default=False,
     #     help_text="Whether this user can act as a herbarium curator if not an admin",
     # )
+    display_first_name = models.CharField(
+        max_length=201,  # Max length to accommodate combined first and last names
+        verbose_name=("Display First Name"),
+        help_text=("Automatically populated display name with first name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."),
+    )
+
+    display_last_name = models.CharField(
+        max_length=201,  # Max length to accommodate combined first and last names
+        verbose_name=("Display Last Name"),
+        help_text=("Automatically populated display name with last name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."),
+    )
+
 
     is_aec = models.BooleanField(
         default=False,
         help_text="Whether this user can act as animal ethics committee if not an admin",
     )
+
+    # def save(self, *args, **kwargs):
+    #     if not self.display_first_name:
+    #         # Automatically populate display_name with first_name and last_name
+    #         if self.first_name:
+    #             self.display_first_name = f"{self.first_name}"
+
+    #     if not self.display_last_name:
+    #         # Automatically populate display_name with first_name and last_name
+    #         if self.first_name:
+    #             self.display_last_name = f"{self.last_name}"
+    #     super().save(*args, **kwargs)
 
     def get_formatted_name(self):
         initials = self.profile.middle_initials
@@ -78,9 +102,9 @@ class User(AbstractUser):
             initials_with_dot = "".join(
                 initial[0].upper() + "." for initial in initials.split()
             )
-            return f"{self.last_name.capitalize()}, {self.first_name[0]}. {initials_with_dot}"
+            return f"{self.display_last_name.capitalize()}, {self.display_first_name[0]}. {initials_with_dot}"
         else:
-            return f"{self.last_name.capitalize()}, {self.first_name[0]}."
+            return f"{self.display_last_name.capitalize()}, {self.display_first_name[0]}."
 
     def get_image(self):
         try:

@@ -69,6 +69,8 @@ class TinyUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "pk",
+            "display_first_name",
+            "display_last_name",
             "first_name",
             "last_name",
             "username",
@@ -182,6 +184,8 @@ class UpdatePISerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(read_only=True)
     last_name = serializers.CharField(read_only=True)
     email = serializers.CharField(read_only=True)
+    display_first_name = serializers.CharField()
+    display_last_name = serializers.CharField()
     title = serializers.CharField(
         source="profile.title",
         allow_blank=True,
@@ -203,6 +207,8 @@ class UpdatePISerializer(serializers.ModelSerializer):
         fields = (
             "first_name",
             "last_name",
+            "display_first_name",
+            "display_last_name",
             "email",
             "title",
             "fax",
@@ -210,6 +216,13 @@ class UpdatePISerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
+        # Update the User fields
+        instance.display_first_name = validated_data.get("display_first_name", instance.display_first_name)
+        instance.display_last_name = validated_data.get("display_last_name", instance.display_last_name)
+
+        # Save changes to the User model
+        instance.save()
+
         profile_data = validated_data.pop("profile", None)
         contact_data = validated_data.pop("contact", None)
 
@@ -423,6 +436,8 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "pk",
+            "display_first_name",
+            "display_last_name",
             "first_name",
             "last_name",
             "username",

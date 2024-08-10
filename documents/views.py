@@ -427,7 +427,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 u = User.objects.get(pk=pk)
             except User.DoesNotExist:
                 return ""
-            return f"{u.first_name} {u.last_name}"
+            return f"{u.display_first_name} {u.display_last_name}"
 
         def get_distilled_title(html_string):
             # Parse the HTML using BeautifulSoup
@@ -978,7 +978,7 @@ class BeginReportDocGeneration(APIView):
                 u = User.objects.get(pk=pk)
             except User.DoesNotExist:
                 return ""
-            return f"{u.first_name} {u.last_name}"
+            return f"{u.display_first_name} {u.display_last_name}"
 
         def get_distilled_title(html_string):
             # Parse the HTML using BeautifulSoup
@@ -1433,12 +1433,12 @@ class BeginProjectDocGeneration(APIView):
             team_name_array = []
             if leader:
                 team_name_array.append(
-                    f"{leader.user.first_name} {leader.user.last_name}"
+                    f"{leader.user.display_first_name} {leader.user.display_last_name}"
                 )
 
             for member in sorted_members:
                 team_name_array.append(
-                    f"{member.user.first_name} {member.user.last_name}"
+                    f"{member.user.display_first_name} {member.user.display_last_name}"
                 )
 
             return team_name_array
@@ -2874,12 +2874,12 @@ class GetConceptPlanData(APIView):
                 team_name_array = []
                 if leader:
                     team_name_array.append(
-                        f"{leader.user.first_name} {leader.user.last_name}"
+                        f"{leader.user.display_first_name} {leader.user.display_last_name}"
                     )
 
                 for member in sorted_members:
                     team_name_array.append(
-                        f"{member.user.first_name} {member.user.last_name}"
+                        f"{member.user.display_first_name} {member.user.display_last_name}"
                     )
 
                 return team_name_array
@@ -3204,7 +3204,7 @@ class ReviewDocumentEmail(APIView):
 
         # Get actioning user details (User causing email to be sent)
         actioning_user = User.objects.get(pk=req.user.pk)
-        actioning_user_name = f"{actioning_user.first_name} {actioning_user.last_name}"
+        actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
         actioning_user_email = f"{actioning_user.email}"
 
         # Get recipient list
@@ -3213,7 +3213,7 @@ class ReviewDocumentEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -3382,7 +3382,7 @@ class ProjectClosureEmail(APIView):
         if project_leader:
             recipients_list = []
             user = User.objects.get(pk=project_leader.user.pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -3498,7 +3498,7 @@ class DocumentReadyEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -3629,7 +3629,7 @@ class DocumentSentBackEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -3765,7 +3765,7 @@ class ConceptPlanEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -3857,7 +3857,7 @@ class DocumentApprovedEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -4016,7 +4016,7 @@ class GetProjectLeadEmail(APIView):
 
         for leader in unique_active_project_leads:
             # print(
-            #     f"handling leader {leader.email} | {leader.first_name} {leader.last_name}"
+            #     f"handling leader {leader.email} | {leader.display_first_name} {leader.display_last_name}"
             # )
             if leader.email.endswith("dbca.wa.gov.au"):
                 dbca_users.append(leader)
@@ -4036,7 +4036,7 @@ class GetProjectLeadEmail(APIView):
             dbca_emails.append(
                 {
                 'pk': user.pk, 
-                'name': f'{user.first_name} {user.last_name}', 
+                'name': f'{user.display_first_name} {user.display_last_name}', 
                 'email': f'{user.email}', 
                 'is_staff': user.is_staff, 
                 'is_active': user.is_active,
@@ -4047,7 +4047,7 @@ class GetProjectLeadEmail(APIView):
         # for lead in dbca_users:
         #     projmembers = activeproj_leaders.filter(user=lead).all()
         #     file_content.append(
-        #         f"\nUser: {lead.email} | {lead.first_name} {lead.last_name}\nProjects Led:\n"
+        #         f"\nUser: {lead.email} | {lead.display_first_name} {lead.display_last_name}\nProjects Led:\n"
         #     )
         #     for p in projmembers:
         #         file_content.append(
@@ -4070,7 +4070,7 @@ class GetProjectLeadEmail(APIView):
         # for other in other_users:
         #     projmembers = activeproj_leaders.filter(user=other).all()
         #     file_content.append(
-        #         f"\nUser: {other.email} | {other.first_name} {other.last_name}\nProjects Led:\n"
+        #         f"\nUser: {other.email} | {other.display_first_name} {other.display_last_name}\nProjects Led:\n"
         #     )
         #     for p in projmembers:
         #         file_content.append(
@@ -4088,7 +4088,7 @@ class GetProjectLeadEmail(APIView):
         )
         for leader in unique_inactive_leads:
             # print(
-            #     f"handling inactive leader {leader.email} | {leader.first_name} {leader.last_name}"
+            #     f"handling inactive leader {leader.email} | {leader.display_first_name} {leader.display_last_name}"
             # )
             inactive_leaders.append(leader)
 
@@ -4099,7 +4099,7 @@ class GetProjectLeadEmail(APIView):
             # print(f"Staff: {leader.is_staff}")
             inactive_email_list.append({
                 'pk': leader.pk, 
-                'name': f'{leader.first_name} {leader.last_name}', 
+                'name': f'{leader.display_first_name} {leader.display_last_name}', 
                 'email': f'{leader.email}', 
                 'is_staff': leader.is_staff, 
                 'is_active': leader.is_active,
@@ -4108,7 +4108,7 @@ class GetProjectLeadEmail(APIView):
             # file_content.append(f"{user.email}\n")
             projects_belonging_to = activeproj_leaders.filter(user=leader).all()
             file_content.append(
-                f"\nUser: {leader.email} | {leader.first_name} {leader.last_name}\nProjects Led:\n"
+                f"\nUser: {leader.email} | {leader.display_first_name} {leader.display_last_name}\nProjects Led:\n"
             )
             for p in projects_belonging_to:
                 file_content.append(
@@ -4246,7 +4246,7 @@ class SPMSInviteEmail(APIView):
 #         recipients_list = []
 #         for recipient_pk in recipients_list_data:
 #             user = User.objects.get(pk=recipient_pk)
-#             user_name = f"{user.first_name} {user.last_name}"
+#             user_name = f"{user.display_first_name} {user.display_last_name}"
 #             user_email = f"{user.email}"
 #             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
 #             recipients_list.append(data_obj)
@@ -4346,7 +4346,7 @@ class DocumentRecalledEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -4374,7 +4374,7 @@ class DocumentRecalledEmail(APIView):
 
             actioning_user = User.objects.get(pk=req.user.pk)
             actioning_user_name = (
-                f"{actioning_user.first_name} {actioning_user.last_name}"
+                f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
             )
             actioning_user_email = f"{actioning_user.email}"
             stage = req.data["stage"]
@@ -4895,7 +4895,7 @@ class DocApproval(APIView):
 
                     actioning_user = User.objects.get(pk=req.user.pk)
                     actioning_user_name = (
-                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     )
                     actioning_user_email = f"{actioning_user.email}"
 
@@ -4905,7 +4905,7 @@ class DocApproval(APIView):
                         # get ba lead user as the pl is the actioning user
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         recipients_list.append(data_obj)
@@ -4920,7 +4920,7 @@ class DocApproval(APIView):
                         for member in directorate_users:
                             if member.is_active and member.is_staff:
                                 user = member.pk
-                                user_name = f"{member.first_name} {member.last_name}"
+                                user_name = f"{member.display_first_name} {member.display_last_name}"
                                 user_email = f"{member.email}"
                                 data_obj = {
                                     "pk": user,
@@ -4940,7 +4940,7 @@ class DocApproval(APIView):
                         )
                         pl_user = p_leader.user.pk
                         pl_user_name = (
-                            f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                            f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                         )
                         pl_user_email = f"{p_leader.user.email}"
                         p_leader_data_obj = {
@@ -4952,7 +4952,7 @@ class DocApproval(APIView):
 
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
                         user_email = f"{ba_lead.email}"
                         ba_data_obj = {
                             "pk": user,
@@ -5177,7 +5177,7 @@ class DocRecall(APIView):
 
                     actioning_user = User.objects.get(pk=req.user.pk)
                     actioning_user_name = (
-                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     )
                     actioning_user_email = f"{actioning_user.email}"
 
@@ -5187,7 +5187,7 @@ class DocRecall(APIView):
                         # get ba lead user as the pl is the actioning user
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         print(data_obj)
@@ -5203,7 +5203,7 @@ class DocRecall(APIView):
                         for member in directorate_users:
                             if member.is_active and member.is_staff:
                                 user = member.pk
-                                user_name = f"{member.first_name} {member.last_name}"
+                                user_name = f"{member.display_first_name} {member.display_last_name}"
                                 user_email = f"{member.email}"
                                 data_obj = {
                                     "pk": user,
@@ -5224,7 +5224,7 @@ class DocRecall(APIView):
                             )
                             pl_user = p_leader.user.pk
                             pl_user_name = (
-                                f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                                f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                             )
                             pl_user_email = f"{p_leader.user.email}"
                             p_leader_data_obj = {
@@ -5242,7 +5242,7 @@ class DocRecall(APIView):
                             )
                             pl_user = p_leader.user.pk
                             pl_user_name = (
-                                f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                                f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                             )
                             pl_user_email = f"{p_leader.user.email}"
                             p_leader_data_obj = {
@@ -5456,7 +5456,7 @@ class DocSendBack(APIView):
 
                     actioning_user = User.objects.get(pk=req.user.pk)
                     actioning_user_name = (
-                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     )
                     actioning_user_email = f"{actioning_user.email}"
 
@@ -5472,7 +5472,7 @@ class DocSendBack(APIView):
                         )
                         pl_user = p_leader.user.pk
                         pl_user_name = (
-                            f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                            f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                         )
                         pl_user_email = f"{p_leader.user.email}"
                         p_leader_data_obj = {
@@ -5486,7 +5486,7 @@ class DocSendBack(APIView):
                         # get ba lead user as the directorate is the actioning user
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         recipients_list.append(data_obj)
@@ -5679,7 +5679,7 @@ class DocReopenProject(APIView):
 
                 actioning_user = User.objects.get(pk=req.user.pk)
                 actioning_user_name = (
-                    f"{actioning_user.first_name} {actioning_user.last_name}"
+                    f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                 )
                 actioning_user_email = f"{actioning_user.email}"
 
@@ -5688,7 +5688,7 @@ class DocReopenProject(APIView):
                 # get pl as the ba lead is the actioning user
                 p_leader = ProjectMember.objects.get(project=project, is_leader=True)
                 pl_user = p_leader.user.pk
-                pl_user_name = f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                 pl_user_email = f"{p_leader.user.email}"
                 p_leader_data_obj = {
                     "pk": pl_user,
@@ -5844,7 +5844,7 @@ class NewCycleOpenEmail(APIView):
 
         for recipient_pk in recipients_list_data:
             user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
             recipients_list.append(data_obj)
@@ -6191,7 +6191,7 @@ class NewCycleOpen(APIView):
 
             actioning_user = User.objects.get(pk=req.user.pk)
             actioning_user_name = (
-                f"{actioning_user.first_name} {actioning_user.last_name}"
+                f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
             )
             actioning_user_email = f"{actioning_user.email}"
 
@@ -6204,7 +6204,7 @@ class NewCycleOpen(APIView):
                 ba_lead = ba.leader
                 if ba_lead and ba_lead.is_active and ba_lead.is_staff:
                     user = ba_lead.pk
-                    user_name = f"{ba_lead.first_name} {ba_lead.last_name}"
+                    user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
                     user_email = f"{ba_lead.email}"
                     data_obj = {"pk": user, "name": user_name, "email": user_email}
                     recipients_list.append(data_obj)
@@ -9183,7 +9183,7 @@ class RepoenProject(APIView):
 
                     actioning_user = User.objects.get(pk=req.user.pk)
                     actioning_user_name = (
-                        f"{actioning_user.first_name} {actioning_user.last_name}"
+                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     )
                     actioning_user_email = f"{actioning_user.email}"
 
@@ -9192,7 +9192,7 @@ class RepoenProject(APIView):
                     # get pl as the ba lead is the actioning user
                     p_leader = ProjectMember.objects.get(project=project, is_leader=True)
                     pl_user = p_leader.user.pk
-                    pl_user_name = f"{p_leader.user.first_name} {p_leader.user.last_name}"
+                    pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                     pl_user_email = f"{p_leader.user.email}"
                     p_leader_data_obj = {
                         "pk": pl_user,

@@ -303,7 +303,9 @@ class Users(APIView):
                 first_name, last_name = search_parts
                 users = User.objects.filter(
                     Q(first_name__icontains=first_name)
-                    & Q(last_name__icontains=last_name)
+                    & Q(last_name__icontains=last_name) |
+                    Q(display_first_name__icontains=first_name)
+                    & Q(display_last_name__icontains=last_name)
                     | Q(email__icontains=search_term)
                     | Q(username__icontains=search_term)
                 )
@@ -313,6 +315,8 @@ class Users(APIView):
                 users = User.objects.filter(
                     Q(first_name__icontains=search_term)
                     | Q(last_name__icontains=search_term)
+                    | Q(display_first_name__icontains=search_term)
+                    | Q(display_last_name__icontains=search_term)
                     | Q(email__icontains=search_term)
                     | Q(username__icontains=search_term)
                 )
@@ -682,6 +686,7 @@ class UserDetail(APIView):
     def put(self, req, pk):
         user = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating user: {user}")
+        print("NEWDATA", req.data)
         ser = UserSerializer(
             user,
             data=req.data,
@@ -902,7 +907,15 @@ class UpdatePersonalInformation(APIView):
         title = req.data.get("title")
         phone = req.data.get("phone")
         fax = req.data.get("fax")
+        display_first_name = req.data.get("display_first_name")
+        display_last_name = req.data.get("display_last_name")
+        print(display_first_name, display_last_name)
         updated_data = {}
+
+        if display_first_name is not None and display_first_name != "":
+            updated_data["display_first_name"] = display_first_name
+        if display_last_name is not None and display_last_name != "":
+            updated_data["display_last_name"] = display_last_name
 
         if title is not None and title != "":
             updated_data["title"] = title
@@ -912,6 +925,8 @@ class UpdatePersonalInformation(APIView):
 
         if fax is not None and fax != "":
             updated_data["fax"] = fax
+
+        print(updated_data)
 
         ser = UpdatePISerializer(
             user,
@@ -1179,7 +1194,6 @@ class UpdateMembership(APIView):
         user_work = user.work
 
         # Convert primary key values to integers
-
         if user.is_staff:
             user_pk = int(req.data.get("user_pk")) if req.data.get("user_pk") else 0
             branch_pk = (
@@ -1193,6 +1207,7 @@ class UpdateMembership(APIView):
             affiliation_pk = (
                 int(req.data.get("affiliation")) if req.data.get("affiliation") else 0
             )
+
 
             data_obj = {}
             data_obj["user_pk"] = user_pk

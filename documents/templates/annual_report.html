@@ -804,7 +804,7 @@
                                                 <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                             </div>
                                             <div class="pr_member_container">
-                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.first_name }} {{ item.user.last_name }}{% endfor %}</p>
+                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name }} {{ item.user.display_last_name }}{% endfor %}</p>
                                             </div>
                                         </div>
                                         {% if forloop.counter|divisibleby:2 %}
@@ -933,7 +933,7 @@
                                             {% else %}
                                                 <div class="no_data_table_placeholder">No funding set</div>
                                             {% endif %}</td>
-                                            <td class="dept_involvement_td ext_table_td">{% with members=project.team_members|is_staff_filter %}{% for member in members %}{% if not forloop.first %}, {% endif %}{{ member.user.first_name }} {{ member.user.last_name }}{% endfor %}{% endwith %}</td>
+                                            <td class="dept_involvement_td ext_table_td">{% with members=project.team_members|is_staff_filter %}{% for member in members %}{% if not forloop.first %}, {% endif %}{{ member.user.display_first_name }} {{ member.user.display_last_name }}{% endfor %}{% endwith %}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -980,11 +980,11 @@
                                         {% for report in sorted_student_report_array %}
                                             <tr class="sr_table_tr">
                                                 <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe | extract_text_content }}</td>
-                                                <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
+                                                <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.display_first_name }} {{ student.user.display_last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
                                                 <td class="duration_td sr_table_td">2023 - 2024</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
                                                 <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% if not academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% if forloop.last and academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% endfor %}{% endwith %}</td>
-                                                <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}{% endwith %}</td>
+                                                <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name }} {{ scientist.user.display_last_name }}{% endfor %}{% endwith %}</td>
                                                 <td class="page_td sr_table_td"></td>
                                             </tr>
                                         {% endfor %}
@@ -1040,7 +1040,7 @@
                                         </div> {% endcomment %}
                                         <div class="student_pr_member_container">
                                             <p class="project_text_section_title">Student:</p>
-                                            <p class="pr_member_string">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.first_name }} {{ student.user.last_name }}{% endfor %}{% endwith %}</p>
+                                            <p class="pr_member_string">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.display_first_name }} {{ student.user.display_last_name }}{% endfor %}{% endwith %}</p>
                                         </div>
                                         <div class="student_pr_member_container">
                                             <p class="project_text_section_title">Academic(s):</p>
@@ -1050,7 +1050,7 @@
                                             <p class="project_text_section_title">Scientist(s):</p>
                                             <p class="pr_member_string">
                                                 {% with scientists=report.team_members|get_scientists %}
-                                                    {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.first_name }} {{ scientist.user.last_name }}{% endfor %}
+                                                    {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name }} {{ scientist.user.display_last_name }}{% endfor %}
                                                 {% endwith %}
                                             </p>
                                         </div>
@@ -1188,6 +1188,12 @@
             </div>
         </div>
     </div>
+
+    {% comment %} <div>
+        {% for report in sorted_ba_data_and_pr_dict %}
+        <p>{{ report.team_members }}</p>
+        {% endfor %}
+    </div> {% endcomment %}
 
 </body>
 </html>

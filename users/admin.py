@@ -13,7 +13,36 @@ from agencies.serializers import (
 
 from projects.models import ProjectMember
 from users.serializers import TinyUserSerializer
+from users.views import Users
 from .models import User, UserWork, UserProfile
+
+
+@admin.action(description="Sets the display names to first and last")
+def update_display_names(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+    
+    # Filter for users that do not have display names set but have first and last names
+    users_to_update = User.objects.filter(
+        display_first_name="", 
+        display_last_name=""
+    ).exclude(
+        first_name="", 
+        last_name=""
+    )
+
+    # Iterate and update each user's display names
+    for user in users_to_update:
+        if not user.display_first_name:
+            user.display_first_name = user.first_name
+
+        if not user.display_last_name:
+            user.display_last_name = user.last_name
+
+        user.save()
+
+    model_admin.message_user(req, f"Display names updated for {users_to_update.count()} user(s).")
 
 
 # CREATE AN EXPORT TO CSV FILE FOR CURRENT ENTRIES IN DB
@@ -103,6 +132,7 @@ class CustomUserAdmin(UserAdmin):
     actions = [
         export_selected_users_to_csv,
         export_current_active_project_leads,
+        update_display_names
     ]
     fieldsets = (
         (
@@ -112,6 +142,8 @@ class CustomUserAdmin(UserAdmin):
                     "username",
                     "password",
                     "email",
+                    "display_first_name",
+                    "display_last_name",
                     "first_name",
                     "last_name",
                 ),
@@ -164,6 +196,8 @@ class UserProfileAdmin(admin.ModelAdmin):
     ]
     ordering = ["user"]
     search_fields = [
+        "user__display_first_name",  # Search by first name
+        "user__display_last_name",  # Search by last name
         "user__first_name",  # Search by first name
         "user__last_name",  # Search by last name
         "user__username",  # Search by username
@@ -193,5 +227,8 @@ class UserWorkAdmin(admin.ModelAdmin):
         "business_area__name",
         "user__username",
         "user__first_name",
+        "user__display_first_name",
+        "user__last_name",
+        "user__display_last_name",
         "branch__name",
     ]
