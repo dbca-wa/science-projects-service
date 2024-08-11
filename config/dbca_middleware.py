@@ -30,6 +30,8 @@ class DBCAMiddleware(MiddlewareMixin):
                     username=attributemap["username"],
                     first_name=attributemap["first_name"],
                     last_name=attributemap["last_name"],
+                    display_first_name=attributemap["first_name"],
+                    display_last_name=attributemap["last_name"],
                     email=attributemap["email"],
                 )
                 agency_instance = Agency.objects.get(pk=1)

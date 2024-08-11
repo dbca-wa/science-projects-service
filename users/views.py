@@ -370,12 +370,16 @@ class Users(APIView):
                         new_user = ser.save(
                             first_name=first_name,
                             last_name=last_name,
+                            display_first_name=first_name,
+                            display_last_name=last_name,
                             is_staff=True,
                         )
                     else:
                         new_user = ser.save(
                             first_name=first_name,
                             last_name=last_name,
+                            display_first_name=first_name,
+                            display_last_name=last_name,
                         )
 
                     # Extracting the work details from the request data
