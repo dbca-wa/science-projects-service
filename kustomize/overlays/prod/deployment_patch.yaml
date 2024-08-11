@@ -26,7 +26,7 @@ spec:
               name: spms-media-prod
       containers:
         - name: spms-backend
-          image: ghcr.io/dbca-wa/science-projects-service:3.1.10
+          image: ghcr.io/dbca-wa/science-projects-service:3.1.11
           env:
           - name: DATABASE_URL
             valueFrom:
@@ -92,23 +92,7 @@ spec:
             - mountPath: /usr/src/app/backend/files
               name: spms-media-prod
         - name: spms-frontend
-          image: ghcr.io/dbca-wa/science-projects-client:3.1.10
-          env:
-          - name: DEBUG
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: DJANGO_DEBUG
-          - name: PRODUCTION_API_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: VITE_PRODUCTION_BACKEND_API_URL
-          - name: REACT_APP_ENV
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: REACT_APP_ENV
+          image: ghcr.io/dbca-wa/science-projects-client:3.1.11
       volumes:
         - name: spms-media-prod
           persistentVolumeClaim:
