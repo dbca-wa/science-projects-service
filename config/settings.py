@@ -82,8 +82,11 @@ if not DEBUG and PRINCE_SERVER_URL == "":
 
 ALLOW_LIST = [
     # prod
+    "scienceprojects-migrated.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
+    "profiles-migrated.dbca.wa.gov.au",
+    "profiles-test.dbca.wa.gov.au",
     "profiles.dbca.wa.gov.au",
     # All the auth stuff
     "auth.dbca.wa.gov.au",
