@@ -183,8 +183,9 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 Q(business_area__division__name__isnull=True)
                 | ~Q(
                     business_area__division__name="Biodiversity and Conservation Science"
-                ) &
-                ~Q(status__in=[
+                ) 
+            ).exclude(
+                Q(status__in=[
                     Project.StatusChoices.COMPLETED,
                     Project.StatusChoices.SUSPENDED,
                     Project.StatusChoices.TERMINATED
