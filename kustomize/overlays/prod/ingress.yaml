@@ -46,7 +46,7 @@ spec:
   - host: profiles.dbca.wa.gov.au
     http:
       paths:
-      - path: /staff
+      - path: /
         pathType: Prefix
         backend:
           service:
