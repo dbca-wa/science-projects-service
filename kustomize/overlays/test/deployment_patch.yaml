@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spms-deployment
+  labels:
+    app: spms-test
+spec:
+  selector:
+    matchLabels:
+      app: spms-test
+  template:
+    metadata:
+      labels:
+        app: spms-test
+    spec:
+      initContainers:
+        - name: chown-files
+          image: busybox
+          command:
+            - /bin/chown
+            - -R
+            - "10001:10001"
+            - /usr/src/app/backend/files
+          volumeMounts:
+            - mountPath: /usr/src/app/backend/files
+              name: spms-media-test
+      containers:
+        - name: spms-backend
+          env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: DATABASE_URL
+          - name: DEFAULT_FROM_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: DEFAULT_FROM_EMAIL
+          - name: DJANGO_DEBUG
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: DJANGO_DEBUG
+          - name: EXTERNAL_PASS
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: EXTERNAL_PASS
+          - name: ON_TEST_NETWORK
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: ON_TEST_NETWORK
+          - name: PRINCE_LICENSE_ID
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_LICENSE_ID
+          - name: PRINCE_LICENSE_SIGNATURE
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_LICENSE_SIGNATURE
+          - name: PRINCE_SERVER_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: PRINCE_SERVER_URL
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SECRET_KEY
+          - name: SENTRY_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SENTRY_URL
+          - name: SITE_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SITE_URL
+          - name: SPMS_MAINTAINER_EMAIL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: SPMS_MAINTAINER_EMAIL
+          volumeMounts:
+            - mountPath: /usr/src/app/backend/files
+              name: spms-media-test
+        - name: spms-frontend
+          image: ghcr.io/dbca-wa/science-projects-client:test
+      volumes:
+        - name: spms-media-test
+          persistentVolumeClaim:
+            claimName: spms-media-data-test
