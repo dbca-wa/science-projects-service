@@ -43,3 +43,13 @@ spec:
             name: spms-clusterip-prod
             port:
               number: 8000
+  - host: profiles.dbca.wa.gov.au
+    http:
+      paths:
+      - path: /staff
+        pathType: Prefix
+        backend:
+          service:
+            name: spms-clusterip-prod
+            port:
+              number: 3000
