@@ -113,6 +113,10 @@ RUN chmod +x /usr/src/app/backend/entrypoint.sh
 # # Switch to non-root user
 # USER ${UID}
 
+# ====================== HEALTH CHECK ======================
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl --fail http://localhost:8000/health/ || exit 1
+
 # ====================== LAUNCH ======================
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000

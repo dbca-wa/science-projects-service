@@ -21,8 +21,20 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
+from django.http import JsonResponse
+
+def health_check(request):
+    # Check database connection
+    try:
+        from django.db import connections
+        connections['default'].cursor()
+    except Exception as e:
+        return JsonResponse({'status': 'fail', 'error': str(e)}, status=500)
+
+    return JsonResponse({'status': 'ok'}, status=200)
 
 urlpatterns = [
+    path('health/', health_check, name='health_check'),
     path("admin/", admin.site.urls),
     path("api/v1/users/", include("users.urls")),
     path("api/v1/agencies/", include("agencies.urls")),
