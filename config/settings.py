@@ -110,12 +110,15 @@ if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
 # ALLOW_LIST += [env("SITE_URL")]
 # ALLOW_LIST = list(set(ALLOW_LIST))
 
+# Ensure ALLOW_LIST is unique
+ALLOW_LIST = list(set(ALLOW_LIST))
 
+# Build ALLOW_LIST_HTTP
 ALLOW_LIST_HTTP = [
     (
         item
         if item.startswith("http://") or item.startswith("https://")
-        else "http://" + item if item.startswith("127.0.0.1")  
+        else "http://" + item if item.startswith("127.0.0.1")
         else "https://" + item
     )
     for item in ALLOW_LIST
@@ -139,10 +142,12 @@ CORS_ALLOW_HEADERS = [
     "Content-Type",
 ]
 
-pprint.pprint(f'ALLOW_LIST:{ALLOW_LIST}')
-# print(ALLOW_LIST_HTTP)
-print('\n')
-pprint.pprint(f'CORS_ALLOWED_ORIGINS:{CORS_ALLOWED_ORIGINS}')
+print('\nALLOW_LIST:\n')
+pprint.pprint(ALLOW_LIST)
+print('\nALLOW_LIST_HTTP:\n')
+pprint.pprint(ALLOW_LIST_HTTP)
+print('\nCORS_ALLOWED_ORIGINS:\n')
+pprint.pprint(CORS_ALLOWED_ORIGINS)
 print('\n')
 
 
