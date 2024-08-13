@@ -121,8 +121,8 @@ ALLOW_LIST_HTTP = [
 
 ALLOWED_HOSTS = ALLOW_LIST
 # CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = ALLOW_LIST_HTTP
-CSRF_TRUSTED_ORIGINS = ALLOW_LIST_HTTP
+CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -149,21 +149,21 @@ if DEBUG:
 else:
     INSTANCE_URL = SITE_URL_HTTP
 
-CORS_ALLOWED_ORIGINS += [
-    "https://dbcab2c.b2clogin.com",
-    "https://dbcab2c.onmicrosoft.com",
-    "https://login.microsoftonline.com",
-    "https://profiles.dbca.wa.gov.au",
-    "https://profiles-test.dbca.wa.gov.au",
-    "https://profiles-migrated.dbca.wa.gov.au",
-]
+# CORS_ALLOWED_ORIGINS += [
+#     "https://dbcab2c.b2clogin.com",
+#     "https://dbcab2c.onmicrosoft.com",
+#     "https://login.microsoftonline.com",
+#     "https://profiles.dbca.wa.gov.au",
+#     "https://profiles-test.dbca.wa.gov.au",
+#     "https://profiles-migrated.dbca.wa.gov.au",
+# ]
 
-CORS_ALLOWED_ORIGINS = [
-    url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"
-]
-CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS))
+# CORS_ALLOWED_ORIGINS = [
+#     url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"
+# ]
+# CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS))
 
-# print(CORS_ALLOWED_ORIGINS)
+print(CORS_ALLOWED_ORIGINS)
 
 
 # Application definitions ======================================================
