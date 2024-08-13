@@ -2,6 +2,7 @@ import logging
 from logging import LogRecord
 from pathlib import Path
 import os
+import pprint
 import dj_database_url
 import environ
 
@@ -80,6 +81,15 @@ PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
 if not DEBUG and PRINCE_SERVER_URL == "":
     PRINCE_SERVER_URL = BASE_DIR
 
+
+if DEBUG:
+    SITE_URL = "127.0.0.1:3000"
+    INSTANCE_URL = "http://127.0.0.1:8000/"
+else:
+    SITE_URL = SITE_URL_HTTP
+    INSTANCE_URL = SITE_URL_HTTP
+
+
 ALLOW_LIST = [
     # prod
     "scienceprojects-migrated.dbca.wa.gov.au",
@@ -88,33 +98,24 @@ ALLOW_LIST = [
     "profiles-migrated.dbca.wa.gov.au",
     "profiles-test.dbca.wa.gov.au",
     "profiles.dbca.wa.gov.au",
-    # All the auth stuff
-    "auth.dbca.wa.gov.au",
-    "auth2.dbca.wa.gov.au",
-    "auth2-uat.dbca.wa.gov.au",
-    "dbcab2c.b2clogin.com",
-    "dbcab2c.onmicrosoft.com",
-    "login.microsoftonline.com",
     # local
-    "http://localhost",
-    "http://0.0.0.0",
-    "http://0.0.0.0:8000",
-    "http://127.0.0.1",
-    "http://127.0.0.1:3000",
+    "127.0.0.1:3000",
+    "127.0.0.1",
 ]
 
 if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
     ALLOW_LIST.append(PRINCE_SERVER_URL)
 
-ALLOW_LIST += [SITE_URL_HTTP]
+# ALLOW_LIST += [SITE_URL_HTTP]
 # ALLOW_LIST += [env("SITE_URL")]
-ALLOW_LIST = list(set(ALLOW_LIST))
+# ALLOW_LIST = list(set(ALLOW_LIST))
 
 
 ALLOW_LIST_HTTP = [
     (
         item
         if item.startswith("http://") or item.startswith("https://")
+        else "http://" + item if item.startswith("127.0.0.1")  
         else "https://" + item
     )
     for item in ALLOW_LIST
@@ -138,29 +139,11 @@ CORS_ALLOW_HEADERS = [
     "Content-Type",
 ]
 
-
-if DEBUG:
-    SITE_URL = "127.0.0.1:3000"
-    INSTANCE_URL = "http://127.0.0.1:8000/"
-else:
-    SITE_URL = SITE_URL_HTTP
-    INSTANCE_URL = SITE_URL_HTTP
-
-# CORS_ALLOWED_ORIGINS += [
-#     "https://dbcab2c.b2clogin.com",
-#     "https://dbcab2c.onmicrosoft.com",
-#     "https://login.microsoftonline.com",
-#     "https://profiles.dbca.wa.gov.au",
-#     "https://profiles-test.dbca.wa.gov.au",
-#     "https://profiles-migrated.dbca.wa.gov.au",
-# ]
-
-# CORS_ALLOWED_ORIGINS = [
-#     url for url in CORS_ALLOWED_ORIGINS if url.strip() and url.strip() != "http:///"
-# ]
-# CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS))
-
-print(CORS_ALLOWED_ORIGINS)
+pprint.pprint(f'ALLOW_LIST:{ALLOW_LIST}')
+# print(ALLOW_LIST_HTTP)
+print('\n')
+pprint.pprint(f'CORS_ALLOWED_ORIGINS:{CORS_ALLOWED_ORIGINS}')
+print('\n')
 
 
 # Application definitions ======================================================
