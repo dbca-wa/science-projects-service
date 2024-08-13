@@ -95,9 +95,9 @@ ALLOW_LIST = [
     "scienceprojects-migrated.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
-    "profiles-migrated.dbca.wa.gov.au",
-    "profiles-test.dbca.wa.gov.au",
-    "profiles.dbca.wa.gov.au",
+    # "profiles-migrated.dbca.wa.gov.au",
+    # "profiles-test.dbca.wa.gov.au",
+    # "profiles.dbca.wa.gov.au",
     # local
     "127.0.0.1:3000",
     "127.0.0.1",
