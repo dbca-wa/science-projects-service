@@ -337,11 +337,36 @@ class StudentProjectDetailAdmin(admin.ModelAdmin):
 
     ordering = ["project__title"]
 
+@admin.action(description="Dupe description on empty")
+def update_external_description_with_project_description_if_empty(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    sections_to_populate = [
+        None, '', '<p></p>', '<p class="editor-p-light" dir="ltr"><span style="white-space: pre-wrap;"></span></p>',
+    ]
+    # Update the role for all matching users
+    exts = ExternalProjectDetails.objects.all()
+    for obj in exts:
+        if obj.description in sections_to_populate:
+            # Fetch the related project
+            project_description = obj.project.description
+            
+            # Update the description field if needed
+            if project_description:
+                obj.description = project_description
+                obj.save()
+
+    return
+
+
 
 @admin.register(ExternalProjectDetails)
-class StudentProjectDetailAdmin(admin.ModelAdmin):
+class ExternalProjectDetailAdmin(admin.ModelAdmin):
     # kind = ProjectCategorySerializer()
     list_display = [
+        "pk",
         "project",
         "collaboration_with",
         "budget",
@@ -350,6 +375,7 @@ class StudentProjectDetailAdmin(admin.ModelAdmin):
 
     search_fields = [
         "project__title",
+        "pk",
     ]
 
     list_filter = [
@@ -357,3 +383,5 @@ class StudentProjectDetailAdmin(admin.ModelAdmin):
     ]
 
     ordering = ["project__title"]
+
+    actions = [update_external_description_with_project_description_if_empty,]

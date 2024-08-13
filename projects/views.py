@@ -1590,10 +1590,9 @@ class ProjectDetails(APIView):
                 "level": level,
                 "organisation": organisation,
             }.items()
-            if level is not None
-            and organisation is not None
-            and (not isinstance(value, list) or value)
+            if value is not None and (not isinstance(value, list) or value)
         }
+        print(updated_student_project_data)
 
         updated_external_project_data = {
             key: value
@@ -1603,12 +1602,11 @@ class ProjectDetails(APIView):
                 "budget": budget,
                 "collaboration_with": collaboration_with,
             }.items()
-            if aims is not None
-            and external_description is not None
-            and budget is not None
-            and collaboration_with is not None
-            and (not isinstance(value, list) or value)
+            if value is not None and (not isinstance(value, list) or value)
         }
+
+        print({external_description, aims, budget, collaboration_with})
+        print(updated_external_project_data)
 
         if locations_str and locations_str != "[]":
             updated_proj_area_data = {
