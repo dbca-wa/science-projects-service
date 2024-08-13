@@ -342,6 +342,8 @@ def update_external_description_with_project_description_if_empty(model_admin, r
     if len(selected) > 1:
         print("PLEASE SELECT ONLY ONE")
         return
+    
+    updated_count = 0
 
     sections_to_populate = [
         None, '', '<p></p>', '<p class="editor-p-light" dir="ltr"><span style="white-space: pre-wrap;"></span></p>',
@@ -357,8 +359,29 @@ def update_external_description_with_project_description_if_empty(model_admin, r
             if project_description:
                 obj.description = project_description
                 obj.save()
-
+                updated_count += 1
+    model_admin.message_user(req, f"Successfully updated {updated_count} projects.")
     return
+
+@admin.action(description="Create ExternalProjectDetails for external projects without details")
+def create_external_details_if_missing(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    updated_count = 0
+    queryset = Project.objects.filter(kind=Project.CategoryKindChoices.EXTERNAL).all()
+    # Iterate over the selected projects
+    for project in queryset:
+        # Check if an ExternalProjectDetails instance already exists for this project
+        if not hasattr(project, 'external_project_info'):
+            # Create a new ExternalProjectDetails instance
+            ExternalProjectDetails.objects.create(
+                project=project,
+                old_id=project.old_id  # Assuming you want to use the project's old_id or handle it accordingly
+            )
+            updated_count +=1
+    model_admin.message_user(req, f"Successfully updated {updated_count} projects.")
 
 
 
@@ -384,4 +407,7 @@ class ExternalProjectDetailAdmin(admin.ModelAdmin):
 
     ordering = ["project__title"]
 
-    actions = [update_external_description_with_project_description_if_empty,]
+    actions = [
+        update_external_description_with_project_description_if_empty, 
+        create_external_details_if_missing,
+    ]
