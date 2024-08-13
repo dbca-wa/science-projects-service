@@ -190,7 +190,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     Project.StatusChoices.SUSPENDED,
                     Project.StatusChoices.TERMINATED
                 ])
-            )
+            ).order_by('title')  
 
             # REPLACE WITH AR EXT PROJECT SERIALIAZER
             proj_ser = ARExternalProjectSerializer(
@@ -440,7 +440,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
             soup = BeautifulSoup(html_string, "html.parser")
 
             # Extract the text content
-            inner_text = soup.get_text(separator=" ", strip=True)
+            inner_text = soup.get_text(separator=" ", strip=True).strip()
 
             return inner_text
 
@@ -456,7 +456,15 @@ class BeginUnapprovedReportDocGeneration(APIView):
 
             progress_reports_by_ba[ba_pk].append(item)
 
-        sorted_external_project_data = []
+        sorted_external_project_data = sorted(
+            [
+                project
+                for project in participating_external_projects
+            ],
+            key=lambda x: get_distilled_title(x["title"]).lower(),
+        )
+        
+
         sorted_ba_data = []
         existing_ba_names = set()  # To keep track of existing ba_names
 
@@ -476,7 +484,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                         progress_reports_by_ba.get(ba["pk"], []),
                         key=lambda x: get_distilled_title(
                             x["document"]["project"]["title"]
-                        ),
+                        ).lower(),
                     ),
                 }
                 # Append the new ba_object
@@ -498,7 +506,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 for report in participating_reports["student_reports"]
                 if report["document"]["project"]
             ],
-            key=lambda x: get_distilled_title(x["document"]["project"]["title"]),
+            key=lambda x: get_distilled_title(x["document"]["project"]["title"]).lower(),
         )
 
         external_partnerships_table_data = []
@@ -597,7 +605,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 # BA & Progress Reports
                 "sorted_ba_data_and_pr_dict": sorted_ba_data,
                 # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
-                "sorted_external_project_data": participating_external_projects,
+                "sorted_external_project_data": sorted_external_project_data,
                 # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
                 # Student Reports
                 "sorted_student_report_array": sorted_srs,
@@ -991,7 +999,7 @@ class BeginReportDocGeneration(APIView):
             soup = BeautifulSoup(html_string, "html.parser")
 
             # Extract the text content
-            inner_text = soup.get_text(separator=" ", strip=True)
+            inner_text = soup.get_text(separator=" ", strip=True).strip()
 
             return inner_text
 
@@ -1007,7 +1015,13 @@ class BeginReportDocGeneration(APIView):
 
             progress_reports_by_ba[ba_pk].append(item)
 
-        sorted_external_project_data = []
+        sorted_external_project_data = sorted(
+            [
+                project
+                for project in participating_external_projects
+            ],
+            key=lambda x: get_distilled_title(x["title"]).lower(),
+        )
         sorted_ba_data = []
         existing_ba_names = set()  # To keep track of existing ba_names
 
@@ -1027,7 +1041,7 @@ class BeginReportDocGeneration(APIView):
                         progress_reports_by_ba.get(ba["pk"], []),
                         key=lambda x: get_distilled_title(
                             x["document"]["project"]["title"]
-                        ),
+                        ).lower(),
                     ),
                 }
                 # Append the new ba_object
@@ -1049,7 +1063,7 @@ class BeginReportDocGeneration(APIView):
                 for report in participating_reports["student_reports"]
                 if report["document"]["project"]
             ],
-            key=lambda x: get_distilled_title(x["document"]["project"]["title"]),
+            key=lambda x: get_distilled_title(x["document"]["project"]["title"]).lower(),
         )
 
         external_partnerships_table_data = []
@@ -1148,7 +1162,7 @@ class BeginReportDocGeneration(APIView):
                 # BA & Progress Reports
                 "sorted_ba_data_and_pr_dict": sorted_ba_data,
                 # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
-                "sorted_external_project_data": participating_external_projects,
+                "sorted_external_project_data": sorted_external_project_data,
                 # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
                 # Student Reports
                 "sorted_student_report_array": sorted_srs,
