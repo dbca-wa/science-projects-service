@@ -108,6 +108,7 @@ if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
 
 ALLOW_LIST += [SITE_URL_HTTP]
 # ALLOW_LIST += [env("SITE_URL")]
+ALLOW_LIST = list(set(ALLOW_LIST))
 
 
 ALLOW_LIST_HTTP = [
@@ -140,13 +141,9 @@ CORS_ALLOW_HEADERS = [
 
 if DEBUG:
     SITE_URL = "127.0.0.1:3000"
-else:
-    SITE_URL = SITE_URL_HTTP
-
-
-if DEBUG:
     INSTANCE_URL = "http://127.0.0.1:8000/"
 else:
+    SITE_URL = SITE_URL_HTTP
     INSTANCE_URL = SITE_URL_HTTP
 
 # CORS_ALLOWED_ORIGINS += [
