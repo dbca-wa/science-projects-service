@@ -142,6 +142,8 @@ CORS_ALLOW_HEADERS = [
     "Content-Type",
 ]
 
+print('\ALLOWED_HOSTS:\n')
+pprint.pprint(ALLOWED_HOSTS)
 print('\nALLOW_LIST:\n')
 pprint.pprint(ALLOW_LIST)
 print('\nALLOW_LIST_HTTP:\n')
