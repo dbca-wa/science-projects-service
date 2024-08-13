@@ -73,6 +73,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+    # "profiles-migrated.dbca.wa.gov.au",
+    # "profiles-test.dbca.wa.gov.au",
+    # "profiles.dbca.wa.gov.au",
 
 # CORS and Hosts =========================================================
 
@@ -95,20 +98,13 @@ ALLOW_LIST = [
     "scienceprojects-migrated.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
-    # "profiles-migrated.dbca.wa.gov.au",
-    # "profiles-test.dbca.wa.gov.au",
-    # "profiles.dbca.wa.gov.au",
-    # local
+    "profiles-test.dbca.wa.gov.au",
     "127.0.0.1:3000",
     "127.0.0.1",
 ]
 
 if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
     ALLOW_LIST.append(PRINCE_SERVER_URL)
-
-# ALLOW_LIST += [SITE_URL_HTTP]
-# ALLOW_LIST += [env("SITE_URL")]
-# ALLOW_LIST = list(set(ALLOW_LIST))
 
 # Ensure ALLOW_LIST is unique
 ALLOW_LIST = list(set(ALLOW_LIST))
@@ -125,7 +121,6 @@ ALLOW_LIST_HTTP = [
 ]
 
 ALLOWED_HOSTS = ALLOW_LIST
-# CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
 CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
@@ -140,6 +135,7 @@ CORS_ALLOW_METHODS = [
 CORS_ALLOW_HEADERS = [
     "X-CSRFToken",
     "Content-Type",
+    "Authorization",
 ]
 
 print('\ALLOWED_HOSTS:\n')
