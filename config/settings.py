@@ -96,8 +96,6 @@ ALLOW_LIST = [
     "dbcab2c.onmicrosoft.com",
     "login.microsoftonline.com",
     # local
-    "127.0.0.1",
-    "localhost",
     "http://localhost",
     "http://0.0.0.0",
     "http://0.0.0.0:8000",
@@ -116,10 +114,11 @@ ALLOW_LIST_HTTP = [
     (
         item
         if item.startswith("http://") or item.startswith("https://")
-        else "http://" + item
+        else "https://" + item
     )
     for item in ALLOW_LIST
 ]
+
 ALLOWED_HOSTS = ALLOW_LIST
 # CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = ALLOW_LIST_HTTP
@@ -154,6 +153,9 @@ CORS_ALLOWED_ORIGINS += [
     "https://dbcab2c.b2clogin.com",
     "https://dbcab2c.onmicrosoft.com",
     "https://login.microsoftonline.com",
+    "https://profiles.dbca.wa.gov.au",
+    "https://profiles-test.dbca.wa.gov.au",
+    "https://profiles-migrated.dbca.wa.gov.au",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -161,7 +163,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS))
 
-# print(CORS_ALLOWED_ORIGINS)
+print(CORS_ALLOWED_ORIGINS)
 
 
 # Application definitions ======================================================
