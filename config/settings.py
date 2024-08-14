@@ -98,7 +98,7 @@ ALLOW_LIST = [
     "scienceprojects-migrated.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
-    "profiles-test.dbca.wa.gov.au",
+    # "profiles-test.dbca.wa.gov.au",
     "127.0.0.1:3000",
     "127.0.0.1",
 ]
@@ -142,18 +142,18 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-print("\ALLOWED_HOSTS:\n")
-pprint.pprint(ALLOWED_HOSTS)
-print("\nALLOW_LIST:\n")
-pprint.pprint(ALLOW_LIST)
-print("\nALLOW_LIST_HTTP:\n")
-pprint.pprint(ALLOW_LIST_HTTP)
-# print("\nCORS_ALLOWED_ORIGINS:\n")
-# pprint.pprint(CORS_ALLOWED_ORIGINS)
+# print("\ALLOWED_HOSTS:\n")
+# pprint.pprint(ALLOWED_HOSTS)
+# print("\nALLOW_LIST:\n")
+# pprint.pprint(ALLOW_LIST)
+# print("\nALLOW_LIST_HTTP:\n")
+# pprint.pprint(ALLOW_LIST_HTTP)
+# # print("\nCORS_ALLOWED_ORIGINS:\n")
+# # pprint.pprint(CORS_ALLOWED_ORIGINS)
+# # print("\n")
+# print("\CORS_ALLOWED_ORIGIN_REGEXES:\n")
+# pprint.pprint(CORS_ALLOWED_ORIGIN_REGEXES)
 # print("\n")
-print("\CORS_ALLOWED_ORIGIN_REGEXES:\n")
-pprint.pprint(CORS_ALLOWED_ORIGIN_REGEXES)
-print("\n")
 
 
 # Application definitions ======================================================
