@@ -87,6 +87,7 @@ class Login(APIView):
             return Response({"error": "Incorrect Password"})
 
 
+# only in dev
 class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
