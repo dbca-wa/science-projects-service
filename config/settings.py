@@ -73,9 +73,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# "profiles-migrated.dbca.wa.gov.au",
-# "profiles-test.dbca.wa.gov.au",
-# "profiles.dbca.wa.gov.au",
 
 # CORS and Hosts =========================================================
 
@@ -98,7 +95,9 @@ ALLOW_LIST = [
     "scienceprojects-migrated.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
-    # "profiles-test.dbca.wa.gov.au",
+    "profiles-test.dbca.wa.gov.au",
+    "profiles-migrated.dbca.wa.gov.au",
+    "profiles.dbca.wa.gov.au",
     "127.0.0.1:3000",
     "127.0.0.1",
 ]
@@ -108,52 +107,55 @@ if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
 
 # Ensure ALLOW_LIST is unique
 ALLOW_LIST = list(set(ALLOW_LIST))
-
-# Build ALLOW_LIST_HTTP
-ALLOW_LIST_HTTP = [
-    (
-        item
-        if item.startswith("http://") or item.startswith("https://")
-        else "http://" + item if item.startswith("127.0.0.1") else "https://" + item
-    )
-    for item in ALLOW_LIST
-]
-
 ALLOWED_HOSTS = ALLOW_LIST
-# CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.dbca\.wa\.gov\.au$",  # Matches all subdomains of dbca.wa.gov.au
-    r"^http://127\.0\.0\.1:3000$",  # Matches local development on port 3000
-]
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
-# CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
-CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = [
-    "GET",
-    "POST",
-    "OPTIONS",
-    "PUT",
-    "DELETE",
-]
-CORS_ALLOW_HEADERS = [
-    "X-CSRFToken",
-    "Content-Type",
-    "Authorization",
-]
+if DEBUG:
+    # Ensure all dbca subroutes allowed and local dev
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        # r"^https://.*\.dbca\.wa\.gov\.au$",
+        r"^http://127\.0\.0\.1:3000$",
+    ]
+    CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
 
-# print("\ALLOWED_HOSTS:\n")
-# pprint.pprint(ALLOWED_HOSTS)
-# print("\nALLOW_LIST:\n")
-# pprint.pprint(ALLOW_LIST)
-# print("\nALLOW_LIST_HTTP:\n")
-# pprint.pprint(ALLOW_LIST_HTTP)
-# # print("\nCORS_ALLOWED_ORIGINS:\n")
-# # pprint.pprint(CORS_ALLOWED_ORIGINS)
-# # print("\n")
-# print("\CORS_ALLOWED_ORIGIN_REGEXES:\n")
-# pprint.pprint(CORS_ALLOWED_ORIGIN_REGEXES)
-# print("\n")
+    # Build ALLOW_LIST_HTTP for manually setting trusted/allowed origins based on allow list
+    # ALLOW_LIST_HTTP = [
+    #     (
+    #         item
+    #         if item.startswith("http://") or item.startswith("https://")
+    #         else "http://" + item if item.startswith("127.0.0.1") else "https://" + item
+    #     )
+    #     for item in ALLOW_LIST
+    # ]
+    # CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
+    # CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOW_METHODS = [
+        "GET",
+        "POST",
+        "OPTIONS",
+        "PUT",
+        "DELETE",
+    ]
+    CORS_ALLOW_HEADERS = [
+        "X-CSRFToken",
+        "Content-Type",
+        "Authorization",
+    ]
+
+    # Printing to demonstrate that nothing is duplicated
+    # print("\ALLOWED_HOSTS:\n")
+    # pprint.pprint(ALLOWED_HOSTS)
+    # print("\nALLOW_LIST:\n")
+    # pprint.pprint(ALLOW_LIST)
+    # print("\nALLOW_LIST_HTTP:\n")
+    # pprint.pprint(ALLOW_LIST_HTTP)
+    # # print("\nCORS_ALLOWED_ORIGINS:\n")
+    # # pprint.pprint(CORS_ALLOWED_ORIGINS)
+    # # print("\n")
+    # print("\CORS_ALLOWED_ORIGIN_REGEXES:\n")
+    # pprint.pprint(CORS_ALLOWED_ORIGIN_REGEXES)
+    # print("\n")
 
 
 # Application definitions ======================================================
