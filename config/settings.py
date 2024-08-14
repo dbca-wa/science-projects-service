@@ -73,9 +73,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-    # "profiles-migrated.dbca.wa.gov.au",
-    # "profiles-test.dbca.wa.gov.au",
-    # "profiles.dbca.wa.gov.au",
+# "profiles-migrated.dbca.wa.gov.au",
+# "profiles-test.dbca.wa.gov.au",
+# "profiles.dbca.wa.gov.au",
 
 # CORS and Hosts =========================================================
 
@@ -114,15 +114,19 @@ ALLOW_LIST_HTTP = [
     (
         item
         if item.startswith("http://") or item.startswith("https://")
-        else "http://" + item if item.startswith("127.0.0.1")
-        else "https://" + item
+        else "http://" + item if item.startswith("127.0.0.1") else "https://" + item
     )
     for item in ALLOW_LIST
 ]
 
 ALLOWED_HOSTS = ALLOW_LIST
-CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
-CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+# CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.dbca\.wa\.gov\.au$",  # Matches all subdomains of dbca.wa.gov.au
+    r"^http://127\.0\.0\.1:3000$",  # Matches local development on port 3000
+]
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
+# CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -138,15 +142,18 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-print('\ALLOWED_HOSTS:\n')
+print("\ALLOWED_HOSTS:\n")
 pprint.pprint(ALLOWED_HOSTS)
-print('\nALLOW_LIST:\n')
+print("\nALLOW_LIST:\n")
 pprint.pprint(ALLOW_LIST)
-print('\nALLOW_LIST_HTTP:\n')
+print("\nALLOW_LIST_HTTP:\n")
 pprint.pprint(ALLOW_LIST_HTTP)
-print('\nCORS_ALLOWED_ORIGINS:\n')
-pprint.pprint(CORS_ALLOWED_ORIGINS)
-print('\n')
+# print("\nCORS_ALLOWED_ORIGINS:\n")
+# pprint.pprint(CORS_ALLOWED_ORIGINS)
+# print("\n")
+print("\CORS_ALLOWED_ORIGIN_REGEXES:\n")
+pprint.pprint(CORS_ALLOWED_ORIGIN_REGEXES)
+print("\n")
 
 
 # Application definitions ======================================================

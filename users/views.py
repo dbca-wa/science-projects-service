@@ -263,8 +263,6 @@ class SmallInternalUserSearch(APIView):
         return Response(response_data, status=HTTP_200_OK)
 
 
-
-
 class Users(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -303,8 +301,8 @@ class Users(APIView):
                 first_name, last_name = search_parts
                 users = User.objects.filter(
                     Q(first_name__icontains=first_name)
-                    & Q(last_name__icontains=last_name) |
-                    Q(display_first_name__icontains=first_name)
+                    & Q(last_name__icontains=last_name)
+                    | Q(display_first_name__icontains=first_name)
                     & Q(display_last_name__icontains=last_name)
                     | Q(email__icontains=search_term)
                     | Q(username__icontains=search_term)
@@ -518,7 +516,6 @@ class UsersProjects(APIView):
         # }
 
 
-
 class MyStaffProfile(APIView):
     permission_classes = [AllowAny]
 
@@ -531,9 +528,7 @@ class MyStaffProfile(APIView):
 
     def get(self, req, pk):
         staff_profile = self.go(pk)
-        settings.LOGGER.info(
-            msg=f"(PUBLIC) {req.user} is viewing their staff profile"
-        )
+        settings.LOGGER.info(msg=f"(PUBLIC) {req.user} is viewing their staff profile")
         ser = StaffProfileSerializer(
             staff_profile,
             context={"request": req},
@@ -542,6 +537,7 @@ class MyStaffProfile(APIView):
             ser.data,
             status=HTTP_200_OK,
         )
+
 
 class StaffProfiles(APIView):
     permission_classes = [AllowAny]
@@ -601,7 +597,6 @@ class StaffProfiles(APIView):
         }
 
         return Response(response_data, status=HTTP_200_OK)
-
 
 
 class StaffProfileDetail(APIView):
@@ -1211,7 +1206,6 @@ class UpdateMembership(APIView):
             affiliation_pk = (
                 int(req.data.get("affiliation")) if req.data.get("affiliation") else 0
             )
-
 
             data_obj = {}
             data_obj["user_pk"] = user_pk
