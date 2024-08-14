@@ -109,6 +109,11 @@ if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
 ALLOW_LIST = list(set(ALLOW_LIST))
 ALLOWED_HOSTS = ALLOW_LIST
 
+# CSRF_TRUSTED_ORIGINS = [
+#     r"^https://.*\.dbca\.wa\.gov\.au$",
+#     r"^http://127\.0\.0\.1:3000$",
+# ]
+
 if DEBUG:
     # Ensure all dbca subroutes allowed and local dev
     CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -190,6 +195,7 @@ CUSTOM_APPS = [
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
+# HAS NO CSRF
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -198,10 +204,23 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "config.dbca_middleware.DBCAMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+if DEBUG:
+    MIDDLEWARE = [
+        "corsheaders.middleware.CorsMiddleware",
+        "django.middleware.security.SecurityMiddleware",
+        "whitenoise.middleware.WhiteNoiseMiddleware",
+        "django.contrib.sessions.middleware.SessionMiddleware",
+        "django.contrib.auth.middleware.AuthenticationMiddleware",
+        "config.dbca_middleware.DBCAMiddleware",
+        "django.middleware.common.CommonMiddleware",
+        "django.middleware.csrf.CsrfViewMiddleware",
+        "django.contrib.messages.middleware.MessageMiddleware",
+        "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    ]
 
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
