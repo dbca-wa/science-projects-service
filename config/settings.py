@@ -154,20 +154,6 @@ if DEBUG:
         "Authorization",
     ]
 
-    # Printing to demonstrate that nothing is duplicated
-    # print("\ALLOWED_HOSTS:\n")
-    # pprint.pprint(ALLOWED_HOSTS)
-    # print("\nALLOW_LIST:\n")
-    # pprint.pprint(ALLOW_LIST)
-    # print("\nALLOW_LIST_HTTP:\n")
-    # pprint.pprint(ALLOW_LIST_HTTP)
-    # # print("\nCORS_ALLOWED_ORIGINS:\n")
-    # # pprint.pprint(CORS_ALLOWED_ORIGINS)
-    # # print("\n")
-    # print("\CORS_ALLOWED_ORIGIN_REGEXES:\n")
-    # pprint.pprint(CORS_ALLOWED_ORIGIN_REGEXES)
-    # print("\n")
-
 
 # Application definitions ======================================================
 SYSTEM_APPS = [
@@ -201,20 +187,6 @@ CUSTOM_APPS = [
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS
 
-# # HAS NO CSRF
-# MIDDLEWARE = [
-#     "corsheaders.middleware.CorsMiddleware",
-#     "django.middleware.security.SecurityMiddleware",
-#     "whitenoise.middleware.WhiteNoiseMiddleware",
-#     "django.contrib.sessions.middleware.SessionMiddleware",
-#     "django.contrib.auth.middleware.AuthenticationMiddleware",
-#     "config.dbca_middleware.DBCAMiddleware",
-#     "django.middleware.common.CommonMiddleware",
-#     "django.contrib.messages.middleware.MessageMiddleware",
-#     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-# ]
-
-# if DEBUG:
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
