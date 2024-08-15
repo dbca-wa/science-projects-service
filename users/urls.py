@@ -8,6 +8,7 @@ urlpatterns = [
     path("staffprofiles/<int:pk>", views.StaffProfileDetail.as_view()),
     path("smallsearch", views.SmallInternalUserSearch.as_view()),
     path("<int:pk>", views.UserDetail.as_view()),
+    path("<int:pk>/itassets", views.ITAssets.as_view()),
     path("<int:pk>/toggleactive", views.ToggleUserActive.as_view()),
     path("<int:pk>/projects", views.UsersProjects.as_view()),
     path("me", views.Me.as_view()),

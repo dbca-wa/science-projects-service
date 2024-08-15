@@ -25,6 +25,36 @@ from .models import (
 )
 
 
+class LocationSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+
+
+class ManagerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+
+
+class ITAssetSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+    given_name = serializers.CharField(max_length=255)
+    surname = serializers.CharField(max_length=255)
+    preferred_name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
+    title = serializers.CharField(max_length=255)
+    telephone = serializers.CharField(max_length=20, allow_null=True)
+    extension = serializers.CharField(max_length=20, allow_null=True)
+    mobile_phone = serializers.CharField(max_length=20, allow_null=True)
+    location = LocationSerializer()
+    cost_centre = serializers.CharField(max_length=255)
+    employee_id = serializers.CharField(max_length=255)
+    manager = ManagerSerializer()
+    division = serializers.CharField(max_length=255)
+    unit = serializers.CharField(max_length=255)
+
+
 class PrivateTinyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -217,8 +247,12 @@ class UpdatePISerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Update the User fields
-        instance.display_first_name = validated_data.get("display_first_name", instance.display_first_name)
-        instance.display_last_name = validated_data.get("display_last_name", instance.display_last_name)
+        instance.display_first_name = validated_data.get(
+            "display_first_name", instance.display_first_name
+        )
+        instance.display_last_name = validated_data.get(
+            "display_last_name", instance.display_last_name
+        )
 
         # Save changes to the User model
         instance.save()

@@ -27,6 +27,7 @@ from projects.models import Project, ProjectMember
 from .models import PublicStaffProfile, User, UserProfile, UserWork
 from rest_framework.exceptions import NotFound
 from .serializers import (
+    ITAssetSerializer,
     PrivateTinyUserSerializer,
     ProfilePageSerializer,
     TinyStaffProfileSerializer,
@@ -653,6 +654,52 @@ class StaffProfileDetail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+
+class ITAssets(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_it_assets(self, pk):
+        try:
+            email = User.objects.get(pk=pk).email  # Fetch email using primary key
+            response = requests.get(
+                "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+            )
+            print(response)
+            response.raise_for_status()  # Raise an error for bad HTTP status codes
+        
+            data = response.json()  # Assuming the response is in JSON format
+
+            # Filter the data by email
+            filtered_data = [item for item in data if item.get("email") == email]
+
+            if not filtered_data:
+                raise NotFound(f"No data found for email: {email}")
+        except requests.exceptions.HTTPError as http_err:
+            # raise Exception(f"HTTP error occurred: {http_err}")
+            return Response({"error": f"HTTP error occurred: {http_err}"}, status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # raise Exception(f"An error occurred: {e}")
+            return Response({"error": f"An error occurred: {e}"}, status=HTTP_400_BAD_REQUEST)
+
+        return filtered_data
+
+
+    def get(self, request, pk):
+        settings.LOGGER.info(
+            msg=f"{request.user} is getting IT assets for a user with id {pk}"
+        )
+
+        filtered_data = self.get_it_assets(pk)
+        
+        # Check if filtered_data is a Response object (which indicates an error)
+        if isinstance(filtered_data, Response):
+            return filtered_data
+        
+        # Serialize the filtered data
+        serializer = ITAssetSerializer(filtered_data, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+        
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]
