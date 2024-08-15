@@ -486,7 +486,8 @@
             const titledAnchor = document.createElement("a");
             titledAnchor.href = "#" + heading.id;
             titledAnchor.classList.add("toc_anchor_title")
-            titledAnchor.textContent = heading.textContent;
+            // titledAnchor.textContent = heading.textContent;
+            titledAnchor.innerHTML = removeInlineStyles(heading.innerHTML);
 
             const pagedAnchor = document.createElement("a");
             pagedAnchor.classList.add("toc_page_number")
@@ -527,7 +528,8 @@
                     const subTitledAnchor = document.createElement("a");
                     subTitledAnchor.href = "#" + subheading.id;
                     subTitledAnchor.classList.add("toc_anchor_subtitle")
-                    subTitledAnchor.textContent = subheading.textContent;
+                    // subTitledAnchor.textContent = subheading.textContent;
+                    subTitledAnchor.innerHTML = removeInlineStyles(subheading.innerHTML);
 
                     const subPageAnchor = document.createElement("a");
                     subPageAnchor.classList.add("toc_page_number")
@@ -555,6 +557,21 @@
             }
         }
     }
+
+    // Function to remove inline styles from HTML
+function removeInlineStyles(htmlContent) {
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = htmlContent;
+
+    const elements = tempDiv.querySelectorAll("*");
+    for (let i = 0; i < elements.length; i++) {
+        elements[i].removeAttribute("style");  // Remove inline styles
+        elements[i].removeAttribute("class");  // Remove classes
+    }
+
+    return tempDiv.innerHTML;
+}
+
 
     function adjustBaFirstPage() {
         var page = document.querySelector('.ba_pages');
@@ -796,7 +813,7 @@
                                         {% endif %}
                                             <div class="pr_title_container">
                                                 <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                                    {{report.document.project.title | safe | extract_text_content }}
+                                                    {{report.document.project.title | safe  }}
                                                 </h2>
                                                 <div class="track-page-number"></div>
                                             </div>
@@ -979,7 +996,7 @@
                                     <tbody class="table_body student_table_body">
                                         {% for report in sorted_student_report_array %}
                                             <tr class="sr_table_tr">
-                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe | extract_text_content }}</td>
+                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe }}</td>
                                                 <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.display_first_name }} {{ student.user.display_last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
                                                 <td class="duration_td sr_table_td">2023 - 2024</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
@@ -1030,7 +1047,7 @@
                                     {% endif %}
                                     <div class="pr_title_container">
                                         <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                            {{report.document.project.title | safe | extract_text_content }}
+                                            {{report.document.project.title | safe }}
                                         </h2>
                                         <div class="track-page-number"></div>
                                     </div>
@@ -1153,7 +1170,7 @@
                                     <tbody class="ba_table_body">
                                     {% for report in ba_item.progress_reports %}
                                         <tr class="ba_table_tr">
-                                            <td class="project_title_td ba_table_td">{{report.document.project.title | safe | extract_text_content }}</td>
+                                            <td class="project_title_td ba_table_td">{{report.document.project.title | safe }}</td>
                                            
                                             <td class="dbca_region_td ba_table_td">
                                                 {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"dbcaregion" %}

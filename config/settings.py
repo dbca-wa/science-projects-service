@@ -126,7 +126,7 @@ if DEBUG:
         # r"^https://.*\.dbca\.wa\.gov\.au$",
         r"^http://127\.0\.0\.1:3000$",
     ]
-    CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
+    # CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
 
     # Build ALLOW_LIST_HTTP for manually setting trusted/allowed origins based on allow list
     # ALLOW_LIST_HTTP = [

@@ -80,9 +80,7 @@ def get_student_level_text(value):
 def abbreviated_name(user_obj):
     # print(user_obj)
     if user_obj["title"]:
-        return (
-            f"{user_obj['title']} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
-        )
+        return f"{user_obj['title']} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
     return f"{user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
 
 
@@ -95,7 +93,22 @@ def escape_special_characters(value):
 @register.filter
 def extract_text_content(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
-    return "".join(soup.stripped_strings)
+
+    # Extract the text content
+    inner_text = soup.get_text(separator=" ", strip=True).strip()
+
+    return inner_text
+
+
+# def extract_text_content(html_content):
+#     soup = BeautifulSoup(html_content, "html.parser")
+
+#     # Preserve <em> tags for italics
+#     for em in soup.find_all("em"):
+#         em.unwrap()
+
+#     # Return HTML with italics preserved
+#     return str(soup)
 
 
 @register.filter
