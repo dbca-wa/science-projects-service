@@ -80,8 +80,8 @@ def get_student_level_text(value):
 def abbreviated_name(user_obj):
     # print(user_obj)
     if user_obj["title"]:
-        return f"{user_obj['title']} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
-    return f"{user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
+        return f"{user_obj['title']}. {user_obj['display_first_name'][0]}. {user_obj['display_last_name']}"
+    return f"{user_obj['display_first_name'][0]}. {user_obj['display_last_name']}"
 
 
 @register.filter
