@@ -918,12 +918,12 @@ ul {
 	padding: 5px 15px 5px 0px !important;
 }
 
-.project_title_td p,
-.student_project_title_td p {
+.project_title_td p {
 	text-align: justify;
 }
 
-.ext_project_title_td p {
+.ext_project_title_td p,
+.student_project_title_td p {
 	text-align: left;
 }
 
