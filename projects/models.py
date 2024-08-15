@@ -465,20 +465,26 @@ class ExternalProjectDetails(models.Model):
         related_name="external_project_info",
     )
     collaboration_with = models.CharField(
-        max_length=1500, default="NO COLLABORATOR SET"
+        max_length=1500,
+        default="<p>NO COLLABORATOR SET</p>",
+        blank=True,
+        null=True,
     )
     budget = models.CharField(
         max_length=1000,
+        default="<p>NO BUDGET SET</p>",
         null=True,
         blank=True,
     )
     description = models.CharField(
         max_length=10000,
+        default="<p>NO DESCRIPTION SET</p>",
         null=True,
         blank=True,
     )
     aims = models.CharField(
         max_length=5000,
+        default="<p>NO AIMS SET</p>",
         null=True,
         blank=True,
     )
