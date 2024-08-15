@@ -793,16 +793,17 @@ ul {
 	margin-top: 20px;
 }
 
-.progress_report_bottom_container {
+.progress_report_bottom_container,
+progress_report_bottom_container_rhs {
 	/* margin-top: 8px; */
 	margin-top: -5px;
 	page-break-before: avoid;
 }
-
+/* 
 .progress_report_bottom_container_rhs {
 	margin-top: -20px;
 	page-break-before: avoid;
-}
+} */
 
 .progress_report_bottom_container li,
 .progress_report_bottom_container_rhs li {

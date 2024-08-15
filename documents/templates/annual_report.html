@@ -1091,21 +1091,21 @@ function removeInlineStyles(htmlContent) {
                                 {% comment %} </div> {% endcomment %}
                             </div>
                             {% if forloop.counter|divisibleby:2 %}
-                            <div class="progress_report_bottom_container_rhs">
+                                <div class="progress_report_bottom_container_rhs">
                             {% else %}
-                            <div class="progress_report_bottom_container">
+                                <div class="progress_report_bottom_container">
                             {% endif %}
-                                <div class="pr_subsection">
-                                    <div class="pr_subsection_content_container">
-                                        <div class="pr_subsection_title">
-                                            <h3>Progress Report</h3>
-                                        </div>
-                                        <div class="orphanage_widow">
-                                            {{report.progress_report | safe}}
+                                    <div class="pr_subsection">
+                                        <div class="pr_subsection_content_container">
+                                            <div class="pr_subsection_title">
+                                                <h3>Progress Report</h3>
+                                            </div>
+                                            <div class="orphanage_widow">
+                                                {{report.progress_report | safe}}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         </div>
                     {% endfor %}
                 </div>
