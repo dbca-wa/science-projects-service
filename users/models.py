@@ -69,15 +69,18 @@ class User(AbstractUser):
     display_first_name = models.CharField(
         max_length=201,  # Max length to accommodate combined first and last names
         verbose_name=("Display First Name"),
-        help_text=("Automatically populated display name with first name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."),
+        help_text=(
+            "Automatically populated display name with first name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."
+        ),
     )
 
     display_last_name = models.CharField(
         max_length=201,  # Max length to accommodate combined first and last names
         verbose_name=("Display Last Name"),
-        help_text=("Automatically populated display name with last name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."),
+        help_text=(
+            "Automatically populated display name with last name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."
+        ),
     )
-
 
     is_aec = models.BooleanField(
         default=False,
@@ -104,7 +107,9 @@ class User(AbstractUser):
             )
             return f"{self.display_last_name.capitalize()}, {self.display_first_name[0]}. {initials_with_dot}"
         else:
-            return f"{self.display_last_name.capitalize()}, {self.display_first_name[0]}."
+            return (
+                f"{self.display_last_name.capitalize()}, {self.display_first_name[0]}."
+            )
 
     def get_image(self):
         try:
@@ -261,19 +266,24 @@ class PublicStaffProfile(CommonModel):
     # branch = (DISPLAY fk to User.work.branch)
 
     dbca_position_title = models.CharField(
-        max_length=200, help_text="Position title within DBCA."
+        max_length=200,
+        help_text="Position title within DBCA.",
+        blank=True,
+        null=True,
     )
     keyword_tags = models.TextField(
-        blank=True, help_text="Comma-separated tags describing areas of expertise."
+        blank=True,
+        null=True,
+        help_text="Comma-separated tags describing areas of expertise.",
     )
 
     # Overview section ===========================================
 
     about_me = models.TextField(
-        blank=True, help_text="Short biography or personal statement."
+        blank=True, null=True, help_text="Short biography or personal statement."
     )
     expertise = models.TextField(
-        blank=True, help_text="Areas of expertise or specializations."
+        blank=True, null=True, help_text="Areas of expertise or specializations."
     )
 
     # Projects section  ===========================================
@@ -284,13 +294,15 @@ class PublicStaffProfile(CommonModel):
         help_text="Projects associated with this staff member.",
     )
 
+    # REMOVED FOR NOW
     # Publications section  ===========================================
 
-    publications = models.ManyToManyField(
-        "users.AdditionalPublicationEntry",
-        related_name="staff_profiles",
-        help_text="Publications associated with this staff member.",
-    )
+    # publications = models.ManyToManyField(
+    #     "users.AdditionalPublicationEntry",
+    #     related_name="staff_profiles",
+    #     help_text="Publications associated with this staff member.",
+
+    # )
 
     # CV section  ===========================================
     employment = models.ManyToManyField(

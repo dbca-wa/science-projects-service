@@ -376,6 +376,9 @@ class ProjectDataTableSerializer(ModelSerializer):
     business_area = TinyBusinessAreaSerializer(read_only=True)
     role = SerializerMethodField()
     tag = SerializerMethodField()
+    description = SerializerMethodField()
+    start_date = SerializerMethodField()
+    end_date = SerializerMethodField()
 
     class Meta:
         model = Project
@@ -389,7 +392,20 @@ class ProjectDataTableSerializer(ModelSerializer):
             "created_at",
             "status",
             "business_area",
+            "description",
+            "start_date",
+            "end_date",
         ]
+
+    def get_start_date(self, obj):
+        if obj.start_date:
+            return obj.start_date.year
+        return None
+
+    def get_end_date(self, obj):
+        if obj.start_date:
+            return obj.end_date.year
+        return None
 
     def get_role(self, obj):
         projects_with_roles = self.context.get("projects_with_roles", [])
@@ -401,6 +417,9 @@ class ProjectDataTableSerializer(ModelSerializer):
 
     def get_tag(self, obj):
         return obj.get_project_tag()
+
+    def get_description(self, obj):
+        return obj.get_description()
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
