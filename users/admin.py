@@ -14,7 +14,31 @@ from agencies.serializers import (
 from projects.models import ProjectMember
 from users.serializers import TinyUserSerializer
 from users.views import Users
-from .models import User, UserWork, UserProfile
+from .models import PublicStaffProfile, User, UserWork, UserProfile
+
+
+@admin.action(description="Creates a staff profile for users w/o")
+def create_staff_profiles(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    # Filter for users that do not have public profiles
+    users_to_update = User.objects.filter(staff_profile__isnull=True)
+
+    # Iterate and create a public staff profile for each user
+    for user in users_to_update:
+        PublicStaffProfile.objects.create(
+            user=user,
+            # dbca_position_title="",  # or any default value or logic you want
+            # keyword_tags="",
+            # about_me="",
+            # expertise=""
+        )
+
+    model_admin.message_user(
+        req, f"public profiles created for {users_to_update.count()} user(s)."
+    )
 
 
 @admin.action(description="Sets the display names to first and last")
@@ -22,15 +46,11 @@ def update_display_names(model_admin, req, selected):
     if len(selected) > 1:
         print("PLEASE SELECT ONLY ONE")
         return
-    
+
     # Filter for users that do not have display names set but have first and last names
     users_to_update = User.objects.filter(
-        display_first_name="", 
-        display_last_name=""
-    ).exclude(
-        first_name="", 
-        last_name=""
-    )
+        display_first_name="", display_last_name=""
+    ).exclude(first_name="", last_name="")
 
     # Iterate and update each user's display names
     for user in users_to_update:
@@ -42,7 +62,9 @@ def update_display_names(model_admin, req, selected):
 
         user.save()
 
-    model_admin.message_user(req, f"Display names updated for {users_to_update.count()} user(s).")
+    model_admin.message_user(
+        req, f"Display names updated for {users_to_update.count()} user(s)."
+    )
 
 
 # CREATE AN EXPORT TO CSV FILE FOR CURRENT ENTRIES IN DB
@@ -132,7 +154,7 @@ class CustomUserAdmin(UserAdmin):
     actions = [
         export_selected_users_to_csv,
         export_current_active_project_leads,
-        update_display_names
+        update_display_names,
     ]
     fieldsets = (
         (
@@ -180,6 +202,25 @@ class CustomUserAdmin(UserAdmin):
         "is_aec",
         "is_staff",
         "is_superuser",
+    ]
+
+
+@admin.register(PublicStaffProfile)
+class StaffProfileAdmin(admin.ModelAdmin):
+    user = TinyUserSerializer(read_only=True)
+    list_display = ["user", "is_hidden", "about", "expertise"]
+    ordering = ["user"]
+    search_fields = [
+        "user__display_first_name",  # Search by first name
+        "user__display_last_name",  # Search by last name
+        "user__first_name",  # Search by first name
+        "user__last_name",  # Search by last name
+        "user__username",  # Search by username
+    ]
+    actions = [
+        create_staff_profiles,
+        export_current_active_project_leads,
+        update_display_names,
     ]
 
 
