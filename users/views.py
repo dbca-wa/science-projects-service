@@ -6,6 +6,7 @@ import uuid
 import requests
 from agencies.models import Affiliation, Agency, Branch, BusinessArea
 from projects.serializers import (
+    MiniUserSerializer,
     ProjectDataTableSerializer,
     ProjectSerializer,
     TinyProjectSerializer,
@@ -28,6 +29,7 @@ from projects.models import Project, ProjectMember
 from .models import (
     EducationEntry,
     EmploymentEntry,
+    KeywordTag,
     PublicStaffProfile,
     User,
     UserProfile,
@@ -621,6 +623,22 @@ class StaffProfiles(APIView):
 
     def post(self, req, post):
         settings.LOGGER.info(msg=f"{req.user} is creating staff profile")
+        keyword_tags_data = req.data.get("keyword_tags", [])
+
+        processed_tags = []
+        for tag_data in keyword_tags_data:
+            if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
+                tag_name = tag_data.get("name")
+                # tag_pk = tag_data.get("pk")
+
+                # if tag_pk:
+                #     processed_tags.append({"pk": tag_pk, "name": tag_name})
+                if tag_name:  # Create or get the tag by name if pk is not provided
+                    tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+                    processed_tags.append({"pk": tag.pk, "name": tag.name})
+
+        req.data["keyword_tags"] = processed_tags
+
         ser = StaffProfileCreationSerializer(
             data=req.data,
         )
@@ -632,7 +650,10 @@ class StaffProfiles(APIView):
                     staff_profile = ser.save()
 
                     # Return the newly created staff profile data
-                    return Response(ser.data, status=HTTP_201_CREATED)
+                    return Response(
+                        StaffProfileCreationSerializer(staff_profile).data,
+                        status=HTTP_201_CREATED,
+                    )
 
             except Exception as e:
                 # If there is any exception, log it and return an error response
@@ -656,13 +677,23 @@ class StaffProfileDetail(APIView):
             raise NotFound
         return obj
 
+    def check_tag_usage(self, tag_name):
+        try:
+            tag = KeywordTag.objects.get(name=tag_name)
+        except KeywordTag.DoesNotExist:
+            return False  # Tag doesn't exist, so it isn't in use
+
+        return (
+            tag.staff_profiles.exists()
+        )  # Returns True if the tag is used in any profile
+
     def get(self, req, pk):
-        user = self.go(pk)
+        staff_profile = self.go(pk)
         settings.LOGGER.info(
-            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {user.first_name} {user.last_name}"
+            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {staff_profile.user.first_name} {user.last_name}"
         )
-        ser = ProfilePageSerializer(
-            user,
+        ser = StaffProfileSerializer(
+            staff_profile,
             context={"request": req},
         )
         return Response(
@@ -671,25 +702,52 @@ class StaffProfileDetail(APIView):
         )
 
     def delete(self, req, pk):
-        user = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting user: {user}")
-        user.delete()
+        staff_profile = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting staff profile: {staff_profile}"
+        )
+        staff_profile.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
 
     def put(self, req, pk):
-        user = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating user: {user}")
-        ser = UserSerializer(
-            user,
+        staff_profile = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating staff profile: {staff_profile}"
+        )
+
+        keyword_tags_data = req.data.get("keyword_tags", [])
+
+        processed_tags = []
+        for tag_data in keyword_tags_data:
+            if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
+                tag_name = tag_data.get("name")
+                # tag_pk = tag_data.get("pk")
+
+                # if tag_pk:
+                #     processed_tags.append({"pk": tag_pk, "name": tag_name})
+                if tag_name:  # Create or get the tag by name if pk is not provided
+                    tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+                    processed_tags.append({"pk": tag.pk, "name": tag.name})
+
+        req.data["keyword_tags"] = processed_tags
+
+        ser = StaffProfileSerializer(
+            staff_profile,
             data=req.data,
             partial=True,
         )
         if ser.is_valid():
-            u_user = ser.save()
+            u_staff_profile = ser.save()
+            # After saving, check if any old tags are no longer in use and delete them
+            all_tags = KeywordTag.objects.all()
+            for tag in all_tags:
+                if not self.check_tag_usage(tag.name):
+                    tag.delete()
+
             return Response(
-                TinyUserSerializer(u_user).data,
+                StaffProfileSerializer(u_staff_profile).data,
                 status=HTTP_202_ACCEPTED,
             )
         else:
@@ -755,6 +813,40 @@ class StaffProfileCVDetail(APIView):
         profile = self.go(pk)
         ser = StaffProfileCVSerializer(profile)
         return Response(ser.data, status=HTTP_200_OK)
+
+
+class PublicEmailStaffMember(APIView):
+    permission_classes = [AllowAny]
+
+    def go(self, pk):
+        try:
+            user = User.objects.filter(pk=pk).first()
+        except User.DoesNotExist:
+            raise NotFound
+        return user
+
+    def post(self, req, pk):
+
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is attempting to use '{req.data['senderEmail']}' to send an email to a staff member"
+        )
+        try:
+            user = self.go(pk=pk)
+            ser = MiniUserSerializer(user)
+            settings.LOGGER.warning(
+                msg=f"(PUBLIC) {req.data['senderEmail']} sent public email to {ser.data['email']}"
+            )
+            return Response(
+                HTTP_200_OK,
+            )
+        except Exception as e:
+            settings.LOGGER.error(
+                msg=f"(PUBLIC) an error occurred sending a public email:\n{e}"
+            )
+            return Response(
+                {"error": e},
+                HTTP_400_BAD_REQUEST,
+            )
 
 
 # =================================================

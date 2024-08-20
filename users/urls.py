@@ -49,6 +49,8 @@ urlpatterns = [
     path("staffprofiles/<int:pk>/hero", views.StaffProfileHeroDetail.as_view()),
     path("staffprofiles/<int:pk>/overview", views.StaffProfileOverviewDetail.as_view()),
     path("staffprofiles/<int:pk>/cv", views.StaffProfileCVDetail.as_view()),
+    # uses user pk not staffpk
+    path("<int:pk>/public_email_staff_member", views.PublicEmailStaffMember.as_view()),
     # path("staffprofiles/<int:pk>/employment", views.StaffProfileHeroDetail.as_view()),
     # path("staffprofiles/<int:pk>/education", views.StaffProfileOverviewDetail.as_view()),
 ]

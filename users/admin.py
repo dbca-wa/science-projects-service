@@ -14,7 +14,7 @@ from agencies.serializers import (
 from projects.models import ProjectMember
 from users.serializers import TinyUserSerializer
 from users.views import Users
-from .models import PublicStaffProfile, User, UserWork, UserProfile
+from .models import KeywordTag, PublicStaffProfile, User, UserWork, UserProfile
 
 
 @admin.action(description="Creates a staff profile for users w/o")
@@ -273,3 +273,24 @@ class UserWorkAdmin(admin.ModelAdmin):
         "user__display_last_name",
         "branch__name",
     ]
+
+
+@admin.action(description="Delete unused tags")
+def delete_unused_tags(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+    # Filter out tags that are not associated with any PublicStaffProfile
+    unused_tags = KeywordTag.objects.filter(staff_profiles__isnull=True)
+
+    # Count the number of tags before deletion
+    num_deleted, _ = unused_tags.delete()
+
+    # Provide feedback to the admin user
+    model_admin.message_user(req, f"{num_deleted} unused tags were deleted.")
+
+
+@admin.register(KeywordTag)
+class KeywordTagAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name")
+    actions = [delete_unused_tags]

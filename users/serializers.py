@@ -17,6 +17,7 @@ from projects.models import ProjectMember
 from .models import (
     EducationEntry,
     EmploymentEntry,
+    KeywordTag,
     PublicStaffProfile,
     # StaffProfileProjectEntry,
     User,
@@ -354,10 +355,36 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
         fields = ("pk", "display_first_name", "display_last_name", "email")
 
 
+class KeywordTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KeywordTag
+        fields = ("pk", "name")
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            tag_name = data.get("name")
+            tag_pk = data.get("pk")
+
+            if tag_pk:
+                try:
+                    tag = KeywordTag.objects.get(pk=tag_pk)
+                except KeywordTag.DoesNotExist:
+                    raise serializers.ValidationError({"keyword_tags": "Invalid pk"})
+            elif tag_name:
+                tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+            else:
+                raise serializers.ValidationError({"keyword_tags": "Invalid data"})
+
+            return tag
+
+        raise serializers.ValidationError({"keyword_tags": "Invalid data format"})
+
+
 class StaffProfileHeroSerializer(serializers.ModelSerializer):
 
     name = serializers.SerializerMethodField()
     user = UserStaffProfileSerializer()  # Nested serializer for user
+    keyword_tags = KeywordTagSerializer(many=True)
 
     class Meta:
         model = PublicStaffProfile
@@ -380,6 +407,7 @@ class StaffProfileOverviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublicStaffProfile
         fields = (
+            "pk",
             "user",
             "about",
             "expertise",
@@ -504,29 +532,7 @@ class ProjectMembershipSerializer(serializers.ModelSerializer):
 
 class StaffProfileSerializer(serializers.ModelSerializer):
     user = StaffProfileUserSerializer(read_only=True)
-    project_memberships = ProjectMembershipSerializer(
-        many=True, read_only=True, source="projects"
-    )
-    employment = EmploymentEntrySerializer(many=True, read_only=True)
-    education = EducationEntrySerializer(many=True, read_only=True)
-
-    def get_title():
-        pass
-
-    def get_first_name():
-        pass
-
-    def get_last_name():
-        pass
-
-    def get_business_area():
-        pass
-
-    def get_branch():
-        pass
-
-    def get_user_pk():
-        pass
+    keyword_tags = KeywordTagSerializer(many=True)
 
     class Meta:
         model = PublicStaffProfile
@@ -535,15 +541,27 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             "is_hidden",
             "aucode",
             "user",
-            "dbca_position_title",
+            # "dbca_position_title",
             "keyword_tags",
-            "about_me",
+            "title",
+            "about",
             "expertise",
-            "education",
-            "project_memberships",
-            "employment",
-            "publications",
+            # "education",
+            # "project_memberships",
+            # "employment",
+            # "publications",
         )
+
+    def update(self, instance, validated_data):
+        # Handle the many-to-many field for keyword_tags
+        keyword_tags_data = validated_data.pop("keyword_tags", None)
+
+        if keyword_tags_data is not None:
+            instance.keyword_tags.clear()
+            for tag in keyword_tags_data:
+                instance.keyword_tags.add(tag)
+
+        return super().update(instance, validated_data)
 
 
 class ProfilePageSerializer(serializers.ModelSerializer):
