@@ -17,8 +17,9 @@ from projects.models import ProjectMember
 from .models import (
     EducationEntry,
     EmploymentEntry,
+    KeywordTag,
     PublicStaffProfile,
-    StaffProfileProjectEntry,
+    # StaffProfileProjectEntry,
     User,
     UserWork,
     UserProfile,
@@ -334,6 +335,146 @@ class UpdateMembershipSerializer(serializers.ModelSerializer):
         )
 
 
+# ==================================
+
+
+class StaffProfileCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PublicStaffProfile
+        fields = "__all__"
+
+
+class UserStaffProfileSerializer(serializers.ModelSerializer):
+    pk = serializers.PrimaryKeyRelatedField(read_only=True)
+    display_first_name = serializers.CharField(read_only=True)
+    display_last_name = serializers.CharField(read_only=True)
+    email = serializers.EmailField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ("pk", "display_first_name", "display_last_name", "email")
+
+
+class KeywordTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KeywordTag
+        fields = ("pk", "name")
+
+    def to_internal_value(self, data):
+        if isinstance(data, dict):
+            tag_name = data.get("name")
+            tag_pk = data.get("pk")
+
+            if tag_pk:
+                try:
+                    tag = KeywordTag.objects.get(pk=tag_pk)
+                except KeywordTag.DoesNotExist:
+                    raise serializers.ValidationError({"keyword_tags": "Invalid pk"})
+            elif tag_name:
+                tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+            else:
+                raise serializers.ValidationError({"keyword_tags": "Invalid data"})
+
+            return tag
+
+        raise serializers.ValidationError({"keyword_tags": "Invalid data format"})
+
+
+class StaffProfileHeroSerializer(serializers.ModelSerializer):
+
+    name = serializers.SerializerMethodField()
+    user = UserStaffProfileSerializer()  # Nested serializer for user
+    keyword_tags = KeywordTagSerializer(many=True)
+
+    class Meta:
+        model = PublicStaffProfile
+        fields = (
+            "pk",
+            "user",
+            "title",
+            "keyword_tags",
+            "name",
+        )
+
+    def get_name(self, obj):
+        return f"{obj.user.display_first_name} {obj.user.display_last_name}"
+
+
+class StaffProfileOverviewSerializer(serializers.ModelSerializer):
+
+    user = UserStaffProfileSerializer()  # Nested serializer for user
+
+    class Meta:
+        model = PublicStaffProfile
+        fields = (
+            "pk",
+            "user",
+            "about",
+            "expertise",
+        )
+
+
+class EmploymentEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmploymentEntry
+        fields = (
+            "pk",
+            "public_profile",
+            "position_title",
+            "start_year",
+            "end_year",
+            "section",
+            "employer",
+        )
+
+
+class EmploymentEntryCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmploymentEntry
+        fields = "__all__"
+
+
+class EducationEntryCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EducationEntry
+        fields = "__all__"
+
+
+class EducationEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EducationEntry
+        fields = (
+            "pk",
+            "public_profile",
+            "qualification_kind",
+            "qualification_field",
+            "with_honours",
+            "qualification_name",
+            "start_year",
+            "end_year",
+            "institution",
+            "location",
+        )
+
+
+class StaffProfileCVSerializer(serializers.ModelSerializer):
+
+    employment = EmploymentEntrySerializer(many=True, source="employment_entries")
+    education = EducationEntrySerializer(many=True, source="education_entries")
+
+    class Meta:
+        model = PublicStaffProfile
+        fields = (
+            "pk",
+            "user",
+            "employment",
+            "education",
+        )
+
+
+# ==================================
+
+
 class StaffProfileUserSerializer(serializers.ModelSerializer):
     branch_name = serializers.SerializerMethodField()
     business_area_name = serializers.SerializerMethodField()
@@ -354,8 +495,8 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "pk",
-            "first_name",
-            "last_name",
+            "display_first_name",
+            "display_last_name",
             "email",
             "title",
             "branch_name",
@@ -363,26 +504,14 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
         )
 
 
-class EmploymentEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EmploymentEntry
-        exclude = ("public_profile",)
-
-
-class EducationEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EducationEntry
-        exclude = ("public_profile",)
-
-
-class ProjectEntrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StaffProfileProjectEntry
-        fields = (
-            "public_profile",
-            "project_membership",
-            "flavour_text",
-        )
+# class ProjectEntrySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = StaffProfileProjectEntry
+#         fields = (
+#             "public_profile",
+#             "project_membership",
+#             "flavour_text",
+#         )
 
 
 class ProjectMembershipSerializer(serializers.ModelSerializer):
@@ -403,35 +532,7 @@ class ProjectMembershipSerializer(serializers.ModelSerializer):
 
 class StaffProfileSerializer(serializers.ModelSerializer):
     user = StaffProfileUserSerializer(read_only=True)
-    project_memberships = ProjectMembershipSerializer(
-        many=True, read_only=True, source="projects"
-    )
-    employment = EmploymentEntrySerializer(many=True, read_only=True)
-    education = EducationEntrySerializer(many=True, read_only=True)
-
-    def get_title():
-        pass
-
-    def get_first_name():
-        pass
-
-    def get_last_name():
-        pass
-
-    def get_business_area():
-        pass
-
-    def get_branch():
-        pass
-
-    def get_user_pk():
-        pass
-
-    # I want to serialize project_memberships to get the project.title and project.description and project.year only and return that
-
-    # I want to serialize employment so it doesnt return the staff profile part (should I just use related name with onetomany instead of fk?)
-
-    # I want to serialize education so it doesnt return the staff profile part (should I just use related name with onetomany instead of fk?)
+    keyword_tags = KeywordTagSerializer(many=True)
 
     class Meta:
         model = PublicStaffProfile
@@ -440,29 +541,42 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             "is_hidden",
             "aucode",
             "user",
-            "dbca_position_title",
+            # "dbca_position_title",
             "keyword_tags",
-            "about_me",
+            "title",
+            "about",
             "expertise",
-            "education",
-            "project_memberships",
-            "employment",
-            "publications",
+            # "education",
+            # "project_memberships",
+            # "employment",
+            # "publications",
         )
+
+    def update(self, instance, validated_data):
+        # Handle the many-to-many field for keyword_tags
+        keyword_tags_data = validated_data.pop("keyword_tags", None)
+
+        if keyword_tags_data is not None:
+            instance.keyword_tags.clear()
+            for tag in keyword_tags_data:
+                instance.keyword_tags.add(tag)
+
+        return super().update(instance, validated_data)
 
 
 class ProfilePageSerializer(serializers.ModelSerializer):
+    # profile
     image = UserAvatarSerializer(source="profile.image")
-    role = serializers.CharField(source="work.role")
-
-    expertise = serializers.CharField(source="profile.expertise")
     title = serializers.CharField(source="profile.title")
     about = serializers.CharField(source="profile.about")
+    expertise = serializers.CharField(source="profile.expertise")
+    # Work
+    role = serializers.CharField(source="work.role")
     agency = TinyAgencySerializer(source="work.agency")
     branch = MiniBranchSerializer(source="work.branch")
     business_area = MiniBASerializer(source="work.business_area")
     affiliation = AffiliationSerializer(source="work.affiliation")
-
+    # contact details
     phone = serializers.CharField(source="contact.phone")
     fax = serializers.CharField(source="contact.fax")
 

@@ -10,7 +10,7 @@ from django.db import transaction
 from rest_framework.exceptions import ParseError
 from django.conf import settings
 
-from users.models import UserProfile, UserWork
+from users.models import PublicStaffProfile, UserProfile, UserWork
 from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
@@ -38,6 +38,7 @@ class DBCAMiddleware(MiddlewareMixin):
                 UserWork.objects.create(user=user, agency=agency_instance)
                 UserProfile.objects.create(user=user)
                 UserContact.objects.create(user=user)
+                # PublicStaffProfile.objects.create(user=user, is_hidden=True, )
 
                 user.is_staff = True
                 user.set_password(settings.EXTERNAL_PASS)

@@ -231,6 +231,12 @@ class Project(CommonModel):
         number = self.number
         return f"{kind_tag}-{year}-{number}"
 
+    def get_description(self) -> str:
+        if self.kind != self.CategoryKindChoices.EXTERNAL:
+            return self.description
+        else:
+            return self.external_project_info.description
+
     def __str__(self) -> str:
         return f"({self.kind.upper()}) {self.extract_inner_text(self.title)}"
 

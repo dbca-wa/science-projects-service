@@ -4,8 +4,6 @@ from . import views
 urlpatterns = [
     path("", views.Users.as_view()),
     path("mypublicprofile", views.MyStaffProfile.as_view()),
-    path("staffprofiles", views.StaffProfiles.as_view()),
-    path("staffprofiles/<int:pk>", views.StaffProfileDetail.as_view()),
     path("smallsearch", views.SmallInternalUserSearch.as_view()),
     path("<int:pk>", views.UserDetail.as_view()),
     path("<int:pk>/itassets", views.ITAssets.as_view()),
@@ -35,4 +33,24 @@ urlpatterns = [
     path("log-in", views.Login.as_view()),
     path("log-out", views.Logout.as_view()),
     path("change-password", views.ChangePassword.as_view()),
+    #
+    path("staffprofiles", views.StaffProfiles.as_view()),
+    path("staffprofiles/<int:pk>", views.StaffProfileDetail.as_view()),
+    #
+    path("employment_entries/", views.StaffProfileEmploymentEntries.as_view()),
+    path(
+        "employment_entries/<int:pk>", views.StaffProfileEmploymentEntryDetail.as_view()
+    ),
+    path("education_entries/", views.StaffProfileEducationEntries.as_view()),
+    path(
+        "education_entries/<int:pk>", views.StaffProfileEducationEntryDetail.as_view()
+    ),
+    #
+    path("staffprofiles/<int:pk>/hero", views.StaffProfileHeroDetail.as_view()),
+    path("staffprofiles/<int:pk>/overview", views.StaffProfileOverviewDetail.as_view()),
+    path("staffprofiles/<int:pk>/cv", views.StaffProfileCVDetail.as_view()),
+    # uses user pk not staffpk
+    path("<int:pk>/public_email_staff_member", views.PublicEmailStaffMember.as_view()),
+    # path("staffprofiles/<int:pk>/employment", views.StaffProfileHeroDetail.as_view()),
+    # path("staffprofiles/<int:pk>/education", views.StaffProfileOverviewDetail.as_view()),
 ]

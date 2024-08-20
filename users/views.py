@@ -1,10 +1,12 @@
 import ast
 import json
 import os
+import pprint
 import uuid
 import requests
 from agencies.models import Affiliation, Agency, Branch, BusinessArea
 from projects.serializers import (
+    MiniUserSerializer,
     ProjectDataTableSerializer,
     ProjectSerializer,
     TinyProjectSerializer,
@@ -24,12 +26,29 @@ from medias.models import UserAvatar
 from medias.serializers import TinyUserAvatarSerializer
 from medias.views import UserAvatarDetail, UserAvatars
 from projects.models import Project, ProjectMember
-from .models import PublicStaffProfile, User, UserProfile, UserWork
+from .models import (
+    EducationEntry,
+    EmploymentEntry,
+    KeywordTag,
+    PublicStaffProfile,
+    User,
+    UserProfile,
+    UserWork,
+)
 from rest_framework.exceptions import NotFound
 from .serializers import (
+    EducationEntryCreationSerializer,
+    EducationEntrySerializer,
+    EmploymentEntryCreationSerializer,
+    EmploymentEntrySerializer,
     ITAssetSerializer,
     PrivateTinyUserSerializer,
     ProfilePageSerializer,
+    StaffProfileCVSerializer,
+    StaffProfileCreationSerializer,
+    StaffProfileHeroSerializer,
+    StaffProfileOverviewSerializer,
+    StaffProfileSerializer,
     TinyStaffProfileSerializer,
     TinyUserProfileSerializer,
     TinyUserSerializer,
@@ -54,6 +73,7 @@ from rest_framework.status import (
     HTTP_202_ACCEPTED,
     HTTP_400_BAD_REQUEST,
     HTTP_201_CREATED,
+    HTTP_401_UNAUTHORIZED,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from rest_framework.permissions import (
@@ -518,6 +538,7 @@ class UsersProjects(APIView):
         # }
 
 
+# =================================================
 class MyStaffProfile(APIView):
     permission_classes = [AllowAny]
 
@@ -542,7 +563,7 @@ class MyStaffProfile(APIView):
 
 
 class StaffProfiles(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
         settings.LOGGER.info(
@@ -600,6 +621,51 @@ class StaffProfiles(APIView):
 
         return Response(response_data, status=HTTP_200_OK)
 
+    def post(self, req, post):
+        settings.LOGGER.info(msg=f"{req.user} is creating staff profile")
+        keyword_tags_data = req.data.get("keyword_tags", [])
+
+        processed_tags = []
+        for tag_data in keyword_tags_data:
+            if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
+                tag_name = tag_data.get("name")
+                # tag_pk = tag_data.get("pk")
+
+                # if tag_pk:
+                #     processed_tags.append({"pk": tag_pk, "name": tag_name})
+                if tag_name:  # Create or get the tag by name if pk is not provided
+                    tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+                    processed_tags.append({"pk": tag.pk, "name": tag.name})
+
+        req.data["keyword_tags"] = processed_tags
+
+        ser = StaffProfileCreationSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            try:
+                # Ensures everything is rolled back if there is an error.
+                with transaction.atomic():
+                    # Save the new staff profile instance
+                    staff_profile = ser.save()
+
+                    # Return the newly created staff profile data
+                    return Response(
+                        StaffProfileCreationSerializer(staff_profile).data,
+                        status=HTTP_201_CREATED,
+                    )
+
+            except Exception as e:
+                # If there is any exception, log it and return an error response
+                settings.LOGGER.error(msg=f"Error creating staff profile: {str(e)}")
+                return Response(
+                    {"detail": "An error occurred while creating the staff profile."},
+                    status=HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:
+            # If the serializer is not valid, return the errors
+            return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
+
 
 class StaffProfileDetail(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -611,13 +677,23 @@ class StaffProfileDetail(APIView):
             raise NotFound
         return obj
 
+    def check_tag_usage(self, tag_name):
+        try:
+            tag = KeywordTag.objects.get(name=tag_name)
+        except KeywordTag.DoesNotExist:
+            return False  # Tag doesn't exist, so it isn't in use
+
+        return (
+            tag.staff_profiles.exists()
+        )  # Returns True if the tag is used in any profile
+
     def get(self, req, pk):
-        user = self.go(pk)
+        staff_profile = self.go(pk)
         settings.LOGGER.info(
-            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {user.first_name} {user.last_name}"
+            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {staff_profile.user.first_name} {user.last_name}"
         )
-        ser = ProfilePageSerializer(
-            user,
+        ser = StaffProfileSerializer(
+            staff_profile,
             context={"request": req},
         )
         return Response(
@@ -626,25 +702,52 @@ class StaffProfileDetail(APIView):
         )
 
     def delete(self, req, pk):
-        user = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting user: {user}")
-        user.delete()
+        staff_profile = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is deleting staff profile: {staff_profile}"
+        )
+        staff_profile.delete()
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
 
     def put(self, req, pk):
-        user = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating user: {user}")
-        ser = UserSerializer(
-            user,
+        staff_profile = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is updating staff profile: {staff_profile}"
+        )
+
+        keyword_tags_data = req.data.get("keyword_tags", [])
+
+        processed_tags = []
+        for tag_data in keyword_tags_data:
+            if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
+                tag_name = tag_data.get("name")
+                # tag_pk = tag_data.get("pk")
+
+                # if tag_pk:
+                #     processed_tags.append({"pk": tag_pk, "name": tag_name})
+                if tag_name:  # Create or get the tag by name if pk is not provided
+                    tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+                    processed_tags.append({"pk": tag.pk, "name": tag.name})
+
+        req.data["keyword_tags"] = processed_tags
+
+        ser = StaffProfileSerializer(
+            staff_profile,
             data=req.data,
             partial=True,
         )
         if ser.is_valid():
-            u_user = ser.save()
+            u_staff_profile = ser.save()
+            # After saving, check if any old tags are no longer in use and delete them
+            all_tags = KeywordTag.objects.all()
+            for tag in all_tags:
+                if not self.check_tag_usage(tag.name):
+                    tag.delete()
+
             return Response(
-                TinyUserSerializer(u_user).data,
+                StaffProfileSerializer(u_staff_profile).data,
                 status=HTTP_202_ACCEPTED,
             )
         else:
@@ -653,6 +756,339 @@ class StaffProfileDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class StaffProfileHeroDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            profile = PublicStaffProfile.objects.get(user=pk)
+        except PublicStaffProfile.DoesNotExist:
+            raise NotFound
+        return profile
+
+    def get(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is getting Hero Data for a user with id {pk}"
+        )
+        profile = self.go(pk)
+        ser = StaffProfileHeroSerializer(profile)
+        return Response(ser.data, status=HTTP_200_OK)
+
+
+class StaffProfileOverviewDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            profile = PublicStaffProfile.objects.get(user=pk)
+        except PublicStaffProfile.DoesNotExist:
+            raise NotFound
+        return profile
+
+    def get(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is getting Overview Data for a user with id {pk}"
+        )
+        profile = self.go(pk)
+        ser = StaffProfileOverviewSerializer(profile)
+        return Response(ser.data, status=HTTP_200_OK)
+
+
+class StaffProfileCVDetail(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            profile = PublicStaffProfile.objects.get(user=pk)
+        except PublicStaffProfile.DoesNotExist:
+            raise NotFound
+        return profile
+
+    def get(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is getting CV Data for a user with id {pk}"
+        )
+        profile = self.go(pk)
+        ser = StaffProfileCVSerializer(profile)
+        return Response(ser.data, status=HTTP_200_OK)
+
+
+class PublicEmailStaffMember(APIView):
+    permission_classes = [AllowAny]
+
+    def go(self, pk):
+        try:
+            user = User.objects.filter(pk=pk).first()
+        except User.DoesNotExist:
+            raise NotFound
+        return user
+
+    def post(self, req, pk):
+
+        settings.LOGGER.info(
+            msg=f"(PUBLIC) {req.user} is attempting to use '{req.data['senderEmail']}' to send an email to a staff member"
+        )
+        try:
+            user = self.go(pk=pk)
+            ser = MiniUserSerializer(user)
+            settings.LOGGER.warning(
+                msg=f"(PUBLIC) {req.data['senderEmail']} sent public email to {ser.data['email']}"
+            )
+            return Response(
+                HTTP_200_OK,
+            )
+        except Exception as e:
+            settings.LOGGER.error(
+                msg=f"(PUBLIC) an error occurred sending a public email:\n{e}"
+            )
+            return Response(
+                {"error": e},
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+# =================================================
+
+
+class StaffProfileEmploymentEntries(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        settings.LOGGER.info(msg=f"(Public) {req.user} is viewing employment entries")
+        entries = EmploymentEntry.objects.all()
+        serialized_entries = EmploymentEntrySerializer(
+            entries, many=True, context={"request": req}
+        ).data
+
+        return Response(serialized_entries, status=HTTP_200_OK)
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating employment entry")
+        ser = EmploymentEntryCreationSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            try:
+                # Ensures everything is rolled back if there is an error.
+                with transaction.atomic():
+                    # Save the new staff profile instance
+                    employment_entry = ser.save()
+
+                    # Return the newly created staff profile data
+                    return Response(ser.data, status=HTTP_201_CREATED)
+
+            except Exception as e:
+                # If there is any exception, log it and return an error response
+                settings.LOGGER.error(msg=f"Error creating employment entry: {str(e)}")
+                return Response(
+                    {
+                        "detail": "An error occurred while creating the employment entry."
+                    },
+                    status=HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:
+            # If the serializer is not valid, return the errors
+            return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class StaffProfileEducationEntries(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get(self, req):
+        settings.LOGGER.info(msg=f"(Public) {req.user} is viewing education entries")
+        entries = EducationEntry.objects.all()
+        serialized_entries = EducationEntrySerializer(
+            entries, many=True, context={"request": req}
+        ).data
+
+        return Response(serialized_entries, status=HTTP_200_OK)
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is creating education entry")
+        pprint.pprint(req.data)
+        ser = EducationEntryCreationSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            try:
+                # Ensures everything is rolled back if there is an error.
+                with transaction.atomic():
+                    # Save the new staff profile instance
+                    education_entry = ser.save()
+
+                    # Return the newly created staff profile data
+                    return Response(ser.data, status=HTTP_201_CREATED)
+
+            except Exception as e:
+                # If there is any exception, log it and return an error response
+                settings.LOGGER.error(msg=f"Error creating education entry: {str(e)}")
+                return Response(
+                    {"detail": "An error occurred while creating the education entry."},
+                    status=HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+        else:
+            # If the serializer is not valid, return the errors
+            print(ser.errors)
+            return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class StaffProfileEducationEntryDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = EducationEntry.objects.get(pk=pk)
+        except EducationEntry.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        entry = self.go(pk)
+        ser = EducationEntrySerializer(
+            entry,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        entry = self.go(pk)
+        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+            return Response(
+                data={"error": True},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        settings.LOGGER.info(msg=f"{req.user} is deleting education {entry}")
+        entry.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        entry = self.go(pk)
+        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+            return Response(
+                data={"error": True},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        settings.LOGGER.info(msg=f"{req.user} is updating education {entry}")
+        ser = EducationEntrySerializer(
+            entry,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            uentry = ser.save()
+            return Response(
+                EducationEntrySerializer(uentry).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class StaffProfileEmploymentEntryDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = EmploymentEntry.objects.get(pk=pk)
+        except EmploymentEntry.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        entry = self.go(pk)
+        ser = EmploymentEntrySerializer(
+            entry,
+            context={"request": req},
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+
+        entry = self.go(pk)
+        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+            return Response(
+                data={"error": True},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        settings.LOGGER.info(msg=f"{req.user} is deleting employment {entry}")
+        entry.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+
+        entry = self.go(pk)
+        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+            return Response(
+                data={"error": True},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+        settings.LOGGER.info(msg=f"{req.user} is updating employment {entry}")
+        ser = EmploymentEntrySerializer(
+            entry,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            uentry = ser.save()
+            return Response(
+                EmploymentEntrySerializer(uentry).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+# Getting a user's specific items (view) ===============
+class UserStaffEmploymentEntries(APIView):
+    def go(self, user_pk):
+        try:
+            entries = EmploymentEntry.objects.filter(user=user_pk)
+        except EmploymentEntry.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            raise Exception(e)
+        return entries
+
+    def get(self, req, pk):
+        users_employment = self.go(user_pk=pk)
+        ser = EmploymentEntrySerializer(users_employment, many=True)
+        return Response(ser.data, status=HTTP_200_OK)
+
+
+class UserStaffEducationEntries(APIView):
+    def go(self, user_pk):
+        try:
+            entries = EducationEntry.objects.filter(user=user_pk)
+        except EducationEntry.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            raise Exception(e)
+        return entries
+
+    def get(self, req, pk):
+        users_employment = self.go(user_pk=pk)
+        ser = EducationEntrySerializer(users_employment, many=True)
+        return Response(ser.data, status=HTTP_200_OK)
 
 
 class ITAssets(APIView):
@@ -666,7 +1102,7 @@ class ITAssets(APIView):
             )
             print(response)
             response.raise_for_status()  # Raise an error for bad HTTP status codes
-        
+
             data = response.json()  # Assuming the response is in JSON format
 
             # Filter the data by email
@@ -676,13 +1112,17 @@ class ITAssets(APIView):
                 raise NotFound(f"No data found for email: {email}")
         except requests.exceptions.HTTPError as http_err:
             # raise Exception(f"HTTP error occurred: {http_err}")
-            return Response({"error": f"HTTP error occurred: {http_err}"}, status=HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"HTTP error occurred: {http_err}"},
+                status=HTTP_400_BAD_REQUEST,
+            )
         except Exception as e:
             # raise Exception(f"An error occurred: {e}")
-            return Response({"error": f"An error occurred: {e}"}, status=HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": f"An error occurred: {e}"}, status=HTTP_400_BAD_REQUEST
+            )
 
         return filtered_data
-
 
     def get(self, request, pk):
         settings.LOGGER.info(
@@ -690,16 +1130,18 @@ class ITAssets(APIView):
         )
 
         filtered_data = self.get_it_assets(pk)
-        
+
         # Check if filtered_data is a Response object (which indicates an error)
         if isinstance(filtered_data, Response):
             return filtered_data
-        
+
         # Serialize the filtered data
         serializer = ITAssetSerializer(filtered_data, many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
-        
+
+# ===================================================
+
 
 class UserDetail(APIView):
     permission_classes = [IsAuthenticated]
