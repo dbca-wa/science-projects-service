@@ -717,21 +717,22 @@ class StaffProfileDetail(APIView):
             msg=f"{req.user} is updating staff profile: {staff_profile}"
         )
 
-        keyword_tags_data = req.data.get("keyword_tags", [])
+        keyword_tags_data = req.data.get("keyword_tags")
 
-        processed_tags = []
-        for tag_data in keyword_tags_data:
-            if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
-                tag_name = tag_data.get("name")
-                # tag_pk = tag_data.get("pk")
+        if keyword_tags_data:
+            processed_tags = []
+            for tag_data in keyword_tags_data:
+                if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
+                    tag_name = tag_data.get("name")
+                    # tag_pk = tag_data.get("pk")
 
-                # if tag_pk:
-                #     processed_tags.append({"pk": tag_pk, "name": tag_name})
-                if tag_name:  # Create or get the tag by name if pk is not provided
-                    tag, created = KeywordTag.objects.get_or_create(name=tag_name)
-                    processed_tags.append({"pk": tag.pk, "name": tag.name})
+                    # if tag_pk:
+                    #     processed_tags.append({"pk": tag_pk, "name": tag_name})
+                    if tag_name:  # Create or get the tag by name if pk is not provided
+                        tag, created = KeywordTag.objects.get_or_create(name=tag_name)
+                        processed_tags.append({"pk": tag.pk, "name": tag.name})
 
-        req.data["keyword_tags"] = processed_tags
+            req.data["keyword_tags"] = processed_tags
 
         ser = StaffProfileSerializer(
             staff_profile,
