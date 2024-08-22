@@ -120,12 +120,12 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
 ]
 
-# if DEBUG:
-# Ensure all dbca subroutes allowed and local dev
-CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://.*\.dbca\.wa\.gov\.au$",
-    r"^http://127\.0\.0\.1:3000$",
-]
+if DEBUG:
+    # Ensure all dbca subroutes allowed and local dev
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        # r"^https://.*\.dbca\.wa\.gov\.au$", #duplicate policies
+        r"^http://127\.0\.0\.1:3000$",
+    ]
 # CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
 
 # Build ALLOW_LIST_HTTP for manually setting trusted/allowed origins based on allow list
