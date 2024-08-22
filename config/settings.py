@@ -154,6 +154,8 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
+SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
+CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 
 # Application definitions ======================================================
 SYSTEM_APPS = [
