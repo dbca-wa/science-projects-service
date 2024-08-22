@@ -1,0 +1,45 @@
+{% load custom_filters %}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+</head>
+
+<body style="background-color:#ffffff;margin:0 auto;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,'Noto Sans',sans-serif,'Apple Color Emoji','Segoe UI Emoji','Segoe UI Symbol','Noto Color Emoji';padding:0.5rem">
+    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width:465px;border-radius:0.25rem;margin:40px auto;padding:20px;">
+        <tbody>
+            <tr style="width:100%">
+                <td>
+                    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin-top:32px">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div style="text-align: center;">
+                                        <img alt="DBCA" height="180" src="{{dbca_image_path}}" style="display:block;outline:none;border:none;text-decoration:none;margin:0 auto;" width="180" />
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h1 style="color:#000000;font-size:24px;font-weight:400;text-align:center;margin:1rem 0 30px;">Staff Profile Contact</h1>
+                    <p style="font-size:14px;line-height:24px;margin:16px 0;color:#000000">Hello {{recipient_name}},</p>
+                    <p style="font-size:14px;line-height:24px;margin:16px 0;color:#000000">A member of the public has sent you a message via your staff profile listing.</p>
+                    <p style="font-size:14px;line-height:24px;margin:16px 0;color:#000000;">"{{staff_message}}"</p>
+                    <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="text-align:center;margin:32px 0;">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <a href="mailto:{{public_users_listed_email}}" style="background-color:#000000;border-radius:0.25rem;color:#ffffff;font-size:12px;font-weight:600;text-decoration:none;text-align:center;padding:12px 20px;display:inline-block;" target="_blank">Reply</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <hr style="width:100%;border:none;border-top:1px solid #eaeaea;margin:26px 0;" />
+                    <p style="font-size:12px;line-height:24px;margin:16px 0;color:#666666">This automated message was intended for <span style="color:#000000">{{recipient_name}}</span>. If you believe this was sent by mistake, you can ignore this email.</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
