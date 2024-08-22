@@ -120,39 +120,39 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1",
 ]
 
-if DEBUG:
-    # Ensure all dbca subroutes allowed and local dev
-    CORS_ALLOWED_ORIGIN_REGEXES = [
-        # r"^https://.*\.dbca\.wa\.gov\.au$",
-        r"^http://127\.0\.0\.1:3000$",
-    ]
-    # CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
+# if DEBUG:
+# Ensure all dbca subroutes allowed and local dev
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.dbca\.wa\.gov\.au$",
+    r"^http://127\.0\.0\.1:3000$",
+]
+# CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
 
-    # Build ALLOW_LIST_HTTP for manually setting trusted/allowed origins based on allow list
-    # ALLOW_LIST_HTTP = [
-    #     (
-    #         item
-    #         if item.startswith("http://") or item.startswith("https://")
-    #         else "http://" + item if item.startswith("127.0.0.1") else "https://" + item
-    #     )
-    #     for item in ALLOW_LIST
-    # ]
-    # CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
-    # CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+# Build ALLOW_LIST_HTTP for manually setting trusted/allowed origins based on allow list
+# ALLOW_LIST_HTTP = [
+#     (
+#         item
+#         if item.startswith("http://") or item.startswith("https://")
+#         else "http://" + item if item.startswith("127.0.0.1") else "https://" + item
+#     )
+#     for item in ALLOW_LIST
+# ]
+# CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
+# CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
-    CORS_ALLOW_CREDENTIALS = True
-    CORS_ALLOW_METHODS = [
-        "GET",
-        "POST",
-        "OPTIONS",
-        "PUT",
-        "DELETE",
-    ]
-    CORS_ALLOW_HEADERS = [
-        "X-CSRFToken",
-        "Content-Type",
-        "Authorization",
-    ]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "OPTIONS",
+    "PUT",
+    "DELETE",
+]
+CORS_ALLOW_HEADERS = [
+    "X-CSRFToken",
+    "Content-Type",
+    "Authorization",
+]
 
 
 # Application definitions ======================================================

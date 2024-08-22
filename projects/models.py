@@ -6,6 +6,7 @@ from datetime import datetime as dt
 from django.db.models import UniqueConstraint
 from django.contrib.postgres.fields import JSONField, ArrayField
 from bs4 import BeautifulSoup
+from django.core.exceptions import ObjectDoesNotExist
 
 # ------------------------------
 # Section: Research Function Model
@@ -235,7 +236,10 @@ class Project(CommonModel):
         if self.kind != self.CategoryKindChoices.EXTERNAL:
             return self.description
         else:
-            return self.external_project_info.description
+            try:
+                return self.external_project_info.description
+            except ObjectDoesNotExist:
+                return ""
 
     def __str__(self) -> str:
         return f"({self.kind.upper()}) {self.extract_inner_text(self.title)}"
