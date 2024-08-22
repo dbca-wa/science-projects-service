@@ -891,7 +891,7 @@ class PublicEmailStaffMember(APIView):
                             "Staff Profile Message",
                             template_content,  # plain text version
                             from_email,
-                            "jarid.prince@dbca.wa.gov.au",
+                            ["jarid.prince@dbca.wa.gov.au"],
                             fail_silently=False,  # Set this to False to see errors
                             html_message=template_content,
                         )
