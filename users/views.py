@@ -20,6 +20,9 @@ from django.utils.text import slugify
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 
+from config.helpers import get_encoded_image
+from django.template.loader import render_to_string
+from django.core.mail import send_mail, send_mass_mail
 
 from contacts.models import UserContact
 from medias.models import UserAvatar
@@ -827,26 +830,109 @@ class PublicEmailStaffMember(APIView):
         return user
 
     def post(self, req, pk):
-
         settings.LOGGER.info(
             msg=f"(PUBLIC) {req.user} is attempting to use '{req.data['senderEmail']}' to send an email to a staff member"
         )
+
         try:
-            user = self.go(pk=pk)
-            ser = MiniUserSerializer(user)
-            settings.LOGGER.warning(
-                msg=f"(PUBLIC) {req.data['senderEmail']} sent public email to {ser.data['email']}"
+            # Fetch the staff member
+            staff_member = User.objects.get(pk=pk)
+            ser = MiniUserSerializer(staff_member)
+            recipient_name = (
+                f"{staff_member.display_first_name} {staff_member.display_last_name}"
             )
+            recipient_email = staff_member.email
+
+            # Log email sending attempt
+            settings.LOGGER.warning(
+                msg=f"(PUBLIC) {req.data['senderEmail']} sent a public email to {recipient_email}"
+            )
+
+            # Email details
+            from_email = settings.DEFAULT_FROM_EMAIL
+            to_email = [recipient_email]
+            templ = "./email_templates/staff_profile_email.html"
+
+            # Template context
+            template_props = {
+                "recipient_name": recipient_name,
+                "staff_message": req.data.get("message"),
+                "public_users_listed_email": req.data.get("senderEmail"),
+                "dbca_image_path": get_encoded_image(),
+            }
+
+            # Render the email template
+            template_content = render_to_string(templ, template_props)
+
+            if settings.DEBUG == False:
+                if settings.ON_TEST_NETWORK != True:
+                    print(f"PRODUCTION: Sending email to {recipient_name}")
+                    try:
+                        send_mail(
+                            "Staff Profile Message",
+                            template_content,  # plain text version
+                            from_email,
+                            to_email,
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    print(f"LIVE TEST: Sending email to {recipient_name}")
+                    try:
+                        send_mail(
+                            "Staff Profile Message",
+                            template_content,  # plain text version
+                            from_email,
+                            "jarid.prince@dbca.wa.gov.au",
+                            fail_silently=False,  # Set this to False to see errors
+                            html_message=template_content,
+                        )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+            else:  # Test environment
+                # Simulate sending the email
+                print("THIS IS A SIMULATION")
+                print(f"DEV: Sending email to {recipient_name}")
+                print(
+                    {
+                        "to_email": to_email,
+                        "recipient_name": recipient_name,
+                        "public_users_listed_email": req.data.get("senderEmail"),
+                    }
+                )
+
             return Response(
-                HTTP_200_OK,
+                "Email Sent!",
+                status=HTTP_202_ACCEPTED,
+            )
+
+        except User.DoesNotExist:
+            settings.LOGGER.error(f"(PUBLIC) Staff member with pk {pk} not found.")
+            return Response(
+                {"error": "Staff member not found"},
+                status=HTTP_400_BAD_REQUEST,
             )
         except Exception as e:
             settings.LOGGER.error(
                 msg=f"(PUBLIC) an error occurred sending a public email:\n{e}"
             )
             return Response(
-                {"error": e},
-                HTTP_400_BAD_REQUEST,
+                {"error": str(e)},
+                status=HTTP_400_BAD_REQUEST,
             )
 
 
