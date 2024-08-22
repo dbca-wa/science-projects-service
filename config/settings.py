@@ -154,8 +154,17 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
+
 SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
+
+# Ensure SameSite attribute allows cross-site requests if needed
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "None"
+# Secure attribute is also recommended if using HTTPS
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
 
 # Application definitions ======================================================
 SYSTEM_APPS = [
