@@ -158,6 +158,7 @@ CORS_ALLOW_HEADERS = [
 # if there are issues setting this
 SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
+CSRF_COOKIE_NAME = "spmscsrf"  # Set custom CSRF cookie name
 
 # e.g.
 # REACT ===============
