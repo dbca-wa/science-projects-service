@@ -154,7 +154,8 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-
+# potentially adjust frontend cookiename and introduce middleware for a rename to spmscsrftoken
+# if there are issues setting this
 SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 
