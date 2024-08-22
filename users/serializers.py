@@ -554,12 +554,13 @@ class StaffProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Handle the many-to-many field for keyword_tags
-        keyword_tags_data = validated_data.pop("keyword_tags", None)
+        if "keyword_tags" in validated_data:
+            keyword_tags_data = validated_data.pop("keyword_tags", None)
 
-        if keyword_tags_data is not None:
-            instance.keyword_tags.clear()
-            for tag in keyword_tags_data:
-                instance.keyword_tags.add(tag)
+            if keyword_tags_data is not None:
+                instance.keyword_tags.clear()
+                for tag in keyword_tags_data:
+                    instance.keyword_tags.add(tag)
 
         return super().update(instance, validated_data)
 
