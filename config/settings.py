@@ -159,6 +159,28 @@ CORS_ALLOW_HEADERS = [
 SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 
+# e.g.
+# REACT ===============
+# if (csrfToken !== "POTATOES") {
+#     config.headers["spmscsrfheader"] = csrfToken; // Change header name here
+#   }
+# PYTHON ==============
+# # your_app/middleware.py
+# from django.utils.deprecation import MiddlewareMixin
+
+# class CustomCSRFHeaderMiddleware(MiddlewareMixin):
+#     def process_request(self, request):
+#         csrf_token = request.headers.get('spmscsrfheader')  # Custom header name
+#         if csrf_token:
+#             request.META['CSRF_COOKIE'] = csrf_token
+
+# # settings.py
+# MIDDLEWARE = [
+#     # ... other middleware classes ...
+#     'your_app.middleware.CustomCSRFHeaderMiddleware',
+#     # ... other middleware classes ...
+# ]
+
 # Ensure SameSite attribute allows cross-site requests if needed
 CSRF_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SAMESITE = "None"
