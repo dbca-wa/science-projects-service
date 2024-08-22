@@ -162,8 +162,8 @@ CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 CSRF_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SAMESITE = "None"
 # Secure attribute is also recommended if using HTTPS
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = DEBUG == False
+SESSION_COOKIE_SECURE = DEBUG == False
 
 
 # Application definitions ======================================================
