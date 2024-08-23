@@ -126,19 +126,6 @@ if DEBUG:
         # r"^https://.*\.dbca\.wa\.gov\.au$", #duplicate policies
         r"^http://127\.0\.0\.1:3000$",
     ]
-# CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGIN_REGEXES
-
-# Build ALLOW_LIST_HTTP for manually setting trusted/allowed origins based on allow list
-# ALLOW_LIST_HTTP = [
-#     (
-#         item
-#         if item.startswith("http://") or item.startswith("https://")
-#         else "http://" + item if item.startswith("127.0.0.1") else "https://" + item
-#     )
-#     for item in ALLOW_LIST
-# ]
-# CORS_ALLOWED_ORIGINS = list(set(ALLOW_LIST_HTTP))
-# CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -154,40 +141,18 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-# potentially adjust frontend cookiename and introduce middleware for a rename to spmscsrftoken
-# if there are issues setting this
-SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
-CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 CSRF_COOKIE_NAME = "spmscsrf"  # Set custom CSRF cookie name
 
-# e.g.
-# REACT ===============
-# if (csrfToken !== "POTATOES") {
-#     config.headers["spmscsrfheader"] = csrfToken; // Change header name here
-#   }
-# PYTHON ==============
-# # your_app/middleware.py
-# from django.utils.deprecation import MiddlewareMixin
+if not DEBUG:
+    SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
+    CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 
-# class CustomCSRFHeaderMiddleware(MiddlewareMixin):
-#     def process_request(self, request):
-#         csrf_token = request.headers.get('spmscsrfheader')  # Custom header name
-#         if csrf_token:
-#             request.META['CSRF_COOKIE'] = csrf_token
-
-# # settings.py
-# MIDDLEWARE = [
-#     # ... other middleware classes ...
-#     'your_app.middleware.CustomCSRFHeaderMiddleware',
-#     # ... other middleware classes ...
-# ]
-
-# Ensure SameSite attribute allows cross-site requests if needed
-CSRF_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SAMESITE = "None"
-# Secure attribute is also recommended if using HTTPS
-CSRF_COOKIE_SECURE = DEBUG == False
-SESSION_COOKIE_SECURE = DEBUG == False
+    # Ensure SameSite attribute allows cross-site requests if needed
+    CSRF_COOKIE_SAMESITE = "None"
+    SESSION_COOKIE_SAMESITE = "None"
+    # Secure attribute is also recommended if using HTTPS
+    CSRF_COOKIE_SECURE = DEBUG == False
+    SESSION_COOKIE_SECURE = DEBUG == False
 
 
 # Application definitions ======================================================

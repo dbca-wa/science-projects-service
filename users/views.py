@@ -501,7 +501,7 @@ class ToggleUserActive(APIView):
 
 
 class UsersProjects(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def go(self, pk):
         try:
@@ -994,7 +994,7 @@ class StaffProfileEducationEntries(APIView):
 
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is creating education entry")
-        pprint.pprint(req.data)
+        # pprint.pprint(req.data)
         ser = EducationEntryCreationSerializer(
             data=req.data,
         )
