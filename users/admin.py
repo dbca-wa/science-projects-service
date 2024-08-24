@@ -17,6 +17,28 @@ from users.views import Users
 from .models import KeywordTag, PublicStaffProfile, User, UserWork, UserProfile
 
 
+@admin.action(description="Send About and Expertise to SP")
+def copy_about_expertise_to_staff_profile(model_admin, req, selected):
+    if len(selected) > 1:
+        print("Please select only one")
+        return
+
+    users_to_update = User.objects.filter(is_staff=True)
+    for user in users_to_update:
+        current_about = user.profile.about
+        current_expertise = user.profile.expertise
+
+        profile = PublicStaffProfile.objects.get(user=user)
+        profile.about = f"<p>{current_about}</p>"
+        profile.expertise = f"<p>{current_expertise}</p>"
+        profile.save()
+
+    model_admin.message_user(
+        req,
+        f"Copied profile data over to staff profile for {users_to_update.count()} user(s).",
+    )
+
+
 @admin.action(description="Creates a staff profile for users w/o")
 def create_staff_profiles(model_admin, req, selected):
     if len(selected) > 1:
@@ -221,6 +243,7 @@ class StaffProfileAdmin(admin.ModelAdmin):
         create_staff_profiles,
         export_current_active_project_leads,
         update_display_names,
+        copy_about_expertise_to_staff_profile,
     ]
 
 

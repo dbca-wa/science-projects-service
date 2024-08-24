@@ -278,16 +278,16 @@ class UpdatePISerializer(serializers.ModelSerializer):
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
     image = serializers.PrimaryKeyRelatedField(
-        source="profile.image", queryset=UserAvatar.objects.all(), required=False
+        source="staff_profile.image", queryset=UserAvatar.objects.all(), required=False
     )
     about = serializers.CharField(
-        source="profile.about",
+        source="staff_profile.about",
         allow_blank=True,
         allow_null=True,
         required=False,
     )
     expertise = serializers.CharField(
-        source="profile.expertise",
+        source="staff_profile.expertise",
         allow_blank=True,
         allow_null=True,
         required=False,
@@ -302,13 +302,13 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         )
 
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop("profile", None)
+        staff_profile_data = validated_data.pop("staff_profile", None)
 
-        if profile_data:
-            profile = instance.profile
-            for attr, value in profile_data.items():
-                setattr(profile, attr, value)
-            profile.save()
+        if staff_profile_data:
+            staff_profile = instance.staff_profile
+            for attr, value in staff_profile_data.items():
+                setattr(staff_profile, attr, value)
+            staff_profile.save()
 
         return instance
 
@@ -569,8 +569,11 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     # profile
     image = UserAvatarSerializer(source="profile.image")
     title = serializers.CharField(source="profile.title")
-    about = serializers.CharField(source="profile.about")
-    expertise = serializers.CharField(source="profile.expertise")
+
+    about = serializers.CharField(source="staff_profile.about")
+    expertise = serializers.CharField(source="staff_profile.expertise")
+    # about = serializers.CharField(source="profile.about")
+    # expertise = serializers.CharField(source="profile.expertise")
     # Work
     role = serializers.CharField(source="work.role")
     agency = TinyAgencySerializer(source="work.agency")

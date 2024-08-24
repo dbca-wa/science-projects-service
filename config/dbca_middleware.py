@@ -38,7 +38,10 @@ class DBCAMiddleware(MiddlewareMixin):
                 UserWork.objects.create(user=user, agency=agency_instance)
                 UserProfile.objects.create(user=user)
                 UserContact.objects.create(user=user)
-                # PublicStaffProfile.objects.create(user=user, is_hidden=True, )
+                PublicStaffProfile.objects.create(
+                    user=user,
+                    is_hidden=False,
+                )
 
                 user.is_staff = True
                 user.set_password(settings.EXTERNAL_PASS)
