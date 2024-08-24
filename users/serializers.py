@@ -156,9 +156,9 @@ class TinyUserProfileSerializer(serializers.ModelSerializer):
             # "image",
             "title",
             "middle_initials",
-            "about",
+            # "about",
             "curriculum_vitae",
-            "expertise",
+            # "expertise",
         )
 
 

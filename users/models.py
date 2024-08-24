@@ -222,15 +222,15 @@ class UserProfile(CommonModel):
         null=True,
         blank=True,
     )
-    about = models.TextField(
-        null=True,
-        blank=True,
-    )
-    expertise = models.CharField(
-        max_length=2000,
-        null=True,
-        blank=True,
-    )
+    # about = models.TextField(
+    #     null=True,
+    #     blank=True,
+    # )
+    # expertise = models.CharField(
+    #     max_length=2000,
+    #     null=True,
+    #     blank=True,
+    # )
 
     def __str__(self) -> str:
         return f"Profile | {self.user.username if self.user else 'No User'}"

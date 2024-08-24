@@ -254,8 +254,8 @@ class UserProfileAdmin(admin.ModelAdmin):
         "user",
         "title",
         "middle_initials",
-        "expertise",
-        "about",
+        # "expertise",
+        # "about",
         "image",
     ]
     ordering = ["user"]
