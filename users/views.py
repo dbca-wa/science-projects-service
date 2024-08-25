@@ -696,7 +696,7 @@ class StaffProfileDetail(APIView):
     def get(self, req, pk):
         staff_profile = self.go(pk)
         settings.LOGGER.info(
-            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {staff_profile.user.first_name} {user.last_name}"
+            msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {staff_profile.user.first_name} {staff_profile.user.last_name}"
         )
         ser = StaffProfileSerializer(
             staff_profile,
@@ -861,7 +861,7 @@ class PublicEmailStaffMember(APIView):
                 "recipient_name": recipient_name,
                 "staff_message": req.data.get("message"),
                 "public_users_listed_email": req.data.get("senderEmail"),
-                "dbca_image_path": get_encoded_image(),
+                # "dbca_image_path": get_encoded_image(),
             }
 
             # Render the email template
