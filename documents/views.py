@@ -310,6 +310,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
 
         # Director's Message
         directors_message_data = report.dm
+        directors_message_sign_off = report.dm_sign
 
         # Publications
         publications_data = report.publications
@@ -599,6 +600,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
                 # ED Message
                 "directors_message_data": directors_message_data,
+                "directors_message_sign_off": directors_message_sign_off,
                 # TABLE CONTENTS
                 # SDS
                 "sds_data": sds_data,
@@ -869,7 +871,7 @@ class BeginReportDocGeneration(APIView):
 
         # Director's Message
         directors_message_data = report.dm
-
+        directors_message_sign_off = report.dm_sign
         # Publications
         publications_data = report.publications
 
@@ -1156,6 +1158,7 @@ class BeginReportDocGeneration(APIView):
                 "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
                 # ED Message
                 "directors_message_data": directors_message_data,
+                "directors_message_sign_off": directors_message_sign_off,
                 # TABLE CONTENTS
                 # SDS
                 "sds_data": sds_data,

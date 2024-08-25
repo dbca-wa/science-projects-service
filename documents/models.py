@@ -50,6 +50,13 @@ class AnnualReport(CommonModel):
         help_text="Directors's message (less than 10,000 words)",
     )
 
+    dm_sign = models.TextField(
+        verbose_name="Director's Message Sign off",
+        blank=True,
+        null=True,
+        help_text="Sign off",
+    )
+
     service_delivery_intro = models.TextField(
         verbose_name="Service Deilvery Structure",
         blank=True,
@@ -91,6 +98,19 @@ class AnnualReport(CommonModel):
     is_published = models.BooleanField(
         default=False,
     )
+
+    def save(self, *args, **kwargs):
+        if not self.dm_sign:
+            self.dm_sign = (
+                '<p class="editor-p-light" dir="ltr">'
+                '<span style="white-space: pre-wrap;">Dr Margaret Byrne</span>'
+                "<br>"
+                '<span style="white-space: pre-wrap;">Executive Director, Biodiversity and Conservation Science</span>'
+                "<br>"
+                f'<span style="white-space: pre-wrap;">October {self.year}</span>'
+                "</p>"
+            )
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"(ID: {self.pk}) ARAR - {self.year}"

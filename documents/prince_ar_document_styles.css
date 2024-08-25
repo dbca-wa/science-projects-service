@@ -1008,3 +1008,14 @@ progress_report_bottom_container_rhs {
 * {
 	white-space: normal !important;
 }
+
+.directors_message_sign_off_container {
+	margin-top: 30px;
+	font-size: 12px !important;
+}
+
+.directors_message_sign_off_container p,
+.directors_message_sign_off_container br,
+.directors_message_sign_off_container span {
+	white-space: pre-wrap !important;
+}

@@ -701,13 +701,16 @@ function removeInlineStyles(htmlContent) {
     {% comment %} DM {% endcomment %}
     <div class="dm_page">
         <div class="section_container">
-        <div class="directors_message_section_title_container">
-            <p class="directors_message_section_title">Executive Director's Message</p>
+            <div class="directors_message_section_title_container">
+                <p class="directors_message_section_title">Executive Director's Message</p>
+            </div>
+            <div class="directors_message_container">
+                {{ directors_message_data | safe }}
+            </div>
+            <div class="directors_message_sign_off_container">
+                {{ directors_message_sign_off|newline_to_br|safe }}
+            </div>
         </div>
-        <div class="directors_message_container">
-            {{ directors_message_data | safe}}
-        </div>
-    </div>
     </div>
 
     {% comment %} TOC PAGINATION {% endcomment %}

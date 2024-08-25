@@ -112,6 +112,14 @@ def extract_text_content(html_content):
 
 
 @register.filter
+def newline_to_br(value):
+    """
+    Replaces newline characters with <br> tags.
+    """
+    return value.replace("\n", "<br>")
+
+
+@register.filter
 def remove_empty_p(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     for p_tag in soup.find_all("p"):
