@@ -60,17 +60,16 @@ class Command(BaseCommand):
                         for user in users:
                             # Get or create the staff profile
                             staff_profile, created = (
-                                PublicStaffProfile.objects.get_or_create(
-                                    user=user,
-                                    defaults={
-                                        "aucode": staff_data[staff_id]["aucode"],
-                                        "about": staff_data[staff_id]["profile"],
-                                        "expertise": staff_data[staff_id]["expertise"],
-                                        "updated_at": staff_data[staff_id]["updated"],
-                                        "hidden": staff_data[staff_id]["hidden"],
-                                    },
-                                )
+                                PublicStaffProfile.objects.get_or_create(user=user)
                             )
+
+                            # Update the staff profile with new data
+                            staff_profile.aucode = staff_data[staff_id]["aucode"]
+                            staff_profile.about = staff_data[staff_id]["profile"]
+                            staff_profile.expertise = staff_data[staff_id]["expertise"]
+                            staff_profile.updated_at = staff_data[staff_id]["updated"]
+                            staff_profile.hidden = staff_data[staff_id]["hidden"]
+                            staff_profile.save()
 
                             # Split the keyword by commas into individual keywords
                             keywords = [kw.strip() for kw in keyword.split(",")]
