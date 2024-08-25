@@ -28,7 +28,7 @@ class Command(BaseCommand):
         long_keywords = []
 
         # Read staff data and store it in a dictionary for quick access
-        with open(staff_file_path, newline="") as staff_file:
+        with open(staff_file_path, newline="", encoding="latin-1") as staff_file:
             staff_reader = csv.DictReader(staff_file)
             fieldnames = staff_reader.fieldnames  # Capture the original fieldnames
 
@@ -41,7 +41,9 @@ class Command(BaseCommand):
                 staff_data[staff_id] = row
 
         # Read keyword data and link to corresponding staff profiles
-        with open(staff_keywords_file_path, newline="") as keywords_file:
+        with open(
+            staff_keywords_file_path, newline="", encoding="latin-1"
+        ) as keywords_file:
             keywords_reader = csv.DictReader(keywords_file)
 
             for row in keywords_reader:
@@ -100,7 +102,9 @@ class Command(BaseCommand):
 
         # Write unmatched users to a new CSV
         if unmatched_users:
-            with open(unmatched_users_csv_path, mode="w", newline="") as unmatched_file:
+            with open(
+                unmatched_users_csv_path, mode="w", newline="", encoding="latin-1"
+            ) as unmatched_file:
                 writer = csv.DictWriter(unmatched_file, fieldnames=fieldnames)
 
                 writer.writeheader()
