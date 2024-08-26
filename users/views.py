@@ -68,6 +68,8 @@ from .serializers import (
     # UserSerializer,
     # UserWorkSerializer,
 )
+from requests.auth import HTTPBasicAuth
+
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.status import (
@@ -701,10 +703,11 @@ class StaffProfileDetail(APIView):
 
         # Prepare API request
         api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser"
-        headers = {
-            "Authorization": f"Bearer {settings.IT_ASSETS_ACCESS_TOKEN}",
-            "Accept": "application/json",
-        }
+        auth = HTTPBasicAuth(staff_profile.user.email, settings.IT_ASSETS_ACCESS_TOKEN)
+        # headers = {
+        #     "Authorization": f"Bearer {settings.IT_ASSETS_ACCESS_TOKEN}",
+        #     "Accept": "application/json",
+        # }
         params = (
             {
                 "pk": staff_profile.it_asset_id,
@@ -714,11 +717,12 @@ class StaffProfileDetail(APIView):
                 "q": staff_profile.user.email,
             }
         )
+        response = requests.get(api_url, auth=auth, params=params)
 
         print(params)
 
         # Make the API request
-        response = requests.get(api_url, headers=headers, params=params)
+        # response = requests.get(api_url, headers=headers, params=params)
 
         it_asset_data = None
 
