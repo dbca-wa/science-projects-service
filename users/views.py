@@ -720,6 +720,8 @@ class StaffProfileDetail(APIView):
         # Make the API request
         response = requests.get(api_url, headers=headers, params=params)
 
+        it_asset_data = None
+
         # Check the response status
         if response.status_code == 200:
             data = response.json()

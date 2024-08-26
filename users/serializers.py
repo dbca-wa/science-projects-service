@@ -558,7 +558,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
     def get_it_asset_data(self, obj):
         # Get the it_asset_data from the context
         it_asset_data = self.context.get("it_asset_data")
-        if it_asset_data:
+        if it_asset_data and it_asset_data is not None:
             # Extract only the specified fields
             filtered_data = {
                 "id": it_asset_data.get("id"),
