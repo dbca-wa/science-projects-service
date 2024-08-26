@@ -21,6 +21,7 @@ ON_TEST_NETWORK = True if os.environ.get("ON_TEST_NETWORK") != "False" else Fals
 SITE_URL_HTTP = f'https://{env("SITE_URL")}'
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
+IT_ASSETS_ACCESS_TOKEN = env("IT_ASSETS_ACCESS_TOKEN")
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen

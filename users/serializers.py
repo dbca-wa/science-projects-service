@@ -533,11 +533,13 @@ class ProjectMembershipSerializer(serializers.ModelSerializer):
 class StaffProfileSerializer(serializers.ModelSerializer):
     user = StaffProfileUserSerializer(read_only=True)
     keyword_tags = KeywordTagSerializer(many=True)
+    it_asset_data = serializers.SerializerMethodField()
 
     class Meta:
         model = PublicStaffProfile
         fields = (
             "pk",
+            "it_asset_id",
             "is_hidden",
             "aucode",
             "user",
@@ -550,7 +552,26 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             # "project_memberships",
             # "employment",
             # "publications",
+            "it_asset_data",
         )
+
+    def get_it_asset_data(self, obj):
+        # Get the it_asset_data from the context
+        it_asset_data = self.context.get("it_asset_data")
+        if it_asset_data:
+            # Extract only the specified fields
+            filtered_data = {
+                "id": it_asset_data.get("id"),
+                "email": it_asset_data.get("email"),
+                "title": it_asset_data.get("title"),
+                "division": it_asset_data.get("division"),
+                "unit": it_asset_data.get("unit"),
+                "location": it_asset_data.get("location", {}).get(
+                    "name"
+                ),  # Assuming location is a nested object
+            }
+            return filtered_data
+        return None
 
     def update(self, instance, validated_data):
         # Handle the many-to-many field for keyword_tags

@@ -698,9 +698,53 @@ class StaffProfileDetail(APIView):
         settings.LOGGER.info(
             msg=f"(PUBLIC) {req.user} is viewing Staff profile of: {staff_profile.user.first_name} {staff_profile.user.last_name}"
         )
+
+        # Prepare API request
+        api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser"
+        headers = {
+            "Authorization": f"Bearer {settings.IT_ASSETS_ACCESS_TOKEN}",
+            "Accept": "application/json",
+        }
+        params = (
+            {
+                "pk": staff_profile.it_asset_id,
+            }
+            if staff_profile.it_asset_id
+            else {
+                "q": staff_profile.user.email,
+            }
+        )
+
+        print(params)
+
+        # Make the API request
+        response = requests.get(api_url, headers=headers, params=params)
+
+        # Check the response status
+        if response.status_code == 200:
+            data = response.json()
+            if isinstance(data, list):
+                for user_data in data:
+                    # 1. find the object that matches the user.email
+                    if user_data["email"] == staff_profile.user.email:
+                        # 2. set the it_asset_id to that object's 'id' field, if the it_asset_id is null/blank
+                        if not staff_profile.it_asset_id:
+                            staff_profile.it_asset_id = user_data["id"]
+                            staff_profile.save()
+                        # 3. print and assign the data
+                        print("User Data:", user_data)  # Print each user data object
+                        it_asset_data = user_data
+                        break
+            else:
+                print("Unexpected response format:", data)
+        else:
+            print(
+                f"Failed to fetch user data: {response.reason} ({response.text}). Status code: {response.status_code}"
+            )
+
         ser = StaffProfileSerializer(
             staff_profile,
-            context={"request": req},
+            context={"request": req, "it_asset_data": it_asset_data},
         )
         return Response(
             ser.data,

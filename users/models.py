@@ -255,6 +255,11 @@ class PublicStaffProfile(CommonModel):
         MAS = "master", "Master"
         DR = "dr", "Dr."
 
+    it_asset_id = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+    )
+
     is_hidden = models.BooleanField(
         default=False,
         help_text="Indicates if the profile is hidden from public view.",
