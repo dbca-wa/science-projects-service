@@ -703,7 +703,9 @@ class StaffProfileDetail(APIView):
 
         # Prepare API request
         api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser"
-        auth = HTTPBasicAuth(staff_profile.user.email, settings.IT_ASSETS_ACCESS_TOKEN)
+        auth = HTTPBasicAuth(
+            "jarid.prince@dbca.wa.gov.au", settings.IT_ASSETS_ACCESS_TOKEN,
+        )
         # headers = {
         #     "Authorization": f"Bearer {settings.IT_ASSETS_ACCESS_TOKEN}",
         #     "Accept": "application/json",
