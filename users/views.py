@@ -869,13 +869,6 @@ class StaffProfileCVDetail(APIView):
 class PublicEmailStaffMember(APIView):
     permission_classes = [AllowAny]
 
-    def go(self, pk):
-        try:
-            user = User.objects.filter(pk=pk).first()
-        except User.DoesNotExist:
-            raise NotFound
-        return user
-
     def post(self, req, pk):
         settings.LOGGER.info(
             msg=f"(PUBLIC) {req.user} is attempting to use '{req.data['senderEmail']}' to send an email to a staff member"
@@ -883,12 +876,9 @@ class PublicEmailStaffMember(APIView):
 
         try:
             # Fetch the staff member
-            staff_member = User.objects.get(pk=pk)
-            ser = MiniUserSerializer(staff_member)
-            recipient_name = (
-                f"{staff_member.display_first_name} {staff_member.display_last_name}"
-            )
-            recipient_email = staff_member.email
+            staff_profile = PublicStaffProfile.objects.get(user__pk=pk)
+            recipient_name = f"{staff_profile.user.display_first_name} {staff_profile.user.display_last_name}"
+            recipient_email = staff_profile.get_it_asset_email()
 
             # Log email sending attempt
             settings.LOGGER.warning(

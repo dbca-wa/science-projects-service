@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.backends import ModelBackend
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth import login, logout, get_user_model
+import requests
 from agencies.models import Agency
 from contacts.models import UserContact
 from django.db import transaction
@@ -38,15 +39,47 @@ class DBCAMiddleware(MiddlewareMixin):
                 UserWork.objects.create(user=user, agency=agency_instance)
                 UserProfile.objects.create(user=user)
                 UserContact.objects.create(user=user)
-                PublicStaffProfile.objects.create(
-                    user=user,
-                    is_hidden=False,
-                )
-
                 user.is_staff = True
                 user.set_password(settings.EXTERNAL_PASS)
                 user.save()
+
+                # IT ASSETS
+                try:
+                    api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+                    response = requests.get(
+                        api_url,
+                        auth=(
+                            "jarid.prince@dbca.wa.gov.au",
+                            settings.IT_ASSETS_ACCESS_TOKEN,
+                        ),
+                    )
+                    if response.status_code == 200:
+                        api_data = response.json()
+                        matching_record = next(
+                            (
+                                item
+                                for item in api_data
+                                if item["email"] == attributemap["email"]
+                            ),
+                            None,
+                        )
+                        it_asset_id = matching_record["id"] if matching_record else None
+                    else:
+                        it_asset_id = None
+                except requests.exceptions.RequestException as api_err:
+                    it_asset_id = None  # Handle the error gracefully, possibly log it
+                    # Optionally, log the error
+                    settings.LOGGER.error(f"API Error: {str(api_err)}")
+
+                # Create PublicStaffProfile even if IT asset data is not available
+                PublicStaffProfile.objects.create(
+                    user=user,
+                    is_hidden=False,
+                    it_asset_id=it_asset_id,
+                )
+
                 return user
+
         except Exception as e:
             raise ParseError(str(e))
 

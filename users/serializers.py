@@ -1,3 +1,5 @@
+from django.conf import settings
+import requests
 from rest_framework import serializers
 from agencies.models import Affiliation, Branch, BusinessArea
 
@@ -385,6 +387,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     user = UserStaffProfileSerializer()  # Nested serializer for user
     keyword_tags = KeywordTagSerializer(many=True)
+    it_asset_data = serializers.SerializerMethodField()
 
     class Meta:
         model = PublicStaffProfile
@@ -394,10 +397,16 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
             "title",
             "keyword_tags",
             "name",
+            "it_asset_data",
+            "it_asset_id",
         )
 
     def get_name(self, obj):
         return f"{obj.user.display_first_name} {obj.user.display_last_name}"
+
+    def get_it_asset_data(self, obj):
+        it_asset_data = obj.get_it_asset_data()
+        return it_asset_data
 
 
 class StaffProfileOverviewSerializer(serializers.ModelSerializer):

@@ -1,7 +1,9 @@
 from datetime import timezone
 from tracemalloc import start
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import requests
 from common.models import CommonModel
 from medias.models import UserAvatar
 from rest_framework.serializers import (
@@ -196,7 +198,9 @@ class UserProfile(CommonModel):
         MR = "mr", "Mr."
         MS = "ms", "Ms."
         MRS = "mrs", "Mrs."
-        MAS = "master", "Master"
+        # MAS = "master", "Master"
+        APROF = "aprof", "A/Prof"
+        PROF = "prof", "Prof"
         DR = "dr", "Dr."
 
     user = models.OneToOneField(
@@ -307,6 +311,88 @@ class PublicStaffProfile(CommonModel):
     expertise = models.TextField(
         blank=True, null=True, help_text="Areas of expertise or specializations."
     )
+
+    def get_it_asset_data(self):
+        it_asset_id = self.it_asset_id
+
+        if it_asset_id:
+            api_url = (
+                f"https://itassets.dbca.wa.gov.au/api/v3/departmentuser/{it_asset_id}"
+            )
+        else:
+            api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+
+        response = requests.get(
+            api_url,
+            auth=(
+                "jarid.prince@dbca.wa.gov.au",
+                settings.IT_ASSETS_ACCESS_TOKEN,
+            ),
+        )
+
+        if response.status_code != 200:
+            print("Failed to retrieve data from API")
+            return None
+
+        api_data = response.json()
+        matching_record = next(
+            (item for item in api_data if item["email"] == self.user.email), None
+        )
+
+        # Remove the email from the object
+        # if matching_record:
+        #     matching_record.pop("email", None)
+        if matching_record:
+            # Extract only the specified fields
+            matching_record = {
+                "id": matching_record.get("id"),
+                # "email": matching_record.get("email"),
+                "title": matching_record.get("title"),
+                "division": matching_record.get("division"),
+                "unit": matching_record.get("unit"),
+                "location": matching_record.get("location"),
+            }
+
+        # also save the id if not already
+        if not it_asset_id:
+            self.it_asset_id = matching_record["id"]
+            self.save()
+
+        return matching_record
+
+    def get_it_asset_email(self):
+        it_asset_id = self.it_asset_id
+
+        if it_asset_id:
+            api_url = (
+                f"https://itassets.dbca.wa.gov.au/api/v3/departmentuser/{it_asset_id}"
+            )
+        else:
+            api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+
+        response = requests.get(
+            api_url,
+            auth=(
+                "jarid.prince@dbca.wa.gov.au",
+                settings.IT_ASSETS_ACCESS_TOKEN,
+            ),
+        )
+
+        if response.status_code != 200:
+            print("Failed to retrieve data from API")
+            return None
+
+        api_data = response.json()
+        matching_record = next(
+            (item for item in api_data if item["email"] == self.user.email), None
+        )
+
+        # also save the id if not already
+        if not it_asset_id:
+            self.it_asset_id = matching_record["id"]
+            self.save()
+
+        return matching_record["email"]
 
     def __str__(self) -> str:
         return f"Staff Profile | {f'{self.user.first_name} {self.user.last_name}' if self.user else 'No User'}"
