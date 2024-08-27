@@ -1854,6 +1854,8 @@ class UpdateMembership(APIView):
             )
             if affiliation_pk != 0:
                 data_obj["affiliation"] = affiliation_pk
+            else:
+                data_obj["affiliation"] = None
 
             ser = UpdateMembershipSerializer(
                 user_work,

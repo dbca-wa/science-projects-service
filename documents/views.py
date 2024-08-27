@@ -472,34 +472,35 @@ class BeginUnapprovedReportDocGeneration(APIView):
         # For each business area
         for ba in sorted_bas:
             ba_name = ba["name"]
+
             # Check if an object with the same ba_name already exists
             if ba_name not in existing_ba_names:
+                # Prepare progress reports that match the business area's pk
+                progress_reports = progress_reports_by_ba.get(ba["pk"], [])
+                
+                # Sort progress reports first by year (descending) and then alphabetically by title
+                sorted_progress_reports = sorted(
+                    progress_reports,
+                    key=lambda x: (
+                        -int(x["document"]["project"]["year"]),  # Negative for descending order
+                        get_distilled_title(x["document"]["project"]["title"]).lower()
+                    )
+                )
+                
                 # Create an object
                 ba_object = {
                     "ba_name": ba_name,
-                    "ba_image": ba["image"] if ba["image"] else "",
+                    "ba_image": ba.get("image", ""),
                     "ba_leader": get_user_full_name(ba["leader"]),
                     "ba_introduction": ba["introduction"],
-                    # Prepare progress reports that match the business area's pk
-                    "progress_reports": sorted(
-                        progress_reports_by_ba.get(ba["pk"], []),
-                        key=lambda x: get_distilled_title(
-                            x["document"]["project"]["title"]
-                        ).lower(),
-                    ),
+                    "progress_reports": sorted_progress_reports,
                 }
+
                 # Append the new ba_object
                 sorted_ba_data.append(ba_object)
 
                 # Add the ba_name to the set of existing ba_names
                 existing_ba_names.add(ba_name)
-        # Prep sections for each ba with the relevant projects
-        # print(sorted_ba_data)
-
-        # for item in sorted_ba_data:
-        #     print(
-        #         f"\n {item['ba_name']}\n{item['progress_reports'][0]['document']['project']['title']}"
-        #     )
 
         sorted_srs = sorted(
             [
@@ -507,7 +508,10 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 for report in participating_reports["student_reports"]
                 if report["document"]["project"]
             ],
-            key=lambda x: get_distilled_title(x["document"]["project"]["title"]).lower(),
+            key=lambda x: (
+                -int(x["document"]["project"]["year"]),  # Negative for descending order by year
+                get_distilled_title(x["document"]["project"]["title"]).lower()  # Alphabetical order by title
+            )
         )
 
         external_partnerships_table_data = []
@@ -1030,34 +1034,35 @@ class BeginReportDocGeneration(APIView):
         # For each business area
         for ba in sorted_bas:
             ba_name = ba["name"]
+
             # Check if an object with the same ba_name already exists
             if ba_name not in existing_ba_names:
+                # Prepare progress reports that match the business area's pk
+                progress_reports = progress_reports_by_ba.get(ba["pk"], [])
+                
+                # Sort progress reports first by year (descending) and then alphabetically by title
+                sorted_progress_reports = sorted(
+                    progress_reports,
+                    key=lambda x: (
+                        -int(x["document"]["project"]["year"]),  # Negative for descending order
+                        get_distilled_title(x["document"]["project"]["title"]).lower()
+                    )
+                )
+                
                 # Create an object
                 ba_object = {
                     "ba_name": ba_name,
-                    "ba_image": ba["image"] if ba["image"] else "",
+                    "ba_image": ba.get("image", ""),
                     "ba_leader": get_user_full_name(ba["leader"]),
                     "ba_introduction": ba["introduction"],
-                    # Prepare progress reports that match the business area's pk
-                    "progress_reports": sorted(
-                        progress_reports_by_ba.get(ba["pk"], []),
-                        key=lambda x: get_distilled_title(
-                            x["document"]["project"]["title"]
-                        ).lower(),
-                    ),
+                    "progress_reports": sorted_progress_reports,
                 }
+
                 # Append the new ba_object
                 sorted_ba_data.append(ba_object)
 
                 # Add the ba_name to the set of existing ba_names
                 existing_ba_names.add(ba_name)
-        # Prep sections for each ba with the relevant projects
-        # print(sorted_ba_data)
-
-        # for item in sorted_ba_data:
-        #     print(
-        #         f"\n {item['ba_name']}\n{item['progress_reports'][0]['document']['project']['title']}"
-        #     )
 
         sorted_srs = sorted(
             [
@@ -1065,7 +1070,10 @@ class BeginReportDocGeneration(APIView):
                 for report in participating_reports["student_reports"]
                 if report["document"]["project"]
             ],
-            key=lambda x: get_distilled_title(x["document"]["project"]["title"]).lower(),
+            key=lambda x: (
+                -int(x["document"]["project"]["year"]),  # Negative for descending order by year
+                get_distilled_title(x["document"]["project"]["title"]).lower()  # Alphabetical order by title
+            )
         )
 
         external_partnerships_table_data = []
