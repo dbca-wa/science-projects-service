@@ -354,7 +354,7 @@ class PublicStaffProfile(CommonModel):
             }
 
         # also save the id if not already
-        if not it_asset_id:
+        if not it_asset_id and matching_record:
             self.it_asset_id = matching_record["id"]
             self.save()
 
@@ -388,7 +388,7 @@ class PublicStaffProfile(CommonModel):
         )
 
         # also save the id if not already
-        if not it_asset_id:
+        if not it_asset_id and matching_record:
             self.it_asset_id = matching_record["id"]
             self.save()
 
