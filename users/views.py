@@ -1817,9 +1817,7 @@ class UpdateMembership(APIView):
                 if req.data.get("business_area")
                 else 0
             )
-            affiliation_pk = (
-                int(req.data.get("affiliation")) if req.data.get("affiliation") else 0
-            )
+            affiliation_pk = req.data.get("affiliation")
 
             data_obj = {}
             data_obj["user_pk"] = user_pk
@@ -1827,8 +1825,10 @@ class UpdateMembership(APIView):
                 data_obj["branch"] = branch_pk
             if business_area_pk != 0:
                 data_obj["business_area"] = business_area_pk
-            if affiliation_pk != 0:
-                data_obj["affiliation"] = affiliation_pk
+            if affiliation_pk is not None:
+                data_obj["affiliation"] = (
+                    int(affiliation_pk) if affiliation_pk else None
+                )
             else:
                 data_obj["affiliation"] = None
 
@@ -1849,11 +1849,12 @@ class UpdateMembership(APIView):
                 )
         else:
             data_obj = {}
-            affiliation_pk = (
-                int(req.data.get("affiliation")) if req.data.get("affiliation") else 0
-            )
-            if affiliation_pk != 0:
-                data_obj["affiliation"] = affiliation_pk
+            affiliation_pk = req.data.get("affiliation")
+
+            if affiliation_pk is not None:
+                data_obj["affiliation"] = (
+                    int(affiliation_pk) if affiliation_pk else None
+                )
             else:
                 data_obj["affiliation"] = None
 
