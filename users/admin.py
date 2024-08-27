@@ -1,10 +1,12 @@
 import csv
 import os
+from django.conf import settings
 from django.db.models import Q
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.forms import model_to_dict
 from django.http import HttpResponse
+import requests
 from agencies.serializers import (
     TinyBranchSerializer,
     TinyBusinessAreaSerializer,
@@ -60,6 +62,47 @@ def create_staff_profiles(model_admin, req, selected):
 
     model_admin.message_user(
         req, f"public profiles created for {users_to_update.count()} user(s)."
+    )
+
+
+@admin.action(description="Sets the it_asset id ")
+def set_it_assets_id(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    # Filter for users that do not have display names set but have first and last names
+    users_to_update = User.objects.filter(staff_profile__it_asset_id__isnull=True)
+
+    # Call the API to retrieve the list of users
+    api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+    response = requests.get(
+        api_url,
+        auth=(
+            "jarid.prince@dbca.wa.gov.au",
+            settings.IT_ASSETS_ACCESS_TOKEN,
+        ),
+    )
+
+    if response.status_code != 200:
+        print("Failed to retrieve data from API")
+        return
+
+    api_data = response.json()
+
+    # Iterate through users to update and match them with the API data
+    for user in users_to_update:
+        matching_record = next(
+            (item for item in api_data if item["email"] == user.email), None
+        )
+
+        if matching_record:
+            staff_profile = PublicStaffProfile.objects.get(user=user)
+            staff_profile.it_asset_id = matching_record["id"]
+            staff_profile.save()
+
+    model_admin.message_user(
+        req, f"public profiles updated for {users_to_update.count()} user(s)."
     )
 
 
@@ -244,6 +287,7 @@ class StaffProfileAdmin(admin.ModelAdmin):
         export_current_active_project_leads,
         update_display_names,
         copy_about_expertise_to_staff_profile,
+        set_it_assets_id,
     ]
 
 

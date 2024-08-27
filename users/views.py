@@ -704,14 +704,6 @@ class StaffProfileDetail(APIView):
 
         # Prepare API request
         api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser"
-        user_email = "jarid.prince@dbca.wa.gov.au"
-        user_pass = f"{user_email}:{settings.IT_ASSETS_ACCESS_TOKEN}"
-        encoded_credentials = base64.b64encode(user_pass.encode()).decode()
-        headers = {
-            "Authorization": f"Basic {encoded_credentials}",
-            "Accept": "application/json",
-        }
-
         params = (
             {
                 "pk": staff_profile.it_asset_id,
@@ -721,14 +713,11 @@ class StaffProfileDetail(APIView):
                 "q": staff_profile.user.email,
             }
         )
-
-        response = requests.get(api_url, headers=headers, params=params)
-
-        print(params)
-
-        # Make the API request
-        # response = requests.get(api_url, headers=headers, params=params)
-
+        response = requests.get(
+            api_url,
+            params,
+            auth=("jarid.prince@dbca.wa.gov.au", settings.IT_ASSETS_ACCESS_TOKEN),
+        )
         it_asset_data = None
 
         # Check the response status
