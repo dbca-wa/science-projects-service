@@ -360,8 +360,7 @@ class PublicStaffProfile(CommonModel):
 
         if matching_record:
             return matching_record
-        else:
-            return None
+        return None
 
     def get_it_asset_email(self):
         it_asset_id = self.it_asset_id
@@ -397,8 +396,7 @@ class PublicStaffProfile(CommonModel):
 
         if matching_record:
             return matching_record["email"]
-        else:
-            return self.email
+        return self.email
 
     def __str__(self) -> str:
         return f"Staff Profile | {f'{self.user.first_name} {self.user.last_name}' if self.user else 'No User'}"
