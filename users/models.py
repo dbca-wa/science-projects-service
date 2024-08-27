@@ -325,7 +325,7 @@ class PublicStaffProfile(CommonModel):
         response = requests.get(
             api_url,
             auth=(
-                "jarid.prince@dbca.wa.gov.au",
+                settings.IT_ASSETS_USER,
                 settings.IT_ASSETS_ACCESS_TOKEN,
             ),
         )
@@ -373,7 +373,7 @@ class PublicStaffProfile(CommonModel):
         response = requests.get(
             api_url,
             auth=(
-                "jarid.prince@dbca.wa.gov.au",
+                settings.IT_ASSETS_USER,
                 settings.IT_ASSETS_ACCESS_TOKEN,
             ),
         )

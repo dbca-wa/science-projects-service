@@ -79,7 +79,7 @@ def set_it_assets_id(model_admin, req, selected):
     response = requests.get(
         api_url,
         auth=(
-            "jarid.prince@dbca.wa.gov.au",
+            settings.IT_ASSETS_USER,
             settings.IT_ASSETS_ACCESS_TOKEN,
         ),
     )

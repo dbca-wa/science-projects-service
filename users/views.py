@@ -716,7 +716,7 @@ class StaffProfileDetail(APIView):
         response = requests.get(
             api_url,
             params,
-            auth=("jarid.prince@dbca.wa.gov.au", settings.IT_ASSETS_ACCESS_TOKEN),
+            auth=(settings.IT_ASSETS_USER, settings.IT_ASSETS_ACCESS_TOKEN),
         )
         it_asset_data = None
 
