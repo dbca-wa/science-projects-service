@@ -824,7 +824,7 @@ function removeInlineStyles(htmlContent) {
                                                 <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                             </div>
                                             <div class="pr_member_container">
-                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name }} {{ item.user.display_last_name }}{% endfor %}</p>
+                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if item.role == "supervising" or item.role == "research" or item.role == "technical" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name }} {{ item.user.display_last_name }}{% endif %}{% endfor %}</p>
                                             </div>
                                         </div>
                                         {% if forloop.counter|divisibleby:2 %}
