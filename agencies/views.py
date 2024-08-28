@@ -188,7 +188,7 @@ class AffiliationsMerge(APIView):
                 if item["pk"] != primaryAffiliation["pk"]:
                     instance_to_delete = Affiliation.objects.get(pk=item["pk"])
                     settings.LOGGER.info(
-                        msg=f"{instance_to_delete['name']} is being deleted..."
+                        msg=f"{instance_to_delete.name} is being deleted..."
                     )
                     instance_to_delete.delete()
 
