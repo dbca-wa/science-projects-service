@@ -52,6 +52,16 @@ spec:
               secretKeyRef:
                 name: spms-env-test
                 key: ON_TEST_NETWORK
+          - name: IT_ASSETS_ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: IT_ASSETS_ACCESS_TOKEN
+          - name: IT_ASSETS_USER
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-test
+                key: IT_ASSETS_USER
           - name: PRINCE_LICENSE_ID
             valueFrom:
               secretKeyRef:
