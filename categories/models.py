@@ -1,11 +1,7 @@
 from django.db import models
-
 from common.models import CommonModel
 
-# Create your models here.
 
-
-# TODO: serializers, admin, views, urls
 class ProjectCategory(CommonModel):
     """
     Science, Student, External or Core Function Project Category
