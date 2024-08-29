@@ -1,15 +1,19 @@
-import json
+# region Imports ===================================
 from django.db import models
 from common.models import CommonModel
-from datetime import datetime as dt
-from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MinValueValidator
 from bs4 import BeautifulSoup
-from users.models import User
 from rest_framework import serializers
 
+# endregion ==================================
 
-# Done (NOTE: Divisions removed)
+
+# region AR ===================================
+class SimpleDocSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ["pk"]
+
+
 class AnnualReport(CommonModel):
     """
     The Annual Research Report.
@@ -120,12 +124,57 @@ class AnnualReport(CommonModel):
         verbose_name_plural = "Annual Reports"
 
 
-class SimpleDocSerializer(serializers.ModelSerializer):
+# endregion ==================================
+
+
+# region Project Documents & Endorsement ===================================
+class Endorsement(models.Model):
+    """
+    Model Definition for endorsements. Split from Project Plan.
+    """
+
+    class EndorsementChoices(models.TextChoices):
+        NOTREQUIRED = "notrequired", "Not Required"
+        REQUIRED = "required", "Required"
+        DENIED = "denied", "Denied"
+        GRANTED = "granted", "Granted"
+
+    project_plan = models.ForeignKey(
+        "documents.ProjectPlan",
+        related_name="endorsements",
+        on_delete=models.CASCADE,
+    )
+
+    ae_endorsement_required = models.BooleanField(
+        default=False,
+        help_text="Whether Animal Ethics Committee Endorsement is Required.",
+    )
+
+    ae_endorsement_provided = models.BooleanField(
+        default=False,
+        help_text="The Animal Ethics Committee's endorsement of the planned direct interaction with animals. Approval process is currently handled outside of SPMS.",
+    )
+
+    no_specimens = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Estimate the number of collected vouchered specimens. Provide any additional info required for the Harbarium Curator's endorsement.",
+    )
+
+    data_management = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Describe how and where data will be maintained, archived, cataloged. Read DBCA guideline 16.",
+    )
+
+    def __str__(self) -> str:
+        return f"ENDORSEMENTS - {self.project_plan}"
+
     class Meta:
-        fields = ["pk"]
+        verbose_name = "Endorsement"
+        verbose_name_plural = "Endorsements"
 
 
-# Done (NOTE: Access document media - pdf via reverse accessor)
 class ProjectDocument(CommonModel):
     """
     Project Document Definition
@@ -212,8 +261,6 @@ class ProjectDocument(CommonModel):
             ).exists()
         return related_data
 
-    # id, created, updated, oldid, status, kind, p,b,d,p, creator, modifier, projid
-
     def __str__(self) -> str:
         return f"({self.pk}) {self.created_at.year} | {self.kind.capitalize()} - {self.project}"
 
@@ -222,7 +269,6 @@ class ProjectDocument(CommonModel):
         verbose_name_plural = "Project Documents"
 
 
-# Done
 class ConceptPlan(models.Model):
     """
     Concept Plan Definition
@@ -240,7 +286,6 @@ class ConceptPlan(models.Model):
         related_name="concept_plan",
     )
 
-    # =========
     background = models.TextField(
         blank=True, null=True, help_text="Provide background in up to 500 words"
     )
@@ -414,7 +459,6 @@ class ConceptPlan(models.Model):
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(html_string, "html.parser")
-
         # Extract the text content
         inner_text = soup.get_text(separator=" ", strip=True)
 
@@ -432,7 +476,6 @@ class ConceptPlan(models.Model):
         verbose_name_plural = "Concept Plans"
 
 
-# Done
 class ProjectPlan(models.Model):
     """
     Project Plan Definition
@@ -724,20 +767,9 @@ class ProjectPlan(models.Model):
         help_text="Name related SPPs and the extent you have consulted with their project leaders",
     )
 
-    # involves_plants = models.BooleanField(
-    #     default=False,
-    #     help_text="Tick to indicate that this project will collect plant specimens, which will require endorsement by the Herbarium Curator.",
-    # )
-
-    # involves_animals = models.BooleanField(
-    #     default=False,
-    #     help_text="Tick to indicate that this project will involve direct interaction with animals, which will require endorsement by the Animal Ethics Committee.",
-    # )
-
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(html_string, "html.parser")
-
         # Extract the text content
         inner_text = soup.get_text(separator=" ", strip=True)
 
@@ -755,7 +787,6 @@ class ProjectPlan(models.Model):
         verbose_name_plural = "Project Plans"
 
 
-# Done
 class ProgressReport(models.Model):
     """
     Model Definition for info specific to Progress Reports
@@ -780,8 +811,6 @@ class ProgressReport(models.Model):
     )
 
     year = models.PositiveIntegerField(
-        # editable=False,
-        # default=dt.today().year,
         help_text="The year on which this progress report reports on with four digits, e.g. 2014 for FY 2013/14.",
     )
 
@@ -823,7 +852,6 @@ class ProgressReport(models.Model):
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(html_string, "html.parser")
-
         # Extract the text content
         inner_text = soup.get_text(separator=" ", strip=True)
 
@@ -842,7 +870,6 @@ class ProgressReport(models.Model):
         unique_together = ("report", "project")
 
 
-# Done
 class StudentReport(models.Model):
     """
     Model Definition for info specific to Student Projects
@@ -853,8 +880,6 @@ class StudentReport(models.Model):
         on_delete=models.CASCADE,
         related_name="student_report_details",
     )
-
-    # ===================
 
     report = models.ForeignKey(
         "documents.AnnualReport",
@@ -877,15 +902,12 @@ class StudentReport(models.Model):
     )
 
     year = models.PositiveIntegerField(
-        # editable=False,
-        # default=dt.today().year,
         help_text="The year on which this progress report reports on with four digits, e.g. 2014 for FY 2013/14.",
     )
 
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(html_string, "html.parser")
-
         # Extract the text content
         inner_text = soup.get_text(separator=" ", strip=True)
 
@@ -904,7 +926,6 @@ class StudentReport(models.Model):
         unique_together = ("report", "project")
 
 
-# Done
 class ProjectClosure(models.Model):
     """
     Model Definition for info specific to Project Closure
@@ -975,7 +996,6 @@ class ProjectClosure(models.Model):
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(html_string, "html.parser")
-
         # Extract the text content
         inner_text = soup.get_text(separator=" ", strip=True)
 
@@ -993,191 +1013,4 @@ class ProjectClosure(models.Model):
         verbose_name_plural = "Project Closures"
 
 
-# DONE
-class Endorsement(models.Model):
-    """
-    Model Definition for endorsements. Split from Project Plan.
-    """
-
-    class EndorsementChoices(models.TextChoices):
-        NOTREQUIRED = "notrequired", "Not Required"
-        REQUIRED = "required", "Required"
-        DENIED = "denied", "Denied"
-        GRANTED = "granted", "Granted"
-
-    project_plan = models.ForeignKey(
-        "documents.ProjectPlan",
-        related_name="endorsements",
-        on_delete=models.CASCADE,
-    )
-
-    # bm_endorsement_required = models.BooleanField(
-    #     default=True,
-    #     help_text="Whether Biometrician Endorsement is Required.",
-    # )
-
-    # bm_endorsement_provided = models.BooleanField(
-    #     default=False,
-    #     help_text="The Biometrician's endorsement of the methodology's statistical validity.",
-    #     # max_length=100,
-    #     # choices=EndorsementChoices.choices,
-    #     # default=EndorsementChoices.REQUIRED,
-    # )
-
-    # hc_endorsement_required = models.BooleanField(
-    #     default=False,
-    #     help_text="Whether Herbarium Curator Endorsement is Required.",
-    # )
-
-    # hc_endorsement_provided = models.BooleanField(
-    #     default=False,
-    #     help_text="The Herbarium Curator's endorsement of the planned collection of voucher specimens.",
-    # )
-
-    ae_endorsement_required = models.BooleanField(
-        default=False,
-        help_text="Whether Animal Ethics Committee Endorsement is Required.",
-    )
-
-    ae_endorsement_provided = models.BooleanField(
-        default=False,
-        help_text="The Animal Ethics Committee's endorsement of the planned direct interaction with animals. Approval process is currently handled outside of SPMS.",
-    )
-
-    no_specimens = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Estimate the number of collected vouchered specimens. Provide any additional info required for the Harbarium Curator's endorsement.",
-    )
-
-    # dm_endorsement_required = models.BooleanField(
-    #     default=True,
-    #     help_text="Whether the data manager's endorsement is required.",
-    # )
-
-    # dm_endorsement_provided = models.BooleanField(
-    #     default=False,
-    #     help_text="The Data Manager's endorsement of the project's data management. \
-    #         The DM will help to set up Wiki pages, data catalogue permissions, \
-    #         scientific sites, and advise on metadata creation.",
-    # )
-
-    data_management = models.TextField(
-        blank=True,
-        null=True,
-        help_text="Describe how and where data will be maintained, archived, cataloged. Read DBCA guideline 16.",
-    )
-
-    def __str__(self) -> str:
-        return f"ENDORSEMENTS - {self.project_plan}"
-
-    class Meta:
-        verbose_name = "Endorsement"
-        verbose_name_plural = "Endorsements"
-
-
-# TODO: views
-# class Publication(CommonModel):
-#     """
-#     Model Definition for publications
-#     """
-
-#     class PublicationChoices(models.TextChoices):
-#         INTERNAL = "internal", "Internal"
-#         EXTERNAL = "external", "External"
-
-#     title = models.CharField(max_length=500)
-#     year = models.PositiveIntegerField(
-#         blank=True,
-#         null=True,
-#         validators=[MinValueValidator(1800)],
-#     )
-#     kind = models.CharField(
-#         max_length=100,
-#         choices=PublicationChoices.choices,
-#     )
-#     internal_authors = models.ManyToManyField("users.User", related_name="publications")
-#     external_authors = models.CharField(
-#         max_length=1000,
-#         blank=True,
-#         null=True,
-#     )
-#     doc_link = models.CharField(
-#         max_length=1500,
-#         blank=True,
-#         null=True,
-#     )
-#     page_range = models.CharField(
-#         max_length=100,
-#         blank=True,
-#         null=True,
-#     )
-#     doi = models.CharField(
-#         max_length=1000,
-#         blank=True,
-#         null=True,
-#     )
-#     volume = models.CharField(
-#         max_length=100,
-#         blank=True,
-#         null=True,
-#     )
-
-#     def generate_apa_citation(self):
-#         internal_authors = list(self.internal_authors.all())
-#         external_authors = (
-#             self.external_authors.strip() if self.external_authors else ""
-#         )
-#         all_authors = (
-#             internal_authors + [external_authors]
-#             if self.kind == "internal"
-#             else [external_authors] + internal_authors
-#         )
-
-#         formatted_authors = [
-#             author.get_formatted_name() if isinstance(author, User) else author
-#             for author in all_authors
-#         ]
-
-#         key_author = formatted_authors[0] if formatted_authors else ""
-#         authors = (
-#             key_author
-#             + ", "
-#             + ", ".join(
-#                 str(author) for author in formatted_authors if author != key_author
-#             )
-#             + ". "
-#         )
-
-#         citation_parts = [authors]
-
-#         if self.year:
-#             citation_parts.append(f"({self.year}).")
-
-#         citation_parts.append(f"{self.title}.")
-
-#         if self.doc_link:
-#             citation_parts.append(f"{self.doc_link}.")
-
-#         if self.page_range:
-#             citation_parts.append(f"pp. {self.page_range}.")
-
-#         if self.volume:
-#             citation_parts.append(f"{self.volume}.")
-
-#         citation = " ".join(citation_parts)
-
-#         return citation
-
-#     def get_apa_citation(self):
-#         # if not self.apa_citation:
-#         self.apa_citation = self.generate_apa_citation()
-#         self.save()
-#         return self.apa_citation
-
-#     def __str__(self) -> str:
-#         return f"Publication {self.kind} | {self.title}"
-
-#     class Meta:
-#         verbose_name = "Publication"
-#         verbose_name_plural = "Publications"
+# endregion ==================================

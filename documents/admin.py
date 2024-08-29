@@ -1,7 +1,10 @@
+# region IMPORTS ========================================================================================================
+
 import ast
 from django.contrib import admin
-
-from users.serializers import TinyUserSerializer
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model
+from django.db.models import Max
 from .models import (
     AnnualReport,
     ProjectDocument,
@@ -11,21 +14,29 @@ from .models import (
     ProgressReport,
     StudentReport,
     ProjectClosure,
-    # Publication,
 )
-from django import forms
-from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.auth import get_user_model
-from django.db.models import Max
+
+# endregion ========================================================================================================
 
 
-@admin.register(AnnualReport)
-class AnnualReportAdmin(admin.ModelAdmin):
-    list_display = ("pk", "year", "is_published", "pdf_generation_in_progress", "pdf")
-
-    ordering = ["year"]
+User = get_user_model()
 
 
+class UserFilterWidget(FilteredSelectMultiple):
+    def label_from_instance(self, obj):
+        return f"{obj.first_name} {obj.last_name}"
+
+    def format_value(self, value):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            value = ast.literal_eval(value)
+        if isinstance(value, int):
+            value = [str(value)]  # Convert the value to a string
+        return [str(v) for v in value]  # Convert each value to a string
+
+
+# region Admin Actions ========================================================================================================
 @admin.action(
     description="(Project/Concept Plans) Provide all approvals if Next Doc exists"
 )
@@ -53,7 +64,6 @@ def provide_final_approval_for_docs_if_next_exist(model_admin, req, selected):
                 ).exists()
             else:
                 next_exists = False
-            # return next_exists
 
             if next_exists and doc.directorate_approval_granted == False:
                 doc.project_lead_approval_granted = True
@@ -90,6 +100,59 @@ def delete_unlinked_docs(model_admin, req, selected):
     except Exception as e:
         print(e)
     return
+
+
+@admin.action(description="(latest year) Populate Aims and Context")
+def populate_aims_and_context(model_admin, req, selected):
+    if len(selected) != 1:
+        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
+        return
+
+    try:
+        sections_to_populate = [
+            "aims",
+            "context",
+        ]
+
+        # Get Annual reports and sort by year (highest year comes first) to get latest year and eligible reports
+        latest_year = AnnualReport.objects.aggregate(latest_year=Max("year"))[
+            "latest_year"
+        ]
+        eligible_prs = ProgressReport.objects.filter(year=latest_year)
+        updated_count = 0
+
+        # Check each report/project to see if it can be populated, and populate each section if it can
+        for pr in eligible_prs:
+            all_prs_for_project = ProgressReport.objects.filter(
+                project=pr.project
+            ).order_by("-year")
+            if all_prs_for_project.count() > 1:
+                previous_data_object = all_prs_for_project[1]
+                # data_to_update = {}
+                for section in sections_to_populate:
+                    setattr(pr, section, getattr(previous_data_object, section))
+                pr.save()
+                updated_count += 1
+
+        model_admin.message_user(
+            req,
+            f"Successfully populated aims and context for {updated_count} progress reports.",
+        )
+    except Exception as e:
+        print(f"ERROR: {e}")
+
+    return
+
+
+# endregion ========================================================================================================
+
+
+# region Admin ========================================================================================================
+@admin.register(AnnualReport)
+class AnnualReportAdmin(admin.ModelAdmin):
+    list_display = ("pk", "year", "is_published", "pdf_generation_in_progress", "pdf")
+
+    ordering = ["year"]
 
 
 @admin.register(ProjectDocument)
@@ -183,48 +246,6 @@ class ProjectPlanAdmin(admin.ModelAdmin):
     doc_status.short_description = "Document Status"
 
 
-@admin.action(description="(latest year) Populate Aims and Context")
-def populate_aims_and_context(model_admin, req, selected):
-    if len(selected) != 1:
-        print("PLEASE SELECT ONLY ONE ITEM TO BEGIN, THIS IS A BATCH PROCESS")
-        return
-
-    try:
-        sections_to_populate = [
-            "aims",
-            "context",
-        ]
-
-        # Get Annual reports and sort by year (highest year comes first) to get latest year and eligible reports
-        latest_year = AnnualReport.objects.aggregate(latest_year=Max("year"))[
-            "latest_year"
-        ]
-        eligible_prs = ProgressReport.objects.filter(year=latest_year)
-        updated_count = 0
-
-        # Check each report/project to see if it can be populated, and populate each section if it can
-        for pr in eligible_prs:
-            all_prs_for_project = ProgressReport.objects.filter(
-                project=pr.project
-            ).order_by("-year")
-            if all_prs_for_project.count() > 1:
-                previous_data_object = all_prs_for_project[1]
-                # data_to_update = {}
-                for section in sections_to_populate:
-                    setattr(pr, section, getattr(previous_data_object, section))
-                pr.save()
-                updated_count += 1
-
-        model_admin.message_user(
-            req,
-            f"Successfully populated aims and context for {updated_count} progress reports.",
-        )
-    except Exception as e:
-        print(f"ERROR: {e}")
-
-    return
-
-
 @admin.register(ProgressReport)
 class ProgressReportAdmin(admin.ModelAdmin):
     list_display = ("pk", "doc_status", "document")
@@ -286,17 +307,12 @@ class ProjectClosureAdmin(admin.ModelAdmin):
 
 @admin.register(Endorsement)
 class EndorsementAdmin(admin.ModelAdmin):
+
     list_display = (
         "pk",
         "project_plan",
-        # "bm_endorsement_required",
-        # "hc_endorsement_required",
         "ae_endorsement_required",
-        # "dm_endorsement_required",
-        # "bm_endorsement_provided",
-        # "hc_endorsement_provided",
         "ae_endorsement_provided",
-        # "dm_endorsement_provided",
         "display_data_management",
         "no_specimens",
     )
@@ -313,14 +329,8 @@ class EndorsementAdmin(admin.ModelAdmin):
     display_data_management.short_description = "Data Management"
 
     list_filter = (
-        # "bm_endorsement_required",
-        # "hc_endorsement_required",
         "ae_endorsement_required",
-        # "dm_endorsement_required",
-        # "bm_endorsement_provided",
-        # "hc_endorsement_provided",
         "ae_endorsement_provided",
-        # "dm_endorsement_provided",
     )
 
     search_fields = [
@@ -330,66 +340,4 @@ class EndorsementAdmin(admin.ModelAdmin):
     ]
 
 
-User = get_user_model()
-
-
-class UserFilterWidget(FilteredSelectMultiple):
-    def label_from_instance(self, obj):
-        return f"{obj.first_name} {obj.last_name}"
-
-    def format_value(self, value):
-        if value is None:
-            return []
-        if isinstance(value, str):
-            value = ast.literal_eval(value)
-        if isinstance(value, int):
-            value = [str(value)]  # Convert the value to a string
-        return [str(v) for v in value]  # Convert each value to a string
-
-
-# class PublicationForm(forms.ModelForm):
-#     User = get_user_model()
-#     internal_authors = forms.ModelMultipleChoiceField(
-#         queryset=User.objects.all().order_by("first_name"),
-#         widget=UserFilterWidget("Internal Authors", is_stacked=False),
-#     )
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         instance = kwargs.get("instance")
-#         if instance:
-#             self.initial["internal_authors"] = list(
-#                 instance.internal_authors.values_list("id", flat=True)
-#             )
-
-#         self.fields["internal_authors"].queryset = User.objects.all().order_by(
-#             "first_name"
-#         )
-
-#     class Meta:
-#         model = Publication
-#         fields = "__all__"
-
-
-# @admin.register(Publication)
-# class PublicationAdmin(admin.ModelAdmin):
-#     list_display = (
-#         "pk",
-#         "title",
-#         "year",
-#         "kind",
-#         "doi",
-#         "apa_citation",
-#     )
-#     form = PublicationForm
-
-#     def apa_citation(self, obj):
-#         return obj.get_apa_citation()
-
-#     apa_citation.short_description = "APA Citation"
-
-#     list_filter = ("kind",)
-
-#     search_fields = ["title"]
-
-#     ordering = ["-created_at"]
+# endregion ========================================================================================================
