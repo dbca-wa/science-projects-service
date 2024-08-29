@@ -1,8 +1,11 @@
+# region Imports ===============================================================================
 import logging, os, sentry_sdk, dj_database_url, environ
 from logging import LogRecord
 from pathlib import Path
 
-# Project ENV ===================================================================
+# endregion ========================================================================================
+
+# region Project ENV ===================================================================
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
@@ -21,15 +24,17 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen
 PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
 
+# endregion ========================================================================================
 
-# Internationalization ==========================================================
+# region Internationalization ==========================================================
 TIME_ZONE = "Australia/Perth"
 LANGUAGE_CODE = "en-au"
 USE_I18N = True
 USE_TZ = True
 
+# endregion ========================================================================================
 
-# Media, Roots and Storage =====================================================
+# region Media, Roots and Storage =====================================================
 ROOT_URLCONF = "config.urls"
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
@@ -37,19 +42,23 @@ MEDIA_URL = "/files/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "files")
 DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
+# endregion ========================================================================================
 
-# Email Config =========================================================
+# region Email Config =========================================================
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "mail-relay.lan.fyi")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 ENVELOPE_EMAIL_RECIPIENTS = [env("SPMS_MAINTAINER_EMAIL")]
 ENVELOPE_USE_HTML_EMAIL = True
 
+# endregion ========================================================================================
 
-# Database =============================================================
+# region Database =============================================================
 DATABASES = {"default": dj_database_url.config()}
 
-# Auth =========================================================
+# endregion ========================================================================================
+
+# region Auth =========================================================
 AUTH_USER_MODEL = "users.User"
 AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.ModelBackend",)
 AUTH_PASSWORD_VALIDATORS = [
@@ -67,8 +76,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# endregion ========================================================================================
 
-# CORS and Hosts =========================================================
+# region CORS and Hosts =========================================================
 
 # /usr/src/app/backend (for getting images using PrinceXML)
 PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
@@ -148,8 +158,9 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = DEBUG == False
     SESSION_COOKIE_SECURE = DEBUG == False
 
+# endregion ========================================================================================
 
-# Application definitions ======================================================
+# region Application definitions ======================================================
 SYSTEM_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -221,8 +232,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+# endregion ========================================================================================
 
-# Logs and Tracking =======================================================================
+# region Logs and Tracking =======================================================================
 if not DEBUG:
     env_type = (
         "production"
@@ -316,3 +328,5 @@ LOGGING = {
 }
 
 LOGGER = logging.getLogger(__name__)
+
+# endregion ========================================================================================
