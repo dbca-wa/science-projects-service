@@ -1,61 +1,18 @@
+# region IMPORTS ==============================================
+
+from datetime import datetime as dt
+from bs4 import BeautifulSoup
+
 from django.db import models
 from django.forms import ValidationError
-import categories
-from common.models import CommonModel
-from datetime import datetime as dt
-from django.db.models import UniqueConstraint
-from django.contrib.postgres.fields import JSONField, ArrayField
-from bs4 import BeautifulSoup
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 
-# ------------------------------
-# Section: Research Function Model
-# ------------------------------
+from common.models import CommonModel
 
+# endregion ==============================================
 
-# # DONE
-# class ResearchFunction(CommonModel):
-#     """
-#     Model Definition for Research Function
-
-#     """
-
-#     name = models.CharField(max_length=150, unique=True)
-#     description = models.TextField(
-#         null=True,
-#         blank=True,
-#     )
-#     association = models.TextField(
-#         null=True,
-#         blank=True,
-#         help_text="The research function's association with departmental programs/divisions.",
-#     )
-#     leader = models.ForeignKey(
-#         "users.User",
-#         null=True,
-#         blank=True,
-#         on_delete=models.SET_NULL,
-#         related_name="research_functions_led",
-#         verbose_name="Function Leader",
-#         help_text="The scientist in charge of the Research Function",
-#     )
-#     is_active = models.BooleanField(
-#         default=False,
-#         help_text="Whether this research function has been deprecated or not.",
-#     )
-#     old_id = models.BigIntegerField()
-
-#     class Meta:
-#         verbose_name = "Research Function"
-#         verbose_name_plural = "Research Functions"
-
-#     def __str__(self) -> str:
-#         return f"{self.name}"
-
-
-# ------------------------------
-# Section: Project Models
-# ------------------------------
+# region Functions ==============================================
 
 
 def get_next_available_number_for_year():
@@ -69,7 +26,11 @@ def get_next_available_number_for_year():
         return max([x["number"] for x in list(project_numbers)]) + 1
 
 
-# DONE
+# endregion ==============================================
+
+# region Section: Project Models ==============================================
+
+
 class Project(CommonModel):
     """
     Model Definition for Project
@@ -194,19 +155,6 @@ class Project(CommonModel):
         #  related_name='business'
     )
 
-    # service = models.ForeignKey(
-    #     "agencies.DepartmentalService",
-    #     null=True,
-    #     blank=True,
-    #     on_delete=models.SET_NULL,
-    # )
-
-    # research_function = models.ForeignKey(
-    #     "agencies.ResearchFunction",
-    #     null=True,
-    #     blank=True,
-    #     on_delete=models.SET_NULL,
-    # )
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup
         soup = BeautifulSoup(html_string, "html.parser")
@@ -245,14 +193,73 @@ class Project(CommonModel):
         return f"({self.kind.upper()}) {self.extract_inner_text(self.title)}"
 
 
-# DONE
+class ProjectDetail(CommonModel):
+    project = models.ForeignKey(
+        "projects.Project",
+        related_name="details",
+        on_delete=models.CASCADE,
+    )
+    creator = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="projects_created",
+        blank=True,
+        null=True,
+    )
+    modifier = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="projects_modified",
+        blank=True,
+        null=True,
+    )
+    owner = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="projects_owned",
+        null=True,
+    )
+    data_custodian = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="projects_where_data_custodian",
+        blank=True,
+        null=True,
+    )
+    site_custodian = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        related_name="projects_where_site_custodian",
+        blank=True,
+        null=True,
+    )
+
+    service = models.ForeignKey(
+        "agencies.DepartmentalService",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    old_output_program_id = models.BigIntegerField(
+        blank=True,
+        null=True,
+    )
+
+    def __str__(self) -> str:
+        return f"(DETAILS) {self.project}"
+
+    class Meta:
+        verbose_name = "Base Project Detail"
+        verbose_name_plural = "Base Project Details"
+
+
 class ProjectArea(CommonModel):
     project = models.OneToOneField(
         "Project",
         related_name="area",
         on_delete=models.CASCADE,
     )
-    # areas = ArrayField(models.PositiveIntegerField(), default=list)
     areas = ArrayField(models.PositiveIntegerField(), default=list, blank=True)
 
     def __str__(self) -> str:
@@ -273,11 +280,9 @@ class ProjectArea(CommonModel):
                     "areas": f"Duplicate primary keys found in areas: {duplicate_area_pks}"
                 }
             )
-
         super().save(*args, **kwargs)
 
 
-# DONE
 class ProjectMember(CommonModel):
     class RoleChoices(models.TextChoices):
         SUPERVISING = ("supervising", "Project Leader")
@@ -353,76 +358,6 @@ class ProjectMember(CommonModel):
         unique_together = (("project", "user"),)
 
 
-# DONE
-class ProjectDetail(CommonModel):
-    project = models.ForeignKey(
-        "projects.Project",
-        related_name="details",
-        on_delete=models.CASCADE,
-    )
-    creator = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        related_name="projects_created",
-        blank=True,
-        null=True,
-    )
-    modifier = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        related_name="projects_modified",
-        blank=True,
-        null=True,
-    )
-    owner = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        related_name="projects_owned",
-        null=True,
-    )
-    data_custodian = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        related_name="projects_where_data_custodian",
-        blank=True,
-        null=True,
-    )
-    site_custodian = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        related_name="projects_where_site_custodian",
-        blank=True,
-        null=True,
-    )
-
-    # research_function = models.ForeignKey(
-    #     "projects.ResearchFunction",
-    #     blank=True,
-    #     null=True,
-    #     on_delete=models.SET_NULL,
-    # )
-
-    service = models.ForeignKey(
-        "agencies.DepartmentalService",
-        blank=True,
-        null=True,
-        on_delete=models.SET_NULL,
-    )
-
-    old_output_program_id = models.BigIntegerField(
-        blank=True,
-        null=True,
-    )
-
-    def __str__(self) -> str:
-        return f"(DETAILS) {self.project}"
-
-    class Meta:
-        verbose_name = "Base Project Detail"
-        verbose_name_plural = "Base Project Details"
-
-
-# DONE
 class StudentProjectDetails(models.Model):
     """
     Student Project Model Definition
@@ -467,7 +402,6 @@ class StudentProjectDetails(models.Model):
         return f"{self.level} | {self.organisation}"
 
 
-# DONE
 class ExternalProjectDetails(models.Model):
     project = models.OneToOneField(
         "projects.Project",
@@ -506,3 +440,6 @@ class ExternalProjectDetails(models.Model):
 
     def __str__(self) -> str:
         return f"{self.project} | {self.collaboration_with} "
+
+
+# endregion ==============================================

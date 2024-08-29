@@ -3,7 +3,8 @@ name: "Build Docker image and run Trivy vulnerability scan"
 on:
     push:
         tags:
-            - "*" # Trigger the action on any tag push
+            - "3.*" # Trigger the action on any tag push for version 3 on
+        branches: [main]
 
 env:
     REGISTRY: ghcr.io

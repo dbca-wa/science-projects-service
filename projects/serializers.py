@@ -1,5 +1,9 @@
-# from amqp import NotFound
+# region IMPORTS ==============================================
+
 from rest_framework.exceptions import NotFound
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework import serializers
+
 from agencies.models import BusinessArea
 from agencies.serializers import (
     AffiliationSerializer,
@@ -8,7 +12,6 @@ from agencies.serializers import (
 )
 from documents.templatetags.custom_filters import extract_text_content
 from locations.models import Area
-from medias.models import ProjectPhoto
 from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
 from locations.serializers import TinyAreaSerializer
 from users.models import User
@@ -19,37 +22,15 @@ from .models import (
     ProjectArea,
     ProjectDetail,
     ProjectMember,
-    # ResearchFunction,
     StudentProjectDetails,
 )
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
-from rest_framework import serializers
-from rest_framework.response import Response
+
+# endregion ==============================================
 
 
-# class TinyResearchFunctionSerializer(ModelSerializer):
-#     class Meta:
-#         model = ResearchFunction
-#         fields = (
-#             "pk",
-#             "name",
-#             "description",
-#             "leader",
-#             "association",
-#             "is_active",
-#         )
-
-
-# class ResearchFunctionSerializer(ModelSerializer):
-#     class Meta:
-#         model = ResearchFunction
-#         fields = "__all__"
-
-
+# region SERIALIZERS ==============================================
 class CreateProjectSerializer(ModelSerializer):
-    # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
-    # business_area = TinyBusinessAreaSerializer()
 
     class Meta:
         model = Project
@@ -67,7 +48,6 @@ class CreateProjectSerializer(ModelSerializer):
 
 
 class ARProjectSerializer(ModelSerializer):
-    # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     team_members = SerializerMethodField
@@ -93,7 +73,6 @@ class ARExternalProjectSerializer(ModelSerializer):
     funding = serializers.SerializerMethodField()
 
     def get_team_members(self, project):
-        # print('getting team')
         try:
             members = ProjectMember.objects.filter(project=project.pk).all()
             serialized_members = []
@@ -109,7 +88,6 @@ class ARExternalProjectSerializer(ModelSerializer):
     def get_partners(self, project):
         try:
             ext = project.external_project_info
-            # print("ext:", ext)
             return ext.collaboration_with
         except:
             print(
@@ -121,7 +99,6 @@ class ARExternalProjectSerializer(ModelSerializer):
     def get_funding(self, project):
         try:
             ext = project.external_project_info
-            # print("ext:", ext)
             return ext.budget
         except:
             print(
@@ -145,12 +122,10 @@ class ARExternalProjectSerializer(ModelSerializer):
         return representation
 
 
-# class ProblematicProjectSerializer(ModelSerializer):
 class ProblematicProjectSerializer(ModelSerializer):
     tag = serializers.SerializerMethodField()
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = BusinessAreaNameViewSerializer(read_only=True)
-    # print(tag)
 
     class Meta:
         model = Project
@@ -170,7 +145,6 @@ class ProblematicProjectSerializer(ModelSerializer):
 
 
 class ProjectSerializer(ModelSerializer):
-    # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
 
@@ -195,9 +169,7 @@ class ProjectBAUpdateSerializer(ModelSerializer):
 
 
 class ProjectUpdateSerializer(ModelSerializer):
-    # image = ProjectPhotoSerializer(read_only=True)
     image = ProjectPhotoSerializer(read_only=True)
-    # business_area = ProjectBAUpdateSerializer()
 
     class Meta:
         model = Project
@@ -214,11 +186,9 @@ class ProjectUpdateSerializer(ModelSerializer):
         return representation
 
 
-# ProblematicProjectSerializer
 class UserProfileProjectSerializer(ModelSerializer):
     tag = serializers.SerializerMethodField()
     image = TinyProjectPhotoSerializer(read_only=True)
-    # print(tag)
 
     class Meta:
         model = Project
@@ -231,7 +201,6 @@ class UserProfileProjectSerializer(ModelSerializer):
 class TinyProjectSerializer(ModelSerializer):
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
-    # level = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -244,7 +213,6 @@ class TinyProjectSerializer(ModelSerializer):
             "number",
             "business_area",
             "image",
-            # "level",
         )
 
 
@@ -272,16 +240,10 @@ class TinyStudentProjectARSerializer(ModelSerializer):
 
 
 class ProjectAreaSerializer(serializers.ModelSerializer):
-    # project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ProjectArea
         fields = "__all__"
-        # [
-        #     "pk",
-        #     "project",
-        #     "areas",
-        # ]
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -319,7 +281,6 @@ class MiniUserSerializer(ModelSerializer):
             affiliation_data = AffiliationSerializer(affiliation_instance).data
             return affiliation_data
         else:
-            # print("ITS EMPTY")
             return None
 
     class Meta:
@@ -430,8 +391,6 @@ class ProjectDataTableSerializer(ModelSerializer):
 
 
 class ProjectMemberSerializer(ModelSerializer):
-    # user = TinyUserSerializer(read_only=True)
-    # project = TinyProjectSerializer(read_only=True)
 
     class Meta:
         model = ProjectMember
@@ -440,7 +399,6 @@ class ProjectMemberSerializer(ModelSerializer):
 
 class ProjectDetailViewSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
-    # research_function = SerializerMethodField(read_only=True)
     service = SerializerMethodField(read_only=True)
     creator = SerializerMethodField(read_only=True)
     modifier = SerializerMethodField(read_only=True)
@@ -460,15 +418,6 @@ class ProjectDetailViewSerializer(ModelSerializer):
                 "title": project.title,
             }
         return None
-
-    # def get_research_function(self, obj):
-    #     research_function = obj.research_function
-    #     if research_function:
-    #         return {
-    #             "pk": research_function.pk,
-    #             "name": research_function.name,
-    #         }
-    #     return None
 
     def get_service(self, obj):
         service = obj.service
@@ -526,14 +475,6 @@ class ProjectDetailViewSerializer(ModelSerializer):
 
 
 class ProjectDetailSerializer(ModelSerializer):
-    # project = SerializerMethodField(read_only=True)
-    # research_function = SerializerMethodField(read_only=True)
-    # creator = SerializerMethodField(read_only=True)
-    # modifier = SerializerMethodField(read_only=True)
-    # owner = SerializerMethodField(read_only=True)
-    # data_custodian = SerializerMethodField(read_only=True)
-    # site_custodian = SerializerMethodField(read_only=True)
-
     class Meta:
         model = ProjectDetail
         fields = "__all__"
@@ -546,15 +487,6 @@ class ProjectDetailSerializer(ModelSerializer):
                 "title": project.title,
             }
         return None
-
-    # def get_research_function(self, obj):
-    #     research_function = obj.research_function
-    #     if research_function:
-    #         return {
-    #             "pk": research_function.pk,
-    #             "name": research_function.name,
-    #         }
-    #     return None
 
     def get_service(self, obj):
         service = obj.service
@@ -613,7 +545,6 @@ class ProjectDetailSerializer(ModelSerializer):
 
 class TinyProjectDetailSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
-    # research_function = SerializerMethodField(read_only=True)
     creator = SerializerMethodField(read_only=True)
     modifier = SerializerMethodField(read_only=True)
     owner = SerializerMethodField(read_only=True)
@@ -630,7 +561,6 @@ class TinyProjectDetailSerializer(ModelSerializer):
             "owner",
             "data_custodian",
             "site_custodian",
-            # "research_function",
         )
 
     def get_project(self, obj):
@@ -641,15 +571,6 @@ class TinyProjectDetailSerializer(ModelSerializer):
                 "title": project.title,
             }
         return None
-
-    # def get_research_function(self, obj):
-    #     research_function = obj.research_function
-    #     if research_function:
-    #         return {
-    #             "pk": research_function.pk,
-    #             "name": research_function.name,
-    #         }
-    #     return None
 
     def get_creator(self, obj):
         user = obj.creator
@@ -696,15 +617,6 @@ class TinyProjectDetailSerializer(ModelSerializer):
             }
         return None
 
-    # def get_research_function(self, obj):
-    #     research_function = obj.research_function
-    #     if research_function:
-    #         return {
-    #             "pk": research_function.pk,
-    #             "name": research_function.name,
-    #         }
-    #     return None
-
 
 class StudentProjectDetailSerializer(ModelSerializer):
     # project = SerializerMethodField(read_only=True)
@@ -746,9 +658,6 @@ class TinyStudentProjectDetailSerializer(ModelSerializer):
 
 
 class ExternalProjectDetailSerializer(ModelSerializer):
-    # project = SerializerMethodField(read_only=True)
-    # project = TinyProjectSerializer(read_only=True)
-
     class Meta:
         model = ExternalProjectDetails
         fields = "__all__"
@@ -761,15 +670,6 @@ class ExternalProjectDetailSerializer(ModelSerializer):
                 "title": project.title,
             }
         return None
-
-    # def get_project(self, obj):
-    #     project = obj.project
-    #     if project:
-    #         return {
-    #             "pk": project.pk,
-    #             "title": project.title,
-    #         }
-    #     return None
 
 
 class TinyExternalProjectDetailSerializer(ModelSerializer):
@@ -794,3 +694,6 @@ class TinyExternalProjectDetailSerializer(ModelSerializer):
                 "title": project.title,
             }
         return None
+
+
+# endregion ==============================================
