@@ -39,8 +39,8 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 
 # Email Config =========================================================
-EMAIL_HOST = "mail-relay.lan.fyi"
-EMAIL_PORT = 587
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "mail-relay.lan.fyi")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 ENVELOPE_EMAIL_RECIPIENTS = [env("SPMS_MAINTAINER_EMAIL")]
 ENVELOPE_USE_HTML_EMAIL = True
