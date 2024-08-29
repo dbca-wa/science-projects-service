@@ -1,8 +1,11 @@
+# region Imports ====================================================================================================
+
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
-    ParseError,
-    PermissionDenied,
 )
 from rest_framework.status import (
     HTTP_200_OK,
@@ -11,15 +14,6 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render
-from django.db import transaction
-from django.conf import settings
-from django.utils import timezone
-
-import time
 
 from .models import Area
 from .serializers import (
@@ -27,85 +21,11 @@ from .serializers import (
     AreaSerializer,
 )
 
-# GET ONLY ======================================================================
+
+# endregion  =================================================================================================
 
 
-class DBCADistricts(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, req):
-        all = Area.objects.filter(area_type="dbcadistrict").all()
-        ser = TinyAreaSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-
-class DBCARegions(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, req):
-        all = Area.objects.filter(area_type="dbcaregion").all()
-        ser = TinyAreaSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-
-class Imcras(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, req):
-        all = Area.objects.filter(area_type="imcra").all()
-        ser = TinyAreaSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-
-class Ibras(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, req):
-        all = Area.objects.filter(area_type="ibra").all()
-        ser = TinyAreaSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-
-class Nrms(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, req):
-        all = Area.objects.filter(area_type="nrm").all()
-        ser = TinyAreaSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-
-# MAIN ======================================================================
+# region Views ====================================================================================================
 
 
 class Areas(APIView):
@@ -185,3 +105,87 @@ class AreaDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+# endregion  =================================================================================================
+
+
+# region Area Types ====================================================================================================
+
+
+class DBCADistricts(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = Area.objects.filter(area_type="dbcadistrict").all()
+        ser = TinyAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class DBCARegions(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = Area.objects.filter(area_type="dbcaregion").all()
+        ser = TinyAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class Imcras(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = Area.objects.filter(area_type="imcra").all()
+        ser = TinyAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class Ibras(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = Area.objects.filter(area_type="ibra").all()
+        ser = TinyAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class Nrms(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = Area.objects.filter(area_type="nrm").all()
+        ser = TinyAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+# endregion  =================================================================================================

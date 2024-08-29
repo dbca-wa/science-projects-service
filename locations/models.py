@@ -2,7 +2,6 @@ from django.db import models
 from common.models import CommonModel
 
 
-# TODO: serializers, views, urls
 class Area(CommonModel):
     """
     Model Definition for Areas

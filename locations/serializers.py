@@ -1,9 +1,8 @@
-from rest_framework.serializers import ModelSerializer, IntegerField, CharField
+from rest_framework.serializers import ModelSerializer
 from .models import Area
 
 
 class TinyAreaSerializer(ModelSerializer):
-    # user = TinyUserSerializer()
     class Meta:
         model = Area
         fields = [
@@ -14,7 +13,6 @@ class TinyAreaSerializer(ModelSerializer):
 
 
 class AreaSerializer(ModelSerializer):
-    # user = TinyUserSerializer()
     class Meta:
         model = Area
         fields = "__all__"
