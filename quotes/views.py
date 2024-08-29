@@ -1,5 +1,13 @@
+# region IMPORTS ==============================================
 import os
-import random
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import (
+    NotFound,
+    NotAuthenticated,
+)
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -7,24 +15,16 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
-from rest_framework.exceptions import (
-    NotFound,
-    NotAuthenticated,
-    ParseError,
-    PermissionDenied,
-)
-from django.db import transaction
 from .models import Quote
 from .serializers import (
     QuoteListSerializer,
     QuoteDetailSerializer,
 )
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.conf import settings
-from rest_framework.permissions import IsAuthenticated
+
+#  endregion ==============================================
 
 
+# region VIEWS ==============================================
 class AddQuotesFromUniques(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -67,7 +67,6 @@ class AddQuotesFromUniques(APIView):
             for obj in uniques:
                 ser = QuoteListSerializer(data=obj)
                 if ser.is_valid():
-                    # with transaction.atomic():
                     ser.save()
                 else:
                     settings.LOGGER.error(msg=f"{ser.errors}")
@@ -122,10 +121,6 @@ class QuoteRandom(APIView):
             raise NotFound
 
     def get(self, req):
-        # count = Quote.objects.count()
-        # quote = self.go(pk=random.randint(0, count))
-
-        # Faster means of getting a random quote
         quote = Quote.objects.order_by("?").first()
         ser = QuoteDetailSerializer(quote, context={"request": req})
         return Response(
@@ -182,3 +177,6 @@ class QuoteDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+# endregion ==============================================

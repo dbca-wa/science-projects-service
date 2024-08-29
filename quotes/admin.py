@@ -1,8 +1,13 @@
-from django.contrib import admin
-from .models import Quote
+# region IMPORTS ==============================================
 import os
-from django.db import transaction
+from django.contrib import admin
 from .serializers import QuoteListSerializer
+from .models import Quote
+
+# endregion ==============================================
+
+
+# region ADMIN ACTION ==============================================
 
 
 @admin.action(description="Generate Quotes")
@@ -51,7 +56,6 @@ def generate_quotes(model_admin, req, selected):
         for obj in uniques:
             ser = QuoteListSerializer(data=obj)
             if ser.is_valid():
-                # with transaction.atomic():
                 ser.save()
             else:
                 print(f"ERROR: {ser.errors}")
@@ -60,7 +64,6 @@ def generate_quotes(model_admin, req, selected):
         print(f"ERROR: {e}")
 
 
-# CREATE AN EXPORT TO CSV/TEXT FILE FOR CURRENT ENTRIES IN DB
 @admin.action(description="Selected to TXT")
 def export_selected_quotes_txt(model_admin, req, selected):
     # saved_quotes = Quote.objects.all()
@@ -126,6 +129,11 @@ def export_all_quotes_txt(model_admin, req, selected):
         print(e)
 
 
+# endregion ==============================================
+
+# region ADMIN ==============================================
+
+
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
     actions = (
@@ -141,3 +149,6 @@ class QuoteAdmin(admin.ModelAdmin):
     ]
     list_filter = ["author"]
     search_fields = ["text", "author"]
+
+
+# endregion ==============================================
