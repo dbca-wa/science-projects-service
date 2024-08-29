@@ -4,7 +4,7 @@ on:
     push:
         tags:
             - "3.*" # Trigger the action on any tag push for version 3 on
-        branches: [main]
+        # branches: [main]
 
 env:
     REGISTRY: ghcr.io
