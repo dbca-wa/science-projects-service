@@ -1,8 +1,11 @@
+# region IMPORTS ====================================================================================================
+
+from django.shortcuts import render
+from django.conf import settings
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
-    ParseError,
-    PermissionDenied,
 )
 from rest_framework.status import (
     HTTP_200_OK,
@@ -12,18 +15,8 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN,
 )
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render
-from django.db import transaction
-from django.conf import settings
-from django.utils import timezone
-
-import time
 
 from documents.templatetags.custom_filters import extract_text_content
-
 from .models import Comment, DirectMessage, ChatRoom, Reaction
 from .serializers import (
     ChatRoomSerializer,
@@ -36,6 +29,10 @@ from .serializers import (
     TinyDirectMessageSerializer,
     TinyReactionSerializer,
 )
+
+# endregion ====================================================================================================
+
+# region Views ====================================================================================================
 
 
 class ChatRooms(APIView):
@@ -152,7 +149,6 @@ class Reactions(APIView):
                 msg=f"{req.user} is interacting with a comment ({req.data.get('comment')})"
             )
             data = {
-                # "comment": get_comment(),
                 "comment": int(req.data.get("comment")),
                 "user": req.data.get("user"),
                 "reaction": Reaction.ReactionChoices.THUMBUP,
@@ -174,7 +170,6 @@ class Reactions(APIView):
                     status=HTTP_204_NO_CONTENT,
                 )
 
-            #  if req.data.get("reaction") == "thumbup" else Reaction.ReactionChoices.THUMBUP
             ser = ReactionCreateSerializer(data=data)
             if ser.is_valid():
                 dm_reaction = ser.save()
@@ -394,3 +389,6 @@ class ReactionDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+# endregion ====================================================================================================

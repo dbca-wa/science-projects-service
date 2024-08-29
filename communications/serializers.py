@@ -1,3 +1,7 @@
+# region Imports ================================================================================================
+
+from rest_framework.serializers import ModelSerializer
+
 from documents.serializers import TinyProjectDocumentSerializer
 from .models import (
     ChatRoom,
@@ -6,12 +10,18 @@ from .models import (
     DirectMessage,
 )
 from users.serializers import TinyUserSerializer
-from rest_framework.serializers import ModelSerializer
+
+# endregion ====================================================================================================
+
+
+# region serializers =============================================================================================
+
+
+# Direct Messages --------------------------------------------------------------------------------------------
 
 
 class TinyDirectMessageSerializer(ModelSerializer):
     user = TinyUserSerializer(read_only=True)
-    # chat_room = TinyChatRoomSerializer()
 
     class Meta:
         model = DirectMessage
@@ -24,9 +34,7 @@ class TinyDirectMessageSerializer(ModelSerializer):
 
 
 class TinyReactionSerializer(ModelSerializer):
-    # user = TinyUserSerializer(read_only=True)
     direct_message = TinyDirectMessageSerializer()
-    # comment = TinyCommentSerializer()
 
     class Meta:
         model = Reaction
@@ -39,7 +47,9 @@ class TinyReactionSerializer(ModelSerializer):
         ]
 
 
-# Comments
+# Comments --------------------------------------------------------------------------------------------
+
+
 class TinyCommentSerializer(ModelSerializer):
     user = TinyUserSerializer(read_only=True)
     reactions = TinyReactionSerializer(many=True)
@@ -58,8 +68,6 @@ class TinyCommentSerializer(ModelSerializer):
 
 
 class TinyCommentCreateSerializer(ModelSerializer):
-    # user = TinyUserSerializer(read_only=True)
-    # document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
         model = Comment
@@ -82,19 +90,17 @@ class CommentSerializer(ModelSerializer):
         fields = "__all__"
 
 
-# Chat Rooms & Direct Messages
+# Chat Rooms & Direct Messages --------------------------------------------------------------------------------------------
 
 
 class TinyChatRoomSerializer(ModelSerializer):
     users = TinyUserSerializer(read_only=True, many=True)
-    # messages = TinyDirectMessageSerializer(read_only=True, many=True)
 
     class Meta:
         model = ChatRoom
         fields = [
             "pk",
             "users",
-            # "messages",
         ]
 
 
@@ -117,7 +123,7 @@ class ChatRoomSerializer(ModelSerializer):
         fields = "__all__"
 
 
-# Reactions
+# Reactions --------------------------------------------------------------------------------------------
 
 
 class ReactionSerializer(ModelSerializer):
@@ -142,3 +148,6 @@ class ReactionCreateSerializer(ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+# endregion ====================================================================================================

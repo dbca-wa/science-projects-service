@@ -1,13 +1,17 @@
+# region Imports ================================================================================================
+
+from django.conf import settings
 from django.db import models
 from django.forms import ValidationError
 
 from common.models import CommonModel
-from django.conf import settings
-
 from documents.templatetags.custom_filters import extract_text_content
 
+# endregion =================================================================================================
 
-# DONE
+# region Models ================================================================================================
+
+
 class ChatRoom(CommonModel):
     """
     Chat Room Model Definition
@@ -27,7 +31,6 @@ class ChatRoom(CommonModel):
         verbose_name_plural = "Chat Rooms"
 
 
-# DONE
 class DirectMessage(CommonModel):
     """
     Chat Room Message Model Definition
@@ -62,14 +65,12 @@ class DirectMessage(CommonModel):
         verbose_name_plural = "Direct Messages"
 
 
-# DONE
 class Comment(CommonModel):
-    # old_id = models.IntegerField()
     user = models.ForeignKey(
         "users.User",
         blank=True,
         null=True,
-        on_delete=models.SET_NULL,  # OR DELETE - CLARIFY
+        on_delete=models.SET_NULL,
     )
     document = models.ForeignKey(
         "documents.ProjectDocument",
@@ -81,7 +82,7 @@ class Comment(CommonModel):
         max_length=45,
         null=True,
         blank=True,
-    )  # Will be sent from front-end
+    )
     is_public = models.BooleanField(default=True)
     is_removed = models.BooleanField(default=False)
 
@@ -100,7 +101,6 @@ class Comment(CommonModel):
         verbose_name_plural = "Comments"
 
 
-# DONE
 class Reaction(CommonModel):
     """
     Model definition for Reactions to Comments
@@ -169,3 +169,6 @@ class Reaction(CommonModel):
     class Meta:
         verbose_name = "Reaction"
         verbose_name_plural = "Reactions"
+
+
+# endregion =================================================================================================

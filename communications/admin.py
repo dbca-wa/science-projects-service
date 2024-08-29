@@ -1,4 +1,9 @@
+# region IMPORTS ====================================================================================================
+import ast
 from django.contrib import admin
+from django import forms
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model
 
 from users.models import User
 from .models import (
@@ -7,10 +12,11 @@ from .models import (
     ChatRoom,
     Reaction,
 )
-from django import forms
-from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.contrib.auth import get_user_model
-import ast
+
+# endregion  =================================================================================================
+
+
+# region Forms ====================================================================================================
 
 
 class UserFilterWidget(FilteredSelectMultiple):
@@ -45,6 +51,12 @@ class ChatRoomForm(forms.ModelForm):
     class Meta:
         model = ChatRoom
         fields = "__all__"
+
+
+# endregion ====================================================================================================
+
+
+# region Admin ====================================================================================================
 
 
 @admin.register(ChatRoom)
@@ -131,3 +143,6 @@ class ReactionAdmin(admin.ModelAdmin):
         "direct_message__text",
         "user__username",
     ]
+
+
+# endregion ====================================================================================================
