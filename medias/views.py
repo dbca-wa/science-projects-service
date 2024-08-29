@@ -1,7 +1,13 @@
+# region IMPORTS ==================================================================================================
+
+from django.shortcuts import get_object_or_404
+from django.conf import settings
+
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, IsAuthenticated
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
-    ParseError,
     PermissionDenied,
 )
 from rest_framework.status import (
@@ -11,22 +17,10 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
-from django.shortcuts import get_object_or_404
 
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, IsAuthenticated
-from django.shortcuts import render
-from django.db import transaction
-from django.conf import settings
-from django.utils import timezone
-from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
-
-import requests
-import time
+# Project imports --------------------
 
 from documents.models import AnnualReport
-
 from .models import (
     AgencyImage,
     AnnualReportMedia,
@@ -62,11 +56,9 @@ from .serializers import (
     UserAvatarSerializer,
 )
 
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-import os
+# endregion ========================================================================================================
 
-# PROJECT DOCS ==================================================================================================
+# region PROJECT DOCS ==================================================================================================
 
 
 class ProjectDocPDFS(APIView):
@@ -102,7 +94,9 @@ class ProjectDocPDFS(APIView):
             )
 
 
-# ANNUAL REPORT ==================================================================================================
+# endregion ========================================================================================================
+
+# region ANNUAL REPORT ==================================================================================================
 
 
 class AnnualReportPDFs(APIView):
@@ -143,7 +137,8 @@ class AnnualReportPDFs(APIView):
                 new_instance.errors,
                 HTTP_400_BAD_REQUEST,
             )
-        
+
+
 class LegacyAnnualReportPDFs(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -182,7 +177,6 @@ class LegacyAnnualReportPDFs(APIView):
                 new_instance.errors,
                 HTTP_400_BAD_REQUEST,
             )
-
 
 
 class AnnualReportPDFDetail(APIView):
@@ -501,7 +495,9 @@ class AnnualReportMediaDelete(APIView):
         )
 
 
-# BUSINESS AREAS ==================================================================================================
+# endregion ========================================================================================================
+
+# region BUSINESS AREAS ==================================================================================================
 
 
 class BusinessAreaPhotos(APIView):
@@ -608,7 +604,9 @@ class BusinessAreaPhotoDetail(APIView):
             )
 
 
-# PROJECTS ==================================================================================================
+# endregion ========================================================================================================
+
+# region PROJECTS ==================================================================================================
 
 
 class ProjectPhotos(APIView):
@@ -825,7 +823,9 @@ class MethodologyPhotoDetail(APIView):
         )
 
 
-# AGENCIES ==================================================================================================
+# endregion ========================================================================================================
+
+# region AGENCIES ==================================================================================================
 
 
 class AgencyPhotos(APIView):
@@ -850,7 +850,6 @@ class AgencyPhotos(APIView):
         )
         if ser.is_valid():
             agency_photo = ser.save(image=req.data["image"])
-            # agency_photo = ser.save()
             return Response(
                 TinyAgencyPhotoSerializer(agency_photo).data,
                 status=HTTP_201_CREATED,
@@ -929,7 +928,9 @@ class AgencyPhotoDetail(APIView):
             )
 
 
-# USER AVATARS ==================================================================================================
+# endregion ========================================================================================================
+
+# region USER AVATARS ==================================================================================================
 
 
 class UserAvatars(APIView):
@@ -1030,3 +1031,6 @@ class UserAvatarDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+# endregion ========================================================================================================

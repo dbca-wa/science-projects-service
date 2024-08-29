@@ -1,7 +1,7 @@
+# region IMPORTS ==================================================
+
 from django.contrib import admin
-from django.db import models
-
-
+from django import forms
 from .models import (
     AnnualReportMedia,
     AnnualReportPDF,
@@ -14,7 +14,11 @@ from .models import (
     AECEndorsementPDF,
     ProjectPlanMethodologyPhoto,
 )
-from django import forms
+
+# endregion ==================================================
+
+
+# region ADMIN CLASSES ==================================================
 
 
 class AgencyImageAdminForm(forms.ModelForm):
@@ -23,7 +27,6 @@ class AgencyImageAdminForm(forms.ModelForm):
         fields = "__all__"
 
     file = forms.ImageField(required=True, label="Upload File")
-    # old_file = forms.ImageField(required=False, label="Upload Old File")
 
 
 @admin.register(AgencyImage)
@@ -66,7 +69,6 @@ class AgencyImageAdmin(admin.ModelAdmin):
 class ProjectDocumentPDFAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
-        # "old_file",
         "file",
         "size_in_mb",
         "document",
@@ -77,10 +79,6 @@ class ProjectDocumentPDFAdmin(admin.ModelAdmin):
         "project",
     ]
 
-    # list_filter = [
-    #     "project",
-    #     "document",
-    # ]
     def size_in_mb(self, obj):
         if obj.size:
             return "{:.2f} MB".format(obj.size / (1024 * 1024))
@@ -117,9 +115,6 @@ class AECEndorsementPDFAdmin(admin.ModelAdmin):
         "creator",
     ]
 
-    # list_filter = [
-    #     "en",
-    # ]
     def size_in_mb(self, obj):
         if obj.size:
             return "{:.2f} MB".format(obj.size / (1024 * 1024))
@@ -152,7 +147,6 @@ class AnnualReportPDFAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
         "report",
-        # "old_file",
         "file",
         "size_in_mb",
         "creator",
@@ -237,7 +231,6 @@ class AnnualReportMediaAdmin(admin.ModelAdmin):
     list_display = [
         "report",
         "kind",
-        # "old_file",
         "file",
         "size_in_mb",
         "uploader",
@@ -280,7 +273,6 @@ class BusinessAreaPhotoAdmin(admin.ModelAdmin):
     list_display = (
         "pk",
         "business_area",
-        # "old_file",
         "file",
         "size_in_mb",
         "uploader",
@@ -317,11 +309,7 @@ class BusinessAreaPhotoAdmin(admin.ModelAdmin):
 class ProjectPhotoAdmin(admin.ModelAdmin):
     list_display = (
         "pk",
-        # "old_file",
         "file",
-        # "size_display",
-        # "size_mb",
-        # "size",
         "size_in_mb",
         "project",
         "uploader",
@@ -428,3 +416,6 @@ class UserAvatarAdmin(admin.ModelAdmin):
         self.message_user(request, f"Successfully updated {updated_count} photos.")
 
     recalculate_photo_sizes.short_description = "Recalculate photo sizes"
+
+
+# endregion ==================================================

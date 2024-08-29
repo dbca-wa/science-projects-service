@@ -1,13 +1,12 @@
+# region Imports ===================================
+
 import base64
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
-    ImageField,
 )
 
 from agencies.serializers import TinyBusinessAreaSerializer
-
-# from documents.serializers import AnnualReportSerializer
 from .models import (
     AnnualReportMedia,
     AnnualReportPDF,
@@ -21,8 +20,10 @@ from .models import (
     AECEndorsementPDF,
 )
 
-# from PIL import Image
-# from io import BytesIO
+# endregion Imports ===================================
+
+
+# region Project Doc Media Serializers ===================================
 
 
 class ProjectDocumentPDFSerializer(ModelSerializer):
@@ -30,7 +31,6 @@ class ProjectDocumentPDFSerializer(ModelSerializer):
         model = ProjectDocumentPDF
         fields = [
             "pk",
-            # "old_file",
             "file",
             "document",
             "project",
@@ -43,6 +43,87 @@ class ProjectDocumentPDFCreationSerializer(ModelSerializer):
         fields = "__all__"
 
 
+class AECPDFSerializer(ModelSerializer):
+    class Meta:
+        model = AECEndorsementPDF
+        fields = "__all__"
+
+
+class AECPDFCreateSerializer(ModelSerializer):
+    class Meta:
+        model = AECEndorsementPDF
+        fields = "__all__"
+
+    def create(self, validated_data):
+        cp = AECEndorsementPDF.objects.create(**validated_data)
+        return cp
+
+
+class TinyMethodologyImageSerializer(ModelSerializer):
+    project_plan = SerializerMethodField(read_only=True)
+    uploader = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProjectPlanMethodologyPhoto
+        fields = [
+            "pk",
+            "file",
+            "project_plan",
+            "uploader",
+        ]
+
+    def get_project_plan(self, obj):
+        project_plan = obj.project_plan
+        if project_plan:
+            return {
+                "id": project_plan.id,
+            }
+
+    def get_uploader(self, obj):
+        uploader = obj.uploader
+        if uploader:
+            return {
+                "id": uploader.id,
+                "username": uploader.username,
+            }
+
+
+class MethodologyImageCreateSerializer(ModelSerializer):
+    class Meta:
+        model = ProjectPlanMethodologyPhoto
+        fields = "__all__"
+
+
+class MethodologyImageSerializer(ModelSerializer):
+    project_plan = SerializerMethodField(read_only=True)
+    uploader = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = ProjectPlanMethodologyPhoto
+        fields = "__all__"
+
+    def get_project_plan(self, obj):
+        project_plan = obj.project_plan
+        if project_plan:
+            return {
+                "id": project_plan.id,
+            }
+
+    def get_uploader(self, obj):
+        uploader = obj.uploader
+        if uploader:
+            return {
+                "id": uploader.id,
+                "username": uploader.username,
+            }
+
+
+# endregion  ===================================
+
+
+# region Annual Report Media Serializers ===================================
+
+
 class TinyAnnualReportMediaSerializer(ModelSerializer):
     report = SerializerMethodField(read_only=True)
 
@@ -51,7 +132,6 @@ class TinyAnnualReportMediaSerializer(ModelSerializer):
         fields = [
             "pk",
             "kind",
-            # "old_file",
             "file",
             "report",
         ]
@@ -88,15 +168,6 @@ class AnnualReportMediaCreationSerializer(ModelSerializer):
         model = AnnualReportMedia
         fields = "__all__"
 
-    # def get_report(self, obj):
-    #     report = obj.report
-    #     if report:
-    #         return {
-    #             "id": report.id,
-    #             "year": report.year,
-    #         }
-    #     return None
-
 
 class TinyAnnualReportPDFSerializer(ModelSerializer):
     report = SerializerMethodField(read_only=True)
@@ -105,7 +176,6 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
         model = AnnualReportPDF
         fields = [
             "pk",
-            # "old_file",
             "file",
             "report",
         ]
@@ -139,24 +209,7 @@ class TinyLegacyAnnualReportPDFSerializer(ModelSerializer):
         }
 
 
-class AECPDFSerializer(ModelSerializer):
-    class Meta:
-        model = AECEndorsementPDF
-        fields = "__all__"
-
-
-class AECPDFCreateSerializer(ModelSerializer):
-    class Meta:
-        model = AECEndorsementPDF
-        fields = "__all__"
-
-    def create(self, validated_data):
-        cp = AECEndorsementPDF.objects.create(**validated_data)
-        return cp
-
-
 class AnnualReportPDFCreateSerializer(ModelSerializer):
-    # report = SerializerMethodField()
 
     class Meta:
         model = AnnualReportPDF
@@ -168,7 +221,6 @@ class AnnualReportPDFCreateSerializer(ModelSerializer):
 
 
 class LegacyAnnualReportPDFCreateSerializer(ModelSerializer):
-    # report = SerializerMethodField()
 
     class Meta:
         model = LegacyAnnualReportPDF
@@ -225,6 +277,12 @@ class LegacyAnnualReportPDFSerializer(ModelSerializer):
         return None
 
 
+# endregion  ===================================
+
+
+# region Business Area Photo Serializers ===================================
+
+
 class TinyBusinessAreaPhotoSerializer(ModelSerializer):
     business_area = TinyBusinessAreaSerializer(read_only=True)
     uploader = SerializerMethodField(read_only=True)
@@ -233,8 +291,6 @@ class TinyBusinessAreaPhotoSerializer(ModelSerializer):
         model = BusinessAreaPhoto
         fields = [
             "pk",
-            # "old_file",
-            # "file",
             "business_area",
             "uploader",
         ]
@@ -265,6 +321,12 @@ class BusinessAreaPhotoSerializer(ModelSerializer):
             }
 
 
+# endregion  ===================================
+
+
+# region Project Photo Serializers ===================================
+
+
 class TinyProjectPhotoSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
     uploader = SerializerMethodField(read_only=True)
@@ -273,7 +335,6 @@ class TinyProjectPhotoSerializer(ModelSerializer):
         model = ProjectPhoto
         fields = [
             "pk",
-            # "old_file",
             "file",
             "project",
             "uploader",
@@ -296,41 +357,9 @@ class TinyProjectPhotoSerializer(ModelSerializer):
             }
 
 
-class TinyMethodologyImageSerializer(ModelSerializer):
-    project_plan = SerializerMethodField(read_only=True)
-    uploader = SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = ProjectPlanMethodologyPhoto
-        fields = [
-            "pk",
-            # "old_file",
-            "file",
-            "project_plan",
-            "uploader",
-        ]
-
-    def get_project_plan(self, obj):
-        project_plan = obj.project_plan
-        if project_plan:
-            return {
-                "id": project_plan.id,
-                # "title": project_plan.title,
-            }
-
-    def get_uploader(self, obj):
-        uploader = obj.uploader
-        if uploader:
-            return {
-                "id": uploader.id,
-                "username": uploader.username,
-            }
-
-
 class ProjectPhotoSerializer(ModelSerializer):
     project = SerializerMethodField(read_only=True)
     uploader = SerializerMethodField(read_only=True)
-    # old_file = SerializerMethodField()
 
     class Meta:
         model = ProjectPhoto
@@ -352,56 +381,22 @@ class ProjectPhotoSerializer(ModelSerializer):
                 "username": uploader.username,
             }
 
-    # def get_old_file(self, obj):
-    #     old_file = obj.old_file
-    #     # if old_file:
-    #     return old_file
+
+# endregion ===================================
 
 
-class MethodologyImageCreateSerializer(ModelSerializer):
-    class Meta:
-        model = ProjectPlanMethodologyPhoto
-        fields = "__all__"
-
-
-class MethodologyImageSerializer(ModelSerializer):
-    project_plan = SerializerMethodField(read_only=True)
-    uploader = SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = ProjectPlanMethodologyPhoto
-        fields = "__all__"
-
-    def get_project_plan(self, obj):
-        project_plan = obj.project_plan
-        if project_plan:
-            return {
-                "id": project_plan.id,
-                # "title": project_plan.title,
-            }
-
-    def get_uploader(self, obj):
-        uploader = obj.uploader
-        if uploader:
-            return {
-                "id": uploader.id,
-                "username": uploader.username,
-            }
+# region Agency Photo Serializers ===================================
 
 
 class TinyAgencyPhotoSerializer(ModelSerializer):
     agency = SerializerMethodField(read_only=True)
     file = SerializerMethodField()
-    # old_file = SerializerMethodField()
 
-    # file = ImageField(source="file", read_only=True)
-    # old_file = ImageField(source="old_file", read_only=True)
     class Meta:
         model = AgencyImage
         fields = [
             "pk",
             "file",
-            # "old_file",
             "agency",
         ]
 
@@ -418,18 +413,10 @@ class TinyAgencyPhotoSerializer(ModelSerializer):
         if file:
             return file.url
 
-    # def get_old_file(self, obj):
-    #     old_file = obj.old_file
-    #     if old_file:
-    #         return old_file.url
-
 
 class AgencyPhotoSerializer(ModelSerializer):
     agency = SerializerMethodField(read_only=True)
     file = SerializerMethodField()
-    # old_file = SerializerMethodField()
-    # file = ImageField(source="file", read_only=True)
-    # old_file = ImageField(source="old_file", read_only=True)
 
     class Meta:
         model = AgencyImage
@@ -448,10 +435,11 @@ class AgencyPhotoSerializer(ModelSerializer):
         if file:
             return file.url
 
-    # def get_old_file(self, obj):
-    #     old_file = obj.old_file
-    #     if old_file:
-    #         return old_file.url
+
+# endregion  ===================================
+
+
+# region User Avatar Serializers ===================================
 
 
 class TinyUserAvatarSerializer(ModelSerializer):
@@ -488,3 +476,6 @@ class UserAvatarSerializer(ModelSerializer):
                 "id": user.id,
                 "username": user.username,
             }
+
+
+# endregion  ===================================
