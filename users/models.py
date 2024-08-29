@@ -1,23 +1,18 @@
-from datetime import timezone
-from tracemalloc import start
+# region IMPORTS ===================================
+
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import requests
 from common.models import CommonModel
 from medias.models import UserAvatar
-from rest_framework.serializers import (
-    ModelSerializer,
-)
+
+# endregion =======================================
 
 
-class TinyImageSerializer(ModelSerializer):
-    class Meta:
-        model = UserAvatar
-        fields = ["file"]
+# region User Models ===================================
 
 
-# TODO: serializers, admin, views, urls
 class User(AbstractUser):
     """
     Custom User Model - references old pk for migration
@@ -133,7 +128,6 @@ class User(AbstractUser):
         verbose_name_plural = "Users"
 
 
-# TODO: admin, views, urls
 class UserWork(CommonModel):
     class RoleChoices(models.TextChoices):
         ECODEV = "Ecoinformatics Developer", "Ecoinformatics Developer"
@@ -192,7 +186,6 @@ class UserWork(CommonModel):
         verbose_name_plural = "User Work Details"
 
 
-# TODO: admin, views, urls
 class UserProfile(CommonModel):
     class TitleChoices(models.TextChoices):
         MR = "mr", "Mr."
@@ -226,15 +219,6 @@ class UserProfile(CommonModel):
         null=True,
         blank=True,
     )
-    # about = models.TextField(
-    #     null=True,
-    #     blank=True,
-    # )
-    # expertise = models.CharField(
-    #     max_length=2000,
-    #     null=True,
-    #     blank=True,
-    # )
 
     def __str__(self) -> str:
         return f"Profile | {self.user.username if self.user else 'No User'}"
@@ -244,11 +228,69 @@ class UserProfile(CommonModel):
         verbose_name_plural = "User Profiles"
 
 
+# endregion =======================================
+
+
+# region Staff Profile Models ===================================
+
+
+# Display underneath name and title
 class KeywordTag(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
     def __str__(self):
         return self.name
+
+
+# For adding employment history
+class EmploymentEntry(models.Model):
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="employment_entries",
+    )
+    position_title = models.CharField(max_length=200)
+    start_year = models.PositiveIntegerField()
+    end_year = models.PositiveIntegerField(blank=True, null=True)
+    section = models.CharField(max_length=200, blank=True, null=True)
+    employer = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.position_title} at {self.employer} ({self.start_year}-{self.end_year})"
+
+
+# For adding education details
+class EducationEntry(models.Model):
+    class QualificationKindChoices(models.TextChoices):
+        POSTDOCTORAL = "postdoc", "Postdoctoral in"
+        DOCTOR = "doc", "Doctor of"  # including philosophy (phd)
+        # PHD = 'PhD in', 'PhD in'
+        MASTER = "master", "Master of"
+        GRADUATE_DIPLOMA = "graddip", "Graduate Diploma in"
+        BACHELOR = "bachelor", "Bachelor of"
+        ASSOCIATE_DEGREE = "assdegree", "Associate Degree in"
+        DIPLOMA = "diploma", "Diploma in"
+        CERTIFICATE = "cert", "Certificate in"
+        NANODEGREE = "nano", "Nanodegree in"
+
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="education_entries",
+    )
+    qualification_field = models.CharField(max_length=200)
+    with_honours = models.BooleanField(default=False)
+    qualification_kind = models.CharField(
+        max_length=50, choices=QualificationKindChoices.choices
+    )
+    qualification_name = models.CharField(max_length=200)
+    start_year = models.PositiveIntegerField(blank=True, null=True)
+    end_year = models.PositiveIntegerField()
+    institution = models.CharField(max_length=200)
+    location = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
 
 
 class PublicStaffProfile(CommonModel):
@@ -405,132 +447,5 @@ class PublicStaffProfile(CommonModel):
         verbose_name = "Staff Profile"
         verbose_name_plural = "Staff Profiles"
 
-    # IT ASSETS
-    # dbca_position_title = models.CharField(
-    #     max_length=200,
-    #     help_text="Position title within DBCA.",
-    #     blank=True,
-    #     null=True,
-    # )
 
-    # title = (DISPLAY fk to User.UserProfile (user.profile.title) - frontend will only display it if Dr.)
-    # first_name = (DISPLAY fk to User.last_name )
-    # last_name = (DISPLAY fk to User.first_name )
-    # branch = (DISPLAY fk to User.work.branch)
-
-    # Projects section  ===========================================
-    # (pulled directly from fk, no adjustments)
-    # project_memberships = models.ManyToManyField(
-    #     "projects.ProjectMember",
-    #     related_name="staff_profiles",
-    #     help_text="Projects associated with this staff member.",
-    # )
-
-    # CV section  ===========================================
-    # employment = models.ManyToManyField(
-    #     "users.EmploymentEntry",
-    #     related_name="staff_profiles",
-    #     help_text="Employment history for this staff member.",
-    # )
-    # education = models.ManyToManyField(
-    #     "users.EducationEntry",
-    #     related_name="staff_profiles",
-    #     help_text="Educational qualifications for this staff member.",
-    # )
-
-    # REMOVED FOR NOW
-
-    # Publications section  ===========================================
-
-    # publications = models.ManyToManyField(
-    #     "users.AdditionalPublicationEntry",
-    #     related_name="staff_profiles",
-    #     help_text="Publications associated with this staff member.",
-
-    # )
-
-
-# For adding employment history
-class EmploymentEntry(models.Model):
-    public_profile = models.ForeignKey(
-        "users.PublicStaffProfile",
-        on_delete=models.CASCADE,
-        related_name="employment_entries",
-    )
-    position_title = models.CharField(max_length=200)
-    start_year = models.PositiveIntegerField()
-    end_year = models.PositiveIntegerField(blank=True, null=True)
-    section = models.CharField(max_length=200, blank=True, null=True)
-    employer = models.CharField(max_length=200, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.position_title} at {self.employer} ({self.start_year}-{self.end_year})"
-
-
-# For adding education details
-class EducationEntry(models.Model):
-    class QualificationKindChoices(models.TextChoices):
-        POSTDOCTORAL = "postdoc", "Postdoctoral in"
-        DOCTOR = "doc", "Doctor of"  # including philosophy (phd)
-        # PHD = 'PhD in', 'PhD in'
-        MASTER = "master", "Master of"
-        GRADUATE_DIPLOMA = "graddip", "Graduate Diploma in"
-        BACHELOR = "bachelor", "Bachelor of"
-        ASSOCIATE_DEGREE = "assdegree", "Associate Degree in"
-        DIPLOMA = "diploma", "Diploma in"
-        CERTIFICATE = "cert", "Certificate in"
-        NANODEGREE = "nano", "Nanodegree in"
-
-    public_profile = models.ForeignKey(
-        "users.PublicStaffProfile",
-        on_delete=models.CASCADE,
-        related_name="education_entries",
-    )
-    #
-    qualification_field = models.CharField(max_length=200)
-    with_honours = models.BooleanField(default=False)
-    #
-    qualification_kind = models.CharField(
-        max_length=50, choices=QualificationKindChoices.choices
-    )
-    qualification_name = models.CharField(max_length=200)
-    #
-    start_year = models.PositiveIntegerField(blank=True, null=True)
-    end_year = models.PositiveIntegerField()
-    institution = models.CharField(max_length=200)
-    location = models.CharField(max_length=200)
-
-    def __str__(self):
-        return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
-
-
-# For extra projects besides those registered in SPMS
-# class StaffProfileProjectEntry(CommonModel):
-#     public_profile = models.ForeignKey(
-#         "users.PublicStaffProfile",
-#         on_delete=models.CASCADE,
-#         related_name="project_entries",
-#     )
-#     project_membership = models.ManyToManyField(
-#         "projects.ProjectMember"
-#     )  # with related project
-#     flavour_text = (
-#         models.TextField()
-#     )  # appeal the merits of this project for your CV, otherwise use the project_membership.project.description
-
-#     def __str__(self):
-#         return f"{self.project_membership.project.title}"
-
-
-# For adding any additional publications not taken from ORCID/Library
-# class AdditionalPublicationEntry(models.Model):
-#     public_profile = models.ForeignKey(
-#         "users.PublicStaffProfile",
-#         on_delete=models.CASCADE,
-#         related_name="additional_publications",
-#     )
-#     year_published = models.PositiveIntegerField()
-#     entry = models.TextField()
-
-#     def __str__(self):
-#         return f"Publication in {self.year_published}: {self.entry[:30]}..."
+# endregion =======================================

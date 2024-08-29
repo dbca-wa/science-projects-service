@@ -22,4 +22,3 @@ echo "$LICENSE_TEMPLATE" > /usr/lib/prince/license/license.dat
 # Launch backend (moved from Dockerfile to run after securely setting Prince license)
 echo "Launching gunicorn..."
 exec gunicorn config.wsgi --bind 0.0.0.0:8000 --timeout 300 --max-requests 2048 --workers 4
-# --workers 3

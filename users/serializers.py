@@ -1,13 +1,11 @@
-from django.conf import settings
-import requests
-from rest_framework import serializers
-from agencies.models import Affiliation, Branch, BusinessArea
+# region IMPORTS =====================================
 
+# Project Imports -----------------------------
+from agencies.models import Affiliation, Branch, BusinessArea
 from agencies.serializers import (
     AffiliationSerializer,
     MiniBASerializer,
     MiniBranchSerializer,
-    StaffProfileBASerializer,
     StaffProfileBranchSerializer,
     TinyAgencySerializer,
     TinyBranchSerializer,
@@ -21,41 +19,23 @@ from .models import (
     EmploymentEntry,
     KeywordTag,
     PublicStaffProfile,
-    # StaffProfileProjectEntry,
     User,
     UserWork,
     UserProfile,
 )
 
-
-class LocationSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
+from rest_framework import serializers
 
 
-class ManagerSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
-    email = serializers.EmailField()
+# endregion
+
+# region User Serializers =====================================
 
 
-class ITAssetSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    name = serializers.CharField(max_length=255)
-    given_name = serializers.CharField(max_length=255)
-    surname = serializers.CharField(max_length=255)
-    preferred_name = serializers.CharField(max_length=255)
-    email = serializers.EmailField()
-    title = serializers.CharField(max_length=255)
-    telephone = serializers.CharField(max_length=20, allow_null=True)
-    extension = serializers.CharField(max_length=20, allow_null=True)
-    mobile_phone = serializers.CharField(max_length=20, allow_null=True)
-    location = LocationSerializer()
-    cost_centre = serializers.CharField(max_length=255)
-    employee_id = serializers.CharField(max_length=255)
-    manager = ManagerSerializer()
-    division = serializers.CharField(max_length=255)
-    unit = serializers.CharField(max_length=255)
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        exclude = ["password"]
 
 
 class PrivateTinyUserSerializer(serializers.ModelSerializer):
@@ -65,8 +45,6 @@ class PrivateTinyUserSerializer(serializers.ModelSerializer):
             "password",
             "is_superuser",
             "is_aec",
-            # "is_biometrician",
-            # "is_herbarium_curator",
             "id",
             "is_staff",
             "is_active",
@@ -110,8 +88,6 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "email",
             "is_active",
             "is_superuser",
-            # "is_biometrician",
-            # "is_herbarium_curator",
             "is_aec",
             "is_staff",
             "image",
@@ -122,45 +98,33 @@ class TinyUserSerializer(serializers.ModelSerializer):
         )
 
 
-class TinyStaffProfileSerializer(serializers.ModelSerializer):
-    role = serializers.CharField(source="work.role")
-    branch = StaffProfileBranchSerializer(source="work.branch")
-    # business_area = StaffProfileBASerializer(source="work.business_area")
+class ManagerSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+    email = serializers.EmailField()
 
+
+# endregion
+
+# region User Profile Serializers =====================================
+
+
+class TinyImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = (
-            "pk",
-            "first_name",
-            "last_name",
-            "email",
-            "is_active",
-            "role",
-            "branch",
-        )
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        exclude = ["password"]
+        model = UserAvatar
+        fields = ["file"]
 
 
 class TinyUserProfileSerializer(serializers.ModelSerializer):
-    # user = TinyUserSerializer(read_only=True)
-    # image = UserAvatarSerializer(read_only=True)
 
     class Meta:
         model = UserProfile
         fields = (
             "pk",
             "user",
-            # "image",
             "title",
             "middle_initials",
-            # "about",
             "curriculum_vitae",
-            # "expertise",
         )
 
 
@@ -337,7 +301,73 @@ class UpdateMembershipSerializer(serializers.ModelSerializer):
         )
 
 
-# ==================================
+class ProfilePageSerializer(serializers.ModelSerializer):
+    # Profile
+    image = UserAvatarSerializer(source="profile.image")
+    title = serializers.CharField(source="profile.title")
+    about = serializers.CharField(source="staff_profile.about")
+    expertise = serializers.CharField(source="staff_profile.expertise")
+    # Work
+    role = serializers.CharField(source="work.role")
+    agency = TinyAgencySerializer(source="work.agency")
+    branch = MiniBranchSerializer(source="work.branch")
+    business_area = MiniBASerializer(source="work.business_area")
+    affiliation = AffiliationSerializer(source="work.affiliation")
+    # Contact
+    phone = serializers.CharField(source="contact.phone")
+    fax = serializers.CharField(source="contact.fax")
+
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "display_first_name",
+            "display_last_name",
+            "first_name",
+            "last_name",
+            "username",
+            "email",
+            "is_superuser",
+            "is_aec",
+            "is_staff",
+            "is_active",
+            "date_joined",
+            "image",
+            "role",
+            "expertise",
+            "about",
+            "agency",
+            "branch",
+            "business_area",
+            "title",
+            "phone",
+            "fax",
+            "affiliation",
+            "business_areas_led",
+        )
+
+
+# endregion
+
+# region Staff Profile Serializers =====================================
+
+
+class TinyStaffProfileSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source="work.role")
+    branch = StaffProfileBranchSerializer(source="work.branch")
+    # business_area = StaffProfileBASerializer(source="work.business_area")
+
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "first_name",
+            "last_name",
+            "email",
+            "is_active",
+            "role",
+            "branch",
+        )
 
 
 class StaffProfileCreationSerializer(serializers.ModelSerializer):
@@ -481,9 +511,6 @@ class StaffProfileCVSerializer(serializers.ModelSerializer):
         )
 
 
-# ==================================
-
-
 class StaffProfileUserSerializer(serializers.ModelSerializer):
     branch_name = serializers.SerializerMethodField()
     business_area_name = serializers.SerializerMethodField()
@@ -511,32 +538,6 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
             "branch_name",
             "business_area_name",
         )
-
-
-# class ProjectEntrySerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = StaffProfileProjectEntry
-#         fields = (
-#             "public_profile",
-#             "project_membership",
-#             "flavour_text",
-#         )
-
-
-class ProjectMembershipSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProjectMember
-        fields = ("project",)
-
-    project = serializers.SerializerMethodField()
-
-    def get_project(self, obj):
-        return {
-            "title": obj.project.title,
-            "description": obj.project.description,
-            "start_date": obj.project.start_date,
-            "end_date": obj.project.start_date,
-        }
 
 
 class StaffProfileSerializer(serializers.ModelSerializer):
@@ -595,52 +596,39 @@ class StaffProfileSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
-class ProfilePageSerializer(serializers.ModelSerializer):
-    # profile
-    image = UserAvatarSerializer(source="profile.image")
-    title = serializers.CharField(source="profile.title")
+# endregion
 
-    about = serializers.CharField(source="staff_profile.about")
-    expertise = serializers.CharField(source="staff_profile.expertise")
-    # about = serializers.CharField(source="profile.about")
-    # expertise = serializers.CharField(source="profile.expertise")
-    # Work
-    role = serializers.CharField(source="work.role")
-    agency = TinyAgencySerializer(source="work.agency")
-    branch = MiniBranchSerializer(source="work.branch")
-    business_area = MiniBASerializer(source="work.business_area")
-    affiliation = AffiliationSerializer(source="work.affiliation")
-    # contact details
-    phone = serializers.CharField(source="contact.phone")
-    fax = serializers.CharField(source="contact.fax")
+# region Other Serializers =====================================
 
+
+class ProjectMembershipSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = (
-            "pk",
-            "display_first_name",
-            "display_last_name",
-            "first_name",
-            "last_name",
-            "username",
-            "email",
-            "is_superuser",
-            # "is_biometrician",
-            # "is_herbarium_curator",
-            "is_aec",
-            "is_staff",
-            "is_active",
-            "date_joined",
-            "image",
-            "role",
-            "expertise",
-            "about",
-            "agency",
-            "branch",
-            "business_area",
-            "title",
-            "phone",
-            "fax",
-            "affiliation",
-            "business_areas_led",
-        )
+        model = ProjectMember
+        fields = ("project",)
+
+    project = serializers.SerializerMethodField()
+
+    def get_project(self, obj):
+        return {
+            "title": obj.project.title,
+            "description": obj.project.description,
+            "start_date": obj.project.start_date,
+            "end_date": obj.project.start_date,
+        }
+
+
+class LocationSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=255)
+
+
+# class ProjectEntrySerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = StaffProfileProjectEntry
+#         fields = (
+#             "public_profile",
+#             "project_membership",
+#             "flavour_text",
+#         )
+
+# endregion

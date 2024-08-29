@@ -1,24 +1,27 @@
-import csv
-import os
+# region IMPORTS ======================================
+import csv, requests
 from django.conf import settings
 from django.db.models import Q
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.forms import model_to_dict
 from django.http import HttpResponse
-import requests
+
+# Project Imports --------------------
+from .models import KeywordTag, PublicStaffProfile, User, UserWork, UserProfile
 from agencies.serializers import (
     TinyBranchSerializer,
     TinyBusinessAreaSerializer,
     TinyAgencySerializer,
 )
-
 from projects.models import ProjectMember
 from users.serializers import TinyUserSerializer
 from users.views import Users
-from .models import KeywordTag, PublicStaffProfile, User, UserWork, UserProfile
+
+# endregion ===========================================
 
 
+# region adminactions =================================
 @admin.action(description="Send About and Expertise to SP")
 def copy_about_expertise_to_staff_profile(model_admin, req, selected):
     if len(selected) > 1:
@@ -54,10 +57,6 @@ def create_staff_profiles(model_admin, req, selected):
     for user in users_to_update:
         PublicStaffProfile.objects.create(
             user=user,
-            # dbca_position_title="",  # or any default value or logic you want
-            # keyword_tags="",
-            # about_me="",
-            # expertise=""
         )
 
     model_admin.message_user(
@@ -132,7 +131,6 @@ def update_display_names(model_admin, req, selected):
     )
 
 
-# CREATE AN EXPORT TO CSV FILE FOR CURRENT ENTRIES IN DB
 @admin.action(description="Selected Users to CSV")
 def export_selected_users_to_csv(model_admin, req, selected):
     response = HttpResponse(content_type="text/csv")
@@ -151,7 +149,6 @@ def export_selected_users_to_csv(model_admin, req, selected):
     return response
 
 
-# A function to output the project leaders of active projects for latest report
 @admin.action(description="Export Active Project Leaders")
 def export_current_active_project_leads(model_admin, req, selected):
     if len(selected) > 1:
@@ -212,6 +209,32 @@ def export_current_active_project_leads(model_admin, req, selected):
     response["Content-Disposition"] = 'attachment; filename="active_project_leads.txt"'
 
     return response
+
+
+@admin.action(description="Delete unused tags")
+def delete_unused_tags(model_admin, req, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+    # Filter out tags that are not associated with any PublicStaffProfile
+    unused_tags = KeywordTag.objects.filter(staff_profiles__isnull=True)
+
+    # Count the number of tags before deletion
+    num_deleted, _ = unused_tags.delete()
+
+    # Provide feedback to the admin user
+    model_admin.message_user(req, f"{num_deleted} unused tags were deleted.")
+
+
+# endregion ===========================================
+
+# region ADMIN REGISTRATION ===========================
+
+
+@admin.register(KeywordTag)
+class KeywordTagAdmin(admin.ModelAdmin):
+    list_display = ("pk", "name")
+    actions = [delete_unused_tags]
 
 
 @admin.register(User)
@@ -298,8 +321,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         "user",
         "title",
         "middle_initials",
-        # "expertise",
-        # "about",
         "image",
     ]
     ordering = ["user"]
@@ -342,22 +363,4 @@ class UserWorkAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.action(description="Delete unused tags")
-def delete_unused_tags(model_admin, req, selected):
-    if len(selected) > 1:
-        print("PLEASE SELECT ONLY ONE")
-        return
-    # Filter out tags that are not associated with any PublicStaffProfile
-    unused_tags = KeywordTag.objects.filter(staff_profiles__isnull=True)
-
-    # Count the number of tags before deletion
-    num_deleted, _ = unused_tags.delete()
-
-    # Provide feedback to the admin user
-    model_admin.message_user(req, f"{num_deleted} unused tags were deleted.")
-
-
-@admin.register(KeywordTag)
-class KeywordTagAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name")
-    actions = [delete_unused_tags]
+# endregion ===========================================
