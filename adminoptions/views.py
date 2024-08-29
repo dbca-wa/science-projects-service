@@ -1,8 +1,8 @@
+# region IMPORTS ====================================================================================================
+
+from django.conf import settings
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
-    ParseError,
-    PermissionDenied,
 )
 from rest_framework.status import (
     HTTP_200_OK,
@@ -10,22 +10,20 @@ from rest_framework.status import (
     HTTP_202_ACCEPTED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
-    HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render
-from django.db import transaction
-from django.conf import settings
-from django.utils import timezone
-from django.db.models import Q
 
 from adminoptions.models import AdminOptions
 from adminoptions.serializers import (
     AdminOptionsMaintainerSerializer,
     AdminOptionsSerializer,
 )
+
+# endregion  =================================================================================================
+
+# region Views ====================================================================================================
 
 
 class AdminControls(APIView):
@@ -129,3 +127,6 @@ class AdminControlsDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+# endregion  =================================================================================================

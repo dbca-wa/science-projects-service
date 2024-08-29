@@ -1,6 +1,11 @@
+# region Imports ====================================================================================================
 from django.db import models
 from django.forms import ValidationError
 from common.models import CommonModel
+
+# endregion  =================================================================================================
+
+# region Models ====================================================================================================
 
 
 class AdminOptions(CommonModel):
@@ -113,3 +118,6 @@ class AdminOptions(CommonModel):
 
     class Meta:
         verbose_name = "Admin Controls"
+
+
+# endregion  =================================================================================================
