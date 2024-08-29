@@ -1,11 +1,14 @@
+# region IMPORTS ====================================================================================================
 from django.db import models
 from django.forms import ValidationError
 from common.models import CommonModel
 
+# endregion  =================================================================================================
 
-# DONE
+# region Models ====================================================================================================
+
+
 class Address(CommonModel):
-
     """
     Model Definition for addresses of agencies and their branches
     """
@@ -62,7 +65,6 @@ class Address(CommonModel):
         verbose_name_plural = "Addresses"
 
 
-# DONE
 class UserContact(CommonModel):
     user = models.OneToOneField(
         "users.User",
@@ -98,7 +100,6 @@ class UserContact(CommonModel):
         verbose_name_plural = "User Contacts"
 
 
-# DONE
 class AgencyContact(CommonModel):
     """
     Model definition for contact details of agency
@@ -143,7 +144,6 @@ class AgencyContact(CommonModel):
         verbose_name_plural = "agency Contacts"
 
 
-# DONE
 class BranchContact(CommonModel):
     """
     Model definition for contact details of agency Branch
@@ -186,3 +186,6 @@ class BranchContact(CommonModel):
     class Meta:
         verbose_name = "Branch Contact"
         verbose_name_plural = "Branch Contacts"
+
+
+# endregion  =================================================================================================

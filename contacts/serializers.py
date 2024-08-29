@@ -1,9 +1,13 @@
-from django.forms import ValidationError
+# region IMPORTS ====================================================================================================
 from rest_framework import serializers
 from agencies.models import Agency, Branch
 from agencies.serializers import TinyBranchSerializer, TinyAgencySerializer
 from .models import Address, AgencyContact, UserContact, BranchContact
 from users.serializers import TinyUserSerializer
+
+# endregion ====================================================================================================
+
+# region Serializers ====================================================================================================
 
 
 class TinyAddressSerializer(serializers.ModelSerializer):
@@ -26,12 +30,6 @@ class TinyAddressSerializer(serializers.ModelSerializer):
 
 
 class AddressSerializer(serializers.ModelSerializer):
-    # agency = TinyAgencySerializer(required=True)
-    # branch = TinyBranchSerializer(required=True)
-
-    # agency = serializers.SerializerMethodField()
-    # branch = serializers.SerializerMethodField()
-
     agency = serializers.PrimaryKeyRelatedField(
         queryset=Agency.objects.all(), required=False  # Not required
     )
@@ -39,9 +37,7 @@ class AddressSerializer(serializers.ModelSerializer):
         queryset=Branch.objects.all(), required=False  # Not required
     )
 
-    # def validate(self, data):
     def validate(self, data):
-        agency = data.get("agency")
         branch = data.get("branch")
 
         if branch:
@@ -148,3 +144,6 @@ class BranchContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = BranchContact
         fields = "__all__"
+
+
+# endregion  =================================================================================================
