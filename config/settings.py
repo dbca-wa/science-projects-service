@@ -1,14 +1,6 @@
-import logging
+import logging, os, sentry_sdk, dj_database_url, environ
 from logging import LogRecord
 from pathlib import Path
-import os
-import pprint
-import dj_database_url
-import environ
-
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-
 
 # Project ENV ===================================================================
 env = environ.Env()

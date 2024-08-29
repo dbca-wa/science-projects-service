@@ -1,5 +1,4 @@
-import base64
-import os
+import base64, os
 
 
 def get_encoded_image():

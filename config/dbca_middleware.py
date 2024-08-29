@@ -1,21 +1,15 @@
-import os
-from django import http
-from django.http import HttpResponse, HttpResponseRedirect
-from django.contrib.auth.backends import ModelBackend
+# region Imports ================================================================================================
+import os, requests
 from django.utils.deprecation import MiddlewareMixin
-from django.contrib.auth import login, logout, get_user_model
-import requests
-from agencies.models import Agency
-from contacts.models import UserContact
+from django.contrib.auth import login, get_user_model
+from django.conf import settings
 from django.db import transaction
 from rest_framework.exceptions import ParseError
-from django.conf import settings
-
+from agencies.models import Agency
+from contacts.models import UserContact
 from users.models import PublicStaffProfile, UserProfile, UserWork
-from rest_framework.response import Response
-from rest_framework.status import (
-    HTTP_200_OK,
-)
+
+# endregion ====================================================================================================
 
 User = get_user_model()
 
