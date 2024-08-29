@@ -1,5 +1,6 @@
-from django.contrib import admin
+# region IMPORTS ====================================================================================================
 import os
+from django.contrib import admin
 from .models import (
     Agency,
     Branch,
@@ -8,6 +9,10 @@ from .models import (
     Affiliation,
     Division,
 )
+
+# endregion  =================================================================================================
+
+# region ACTIONS ====================================================================================================
 
 
 @admin.action(description="All to TXT")
@@ -45,6 +50,11 @@ def export_all_affiliations_txt(model_admin, req, selected):
         print(f"{directory}")
     except Exception as e:
         print(e)
+
+
+# endregion  =================================================================================================
+
+# region ADMIN ====================================================================================================
 
 
 @admin.register(Affiliation)
@@ -135,3 +145,6 @@ class DepartmentalServiceAdmin(admin.ModelAdmin):
     search_fields = ["name"]
 
     ordering = ["name"]
+
+
+# endregion  =================================================================================================

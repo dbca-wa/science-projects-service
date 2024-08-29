@@ -1,12 +1,8 @@
+# region IMPORTS ====================================================================================================
 from rest_framework import serializers
-
 from contacts.models import Address
-
-# from contacts.serializers import StaffProfileAddressSerializer
 from medias.models import BusinessAreaPhoto
 from users.models import User
-
-# from users.serializers import TinyUserSerializer
 from .models import (
     Branch,
     BusinessArea,
@@ -16,7 +12,58 @@ from .models import (
     Division,
 )
 
-# from users.serializers import TinyUserSerializer
+# endregion ====================================================================================================
+
+
+class UserPkOnly(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("pk",)
+
+
+# region Division Serializers ====================================================================================================
+
+
+class TinyDivisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Division
+        fields = (
+            "pk",
+            "name",
+            "slug",
+            "director",
+            "approver",
+        )
+
+
+class DivisionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Division
+        fields = "__all__"
+
+
+# endregion  =================================================================================================
+
+
+# region Departmental Service Serializers ====================================================================================================
+
+
+class TinyDepartmentalServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepartmentalService
+        fields = ("pk", "name", "director")
+
+
+class DepartmentalServiceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DepartmentalService
+        fields = "__all__"
+
+
+# endregion  =================================================================================================
+
+
+# region Affiliation Serializers ====================================================================================================
 
 
 class AffiliationSerializer(serializers.ModelSerializer):
@@ -28,6 +75,12 @@ class AffiliationSerializer(serializers.ModelSerializer):
             "updated_at",
             "name",
         )
+
+
+# endregion  =================================================================================================
+
+
+# region Agency Serializers ====================================================================================================
 
 
 class TinyAgencySerializer(serializers.ModelSerializer):
@@ -60,6 +113,12 @@ class AgencySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+# endregion  =================================================================================================
+
+
+# region Branch Serializers ====================================================================================================
+
+
 class TinyBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -69,6 +128,93 @@ class TinyBranchSerializer(serializers.ModelSerializer):
             "agency",
             "manager",
         ]
+
+
+class MiniBranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ["pk", "name"]
+
+
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = "__all__"
+
+
+# endregion  =================================================================================================
+
+
+# region Business Area Serializers ====================================================================================================
+
+
+class MiniBASerializer(serializers.ModelSerializer):
+    leader = UserPkOnly()
+
+    class Meta:
+        model = BusinessArea
+        fields = ["pk", "name", "leader"]
+
+
+class BusinessAreaSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BusinessArea
+        fields = "__all__"
+
+
+class BusinessAreaNameViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessArea
+        fields = ["name"]
+        ordering = ["name"]
+
+
+class TinyBusinessAreaSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    division = TinyDivisionSerializer(read_only=True)
+
+    class Meta:
+        model = BusinessArea
+        fields = (
+            "pk",
+            "name",
+            "slug",
+            "focus",
+            "division",
+            "introduction",
+            "image",
+            "leader",
+            "finance_admin",
+            "data_custodian",
+            "is_active",
+        )
+        ordering = ["name"]
+
+    def get_image(self, obj):
+        try:
+            # Retrieve the related BusinessAreaPhoto object
+            business_area_photo = BusinessAreaPhoto.objects.get(business_area=obj)
+
+            # Get the image URL (choose old_file or file based on your requirement)
+            pk = business_area_photo.pk
+            if business_area_photo.file:
+                file = business_area_photo.file.url
+            else:
+                file = None
+            return {
+                "pk": pk,
+                "file": file,
+            }
+        except BusinessAreaPhoto.DoesNotExist:
+            # Return None if the image is not available
+            return None
+
+
+# endregion  =================================================================================================
+
+
+# region Staff Profile Serializers ====================================================================================================
 
 
 class StaffProfileAddressSerializer(serializers.ModelSerializer):
@@ -102,122 +248,10 @@ class StaffProfileBranchSerializer(serializers.ModelSerializer):
         fields = ["name", "address"]
 
 
-class MiniBranchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Branch
-        fields = ["pk", "name"]
-
-
-class BranchSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Branch
-        fields = "__all__"
-
-
-class UserPkOnly(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ("pk",)
-
-
-class MiniBASerializer(serializers.ModelSerializer):
-    leader = UserPkOnly()
-
-    class Meta:
-        model = BusinessArea
-        fields = ["pk", "name", "leader"]
-
-
-class BusinessAreaSerializer(serializers.ModelSerializer):
-    # pk = serializers.IntegerField(source="id")  # Map 'id' to 'pk'
-
-    class Meta:
-        model = BusinessArea
-        fields = "__all__"
-
-
-class TinyDivisionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Division
-        fields = (
-            "pk",
-            "name",
-            "slug",
-            "director",
-            "approver",
-        )
-
-
-class DivisionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Division
-        fields = "__all__"
-
-
-class BusinessAreaNameViewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BusinessArea
-        fields = ["name"]
-        ordering = ["name"]
-
-
 class StaffProfileBASerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessArea
         fields = "name"
 
 
-class TinyBusinessAreaSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    division = TinyDivisionSerializer(read_only=True)
-
-    class Meta:
-        model = BusinessArea
-        fields = (
-            "pk",
-            "name",
-            "slug",
-            "focus",
-            "division",
-            "introduction",
-            "image",
-            "leader",
-            "finance_admin",
-            "data_custodian",
-            "is_active",
-        )
-        ordering = ["name"]
-
-    def get_image(self, obj):
-        try:
-            # Retrieve the related BusinessAreaPhoto object
-            business_area_photo = BusinessAreaPhoto.objects.get(business_area=obj)
-
-            # Get the image URL (choose old_file or file based on your requirement)
-            pk = business_area_photo.pk
-            # old_file = business_area_photo.old_file
-            if business_area_photo.file:
-                file = business_area_photo.file.url
-            else:
-                file = None
-            # print({business_area_photo, file})
-            return {
-                "pk": pk,
-                # "old_file": old_file,
-                "file": file,
-            }
-        except BusinessAreaPhoto.DoesNotExist:
-            # Return None if the image is not available
-            return None
-
-
-class TinyDepartmentalServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DepartmentalService
-        fields = ("pk", "name", "director")
-
-
-class DepartmentalServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DepartmentalService
-        fields = "__all__"
+# endregion  =================================================================================================

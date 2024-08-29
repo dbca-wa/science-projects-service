@@ -1,8 +1,13 @@
+# region Imports ====================================================================================================
 from django.db import models
 from common.models import CommonModel
 
+# endregion  =================================================================================================
 
-# DONE
+
+# region Models ====================================================================================================
+
+
 class Affiliation(CommonModel):
     """Model Definition for Affiliation for external users (Previously defined on UserModel)"""
 
@@ -16,7 +21,6 @@ class Affiliation(CommonModel):
         verbose_name_plural = "Affiliations"
 
 
-# DONE
 class Agency(CommonModel):
     """Model Definition for Agency (Previously defined on UserModel)"""
 
@@ -39,7 +43,6 @@ class Agency(CommonModel):
         verbose_name_plural = "Agencies"
 
 
-# DONE
 class Branch(CommonModel):  # Renamed from workcenter
     """Model Definition for Business Area (Previously Workcenter)"""
 
@@ -67,7 +70,6 @@ class Branch(CommonModel):  # Renamed from workcenter
         unique_together = ("agency", "name")
 
 
-# DONE
 class BusinessArea(CommonModel):  # Renamed from program
     """Model Definition for Business Area (Previously Program)"""
 
@@ -158,7 +160,6 @@ class BusinessArea(CommonModel):  # Renamed from program
         unique_together = ("name", "agency")
 
 
-# DONE
 class Division(CommonModel):
     """
     Model Definition for Division
@@ -196,7 +197,6 @@ class Division(CommonModel):
         verbose_name_plural = "Department Divisions"
 
 
-# DONE
 class DepartmentalService(CommonModel):
     """
     Model Definition for Departmental Services
@@ -213,10 +213,12 @@ class DepartmentalService(CommonModel):
     )
     old_id = models.IntegerField()
 
-    # slug removed
     class Meta:
         verbose_name = "Departmental Service"
         verbose_name_plural = "Departmental Services"
 
     def __str__(self):
         return f"Dept. Service: {self.name}"
+
+
+# endregion  =================================================================================================

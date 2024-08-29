@@ -1,20 +1,19 @@
+# region IMPORTS ====================================================================================================
+
+import os
 from math import ceil
-from documents.models import ProjectDocument
-from documents.serializers import ProjectDocumentSerializer
-from projects.models import Project, ProjectMember
-from projects.serializers import (
-    ProblematicProjectSerializer,
-    ProjectMemberSerializer,
-    ProjectSerializer,
-    UserProfileProjectSerializer,
-)
+from pprint import pprint
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.conf import settings
+from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
-    ParseError,
-    PermissionDenied,
 )
-from pprint import pprint
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -23,26 +22,20 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import render
-from django.db import transaction
-from django.conf import settings
-from django.utils import timezone
-from django.db.models import Q
 
-import time
+# Project imports ------------------------------
 
+from documents.models import ProjectDocument
+from documents.serializers import ProjectDocumentSerializer
+from projects.models import Project, ProjectMember
+from projects.serializers import (
+    ProblematicProjectSerializer,
+)
 from medias.models import BusinessAreaPhoto
-from medias.serializers import TinyBusinessAreaPhotoSerializer
 from users.models import UserWork
 from users.serializers import (
-    TinyUserWorkSerializer,
     UserWorkAffiliationUpdateSerializer,
-    UserWorkSerializer,
 )
-
 from .models import (
     Branch,
     BusinessArea,
@@ -65,11 +58,10 @@ from .serializers import (
     TinyDivisionSerializer,
 )
 
-# Using APIView to ensure that we can easily edit and understand the code
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-import os
+# endregion  =================================================================================================
 
+
+# region Affiliation Views ====================================================================================================
 
 class Affiliations(APIView):
     permission_classes = [IsAuthenticated]
@@ -136,6 +128,58 @@ class Affiliations(APIView):
             )
 
 
+class AffiliationDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = Affiliation.objects.get(pk=pk)
+        except Affiliation.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        if pk == 0:
+            return Response(
+                status=HTTP_200_OK,
+            )
+        affiliation = self.go(pk)
+        ser = AffiliationSerializer(affiliation)
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        affiliation = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting affiliation {affiliation}")
+        affiliation.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        affiliation = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating affiliation {affiliation}")
+        ser = AffiliationSerializer(
+            affiliation,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            u_affiliation = ser.save()
+            return Response(
+                AffiliationSerializer(u_affiliation).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.info(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
 class AffiliationsMerge(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -143,19 +187,10 @@ class AffiliationsMerge(APIView):
         settings.LOGGER.info(msg=f"{req.user} is merging affiliations")
         primaryAffiliation = req.data.get("primaryAffiliation")
         secondaryAffiliations = req.data.get("secondaryAffiliations")
-        print(primaryAffiliation)
-        print(secondaryAffiliations)
         if not isinstance(secondaryAffiliations, list):
             secondaryAffiliations = [secondaryAffiliations]
 
-        print(f"Merging into {primaryAffiliation['name']}:\n {secondaryAffiliations}")
-
-        # Serialize the primary instance ---------------
-        # primary_instance = Affiliation.objects.get(pk=primaryAffiliation["pk"])
-        # serialized_primary_affiliation = AffiliationSerializer(primary_instance)
-
         # Merge logic -----------------------
-        print("TRYING TO MERGE:\n")
         for item in secondaryAffiliations:
             try:
                 instances_to_update = UserWork.objects.filter(
@@ -199,24 +234,12 @@ class AffiliationsMerge(APIView):
         )
 
 
-# class AffiliationByName(APIView):
-#     permission_classes = [IsAuthenticated]
 
-#     def go(self, name):
-#         try:
-#             obj = Affiliation.objects.get(name=name)
-#         except Affiliation.DoesNotExist:
-#             raise NotFound
-#         return obj
 
-#     def get(self, req, name):
-#         affiliation = self.go(name)
-#         ser = AffiliationSerializer(affiliation)
-#         return Response(
-#             ser.data,
-#             status=HTTP_200_OK,
-#         )
+# endregion  =================================================================================================
 
+
+# region Agency Views ====================================================================================================
 
 class Agencies(APIView):
     permission_classes = [IsAuthenticated]
@@ -249,6 +272,58 @@ class Agencies(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+class AgencyDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = Agency.objects.get(pk=pk)
+        except Agency.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        Agency = self.go(pk)
+        ser = AgencySerializer(Agency)
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        Agency = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting agency {Agency}")
+        Agency.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        Agency = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating {Agency}")
+        ser = AgencySerializer(
+            Agency,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            updated_Agency = ser.save()
+            return Response(
+                TinyAgencySerializer(updated_Agency).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+# endregion  =================================================================================================
+
+
+# region Branch Views ====================================================================================================
 
 
 class Branches(APIView):
@@ -310,19 +385,58 @@ class Branches(APIView):
             )
 
 
-class MyBusinessAreas(APIView):
+class BranchDetail(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, req):
-        all = BusinessArea.objects.filter(leader=req.user.pk)
-        ser = TinyBusinessAreaSerializer(
-            all,
-            many=True,
-        )
+    def go(self, pk):
+        try:
+            obj = Branch.objects.get(pk=pk)
+        except Branch.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        branch = self.go(pk)
+        ser = BranchSerializer(branch)
         return Response(
             ser.data,
             status=HTTP_200_OK,
         )
+
+    def delete(self, req, pk):
+        branch = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting branch detail {branch}")
+        branch.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        branch = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating branch detail {branch}")
+        ser = BranchSerializer(
+            branch,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            updated_branch = ser.save()
+            return Response(
+                TinyBranchSerializer(updated_branch).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.info(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+# endregion  =================================================================================================
+
+
+# region Business Area Views ====================================================================================================
 
 
 class BusinessAreas(APIView):
@@ -452,376 +566,6 @@ class BusinessAreas(APIView):
                 )
         else:
             settings.LOGGER.error(msg=f"BA Serializer invalid: {ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class BusinessAreasUnapprovedDocs(APIView):
-    def get_unapproved_docs_for_ba(self, pk):
-        try:
-            docs = ProjectDocument.objects.filter(
-                project__business_area=pk, project_lead_approval_granted=False
-            ).distinct()  # Ensure unique documents
-            # print(f"Unapproved Count for BA {pk}: {docs.count()}")
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        except Exception as e:
-            settings.LOGGER.error(f"Error: {e}")
-            docs = (
-                ProjectDocument.objects.none()
-            )  # Return an empty QuerySet on exception
-        return docs
-
-    def post(self, req):
-        try:
-            pksArray = req.data.get("baArray")
-            settings.LOGGER.info(
-                msg=f"{req.user} is Getting My BA Unapproved Docs: {pksArray}"
-            )
-            data = {}
-            for baPk in pksArray:
-                unapproved = self.get_unapproved_docs_for_ba(baPk)
-                processed_unapproved = []
-                seen_pks = set()
-                unlinked_docs = []
-                for item in unapproved:
-                    if item.pk not in seen_pks:
-                        if item.has_project_document_data() == False:
-                            unlinked_docs.append(item)
-                        else:
-                            processed_unapproved.append(item)
-                            seen_pks.add(item.pk)
-                ser = ProjectDocumentSerializer(processed_unapproved, many=True)
-                ser2 = ProjectDocumentSerializer(unlinked_docs, many=True)
-                data[baPk] = {
-                    "linked": ser.data,
-                    "unlinked": ser2.data,
-                }
-                # ba_name = unapproved[0].business_area
-                settings.LOGGER.warning(
-                    f"Unapproved Doc Count for BA '{data[baPk]["linked"][0]['project']['business_area']['name']}' ({baPk}): {len(processed_unapproved)}\nUnlinked Doc Count for BA {(len(unlinked_docs))}"
-                    if data[baPk]["linked"]
-                    else f"Unapproved Doc Count for BA {baPk}: {len(processed_unapproved)}\nUnlinked Doc Count for BA: {(len(unlinked_docs))}"
-                )
-            return Response(
-                data=data,
-                status=HTTP_200_OK,
-            )
-        except Exception as e:
-            settings.LOGGER.error(msg=f"{e}")
-            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
-
-
-class BusinessAreasProblematicProjects(APIView):
-    def get_projects_in_ba(self, pk):
-        try:
-            projects = Project.objects.filter(business_area=pk)
-        except Project.DoesNotExist:
-            raise NotFound
-        except Exception as e:
-            print(e)
-        return projects
-
-    def post(self, req):
-        try:
-            pksArray = req.data.get("baArray")
-            settings.LOGGER.info(
-                msg=f"{req.user} is Getting My BA Problem Projects: {pksArray}"
-            )
-            data = {}
-            for baPk in pksArray:
-
-                projects_in_ba = self.get_projects_in_ba(baPk)
-                memberless_projects = []
-                no_leader_tag_projects = []
-                multiple_leader_tag_projects = []
-                externally_led_projects = []
-                for p in projects_in_ba:
-                    members = p.members.all()
-                    leader_tag_count = 0
-                    external_leader = False
-                    for mem in members:
-                        if mem.role == ProjectMember.RoleChoices.SUPERVISING:
-                            leader_tag_count += 1
-                        if mem.is_leader == True:
-                            if mem.user.is_staff == False:
-                                external_leader = True
-
-                    # Handle Memberless
-                    if len(members) < 1:
-                        memberless_projects.append(p)
-                    else:
-                        # Handle external Leader tag
-                        if external_leader:
-                            externally_led_projects.append(p)
-                        # Handle No Leader Tags
-                        if leader_tag_count == 0:
-                            no_leader_tag_projects.append(p)
-                        elif leader_tag_count > 1:
-                            multiple_leader_tag_projects.append(p)
-
-                data[baPk] = {}
-
-                data[baPk]["no_members"] = ProblematicProjectSerializer(
-                    memberless_projects, many=True
-                ).data
-                data[baPk]["no_leader"] = ProblematicProjectSerializer(
-                    no_leader_tag_projects, many=True
-                ).data
-                data[baPk]["external_leader"] = ProblematicProjectSerializer(
-                    externally_led_projects, many=True
-                ).data
-                data[baPk]["multiple_leads"] = ProblematicProjectSerializer(
-                    multiple_leader_tag_projects, many=True
-                ).data
-            # print(data)
-            return Response(
-                data=data,
-                status=HTTP_200_OK,
-            )
-        except Exception as e:
-            settings.LOGGER.error(msg=f"{e}")
-            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
-
-
-class SetBusinessAreaActive(APIView):
-    def go(self, pk):
-        try:
-            business_area = BusinessArea.objects.get(pk=pk)
-        except BusinessArea.DoesNotExist:
-            raise NotFound
-        return business_area
-
-    def post(self, req, pk):
-        ba = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is changing active status of {ba}")
-        try:
-            ba.is_active = not ba.is_active
-            new = ba.save()
-            ser = BusinessAreaSerializer(new)
-            return Response(
-                ser.data,
-                HTTP_202_ACCEPTED,
-            )
-        except Exception as e:
-            settings.LOGGER.error(
-                msg=f"Error setting active status of Business Area: {ser.errors}"
-            )
-            return Response(
-                ser.errors,
-                HTTP_400_BAD_REQUEST,
-            )
-
-
-class Divisions(APIView):
-    def get(self, req):
-        all = Division.objects.all()
-        ser = TinyDivisionSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting a division")
-        ser = DivisionSerializer(
-            data=req.data,
-        )
-        if ser.is_valid():
-            div = ser.save()
-            return Response(
-                TinyDivisionSerializer(div).data,
-                status=HTTP_201_CREATED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DepartmentalServices(APIView):
-    def get(self, req):
-        all = DepartmentalService.objects.all()
-        ser = TinyDepartmentalServiceSerializer(
-            all,
-            many=True,
-        )
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is posting a departmental service")
-        ser = DepartmentalServiceSerializer(
-            data=req.data,
-        )
-        if ser.is_valid():
-            service = ser.save()
-            return Response(
-                TinyDepartmentalServiceSerializer(service).data,
-                status=HTTP_201_CREATED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-# ======================================================================
-
-
-class AffiliationDetail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def go(self, pk):
-        try:
-            obj = Affiliation.objects.get(pk=pk)
-        except Affiliation.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get(self, req, pk):
-        if pk == 0:
-            return Response(
-                status=HTTP_200_OK,
-            )
-        affiliation = self.go(pk)
-        ser = AffiliationSerializer(affiliation)
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-    def delete(self, req, pk):
-        affiliation = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting affiliation {affiliation}")
-        affiliation.delete()
-        return Response(
-            status=HTTP_204_NO_CONTENT,
-        )
-
-    def put(self, req, pk):
-        affiliation = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating affiliation {affiliation}")
-        ser = AffiliationSerializer(
-            affiliation,
-            data=req.data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_affiliation = ser.save()
-            return Response(
-                AffiliationSerializer(u_affiliation).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.info(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class AgencyDetail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def go(self, pk):
-        try:
-            obj = Agency.objects.get(pk=pk)
-        except Agency.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get(self, req, pk):
-        Agency = self.go(pk)
-        ser = AgencySerializer(Agency)
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-    def delete(self, req, pk):
-        Agency = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting agency {Agency}")
-        Agency.delete()
-        return Response(
-            status=HTTP_204_NO_CONTENT,
-        )
-
-    def put(self, req, pk):
-        Agency = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating {Agency}")
-        ser = AgencySerializer(
-            Agency,
-            data=req.data,
-            partial=True,
-        )
-        if ser.is_valid():
-            updated_Agency = ser.save()
-            return Response(
-                TinyAgencySerializer(updated_Agency).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class BranchDetail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def go(self, pk):
-        try:
-            obj = Branch.objects.get(pk=pk)
-        except Branch.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get(self, req, pk):
-        branch = self.go(pk)
-        ser = BranchSerializer(branch)
-        return Response(
-            ser.data,
-            status=HTTP_200_OK,
-        )
-
-    def delete(self, req, pk):
-        branch = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is deleting branch detail {branch}")
-        branch.delete()
-        return Response(
-            status=HTTP_204_NO_CONTENT,
-        )
-
-    def put(self, req, pk):
-        branch = self.go(pk)
-        settings.LOGGER.info(msg=f"{req.user} is updating branch detail {branch}")
-        ser = BranchSerializer(
-            branch,
-            data=req.data,
-            partial=True,
-        )
-        if ser.is_valid():
-            updated_branch = ser.save()
-            return Response(
-                TinyBranchSerializer(updated_branch).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.info(msg=f"{ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -985,6 +729,212 @@ class BusinessAreaDetail(APIView):
             )
 
 
+class MyBusinessAreas(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        all = BusinessArea.objects.filter(leader=req.user.pk)
+        ser = TinyBusinessAreaSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class BusinessAreasUnapprovedDocs(APIView):
+    def get_unapproved_docs_for_ba(self, pk):
+        try:
+            docs = ProjectDocument.objects.filter(
+                project__business_area=pk, project_lead_approval_granted=False
+            ).distinct()  # Ensure unique documents
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            settings.LOGGER.error(f"Error: {e}")
+            docs = (
+                ProjectDocument.objects.none()
+            )  # Return an empty QuerySet on exception
+        return docs
+
+    def post(self, req):
+        try:
+            pksArray = req.data.get("baArray")
+            settings.LOGGER.info(
+                msg=f"{req.user} is Getting My BA Unapproved Docs: {pksArray}"
+            )
+            data = {}
+            for baPk in pksArray:
+                unapproved = self.get_unapproved_docs_for_ba(baPk)
+                processed_unapproved = []
+                seen_pks = set()
+                unlinked_docs = []
+                for item in unapproved:
+                    if item.pk not in seen_pks:
+                        if item.has_project_document_data() == False:
+                            unlinked_docs.append(item)
+                        else:
+                            processed_unapproved.append(item)
+                            seen_pks.add(item.pk)
+                ser = ProjectDocumentSerializer(processed_unapproved, many=True)
+                ser2 = ProjectDocumentSerializer(unlinked_docs, many=True)
+                data[baPk] = {
+                    "linked": ser.data,
+                    "unlinked": ser2.data,
+                }
+                # ba_name = unapproved[0].business_area
+                settings.LOGGER.warning(
+                    f"Unapproved Doc Count for BA '{data[baPk]["linked"][0]['project']['business_area']['name']}' ({baPk}): {len(processed_unapproved)}\nUnlinked Doc Count for BA {(len(unlinked_docs))}"
+                    if data[baPk]["linked"]
+                    else f"Unapproved Doc Count for BA {baPk}: {len(processed_unapproved)}\nUnlinked Doc Count for BA: {(len(unlinked_docs))}"
+                )
+            return Response(
+                data=data,
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+
+
+class BusinessAreasProblematicProjects(APIView):
+    def get_projects_in_ba(self, pk):
+        try:
+            projects = Project.objects.filter(business_area=pk)
+        except Project.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+        return projects
+
+    def post(self, req):
+        try:
+            pksArray = req.data.get("baArray")
+            settings.LOGGER.info(
+                msg=f"{req.user} is Getting My BA Problem Projects: {pksArray}"
+            )
+            data = {}
+            for baPk in pksArray:
+
+                projects_in_ba = self.get_projects_in_ba(baPk)
+                memberless_projects = []
+                no_leader_tag_projects = []
+                multiple_leader_tag_projects = []
+                externally_led_projects = []
+                for p in projects_in_ba:
+                    members = p.members.all()
+                    leader_tag_count = 0
+                    external_leader = False
+                    for mem in members:
+                        if mem.role == ProjectMember.RoleChoices.SUPERVISING:
+                            leader_tag_count += 1
+                        if mem.is_leader == True:
+                            if mem.user.is_staff == False:
+                                external_leader = True
+
+                    # Handle Memberless
+                    if len(members) < 1:
+                        memberless_projects.append(p)
+                    else:
+                        # Handle external Leader tag
+                        if external_leader:
+                            externally_led_projects.append(p)
+                        # Handle No Leader Tags
+                        if leader_tag_count == 0:
+                            no_leader_tag_projects.append(p)
+                        elif leader_tag_count > 1:
+                            multiple_leader_tag_projects.append(p)
+
+                data[baPk] = {}
+
+                data[baPk]["no_members"] = ProblematicProjectSerializer(
+                    memberless_projects, many=True
+                ).data
+                data[baPk]["no_leader"] = ProblematicProjectSerializer(
+                    no_leader_tag_projects, many=True
+                ).data
+                data[baPk]["external_leader"] = ProblematicProjectSerializer(
+                    externally_led_projects, many=True
+                ).data
+                data[baPk]["multiple_leads"] = ProblematicProjectSerializer(
+                    multiple_leader_tag_projects, many=True
+                ).data
+            return Response(
+                data=data,
+                status=HTTP_200_OK,
+            )
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+
+
+class SetBusinessAreaActive(APIView):
+    def go(self, pk):
+        try:
+            business_area = BusinessArea.objects.get(pk=pk)
+        except BusinessArea.DoesNotExist:
+            raise NotFound
+        return business_area
+
+    def post(self, req, pk):
+        ba = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is changing active status of {ba}")
+        try:
+            ba.is_active = not ba.is_active
+            new = ba.save()
+            ser = BusinessAreaSerializer(new)
+            return Response(
+                ser.data,
+                HTTP_202_ACCEPTED,
+            )
+        except Exception as e:
+            settings.LOGGER.error(
+                msg=f"Error setting active status of Business Area: {ser.errors}"
+            )
+            return Response(
+                ser.errors,
+                HTTP_400_BAD_REQUEST,
+            )
+
+
+# endregion  =================================================================================================
+
+
+# region Division Views ====================================================================================================
+
+class Divisions(APIView):
+    def get(self, req):
+        all = Division.objects.all()
+        ser = TinyDivisionSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a division")
+        ser = DivisionSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            div = ser.save()
+            return Response(
+                TinyDivisionSerializer(div).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
 class DivisionDetail(APIView):
     def go(self, pk):
         try:
@@ -1022,6 +972,43 @@ class DivisionDetail(APIView):
             return Response(
                 TinyDivisionSerializer(udiv).data,
                 status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+# endregion  =================================================================================================
+
+
+# region Departmental Service Views ====================================================================================================
+
+
+class DepartmentalServices(APIView):
+    def get(self, req):
+        all = DepartmentalService.objects.all()
+        ser = TinyDepartmentalServiceSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting a departmental service")
+        ser = DepartmentalServiceSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            service = ser.save()
+            return Response(
+                TinyDepartmentalServiceSerializer(service).data,
+                status=HTTP_201_CREATED,
             )
         else:
             settings.LOGGER.error(msg=f"{ser.errors}")
@@ -1079,3 +1066,6 @@ class DepartmentalServiceDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+# endregion  =================================================================================================
