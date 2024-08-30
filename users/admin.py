@@ -84,7 +84,9 @@ def set_it_assets_id(model_admin, req, selected):
     )
 
     if response.status_code != 200:
-        print("Failed to retrieve data from API")
+        settings.LOGGER.error(
+            f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
+        )
         return
 
     api_data = response.json()

@@ -373,7 +373,9 @@ class PublicStaffProfile(CommonModel):
         )
 
         if response.status_code != 200:
-            print("Failed to retrieve data from API")
+            settings.LOGGER.error(
+                f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
+            )
             return None
 
         api_data = response.json()
@@ -423,7 +425,9 @@ class PublicStaffProfile(CommonModel):
         )
 
         if response.status_code != 200:
-            print("Failed to retrieve data from API")
+            settings.LOGGER.error(
+                f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
+            )
             return None
 
         api_data = response.json()

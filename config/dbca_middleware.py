@@ -60,9 +60,11 @@ class DBCAMiddleware(MiddlewareMixin):
                         it_asset_id = matching_record["id"] if matching_record else None
                     else:
                         it_asset_id = None
+                        print(
+                            f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
+                        )
                 except requests.exceptions.RequestException as api_err:
-                    it_asset_id = None  # Handle the error gracefully, possibly log it
-                    # Optionally, log the error
+                    it_asset_id = None
                     settings.LOGGER.error(f"API Error: {str(api_err)}")
 
                 # Create PublicStaffProfile even if IT asset data is not available
