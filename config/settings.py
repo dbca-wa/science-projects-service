@@ -18,6 +18,9 @@ SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 IT_ASSETS_ACCESS_TOKEN = env("IT_ASSETS_ACCESS_TOKEN")
 IT_ASSETS_USER = env("IT_ASSETS_USER")
+IT_ASSETS_URL = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+if DEBUG or ON_TEST_NETWORK:
+    IT_ASSETS_URL = "https://itassets-uat.dbca.wa.gov.au/api/v3/departmentuser/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen

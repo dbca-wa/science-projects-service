@@ -358,11 +358,9 @@ class PublicStaffProfile(CommonModel):
         it_asset_id = self.it_asset_id
 
         if it_asset_id:
-            api_url = (
-                f"https://itassets.dbca.wa.gov.au/api/v3/departmentuser/{it_asset_id}"
-            )
+            api_url = f"{settings.IT_ASSETS_URL}{it_asset_id}"
         else:
-            api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+            api_url = settings.IT_ASSETS_URL
 
         response = requests.get(
             api_url,
@@ -416,11 +414,9 @@ class PublicStaffProfile(CommonModel):
         it_asset_id = self.it_asset_id
 
         if it_asset_id:
-            api_url = (
-                f"https://itassets.dbca.wa.gov.au/api/v3/departmentuser/{it_asset_id}"
-            )
+            api_url = f"{settings.IT_ASSETS_URL}{it_asset_id}"
         else:
-            api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+            api_url = settings.IT_ASSETS_URL
 
         response = requests.get(
             api_url,

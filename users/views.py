@@ -721,7 +721,7 @@ class StaffProfileDetail(APIView):
         )
 
         # Prepare API request
-        api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser"
+        api_url = settings.IT_ASSETS_URL
         params = (
             {
                 "pk": staff_profile.it_asset_id,

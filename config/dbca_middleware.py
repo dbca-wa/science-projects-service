@@ -39,7 +39,7 @@ class DBCAMiddleware(MiddlewareMixin):
 
                 # IT ASSETS
                 try:
-                    api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+                    api_url = settings.IT_ASSETS_URL
                     response = requests.get(
                         api_url,
                         auth=(

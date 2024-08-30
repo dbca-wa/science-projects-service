@@ -74,7 +74,7 @@ def set_it_assets_id(model_admin, req, selected):
     users_to_update = User.objects.filter(staff_profile__it_asset_id__isnull=True)
 
     # Call the API to retrieve the list of users
-    api_url = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
+    api_url = settings.IT_ASSETS_URL
     response = requests.get(
         api_url,
         auth=(
