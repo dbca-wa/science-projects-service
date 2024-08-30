@@ -373,6 +373,12 @@ class PublicStaffProfile(CommonModel):
         )
 
         if response.status_code != 200:
+            if settings.IT_ASSETS_USER == None:
+                settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
+            if settings.IT_ASSETS_ACCESS_TOKEN == None:
+                settings.LOGGER.warning(
+                    "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
+                )
             settings.LOGGER.error(
                 f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
             )
@@ -425,6 +431,12 @@ class PublicStaffProfile(CommonModel):
         )
 
         if response.status_code != 200:
+            if settings.IT_ASSETS_USER == None:
+                settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
+            if settings.IT_ASSETS_ACCESS_TOKEN == None:
+                settings.LOGGER.warning(
+                    "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
+                )
             settings.LOGGER.error(
                 f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
             )

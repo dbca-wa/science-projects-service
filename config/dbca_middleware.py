@@ -59,6 +59,14 @@ class DBCAMiddleware(MiddlewareMixin):
                         )
                         it_asset_id = matching_record["id"] if matching_record else None
                     else:
+                        if settings.IT_ASSETS_USER == None:
+                            settings.LOGGER.warning(
+                                "No IT_ASSETS_USER found in settings/env"
+                            )
+                        if settings.IT_ASSETS_ACCESS_TOKEN == None:
+                            settings.LOGGER.warning(
+                                "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
+                            )
                         it_asset_id = None
                         print(
                             f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
