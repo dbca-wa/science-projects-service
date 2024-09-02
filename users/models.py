@@ -293,6 +293,7 @@ class EducationEntry(models.Model):
         return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
 
 
+# For adding DOI publications
 class DOIPublication(CommonModel):
     """Definition for Additional Publications (staff profile)"""
 
