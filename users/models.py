@@ -293,6 +293,24 @@ class EducationEntry(models.Model):
         return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
 
 
+class DOIPublication(CommonModel):
+    """Definition for Additional Publications (staff profile)"""
+
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="doipublications",
+    )
+    doi = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"{self.pk} | {self.user} | {self.doi}"
+
+    class Meta:
+        verbose_name = "DOI Publication"
+        verbose_name_plural = "DOI Publications"
+
+
 class PublicStaffProfile(CommonModel):
     class TitleChoices(models.TextChoices):
         MR = "mr", "Mr."
