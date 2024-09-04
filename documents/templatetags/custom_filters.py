@@ -1,4 +1,7 @@
+from pprint import pprint
 from django import template
+from operator import attrgetter
+from itertools import groupby
 import re
 from bs4 import BeautifulSoup
 
@@ -77,10 +80,58 @@ def get_student_level_text(value):
 
 
 @register.filter
+def sort_by_affiliation_and_name(team_members):
+    pprint(team_members)
+    return sorted(
+        team_members,
+        key=lambda member: (
+            (
+                (member["user"]["affiliation"]["name"] or "").strip()
+                if member["user"].get("affiliation")
+                else ""
+            ),
+            member["user"]["display_last_name"].lower().strip(),
+            member["user"]["display_first_name"].lower().strip(),
+        ),
+    )
+
+
+@register.filter
+def group_by_affiliation(team_members):
+    """
+    Groups sorted team_members by affiliation.name.
+    Assumes team_members are already sorted by affiliation.name.
+    Returns a list of tuples: (affiliation_name, list_of_members)
+    """
+    grouped = []
+    for affiliation, members in groupby(
+        team_members,
+        key=lambda member: (
+            (member["user"]["affiliation"]["name"] or "").strip()
+            if member["user"].get("affiliation")
+            else ""
+        ),
+    ):
+        grouped.append((affiliation, list(members)))
+    return grouped
+
+
+@register.filter
 def abbreviated_name(user_obj):
+    def get_title_rep(string):
+        title_dict = {
+            "mr": "Mr",
+            "ms": "Ms",
+            "mrs": "Mrs",
+            "aprof": "A/Prof",
+            "prof": "Prof",
+            "dr": "Dr",
+        }
+        return title_dict.get(string.lower(), string)
+
     # print(user_obj)
     if user_obj["title"]:
-        return f"{user_obj['title']} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
+        return f"{get_title_rep(user_obj['title'])} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
     return f"{user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
 
 

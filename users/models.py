@@ -175,13 +175,12 @@ class UserWork(CommonModel):
 
 class UserProfile(CommonModel):
     class TitleChoices(models.TextChoices):
-        MR = "mr", "Mr."
-        MS = "ms", "Ms."
-        MRS = "mrs", "Mrs."
-        # MAS = "master", "Master"
+        MR = "mr", "Mr"
+        MS = "ms", "Ms"
+        MRS = "mrs", "Mrs"
         APROF = "aprof", "A/Prof"
         PROF = "prof", "Prof"
-        DR = "dr", "Dr."
+        DR = "dr", "Dr"
 
     user = models.OneToOneField(
         "users.User",
@@ -301,11 +300,12 @@ class DOIPublication(CommonModel):
 
 class PublicStaffProfile(CommonModel):
     class TitleChoices(models.TextChoices):
-        MR = "mr", "Mr."
-        MS = "ms", "Ms."
-        MRS = "mrs", "Mrs."
-        MAS = "master", "Master"
-        DR = "dr", "Dr."
+        MR = "mr", "Mr"
+        MS = "ms", "Ms"
+        MRS = "mrs", "Mrs"
+        APROF = "aprof", "A/Prof"
+        PROF = "prof", "Prof"
+        DR = "dr", "Dr"
 
     it_asset_id = models.PositiveIntegerField(
         blank=True,
