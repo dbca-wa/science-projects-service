@@ -54,15 +54,6 @@ class User(AbstractUser):
         help_text="The primary key used in the outdated SPMS",
     )
 
-    # is_biometrician = models.BooleanField(
-    #     default=False,
-    #     help_text="Whether this user can act as a biometrician if not an admin",
-    # )
-
-    # is_herbarium_curator = models.BooleanField(
-    #     default=False,
-    #     help_text="Whether this user can act as a herbarium curator if not an admin",
-    # )
     display_first_name = models.CharField(
         max_length=201,  # Max length to accommodate combined first and last names
         verbose_name=("Display First Name"),
@@ -113,10 +104,6 @@ class User(AbstractUser):
             avatar = UserAvatar.objects.get(user=self.pk)
         except UserAvatar.DoesNotExist:
             return None
-        # if not avatar.file:
-        #     return None
-        # else:
-        #     return avatar.file
         ser = TinyImageSerializer(avatar)
         return ser.data
 

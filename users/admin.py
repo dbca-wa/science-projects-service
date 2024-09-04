@@ -1,5 +1,8 @@
 # region IMPORTS ======================================
 import csv, requests
+from operator import is_
+import os
+import pandas as pd
 from django.conf import settings
 from django.db.models import Q
 from django.contrib import admin
@@ -22,6 +25,91 @@ from users.views import Users
 
 
 # region adminactions =================================
+@admin.action(description="Create Redirect NGINX and CSV")
+def create_redirect_files(model_admin, req, selected):
+    if len(selected) > 1:
+        model_admin.message_user(req, "Please select only one", level="error")
+        return
+
+    # Load the CSV file with old user data
+    file_path = os.path.join(
+        settings.BASE_DIR, "staff.csv"
+    )  # Path to the staff.csv file
+    df = pd.read_csv(file_path, encoding="ISO-8859-1")
+
+    # Open the map file for writing
+    map_file_path = os.path.join(
+        settings.BASE_DIR, "staff_profile_redirect.map"
+    )  # Path to the NGINX map file
+    map_file = open(map_file_path, "w")
+
+    # Prepare the CSV output for old_id and new_id
+    csv_output_path = os.path.join(
+        settings.BASE_DIR, "staff_id_columns.csv"
+    )  # Path to the staff.csv file
+    csv_output_file = open(csv_output_path, "w", newline="")
+    csv_writer = csv.writer(csv_output_file)
+    csv_writer.writerow(["old_id", "new_id"])
+
+    # Write the NGINX map header
+    map_file.write('map $request_uri $redirect_uri {\n    default "";\n')
+
+    # Counters for statistics
+    total_users = len(df)
+    matched_users = 0
+    unmatched_users = 0
+
+    # Iterate over each user in the CSV
+    for index, row in df.iterrows():
+        email = (
+            row["email"].strip().lower().replace("dpaw.wa.gov.au", "dbca.wa.gov.au")
+        )  # Normalize the email (lowercase and replace)
+        old_id = row["id"]  # Get the old user ID
+        is_hidden = row["hidden"]
+
+        # Find a matching user in the Django database
+        try:
+            if (is_hidden == "1") or (is_hidden == 1):
+                continue
+            user = User.objects.get(
+                email__iexact=email.lower(),
+                is_staff=True,
+            )  # Check against case insensitive email on users model
+
+            # Write the NGINX redirect line
+            new_url = f"https://science-profiles.dbca.wa.gov.au/staff/{user.id}"
+            old_url = f"https://science.dbca.wa.gov.au/people/?sid={old_id}"
+            map_file.write(f"    {old_url} {new_url};\n")
+
+            # Write the matching old and new IDs to the CSV
+            csv_writer.writerow([old_id, user.id])
+
+            # Increment matched users count
+            matched_users += 1
+
+        except User.DoesNotExist:
+            # Increment unmatched users count
+            unmatched_users += 1
+            continue
+
+    # Close the map file with the footer
+    map_file.write("}\n")
+    map_file.close()
+
+    # Close the CSV output file
+    csv_output_file.close()
+
+    # Report the results
+    model_admin.message_user(
+        req,
+        f"NGINX map and CSV generation complete. "
+        f"Total users in CSV: {total_users}, "
+        f"Matched users: {matched_users}, "
+        f"Unmatched users: {unmatched_users}.",
+        level="info",
+    )
+
+
 @admin.action(description="Send About and Expertise to SP")
 def copy_about_expertise_to_staff_profile(model_admin, req, selected):
     if len(selected) > 1:
@@ -249,6 +337,7 @@ class CustomUserAdmin(UserAdmin):
         export_selected_users_to_csv,
         export_current_active_project_leads,
         update_display_names,
+        create_redirect_files,
     ]
     fieldsets = (
         (
