@@ -54,15 +54,6 @@ class User(AbstractUser):
         help_text="The primary key used in the outdated SPMS",
     )
 
-    # is_biometrician = models.BooleanField(
-    #     default=False,
-    #     help_text="Whether this user can act as a biometrician if not an admin",
-    # )
-
-    # is_herbarium_curator = models.BooleanField(
-    #     default=False,
-    #     help_text="Whether this user can act as a herbarium curator if not an admin",
-    # )
     display_first_name = models.CharField(
         max_length=201,  # Max length to accommodate combined first and last names
         verbose_name=("Display First Name"),
@@ -113,10 +104,6 @@ class User(AbstractUser):
             avatar = UserAvatar.objects.get(user=self.pk)
         except UserAvatar.DoesNotExist:
             return None
-        # if not avatar.file:
-        #     return None
-        # else:
-        #     return avatar.file
         ser = TinyImageSerializer(avatar)
         return ser.data
 
@@ -188,13 +175,12 @@ class UserWork(CommonModel):
 
 class UserProfile(CommonModel):
     class TitleChoices(models.TextChoices):
-        MR = "mr", "Mr."
-        MS = "ms", "Ms."
-        MRS = "mrs", "Mrs."
-        # MAS = "master", "Master"
+        MR = "mr", "Mr"
+        MS = "ms", "Ms"
+        MRS = "mrs", "Mrs"
         APROF = "aprof", "A/Prof"
         PROF = "prof", "Prof"
-        DR = "dr", "Dr."
+        DR = "dr", "Dr"
 
     user = models.OneToOneField(
         "users.User",
@@ -293,13 +279,33 @@ class EducationEntry(models.Model):
         return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
 
 
+# For adding DOI publications
+class DOIPublication(CommonModel):
+    """Definition for Additional Publications (staff profile)"""
+
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="doipublications",
+    )
+    doi = models.CharField(max_length=255)
+
+    def __str__(self) -> str:
+        return f"{self.pk} | {self.user} | {self.doi}"
+
+    class Meta:
+        verbose_name = "DOI Publication"
+        verbose_name_plural = "DOI Publications"
+
+
 class PublicStaffProfile(CommonModel):
     class TitleChoices(models.TextChoices):
-        MR = "mr", "Mr."
-        MS = "ms", "Ms."
-        MRS = "mrs", "Mrs."
-        MAS = "master", "Master"
-        DR = "dr", "Dr."
+        MR = "mr", "Mr"
+        MS = "ms", "Ms"
+        MRS = "mrs", "Mrs"
+        APROF = "aprof", "A/Prof"
+        PROF = "prof", "Prof"
+        DR = "dr", "Dr"
 
     it_asset_id = models.PositiveIntegerField(
         blank=True,

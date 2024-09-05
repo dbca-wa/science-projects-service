@@ -824,7 +824,7 @@ function removeInlineStyles(htmlContent) {
                                                 <p class="project_tag_text">{% if report.document.project.kind == "science" %}SP{% elif report.document.project.kind == "student" %}STP{% elif report.document.project.kind == "core_function" %}CF{% elif report.document.project.kind == "external" %}EXT{% endif %}-{{report.document.project.year}}-{{report.document.project.number}}</p>
                                             </div>
                                             <div class="pr_member_container">
-                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if item.role == "supervising" or item.role == "research" or item.role == "technical" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name }} {{ item.user.display_last_name }}{% endif %}{% endfor %}</p>
+                                                <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if item.role == "supervising" or item.role == "research" or item.role == "technical" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name|slice:":1" }} {{ item.user.display_last_name }}{% endif %}{% endfor %}</p>
                                             </div>
                                         </div>
                                         {% if forloop.counter|divisibleby:2 %}
@@ -953,7 +953,7 @@ function removeInlineStyles(htmlContent) {
                                             {% else %}
                                                 <div class="no_data_table_placeholder">No funding set</div>
                                             {% endif %}</td>
-                                            <td class="dept_involvement_td ext_table_td">{% with members=project.team_members|is_staff_filter %}{% for member in members %}{% if not forloop.first %}, {% endif %}{{ member.user.display_first_name }} {{ member.user.display_last_name }}{% endfor %}{% endwith %}</td>
+                                            <td class="dept_involvement_td ext_table_td">{% with members=project.team_members|is_staff_filter %}{% for member in members %}{% if not forloop.first %}, {% endif %}{{ member.user.display_first_name|slice:":1" }} {{ member.user.display_last_name }}{% endfor %}{% endwith %}</td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>
@@ -1003,8 +1003,23 @@ function removeInlineStyles(htmlContent) {
                                                 <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.display_first_name }} {{ student.user.display_last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
                                                 <td class="duration_td sr_table_td">2023 - 2024</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
-                                                <td class="academic_td sr_table_td">{% with academics=report.team_members|filter_by_role:"academicsuper" %}{% for academic in academics %}{% if not forloop.first %}, {% endif %}{{ academic.user|abbreviated_name }}{% if not academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% if forloop.last and academic.user.affiliation.name == academics.0.user.affiliation.name %} ({{ academic.user.affiliation.name }}) {% endif %}{% endfor %}{% endwith %}</td>
-                                                <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name }} {{ scientist.user.display_last_name }}{% endfor %}{% endwith %}</td>
+                                                <td class="academic_td sr_table_td">
+                                                    {% with sorted_academics=report.team_members|filter_by_role:"academicsuper"|sort_by_affiliation_and_name %}
+                                                        {% with grouped_academics=sorted_academics|group_by_affiliation %}
+                                                            {% for affiliation, academics in grouped_academics %}
+                                                                {% for academic in academics %}
+                                                                    {{ academic.user|abbreviated_name }}{% if not forloop.last %}, {% endif %}
+                                                                {% endfor %}
+                                                                {% if affiliation %}
+                                                                    ({{ affiliation }}){% if not forloop.last %}, {% endif %}
+                                                                {% else %}
+                                                                    {% if not forloop.last %}, {% endif %}
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        {% endwith %}
+                                                    {% endwith %}
+                                                </td>
+                                                <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name|slice:":1" }} {{ scientist.user.display_last_name }}{% endfor %}{% endwith %}</td>
                                                 <td class="page_td sr_table_td"></td>
                                             </tr>
                                         {% endfor %}
@@ -1070,7 +1085,7 @@ function removeInlineStyles(htmlContent) {
                                             <p class="project_text_section_title">Scientist(s):</p>
                                             <p class="pr_member_string">
                                                 {% with scientists=report.team_members|get_scientists %}
-                                                    {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name }} {{ scientist.user.display_last_name }}{% endfor %}
+                                                    {% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name|slice:":1" }} {{ scientist.user.display_last_name }}{% endfor %}
                                                 {% endwith %}
                                             </p>
                                         </div>
