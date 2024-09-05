@@ -1019,7 +1019,6 @@ function removeInlineStyles(htmlContent) {
                                                         {% endwith %}
                                                     {% endwith %}
                                                 </td>
-                                                
                                                 <td class="dbca_officer_td sr_table_td">{% with scientists=report.team_members|get_scientists %}{% for scientist in scientists %}{% if not forloop.first %}, {% endif %}{{ scientist.user.display_first_name|slice:":1" }} {{ scientist.user.display_last_name }}{% endfor %}{% endwith %}</td>
                                                 <td class="page_td sr_table_td"></td>
                                             </tr>
