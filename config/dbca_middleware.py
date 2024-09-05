@@ -58,6 +58,9 @@ class DBCAMiddleware(MiddlewareMixin):
                             None,
                         )
                         it_asset_id = matching_record["id"] if matching_record else None
+                        employee_id = (
+                            matching_record["employee_id"] if matching_record else None
+                        )
                     else:
                         if settings.IT_ASSETS_USER == None:
                             settings.LOGGER.warning(
@@ -80,6 +83,7 @@ class DBCAMiddleware(MiddlewareMixin):
                     user=user,
                     is_hidden=False,
                     it_asset_id=it_asset_id,
+                    employee_id=employee_id,
                 )
 
                 return user

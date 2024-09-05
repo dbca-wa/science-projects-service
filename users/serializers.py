@@ -1,6 +1,7 @@
 # region IMPORTS =====================================
 
 # Project Imports -----------------------------
+from math import e
 from agencies.models import Affiliation, Branch, BusinessArea
 from agencies.serializers import (
     AffiliationSerializer,
@@ -356,18 +357,51 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source="work.role")
     branch = StaffProfileBranchSerializer(source="work.branch")
     # business_area = StaffProfileBASerializer(source="work.business_area")
+    it_asset_id = serializers.SerializerMethodField()
+    employee_id = serializers.SerializerMethodField()
+
+    # New fields from the API response (if fetched)
+    division = serializers.SerializerMethodField()
+    unit = serializers.SerializerMethodField()
+    location = serializers.SerializerMethodField()
+    position = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
             "pk",
-            "first_name",
-            "last_name",
+            "display_first_name",
+            "display_last_name",
             "email",
             "is_active",
             "role",
             "branch",
+            "employee_id",
+            "it_asset_id",
+            "division",
+            "unit",
+            "location",
+            "position",
         )
+
+    def get_employee_id(self, obj):
+        return obj.staff_profile.employee_id
+
+    def get_it_asset_id(self, obj):
+        return obj.staff_profile.it_asset_id
+
+    # New methods to fetch the dynamically added fields from the API data
+    def get_division(self, obj):
+        return getattr(obj, "division", None)
+
+    def get_unit(self, obj):
+        return getattr(obj, "unit", None)
+
+    def get_location(self, obj):
+        return getattr(obj, "location", None)
+
+    def get_position(self, obj):
+        return getattr(obj, "position", None)
 
 
 class StaffProfileCreationSerializer(serializers.ModelSerializer):
@@ -550,6 +584,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
         fields = (
             "pk",
             "it_asset_id",
+            "employee_id",
             "is_hidden",
             "aucode",
             "user",
@@ -572,6 +607,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             # Extract only the specified fields
             filtered_data = {
                 "id": it_asset_data.get("id"),
+                "employee_id": it_asset_data.get("employee_id"),
                 "email": it_asset_data.get("email"),
                 "title": it_asset_data.get("title"),
                 "division": it_asset_data.get("division"),

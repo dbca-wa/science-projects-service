@@ -635,11 +635,51 @@ class StaffProfiles(APIView):
         # Sort users alphabetically based on email
         users = users.order_by("first_name")
 
-        total_users = users.count()
+        # Call the IT Assets API to fetch user data
+        api_url = settings.IT_ASSETS_URL
+        response = requests.get(
+            api_url,
+            auth=(settings.IT_ASSETS_USER, settings.IT_ASSETS_ACCESS_TOKEN),
+        )
+        # Handle the API response
+        if response.status_code == 200:
+            data = response.json()
+            # Create a dictionary for quick lookups by email
+            it_asset_data_by_email = {
+                user_data["email"]: user_data
+                for user_data in data
+                if "email" in user_data
+            }
+        else:
+            settings.LOGGER.error(
+                f"Failed to fetch user data: {response.status_code} {response.text}"
+            )
+            it_asset_data_by_email = {}  # Empty dict if API call fails
+        # Process each user and update their it_asset_id if needed
+        updated_users = []
+        for user in users:
+            user_data = it_asset_data_by_email.get(user.email)
+            if user_data:
+                if (
+                    user.staff_profile.it_asset_id is None
+                    or user.staff_profile.employee_id is None
+                ):
+                    user.staff_profile.it_asset_id = user_data.get("id")
+                    user.staff_profile.employee_id = user_data.get("employee_id")
+                    user.staff_profile.save()
+
+                # Dynamically add API response fields to the user object (without saving)
+                user.division = user_data.get("division")
+                user.unit = user_data.get("unit")
+                user.location = user_data.get("location")
+                user.position = user_data.get("title")
+                updated_users.append(user)
+
+        total_users = len(updated_users)
         total_pages = ceil(total_users / page_size)
 
         serialized_users = TinyStaffProfileSerializer(
-            users[start:end], many=True, context={"request": req}
+            updated_users[start:end], many=True, context={"request": req}
         ).data
 
         response_data = {
@@ -746,8 +786,12 @@ class StaffProfileDetail(APIView):
                     # 1. find the object that matches the user.email
                     if user_data["email"] == staff_profile.user.email:
                         # 2. set the it_asset_id to that object's 'id' field, if the it_asset_id is null/blank
-                        if not staff_profile.it_asset_id:
+                        if (
+                            not staff_profile.it_asset_id
+                            or not staff_profile.employee_id
+                        ):
                             staff_profile.it_asset_id = user_data["id"]
+                            staff_profile.employee_id = user_data["employee_id"]
                             staff_profile.save()
                         # 3. print and assign the data
                         print("User Data:", user_data)  # Print each user data object

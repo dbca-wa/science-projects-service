@@ -6,6 +6,7 @@ from django.contrib.auth.models import AbstractUser
 import requests
 from common.models import CommonModel
 from medias.models import UserAvatar
+from rest_framework import serializers
 
 # endregion =======================================
 
@@ -75,17 +76,17 @@ class User(AbstractUser):
         help_text="Whether this user can act as animal ethics committee if not an admin",
     )
 
-    # def save(self, *args, **kwargs):
-    #     if not self.display_first_name:
-    #         # Automatically populate display_name with first_name and last_name
-    #         if self.first_name:
-    #             self.display_first_name = f"{self.first_name}"
+    def save(self, *args, **kwargs):
+        if not self.display_first_name:
+            # Automatically populate display_name with first_name and last_name
+            if self.first_name:
+                self.display_first_name = f"{self.first_name}"
 
-    #     if not self.display_last_name:
-    #         # Automatically populate display_name with first_name and last_name
-    #         if self.first_name:
-    #             self.display_last_name = f"{self.last_name}"
-    #     super().save(*args, **kwargs)
+        if not self.display_last_name:
+            # Automatically populate display_name with first_name and last_name
+            if self.first_name:
+                self.display_last_name = f"{self.last_name}"
+        super().save(*args, **kwargs)
 
     def get_formatted_name(self):
         initials = self.profile.middle_initials
@@ -104,7 +105,15 @@ class User(AbstractUser):
             avatar = UserAvatar.objects.get(user=self.pk)
         except UserAvatar.DoesNotExist:
             return None
-        ser = TinyImageSerializer(avatar)
+
+        # Define a custom serializer inline
+        class FileOnlySerializer(serializers.ModelSerializer):
+            class Meta:
+                model = UserAvatar
+                fields = ["file"]  # Only include the 'file' field
+
+        # Use the custom serializer
+        ser = FileOnlySerializer(avatar)
         return ser.data
 
     def __str__(self) -> str:
@@ -308,6 +317,10 @@ class PublicStaffProfile(CommonModel):
         DR = "dr", "Dr"
 
     it_asset_id = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+    )
+    employee_id = models.PositiveIntegerField(
         blank=True,
         null=True,
     )
