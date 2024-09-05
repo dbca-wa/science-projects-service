@@ -43,7 +43,7 @@ spec:
             name: spms-clusterip-test
             port:
               number: 8000
-  - host: profiles-test.dbca.wa.gov.au
+  - host: science-profiles-test.dbca.wa.gov.au
     http:
       paths:
       - path: /

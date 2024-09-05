@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spms-deployment
+spec:
+  strategy:
+    type: RollingUpdate
+  template:
+    spec:
+      containers:
+        - name: spms-backend
+          image: ghcr.io/dbca-wa/science-projects-service
+          imagePullPolicy: Always
+          env:
+          - name: TZ
+            value: "Australia/Perth"
+          - name: TIME_ZONE
+            value: "Australia/Perth"
+          resources:
+            requests:
+              memory: "200Mi"
+              cpu: "5m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          securityContext:
+            runAsNonRoot: true
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmpfs-ram-backend
+        - name: spms-frontend
+          image: ghcr.io/dbca-wa/science-projects-client
+          imagePullPolicy: Always
+          env:
+          - name: TZ
+            value: "Australia/Perth"
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "5m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          securityContext:
+            runAsNonRoot: false
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmpfs-ram-frontend
+      volumes:
+        - name: tmpfs-ram-backend
+          emptyDir:
+            medium: "Memory"
+        - name: tmpfs-ram-frontend
+          emptyDir:
+            medium: "Memory"
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 180
