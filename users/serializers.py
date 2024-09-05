@@ -245,7 +245,7 @@ class UpdatePISerializer(serializers.ModelSerializer):
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
     image = serializers.PrimaryKeyRelatedField(
-        source="staff_profile.image", queryset=UserAvatar.objects.all(), required=False
+        queryset=UserAvatar.objects.all(), source="staff_profile.image", required=False
     )
     about = serializers.CharField(
         source="staff_profile.about",
@@ -304,7 +304,7 @@ class UpdateMembershipSerializer(serializers.ModelSerializer):
 
 class ProfilePageSerializer(serializers.ModelSerializer):
     # Profile
-    image = UserAvatarSerializer(source="profile.image")
+    image = UserAvatarSerializer(source="avatar")
     title = serializers.CharField(source="profile.title")
     about = serializers.CharField(source="staff_profile.about")
     expertise = serializers.CharField(source="staff_profile.expertise")
@@ -370,6 +370,8 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "pk",
+            "first_name",
+            "last_name",
             "display_first_name",
             "display_last_name",
             "email",

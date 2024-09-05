@@ -61,6 +61,8 @@ class User(AbstractUser):
         help_text=(
             "Automatically populated display name with first name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."
         ),
+        blank=True,
+        null=True,
     )
 
     display_last_name = models.CharField(
@@ -69,6 +71,8 @@ class User(AbstractUser):
         help_text=(
             "Automatically populated display name with last name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc."
         ),
+        blank=True,
+        null=True,
     )
 
     is_aec = models.BooleanField(

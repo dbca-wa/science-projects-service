@@ -448,6 +448,7 @@ class Users(APIView):
                             last_name=last_name,
                             display_first_name=first_name,
                             display_last_name=last_name,
+                            is_staff=False,
                         )
 
                     # Extracting the work details from the request data
@@ -518,7 +519,7 @@ class Users(APIView):
                 settings.LOGGER.error(msg=f"{e}")
                 raise ParseError(e)
         else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
+            settings.LOGGER.error(msg=f"Invalid Serializer: {ser.errors}")
             return Response(
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
@@ -1552,6 +1553,7 @@ class UpdateProfile(APIView):
 
     def put(self, req, pk):
         settings.LOGGER.info(msg=f"{req.user} is updating their profile")
+        # print(req.data)
         image = req.data.get("image")
         if image:
             if isinstance(image, str) and (
@@ -1566,120 +1568,79 @@ class UpdateProfile(APIView):
         expertise = req.data.get("expertise")
         user = self.go(pk)
         avatar_exists = UserAvatar.objects.filter(user=user).first()
+        updated_data = {}
 
         # If user didn't update the image
-        if image is None:
-            updated_data = {}
-            if about:
-                updated_data["about"] = about
-            if expertise:
-                updated_data["expertise"] = expertise
-
-            ser = UpdateProfileSerializer(
-                user,
-                data=updated_data,
-                partial=True,
-            )
-            if ser.is_valid():
-                updated_user = ser.save()
-                u_ser = UpdateProfileSerializer(updated_user).data
-                return Response(
-                    u_ser,
-                    status=HTTP_202_ACCEPTED,
-                )
+        if image:
+            if isinstance(image, str) and (
+                image.startswith("http://") or image.startswith("https://")
+            ):
+                # URL provided, validate the URL
+                if not image.lower().endswith((".jpg", ".jpeg", ".png")):
+                    error_message = "The URL is not a valid photo file"
+                    return Response(error_message, status=HTTP_400_BAD_REQUEST)
             else:
-                settings.LOGGER.error(msg=f"{ser.errors}")
-                return Response(
-                    ser.errors,
-                    status=HTTP_400_BAD_REQUEST,
-                )
-
-        # If user updated the image
-        else:
-            if avatar_exists:
-                # Prep the data for if an avatar exists already (put)
-
+                # Handle image upload
                 try:
                     avatar_data = {
-                        "file": self.handle_image(image),
+                        "file": self.handle_image(
+                            image
+                        ),  # Ensure this method returns a file object or URL
                     }
                 except ValueError as e:
                     error_message = str(e)
-                    response_data = {"error": error_message}
-                    return Response(response_data, status=HTTP_400_BAD_REQUEST)
+                    settings.LOGGER.error(msg=f"{error_message}")
+                    return Response(
+                        {"error": error_message}, status=HTTP_400_BAD_REQUEST
+                    )
 
-                # Create the image with prepped data
-                try:
+                if avatar_exists:
+                    # Update existing avatar
                     for key, value in avatar_data.items():
                         setattr(avatar_exists, key, value)
                     avatar_exists.save()
                     avatar_response = TinyUserAvatarSerializer(avatar_exists).data
-                except Exception as e:
-                    settings.LOGGER.error(msg=f"{ser.errors}")
-                    response_data = {
-                        "error": str(e)
-                    }  # Create a response data dictionary
-                    return Response(
-                        response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
-                    )
+                else:
+                    # Create new avatar
+                    avatar_data["user"] = user
+                    try:
+                        new_avatar_instance = UserAvatar.objects.create(**avatar_data)
+                        avatar_response = TinyUserAvatarSerializer(
+                            new_avatar_instance
+                        ).data
+                    except Exception as e:
+                        settings.LOGGER.error(msg=f"{e}")
+                        return Response(
+                            {"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR
+                        )
 
-            else:
-                try:
-                    # Prep the data for if an avatar doesnt exist (post)
-                    avatar_data = {
-                        # "old_file": None,
-                        "file": self.handle_image(image),
-                        "user": user,
-                    }
-                except ValueError as e:
-                    error_message = str(e)
-                    response_data = {"error": error_message}
-                    return Response(response_data, status=HTTP_400_BAD_REQUEST)
+                if avatar_response.get("pk"):
+                    updated_data["image"] = avatar_response["pk"]
 
-                # Create the image with prepped data
-                try:
-                    new_avatar_instance = UserAvatar.objects.create(**avatar_data)
-                    avatar_response = TinyUserAvatarSerializer(new_avatar_instance).data
+        if about:
+            updated_data["about"] = about
+        if expertise:
+            updated_data["expertise"] = expertise
 
-                except Exception as e:
-                    settings.LOGGER.error(msg=f"{e}")
-                    response_data = {
-                        "error": str(e)
-                    }  # Create a response data dictionary
-                    return Response(
-                        response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
-                    )
-
-            updated_data = {}
-
-            if avatar_response["pk"] is not None and avatar_response["pk"] != "":
-                updated_data["image"] = avatar_response["pk"]
-            elif image is not None and image != "":
-                updated_data["image"] = image
-
-            if about:
-                updated_data["about"] = about
-            if expertise:
-                updated_data["expertise"] = expertise
-
-            ser = UpdateProfileSerializer(
-                user,
-                data=updated_data,
-                partial=True,
+        ser = UpdateProfileSerializer(
+            user,
+            data=updated_data,
+            partial=True,
+        )
+        if ser.is_valid():
+            updated_user = ser.save()
+            print(updated_user)
+            u_ser = UpdateProfileSerializer(updated_user).data
+            return Response(
+                u_ser,
+                status=HTTP_202_ACCEPTED,
             )
-            if ser.is_valid():
-                updated_user = ser.save()
-                u_ser = UpdateProfileSerializer(updated_user).data
-                return Response(
-                    u_ser,
-                    status=HTTP_202_ACCEPTED,
-                )
-            else:
-                settings.LOGGER.error(msg=f"{ser.errors}")
-                return Response(
-                    ser.errors,
-                    status=HTTP_400_BAD_REQUEST,
-                )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
 
 
 class UpdateMembership(APIView):

@@ -344,7 +344,7 @@ class UserAvatar(CommonModel):
 
     file = models.ImageField(upload_to="user_avatars/", blank=True, null=True)
     size = models.PositiveIntegerField(default=0)
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         "users.User",
         on_delete=models.CASCADE,
         related_name="avatar",
