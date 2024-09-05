@@ -92,8 +92,8 @@ RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 # Own app
 RUN chown -R ${UID}:${GID} /usr/src/app
 RUN chown -R ${UID}:${GID} /usr/src/app/backend
-RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
-RUN chmod -R 755 /usr/src/app/backend/files
+# RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
+# RUN chmod -R 755 /usr/src/app/backend/files
 
 # Own the Prince license file to update it later
 RUN chown -R ${UID}:${GID} /usr/lib/prince/license
