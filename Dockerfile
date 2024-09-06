@@ -46,6 +46,7 @@ ENV PATH="${PATH}:/usr/lib/prince/bin"
 
 # Delete non-commercial license of Prince
 RUN rm -f /usr/lib/prince/license/license.dat
+RUN ln -s /usr/src/app/backend/files/license.dat /usr/lib/prince/license/license.dat
 
 # ====================== DEV FILES AND DEPENDENCIES ======================
 
