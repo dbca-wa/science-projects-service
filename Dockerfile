@@ -44,6 +44,9 @@ RUN echo "Installing Prince stuff" \
 # Set Prince location
 ENV PATH="${PATH}:/usr/lib/prince/bin"
 
+# Delete non-commercial license of Prince
+RUN rm -f /usr/lib/prince/license/license.dat
+
 # ====================== DEV FILES AND DEPENDENCIES ======================
 
 # Move local files over
