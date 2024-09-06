@@ -451,6 +451,12 @@ class Users(APIView):
                             is_staff=False,
                         )
 
+                    # Create PublicStaffProfile even if IT asset data is not available
+                    PublicStaffProfile.objects.create(
+                        user=new_user,
+                        is_hidden=True,
+                    )
+
                     # Extracting the work details from the request data
                     branch_id = req.data.get("branch")
                     business_area_id = req.data.get("businessArea")

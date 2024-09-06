@@ -92,6 +92,8 @@ RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 # Own app
 RUN chown -R ${UID}:${GID} /usr/src/app
 RUN chown -R ${UID}:${GID} /usr/src/app/backend
+
+# Doesnt work because files dir doesnt exist at initialization
 # RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
 # RUN chmod -R 755 /usr/src/app/backend/files
 
