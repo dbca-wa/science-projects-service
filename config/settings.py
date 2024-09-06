@@ -103,12 +103,10 @@ else:
 
 ALLOW_LIST = [
     # prod
-    "scienceprojects-migrated.dbca.wa.gov.au",
     "scienceprojects-test.dbca.wa.gov.au",
     "scienceprojects.dbca.wa.gov.au",
-    "profiles-test.dbca.wa.gov.au",
-    "profiles-migrated.dbca.wa.gov.au",
-    "profiles.dbca.wa.gov.au",
+    "science-profiles-test.dbca.wa.gov.au",
+    "science-profiles.dbca.wa.gov.au",
     "127.0.0.1:3000",
     "127.0.0.1",
 ]
@@ -121,12 +119,10 @@ ALLOW_LIST = list(set(ALLOW_LIST))
 ALLOWED_HOSTS = ALLOW_LIST
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://scienceprojects-migrated.dbca.wa.gov.au",
     "https://scienceprojects-test.dbca.wa.gov.au",
     "https://scienceprojects.dbca.wa.gov.au",
-    "https://profiles-test.dbca.wa.gov.au",
-    "https://profiles-migrated.dbca.wa.gov.au",
-    "https://profiles.dbca.wa.gov.au",
+    "https://science-profiles-test.dbca.wa.gov.au",
+    "https://science-profiles.dbca.wa.gov.au",
     "http://127.0.0.1:3000",
     "http://127.0.0.1",
 ]
