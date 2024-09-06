@@ -1,4 +1,4 @@
-import csv, os
+import csv, os, tempfile
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from users.models import User, PublicStaffProfile, KeywordTag
@@ -13,16 +13,12 @@ class Command(BaseCommand):
         )  # Get the directory of the current script
         staff_file_path = os.path.join(base_dir, "staff.csv")
         staff_keywords_file_path = os.path.join(base_dir, "staff-keywords.csv")
-        unmatched_users_csv_path = os.path.join(base_dir, "unmatched_users.csv")
 
-        self.migrate_staff_data(
-            staff_file_path, staff_keywords_file_path, unmatched_users_csv_path
-        )
+        # Call the migration function, using temp file for unmatched_users.csv
+        self.migrate_staff_data(staff_file_path, staff_keywords_file_path)
 
     @transaction.atomic
-    def migrate_staff_data(
-        self, staff_file_path, staff_keywords_file_path, unmatched_users_csv_path
-    ):
+    def migrate_staff_data(self, staff_file_path, staff_keywords_file_path):
         staff_data = {}
         unmatched_users = []
         long_keywords = []
@@ -99,16 +95,20 @@ class Command(BaseCommand):
                 else:
                     print(f"No staff data found for staff ID: {staff_id}")
 
-        # Write unmatched users to a new CSV
+        # Write unmatched users to a temporary CSV file
         if unmatched_users:
-            with open(
-                unmatched_users_csv_path, mode="w", newline="", encoding="latin-1"
-            ) as unmatched_file:
-                writer = csv.DictWriter(unmatched_file, fieldnames=fieldnames)
-
+            with tempfile.NamedTemporaryFile(
+                mode="w", newline="", encoding="latin-1", delete=False, suffix=".csv"
+            ) as temp_file:
+                unmatched_users_csv_path = temp_file.name  # This is your temp file path
+                writer = csv.DictWriter(temp_file, fieldnames=fieldnames)
                 writer.writeheader()
                 for row in unmatched_users:
                     writer.writerow(row)
+
+            print(
+                f"Unmatched users saved to temporary file: {unmatched_users_csv_path}"
+            )
 
         # Print long keywords at the end
         if long_keywords:

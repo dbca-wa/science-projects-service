@@ -1,6 +1,8 @@
 # region IMPORTS ==============================================
+import tempfile
 import os
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from .serializers import QuoteListSerializer
 from .models import Quote
 
@@ -66,32 +68,19 @@ def generate_quotes(model_admin, req, selected):
 
 @admin.action(description="Selected to TXT")
 def export_selected_quotes_txt(model_admin, req, selected):
-    # saved_quotes = Quote.objects.all()
-    folder = f"{os.path.dirname(os.path.realpath(__file__))}\\quote_exports"
-    base_name = "selected_export"
-    iteration = 1
-    iteration_text = f"00{iteration}"
-    file_name = f"{base_name}_{iteration_text}"
-    directory = f"{folder}\\{file_name}.txt"
-    while os.path.exists(os.path.realpath(directory)):
-        iteration += 1
-        if iteration < 10:
-            iteration_text = f"00{iteration}"
-        elif iteration >= 10 and iteration < 100:
-            iteration_text = f"0{iteration}"
-        else:
-            iteration_text = {iteration}
-        file_name = f"{base_name}_{iteration_text}"
-        directory = f"{folder}\\{file_name}.txt"
-        print(f"EXISTS: {directory}")
+    # Use tempfile to create a temporary file
+    with tempfile.NamedTemporaryFile(
+        delete=False, mode="w", encoding="utf-8"
+    ) as temp_file:
+        for quote in selected:
+            text = quote.text
+            author = quote.author
+            temp_file.write(f"{text} - {author}\n")
+        temp_file_path = temp_file.name
     try:
-        with open(f"{directory}", "w+", encoding="utf-8") as quotesfile:
-            for quote in selected:
-                text = quote.text
-                author = quote.author
-                quotesfile.write(f"{text} - {author}\n")
+        print(f"Exported to {temp_file_path}")
     except Exception as e:
-        print(e)
+        print(f"ERROR: {e}")
 
 
 @admin.action(description="All to TXT")
@@ -99,34 +88,20 @@ def export_all_quotes_txt(model_admin, req, selected):
     if len(selected) > 1:
         print("PLEASE SELECT ONLY ONE")
         return
-    saved_quotes = Quote.objects.all()
-    folder = f"{os.path.dirname(os.path.realpath(__file__))}\\quote_exports"
-    base_name = "export"
-    iteration = 1
-    iteration_text = f"00{iteration}"
-    file_name = f"{base_name}_{iteration_text}"
-    directory = f"{folder}\\{file_name}.txt"
-    print(f"DIR {os.path.exists(os.path.realpath(directory))}")
-    while os.path.exists(os.path.realpath(directory)):
-        iteration += 1
-        if iteration < 10:
-            iteration_text = f"00{iteration}"
-        elif iteration >= 10 and iteration < 100:
-            iteration_text = f"0{iteration}"
-        else:
-            iteration_text = {iteration}
-        file_name = f"{base_name}_{iteration_text}"
-        directory = f"{folder}\\{file_name}.txt"
-        print(f"EXISTS: {directory}")
+    # Use tempfile to create a temporary file
+    with tempfile.NamedTemporaryFile(
+        delete=False, mode="w", encoding="utf-8"
+    ) as temp_file:
+        saved_quotes = Quote.objects.all()
+        for quote in saved_quotes:
+            text = quote.text
+            author = quote.author
+            temp_file.write(f"{text} - {author}\n")
+        temp_file_path = temp_file.name
     try:
-        with open(f"{directory}", "w+", encoding="utf-8") as quotesfile:
-            for quote in saved_quotes:
-                text = quote.text
-                author = quote.author
-                quotesfile.write(f"{text} - {author}\n")
-        print(f"{directory}")
+        print(f"Exported to {temp_file_path}")
     except Exception as e:
-        print(e)
+        print(f"ERROR: {e}")
 
 
 # endregion ==============================================

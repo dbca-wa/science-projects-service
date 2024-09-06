@@ -1,7 +1,7 @@
 
 # region IMPORTS ==================================================
 
-import datetime, json, os, re, subprocess, time
+import datetime, json, os, re, subprocess, time, tempfile
 from bs4 import BeautifulSoup
 from operator import attrgetter
 
@@ -2863,16 +2863,20 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
                         ):
                             ba_input_required.append(doc)
             else:
-                filename = "activeProjectsWithoutBAs.txt"
+                # Create a temporary file
+                temp_dir = tempfile.gettempdir()  # Use the system temp directory or customize
+                temp_file_path = os.path.join(temp_dir, "activeProjectsWithoutBAs.txt")
 
-                # Read existing content from the file
-                with open(filename, "r") as file:
-                    existing_content = file.read()
-                # Check if the content already exists
-                if f"{project.pk} | {project.title}\n" not in existing_content:
-                    # Append to the file
-                    with open(filename, "a") as file:
-                        file.write(f"{project.pk} | {project.title}\n")
+                with open(temp_file_path, "a+") as temp_file:
+                    temp_file.seek(0)  # Move to the start of the file to read
+                    existing_content = temp_file.read()  # Read the existing content
+
+                    # Check if the content already exists before writing
+                    if f"{project.pk} | {project.title}\n" not in existing_content:
+                        temp_file.write(f"{project.pk} | {project.title}\n")
+                        temp_file.flush()  # Ensure content is written to disk
+
+                print(f"File saved to: {temp_file_path}")
 
         filtered_ba_input_required = list(
             {doc.id: doc for doc in ba_input_required}.values()
@@ -2927,16 +2931,20 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                             documents.append(doc)
                             ba_input_required.append(doc)
             else:
-                filename = "activeProjectsWithoutBAs.txt"
+                # Create a temporary file
+                temp_dir = tempfile.gettempdir()  # Use the system temp directory or customize
+                temp_file_path = os.path.join(temp_dir, "activeProjectsWithoutBAs.txt")
 
-                # Read existing content from the file
-                with open(filename, "r") as file:
-                    existing_content = file.read()
-                # Check if the content already exists
-                if f"{project.pk} | {project.title}\n" not in existing_content:
-                    # Append to the file
-                    with open(filename, "a") as file:
-                        file.write(f"{project.pk} | {project.title}\n")
+                with open(temp_file_path, "a+") as temp_file:
+                    temp_file.seek(0)  # Move to the start of the file to read
+                    existing_content = temp_file.read()  # Read the existing content
+
+                    # Check if the content already exists before writing
+                    if f"{project.pk} | {project.title}\n" not in existing_content:
+                        temp_file.write(f"{project.pk} | {project.title}\n")
+                        temp_file.flush()  # Ensure content is written to disk
+
+                print(f"File saved to: {temp_file_path}")
         # Directorate Filtering
         if user_work.business_area is not None:
             is_directorate = user_work.business_area.name == "Directorate"
@@ -6877,13 +6885,13 @@ class BeginUnapprovedReportDocGeneration(APIView):
         elapsed_time = end_time - start_time
         settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
 
-        # Specify the file path where you want to save the HTML file on the server
+        temp_dir = tempfile.gettempdir()  
         html_file_path = os.path.join(
-            settings.BASE_DIR,
-            "documents",
-            f"_Annual_Report_{report.pk}.html",
+            temp_dir,  
+            f"_Annual_Report_{report.pk}.html"
         )
 
+        # Write to the temporary file
         with open(html_file_path, "w", encoding="utf-8") as html_file:
             html_file.write(html_content)
 
@@ -7377,13 +7385,13 @@ class BeginReportDocGeneration(APIView):
         elapsed_time = end_time - start_time
         settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
 
-        # Specify the file path where you want to save the HTML file on the server
+        temp_dir = tempfile.gettempdir()  
         html_file_path = os.path.join(
-            settings.BASE_DIR,
-            "documents",
-            f"_Annual_Report_{report.pk}.html",
+            temp_dir,  
+            f"_Annual_Report_{report.pk}.html"
         )
 
+        # Write to the temporary file
         with open(html_file_path, "w", encoding="utf-8") as html_file:
             html_file.write(html_content)
 

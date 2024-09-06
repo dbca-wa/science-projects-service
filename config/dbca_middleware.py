@@ -1,5 +1,6 @@
 # region Imports ================================================================================================
 import os, requests
+import tempfile
 from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth import login, get_user_model
 from django.conf import settings
@@ -92,11 +93,15 @@ class DBCAMiddleware(MiddlewareMixin):
             raise ParseError(str(e))
 
     def save_request_meta_to_file(self, meta_data):
-        file_path = os.path.join(settings.BASE_DIR, "requestsMeta.txt")
-        print(f"WRITING UP META TO: {file_path}")
-        mode = "w+"
-        with open(file_path, mode) as file:
-            file.write(str(meta_data) + "\n")
+        # Create a temporary file using tempfile
+        with tempfile.NamedTemporaryFile(
+            delete=False, mode="w+", suffix=".txt", dir=settings.BASE_DIR
+        ) as temp_file:
+            temp_file.write(str(meta_data) + "\n")
+            temp_file.flush()  # Ensure data is written to the file
+            temp_file_path = temp_file.name  # Store the file path for later reference
+
+        print(f"WRITING META DATA TO TEMP FILE: {temp_file_path}")
 
     def __call__(self, request):
         if (

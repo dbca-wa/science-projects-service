@@ -1,6 +1,7 @@
 # region IMPORTS ====================================================================================================
-import os
-from django.contrib import admin
+import mimetypes, os, tempfile
+from django.contrib import admin, messages
+from django.http import FileResponse
 from .models import (
     Agency,
     Branch,
@@ -15,41 +16,53 @@ from .models import (
 # region ACTIONS ====================================================================================================
 
 
-@admin.action(description="All to TXT")
+@admin.action(description="Export Affiliations to TXT")
 def export_all_affiliations_txt(model_admin, req, selected):
+    # Ensure only one item is selected
     if len(selected) != 1:
-        print("PLEASE SELECT ONLY ONE")
+        model_admin.message_user(req, "Please select only one item.", messages.ERROR)
         return
+
+    # Fetch all affiliations
     saved_affiliations = Affiliation.objects.all()
-    folder = f"{os.path.dirname(os.path.realpath(__file__))}\\affiliation_exports"
+
+    # Create a directory in the system's temp folder for the exports
+    export_folder = os.path.join(tempfile.gettempdir(), "affiliation_exports")
+    if not os.path.exists(export_folder):
+        os.makedirs(export_folder)
+
+    # Set the base file name and determine file iteration
     base_name = "export"
     iteration = 1
-    iteration_text = f"00{iteration}"
-    file_name = f"{base_name}_{iteration_text}"
-    directory = f"{folder}\\{file_name}.txt"
-    print(f"DIR {os.path.exists(os.path.realpath(directory))}")
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    while os.path.exists(os.path.realpath(directory)):
+    while True:
+        iteration_text = str(iteration).zfill(3)
+        file_name = f"{base_name}_{iteration_text}.txt"
+        file_path = os.path.join(export_folder, file_name)
+        if not os.path.exists(file_path):
+            break  # Found a non-existing file name
         iteration += 1
-        if iteration < 10:
-            iteration_text = f"00{iteration}"
-        elif iteration >= 10 and iteration < 100:
-            iteration_text = f"0{iteration}"
-        else:
-            iteration_text = {iteration}
-        file_name = f"{base_name}_{iteration_text}"
-        directory = f"{folder}\\{file_name}.txt"
-        print(f"EXISTS: {directory}")
+
     try:
-        with open(f"{directory}", "w+", encoding="utf-8") as quotesfile:
+        # Write the affiliations to the file
+        with open(file_path, "w+", encoding="utf-8") as txt_file:
             for affiliation in saved_affiliations:
                 name = affiliation.name
                 pk = affiliation.pk
-                quotesfile.write(f"{name} ({pk})\n")
-        print(f"{directory}")
+                txt_file.write(f"{name} ({pk})\n")
+
+        # Inform the user
+        model_admin.message_user(
+            req, f"Affiliations exported to {file_path}", messages.SUCCESS
+        )
+
+        # Use Django's FileResponse to allow downloading the file
+        mime_type, _ = mimetypes.guess_type(file_path)
+        response = FileResponse(open(file_path, "rb"), content_type=mime_type)
+        response["Content-Disposition"] = f'attachment; filename="{file_name}"'
+        return response
+
     except Exception as e:
-        print(e)
+        model_admin.message_user(req, f"Error during export: {str(e)}", messages.ERROR)
 
 
 # endregion  =================================================================================================
