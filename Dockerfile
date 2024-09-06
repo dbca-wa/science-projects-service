@@ -46,6 +46,9 @@ ENV PATH="${PATH}:/usr/lib/prince/bin"
 
 # Delete non-commercial license of Prince
 RUN rm -f /usr/lib/prince/license/license.dat
+# Create a symlink to the commercial license file
+# Assumes that a valid Prince commercial license file is available in the backend/files directory
+# Current license is set to expire on 31.05.2025
 RUN ln -s /usr/src/app/backend/files/license.dat /usr/lib/prince/license/license.dat
 
 # ====================== DEV FILES AND DEPENDENCIES ======================

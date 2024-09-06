@@ -18,8 +18,13 @@
 
 # Output the license template to license.dat
 # echo "$LICENSE_TEMPLATE" > /usr/lib/prince/license/license.dat
+echo "Creating license.dat symlink..."
 ln -s /usr/src/app/backend/files/license.dat /usr/lib/prince/license/license.dat
- 
+
+# Run Django migrations
+echo "Running Django migrations..."
+python manage.py makemigrations
+python manage.py migrate
 
 # Launch backend (moved from Dockerfile to run after securely setting Prince license)
 echo "Launching gunicorn..."

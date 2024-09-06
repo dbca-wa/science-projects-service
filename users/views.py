@@ -680,7 +680,10 @@ class StaffProfiles(APIView):
                 user.unit = user_data.get("unit")
                 user.location = user_data.get("location")
                 user.position = user_data.get("title")
-                updated_users.append(user)
+
+                # Filter users based on BCS division
+                if user.division == "Biodiversity and Conservation Science":
+                    updated_users.append(user)
 
         total_users = len(updated_users)
         total_pages = ceil(total_users / page_size)
