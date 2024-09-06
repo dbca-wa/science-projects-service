@@ -28,6 +28,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen
 PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
 
+# Use default operating system file permissions
+FILE_UPLOAD_PERMISSIONS = None
+
 # endregion ========================================================================================
 
 # region Internationalization ==========================================================
