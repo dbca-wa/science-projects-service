@@ -26,7 +26,7 @@ spec:
               name: spms-media-prod
       containers:
         - name: spms-backend
-          image: ghcr.io/dbca-wa/science-projects-service:3.2.1
+          image: ghcr.io/dbca-wa/science-projects-service:3.2.2
           env:
           - name: DATABASE_URL
             valueFrom:
@@ -102,7 +102,7 @@ spec:
             - mountPath: /usr/src/app/backend/files
               name: spms-media-prod
         - name: spms-frontend
-          image: ghcr.io/dbca-wa/science-projects-client:3.2.1
+          image: ghcr.io/dbca-wa/science-projects-client:3.2.2
       volumes:
         - name: spms-media-prod
           persistentVolumeClaim:
