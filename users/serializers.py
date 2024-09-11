@@ -33,6 +33,34 @@ from rest_framework import serializers
 # region User Serializers =====================================
 
 
+class StaffProfileEmailListSerializer(serializers.ModelSerializer):
+
+    name = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "name",
+            "email",
+            "image",
+            "is_active",
+            "is_staff",
+        )
+
+    def get_name(self, obj):
+        return f"{obj.display_first_name} {obj.display_last_name}"
+
+    def get_image(self, obj):
+        try:
+            # Access the avatar's file if it exists
+            return obj.avatar.file.url if obj.avatar and obj.avatar.file else None
+        except UserAvatar.DoesNotExist:
+            # Return None if the avatar does not exist
+            return None
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

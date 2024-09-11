@@ -68,6 +68,7 @@ from .serializers import (
     ProfilePageSerializer,
     StaffProfileCVSerializer,
     StaffProfileCreationSerializer,
+    StaffProfileEmailListSerializer,
     StaffProfileHeroSerializer,
     StaffProfileOverviewSerializer,
     StaffProfileSerializer,
@@ -597,6 +598,84 @@ class DirectorateUsers(ListAPIView):
 # endregion
 
 # region Staff Profile Views ============================================
+
+
+class ActiveStaffProfileEmails(APIView):
+    """
+    Gets a list of emails that match staff profile from SPMS users:
+    - is_hidden=True
+    - staff=True
+    - email matches ITAssets
+    - belong to BCS on IT Assets
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating a list of staff profile emails also active in IT Assets / BCS"
+        )
+
+        # Call the API and get the data
+
+        try:
+            api_url = settings.IT_ASSETS_URL
+            response = requests.get(
+                api_url,
+                auth=(
+                    settings.IT_ASSETS_USER,
+                    settings.IT_ASSETS_ACCESS_TOKEN,
+                ),
+            )
+            if response.status_code == 200:
+                print("Data successfully fetched!")
+
+            else:
+                if settings.IT_ASSETS_USER == None:
+                    settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
+                if settings.IT_ASSETS_ACCESS_TOKEN == None:
+                    settings.LOGGER.warning(
+                        "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
+                    )
+                raise Exception(
+                    f"Failed to fetch user data: {response.reason} ({response.text}). Status code: {response.status_code}"
+                )
+        except Exception as e:
+            settings.LOGGER.error(f"API Error: {str(e)}")
+            return Response(
+                {"detail": "An error occurred while fetching the data."},
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        else:
+            # Filter the API data by BCS division
+            api_data = response.json()
+            matching_records = [
+                item
+                for item in api_data
+                if item["division"] == "Biodiversity and Conservation Science"
+            ]
+            print("HERE")
+            # Search active staff emails in SPMS db
+            spms_users = User.objects.filter(is_staff=True, is_active=True)
+
+            # Use the emails of BCS filtered users to filter the SPMS users
+            spms_users = spms_users.filter(
+                email__in=[record["email"] for record in matching_records]
+            )
+
+            # Store these user's emails in a list
+            # emails = [user.email for user in spms_users]
+
+            # Serialize and return the list (of emails or users)
+            print("HERE 2")
+            serializer = StaffProfileEmailListSerializer(spms_users, many=True, )
+            print("HERE 23")
+
+            # Return the serialized data
+            return Response(
+                serializer.data,
+                status=HTTP_200_OK,
+            )
 
 
 class StaffProfiles(APIView):
