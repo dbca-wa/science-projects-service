@@ -5,7 +5,7 @@ from django.conf import settings
 
 def get_encoded_image():
     # Find the path to the image using Django's staticfiles finders
-    image_path = os.join(settings.BASE_DIR, "dbca.jpg")
+    image_path = os.path.join(settings.BASE_DIR, "dbca.jpg")
     print(f"DBCA IMAGE PATH: {image_path}")
     if image_path and os.path.exists(image_path):
         with open(image_path, "rb") as image_file:
