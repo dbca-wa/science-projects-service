@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     # Base Views
+    path("is_staff/<int:pk>", views.CheckUserIsStaff.as_view()),
     path("", views.Users.as_view()),
     path("<int:pk>", views.UserDetail.as_view()),
     path("me", views.Me.as_view()),

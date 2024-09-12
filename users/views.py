@@ -241,6 +241,17 @@ class SwitchAdmin(APIView):
 
 # region Base User Views ============================================
 
+class CheckUserIsStaff(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req, pk):
+        user = User.objects.get(pk=pk)
+        is_staff = user.is_staff
+        return Response(
+            {"is_staff": is_staff},
+            status=HTTP_200_OK,
+        )
+
 
 class Me(APIView):
     permission_classes = [IsAuthenticated]
