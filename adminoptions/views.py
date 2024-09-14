@@ -15,10 +15,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-from adminoptions.models import AdminOptions
+from adminoptions.models import AdminOptions, AdminTask
 from adminoptions.serializers import (
     AdminOptionsMaintainerSerializer,
     AdminOptionsSerializer,
+    AdminTaskSerializer,
 )
 
 # endregion  =================================================================================================
@@ -119,6 +120,88 @@ class AdminControlsDetail(APIView):
             udpated_admin_options = ser.save()
             return Response(
                 AdminOptionsSerializer(udpated_admin_options).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class AdminTasks(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting all admin tasks")
+        all = AdminTask.objects.all()
+        ser = AdminTaskSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is posting an instance of admin tasks")
+        ser = AdminTaskSerializer(
+            data=req.data,
+        )
+        if ser.is_valid():
+            task = ser.save()
+            return Response(
+                AdminTaskSerializer(task).data,
+                status=HTTP_201_CREATED,
+            )
+        else:
+            settings.LOGGER.error(msg=f"{ser.errors}")
+            return Response(
+                ser.errors,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class AdminTaskDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = AdminTask.objects.get(pk=pk)
+        except AdminTask.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        admin_task = self.go(pk)
+        ser = AdminTaskSerializer(admin_task)
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
+
+    def delete(self, req, pk):
+        admin_task = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is deleting admin_task {admin_task}")
+        admin_task.delete()
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
+
+    def put(self, req, pk):
+        admin_task = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is updating {admin_task}")
+        ser = AdminTaskSerializer(
+            admin_task,
+            data=req.data,
+            partial=True,
+        )
+        if ser.is_valid():
+            updated_admin_task = ser.save()
+            return Response(
+                AdminTaskSerializer(updated_admin_task).data,
                 status=HTTP_202_ACCEPTED,
             )
         else:

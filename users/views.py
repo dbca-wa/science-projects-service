@@ -665,7 +665,6 @@ class ActiveStaffProfileEmails(APIView):
                 for item in api_data
                 if item["division"] == "Biodiversity and Conservation Science"
             ]
-            print("HERE")
             # Search active staff emails in SPMS db
             spms_users = User.objects.filter(is_staff=True, is_active=True)
 
@@ -678,9 +677,7 @@ class ActiveStaffProfileEmails(APIView):
             # emails = [user.email for user in spms_users]
 
             # Serialize and return the list (of emails or users)
-            print("HERE 2")
             serializer = StaffProfileEmailListSerializer(spms_users, many=True, )
-            print("HERE 23")
 
             # Return the serialized data
             return Response(

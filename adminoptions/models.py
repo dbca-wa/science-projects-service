@@ -120,4 +120,56 @@ class AdminOptions(CommonModel):
         verbose_name = "Admin Controls"
 
 
+class AdminTask(CommonModel):
+    """Model Definition for Admin Tasks"""
+
+    class ActionTypes(models.TextChoices):
+        DELETE = "delete", "Delete"
+
+    class TaskStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="admintasks",
+    )
+
+    action = models.CharField(
+        max_length=50,
+        choices=ActionTypes.choices,
+        default=ActionTypes.DELETE,
+    )
+
+    requestor = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="adminrequests",
+    )
+
+    reasoning = models.TextField(
+        blank=True,
+        null=True,
+        help_text="The requestor's reasoning for the task",
+    )
+
+    status = models.CharField(
+        max_length=50,
+        choices=TaskStatus.choices,
+        default=TaskStatus.PENDING,
+    )
+
+    def __str__(self) -> str:
+        return f"{self.action} - {self.project} - {self.requestor}"
+
+    class Meta:
+        verbose_name = "Admin Tasks"
+
+
 # endregion  =================================================================================================
