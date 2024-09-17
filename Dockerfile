@@ -2,7 +2,7 @@
 # ====================== IMAGE & CONFIG ======================
 
 # Use the local version that works with poetry config when testing in dev (3.12.3)
-FROM python:3.12.3
+FROM python:3.12.6
 LABEL org.opencontainers.image.source=https://github.com/dbca-wa/science-project-service
 # Ensures Python output sent to terminal for logging
 ENV PYTHONUNBUFFERED=1
