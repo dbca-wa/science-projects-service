@@ -23,7 +23,8 @@ ln -s /usr/src/app/backend/files/license.dat /usr/lib/prince/license/license.dat
 
 # Run Django migrations
 echo "Running Django migrations..."
-python manage.py makemigrations
+# DISABLED DUE TO READ ONLY FILE SYSTEM
+# python manage.py makemigrations
 python manage.py migrate
 
 # Launch backend (moved from Dockerfile to run after securely setting Prince license)
