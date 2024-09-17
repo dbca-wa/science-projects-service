@@ -18,6 +18,7 @@ RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     # postgresql postgresql-client \
     vim wget ncdu systemctl 
+RUN apt-get upgrade -y
 
 # Set working dir of project
 WORKDIR /usr/src/app
