@@ -677,14 +677,23 @@ class SetProjectCaretaker(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    def get_user_to_set_caretaker(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+
+    # Also prevent taking credit on ar if caretaking at the time of report
+    # Should always show original user
     def post(self, req):
         settings.LOGGER.info(msg=f"{req.user} is setting project caretaker")
+
         if not req.user.is_superuser:
             return Response(
                 {"detail": "You do not have permission to set project caretaker."},
                 status=HTTP_401_UNAUTHORIZED,
             )
-        project_pk = req.data.get("project")
+        memberships = req.data.get("project")
         user_pk = req.data.get("user")
         project = Project.objects.get(pk=project_pk)
         user = User.objects.get(pk=user_pk)
@@ -1186,6 +1195,10 @@ class StaffProfileEmploymentEntries(APIView):
                     status=HTTP_500_INTERNAL_SERVER_ERROR,
                 )
         else:
+            settings.LOGGER.error(
+                msg=f"Serializer Error creating employment entry: {str(ser.errors)}"
+            )
+            # print(req.data)
             # If the serializer is not valid, return the errors
             return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
 
