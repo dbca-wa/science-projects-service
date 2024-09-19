@@ -33,20 +33,24 @@ RUN echo "Downloading Prince Package" \
     && DEB_FILE=prince.deb \
     && wget -O ${DEB_FILE} \
     https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
+
 # Prince installer
 RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
     gdebi
+
 # Install Prince
 RUN echo "Installing Prince stuff" \
     && DEB_FILE=prince.deb \
     && yes | gdebi ${DEB_FILE}  \
     && echo "Cleaning up" \
     && rm -f ${DEB_FILE}
+
 # Set Prince location
 ENV PATH="${PATH}:/usr/lib/prince/bin"
 
 # Delete non-commercial license of Prince
 RUN rm -f /usr/lib/prince/license/license.dat
+
 # Create a symlink to the commercial license file
 # Assumes that a valid Prince commercial license file is available in the backend/files directory
 # Current license is set to expire on 31.05.2025
@@ -100,10 +104,6 @@ RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 # Own app
 RUN chown -R ${UID}:${GID} /usr/src/app
 RUN chown -R ${UID}:${GID} /usr/src/app/backend
-
-# Doesnt work because files dir doesnt exist at initialization
-# RUN chown -R ${UID}:${GID} /usr/src/app/backend/files
-# RUN chmod -R 755 /usr/src/app/backend/files
 
 # Own the Prince license file to update it later
 RUN chown -R ${UID}:${GID} /usr/lib/prince/license

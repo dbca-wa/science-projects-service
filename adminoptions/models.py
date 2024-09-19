@@ -124,13 +124,16 @@ class AdminTask(CommonModel):
     """Model Definition for Admin Tasks"""
 
     class ActionTypes(models.TextChoices):
-        DELETE = "delete", "Delete"
+        DELETEPROJECT = "deleteproject", "Delete Project"
+        MERGEUSER = "mergeuser", "Merge User"
+        SETCARETAKER = "setcaretaker", "Set Caretaker"
 
     class TaskStatus(models.TextChoices):
         PENDING = "pending", "Pending"
         APPROVED = "approved", "Approved"
         REJECTED = "rejected", "Rejected"
 
+    # Fields associated with the project admin actions
     project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
@@ -139,10 +142,27 @@ class AdminTask(CommonModel):
         related_name="admintasks",
     )
 
+    # Fields associated with the user admin actions
+    primary_user = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="merge_admintasks",
+    )
+
+    # an array of user pks integers to merge or set caretaker
+    secondary_users = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="An array of user pks to merge or set caretaker",
+    )
+
+    # Main Fields
     action = models.CharField(
         max_length=50,
         choices=ActionTypes.choices,
-        default=ActionTypes.DELETE,
+        default=ActionTypes.DELETEPROJECT,
     )
 
     requestor = models.ForeignKey(

@@ -260,28 +260,29 @@ class EmploymentEntry(models.Model):
 
 # For adding education details
 class EducationEntry(models.Model):
-    class QualificationKindChoices(models.TextChoices):
-        POSTDOCTORAL = "postdoc", "Postdoctoral in"
-        DOCTOR = "doc", "Doctor of"  # including philosophy (phd)
-        # PHD = 'PhD in', 'PhD in'
-        MASTER = "master", "Master of"
-        GRADUATE_DIPLOMA = "graddip", "Graduate Diploma in"
-        BACHELOR = "bachelor", "Bachelor of"
-        ASSOCIATE_DEGREE = "assdegree", "Associate Degree in"
-        DIPLOMA = "diploma", "Diploma in"
-        CERTIFICATE = "cert", "Certificate in"
-        NANODEGREE = "nano", "Nanodegree in"
 
     public_profile = models.ForeignKey(
         "users.PublicStaffProfile",
         on_delete=models.CASCADE,
         related_name="education_entries",
     )
-    qualification_field = models.CharField(max_length=200)
-    with_honours = models.BooleanField(default=False)
-    qualification_kind = models.CharField(
-        max_length=50, choices=QualificationKindChoices.choices
-    )
+    # REMOVED UPON USER REQUEST
+    # class QualificationKindChoices(models.TextChoices):
+    #     POSTDOCTORAL = "postdoc", "Postdoctoral in"
+    #     DOCTOR = "doc", "Doctor of"  # including philosophy (phd)
+    #     # PHD = 'PhD in', 'PhD in'
+    #     MASTER = "master", "Master of"
+    #     GRADUATE_DIPLOMA = "graddip", "Graduate Diploma in"
+    #     BACHELOR = "bachelor", "Bachelor of"
+    #     ASSOCIATE_DEGREE = "assdegree", "Associate Degree in"
+    #     DIPLOMA = "diploma", "Diploma in"
+    #     CERTIFICATE = "cert", "Certificate in"
+    #     NANODEGREE = "nano", "Nanodegree in"
+    # qualification_field = models.CharField(max_length=200)
+    # with_honours = models.BooleanField(default=False)
+    # qualification_kind = models.CharField(
+    #     max_length=50, choices=QualificationKindChoices.choices
+    # )
     qualification_name = models.CharField(max_length=200)
     start_year = models.PositiveIntegerField(blank=True, null=True)
     end_year = models.PositiveIntegerField()
@@ -347,12 +348,6 @@ class PublicStaffProfile(CommonModel):
         related_name="staff_profile",
         help_text="Linked user account for this staff profile.",
     )
-
-    # keyword_tags = models.TextField(
-    #     blank=True,
-    #     null=True,
-    #     help_text="Comma-separated tags describing areas of expertise.",
-    # )
 
     keyword_tags = models.ManyToManyField(
         KeywordTag,
