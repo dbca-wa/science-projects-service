@@ -87,3 +87,47 @@ jobs:
               uses: github/codeql-action/upload-sarif@v3
               with:
                   sarif_file: "trivy-results.sarif"
+
+    cleanup:
+        name: Cleanup old tags
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Run tag cleanup script
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  echo "Fetching list of tags..."
+                  # Fetch all tags using the GitHub API
+                  tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[].name')
+
+                  # Sort tags by date, keeping the latest 10 tags
+                  latest_tags=$(echo "$tags" | head -n 10)
+
+                  # Collect dangling tags after the latest 10
+                  dangling_tags=$(echo "$tags" | tail -n +11 | head -n 15)
+
+                  echo "Latest tags to keep:"
+                  echo "$latest_tags"
+
+                  echo "Dangling tags to keep:"
+                  echo "$dangling_tags"
+
+                  # Combine tags to keep (latest + dangling)
+                  tags_to_keep=$(echo "$latest_tags" && echo "$dangling_tags")
+
+                  # Fetch all tags again to determine which to delete
+                  all_tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[].name')
+
+                  # Delete tags that are not in the 'tags_to_keep' list
+                  for tag in $all_tags; do
+                      if [[ ! "$tags_to_keep" =~ "$tag" ]]; then
+                          echo "Deleting tag $tag..."
+                          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+                          https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$tag
+                      fi
+                  done
