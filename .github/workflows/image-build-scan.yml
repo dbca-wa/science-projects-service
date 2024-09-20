@@ -102,32 +102,46 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   echo "Fetching list of tags..."
-                  # Fetch all tags using the GitHub API
-                  tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[].name')
+                  # Fetch all tags along with their creation dates from the GitHub API
+                  tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[] | .name + " " + (.commit.committer.date)')
 
-                  # Sort tags by date, keeping the latest 10 tags
-                  latest_tags=$(echo "$tags" | head -n 10)
+                  # Get the current date
+                  current_date=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-                  # Collect dangling tags after the latest 10
-                  dangling_tags=$(echo "$tags" | tail -n +11 | head -n 15)
+                  # Calculate the date two months ago
+                  cutoff_date=$(date -u -d '2 months ago' +"%Y-%m-%dT%H:%M:%SZ")
+                  echo "Cutoff date: $cutoff_date"
 
-                  echo "Latest tags to keep:"
-                  echo "$latest_tags"
+                  # Prepare an array to hold tag names and their dates
+                  tag_list=()
+                  echo "Tags and their creation dates:"
+                  while IFS= read -r line; do
+                      tag_list+=("$line")
+                      echo "$line"
+                  done <<< "$tags"
 
-                  echo "Dangling tags to keep:"
-                  echo "$dangling_tags"
+                  # Sort tags by date (latest first)
+                  IFS=$'\n' sorted_tags=($(sort -r -t ' ' -k 2 <<< "${tag_list[*]}"))
 
-                  # Combine tags to keep (latest + dangling)
-                  tags_to_keep=$(echo "$latest_tags" && echo "$dangling_tags")
+                  # Keep the latest 10 tags
+                  keep_tags=("${sorted_tags[@]:0:10}")
+                  echo "Keeping latest 10 tags:"
+                  for tag in "${keep_tags[@]}"; do
+                      echo "$tag"
+                  done
 
-                  # Fetch all tags again to determine which to delete
-                  all_tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[].name')
+                  # Loop through each tag and its creation date
+                  for line in "${sorted_tags[@]}"; do
+                      tag_name=$(echo "$line" | cut -d ' ' -f 1)
+                      tag_date=$(echo "$line" | cut -d ' ' -f 2)
 
-                  # Delete tags that are not in the 'tags_to_keep' list
-                  for tag in $all_tags; do
-                      if [[ ! "$tags_to_keep" =~ "$tag" ]]; then
-                          echo "Deleting tag $tag..."
+                      # Check if the tag is older than two months and not in the keep list
+                      if [[ "$tag_date" < "$cutoff_date" ]] && ! [[ " ${keep_tags[*]} " =~ " $tag_name " ]]; then
+                          echo "Deleting tag $tag_name, created on $tag_date..."
+                          # Delete the tag using the GitHub API
                           curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-                          https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$tag
+                          https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$tag_name
+                      else
+                          echo "Keeping tag $tag_name, created on $tag_date"
                       fi
                   done
