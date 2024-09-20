@@ -102,7 +102,7 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   echo "Fetching list of tags..."
-                  # Fetch all tags along with their creation dates from the GitHub API
+                  # Fetch all tags along with their push dates from the GitHub API
                   tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[] | .name + " " + (.commit.committer.date)')
 
                   # Get the current date
@@ -114,13 +114,13 @@ jobs:
 
                   # Prepare an array to hold tag names and their dates
                   tag_list=()
-                  echo "Tags and their creation dates:"
+                  echo "Tags and their push dates:"
                   while IFS= read -r line; do
                       tag_list+=("$line")
                       echo "$line"
                   done <<< "$tags"
 
-                  # Sort tags by date (latest first)
+                  # Sort tags by push date (latest first)
                   IFS=$'\n' sorted_tags=($(sort -r -t ' ' -k 2 <<< "${tag_list[*]}"))
 
                   # Keep the latest 10 tags
@@ -130,18 +130,18 @@ jobs:
                       echo "$tag"
                   done
 
-                  # Loop through each tag and its creation date
+                  # Loop through each tag and its push date
                   for line in "${sorted_tags[@]}"; do
                       tag_name=$(echo "$line" | cut -d ' ' -f 1)
                       tag_date=$(echo "$line" | cut -d ' ' -f 2)
 
                       # Check if the tag is older than two months and not in the keep list
                       if [[ "$tag_date" < "$cutoff_date" ]] && ! [[ " ${keep_tags[*]} " =~ " $tag_name " ]]; then
-                          echo "Deleting tag $tag_name, created on $tag_date..."
+                          echo "Deleting tag $tag_name, pushed on $tag_date..."
                           # Delete the tag using the GitHub API
                           curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
                           https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$tag_name
                       else
-                          echo "Keeping tag $tag_name, created on $tag_date"
+                          echo "Keeping tag $tag_name, pushed on $tag_date"
                       fi
                   done
