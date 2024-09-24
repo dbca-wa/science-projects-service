@@ -371,6 +371,9 @@ class PublicStaffProfile(CommonModel):
     expertise = models.TextField(
         blank=True, null=True, help_text="Areas of expertise or specializations."
     )
+    public_email = models.EmailField(
+        blank=True, null=True, help_text="Publicly displayed email address."
+    )
 
     def get_it_asset_data(self):
         it_asset_id = self.it_asset_id

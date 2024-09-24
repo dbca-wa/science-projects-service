@@ -1376,7 +1376,12 @@ class PublicEmailStaffMember(APIView):
             # Fetch the staff member
             staff_profile = PublicStaffProfile.objects.get(user__pk=pk)
             recipient_name = f"{staff_profile.user.display_first_name} {staff_profile.user.display_last_name}"
-            recipient_email = staff_profile.get_it_asset_email()
+            # Use public email if available, otherwise use IT asset email
+            recipient_email = (
+                staff_profile.public_email
+                if staff_profile.public_email not in [None, ""]
+                else staff_profile.get_it_asset_email()
+            )
 
             # Log email sending attempt
             settings.LOGGER.warning(

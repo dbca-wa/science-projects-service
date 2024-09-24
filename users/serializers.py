@@ -597,7 +597,6 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
             "pk",
             "display_first_name",
             "display_last_name",
-            "email",
             "title",
             "branch_name",
             "business_area_name",
@@ -628,6 +627,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             # "employment",
             # "publications",
             "it_asset_data",
+            "public_email",
         )
 
     def get_it_asset_data(self, obj):
