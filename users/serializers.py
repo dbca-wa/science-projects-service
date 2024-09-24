@@ -594,17 +594,17 @@ class StaffProfileCVSerializer(serializers.ModelSerializer):
 
 
 class StaffProfileUserSerializer(serializers.ModelSerializer):
-    branch_name = serializers.SerializerMethodField()
-    business_area_name = serializers.SerializerMethodField()
-    title = serializers.SerializerMethodField()
+    # branch_name = serializers.SerializerMethodField()
+    # business_area_name = serializers.SerializerMethodField()
+    # title = serializers.SerializerMethodField()
 
-    def get_branch_name(self, obj):
-        return obj.work.branch.name if obj.work and obj.work.branch else None
+    # def get_branch_name(self, obj):
+    #     return obj.work.branch.name if obj.work and obj.work.branch else None
 
-    def get_business_area_name(self, obj):
-        return (
-            obj.work.business_area.name if obj.work and obj.work.business_area else None
-        )
+    # def get_business_area_name(self, obj):
+    #     return (
+    #         obj.work.business_area.name if obj.work and obj.work.business_area else None
+    #     )
 
     def get_title(self, obj):
         return obj.profile.title if obj.profile else None
@@ -613,11 +613,12 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "pk",
+            "is_active",
             "display_first_name",
             "display_last_name",
-            "title",
-            "branch_name",
-            "business_area_name",
+            # "title",
+            # "branch_name",
+            # "business_area_name",
         )
 
 
@@ -656,7 +657,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             filtered_data = {
                 "id": it_asset_data.get("id"),
                 "employee_id": it_asset_data.get("employee_id"),
-                "email": it_asset_data.get("email"),
+                # "email": it_asset_data.get("email"),
                 "title": it_asset_data.get("title"),
                 "division": it_asset_data.get("division"),
                 "unit": it_asset_data.get("unit"),

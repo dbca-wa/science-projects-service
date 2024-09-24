@@ -785,6 +785,101 @@ class ActiveStaffProfileEmails(APIView):
             )
 
 
+class CheckStaffProfileAndReturnDataAndActiveState(APIView):
+    """
+    1. This class gets the user object related to the pk.
+    2. It then grabs the user's email address, normalises it (lowercase)
+    3a. It then checks if that normalised email address is in the IT Assets API
+    3b. If there is an error, it will return an error response
+    4a. If the user is not in the IT assets register, it means they are no longer staff, set their account inactive if it isn't already
+    4b. If the user is in the register, it means they are still staff, set their account active if it isn't already
+    5. Return the user's staff profile data, it assets data and active state
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is checking staff profile and returning data and active state"
+        )
+        # 1 Get the user object
+        user = User.objects.get(pk=pk)
+        # 2 Get the user's email address
+        email = user.email
+        # 3a Check if the email is in the IT Assets API
+        api_url = settings.IT_ASSETS_URL
+        response = requests.get(
+            api_url,
+            auth=(settings.IT_ASSETS_USER, settings.IT_ASSETS_ACCESS_TOKEN),
+        )
+        # 3b Handle the API response
+        if response.status_code == 200:
+            data = response.json()
+            # Create a dictionary for quick lookups by email
+            it_asset_data_by_email = {
+                user_data["email"]: user_data
+                for user_data in data
+                if "email" in user_data
+            }
+            # 4a If the user is not in the IT assets register, it means they are no longer staff, set their account inactive if it isn't already
+            if email.lower() not in it_asset_data_by_email:
+                if user.is_active:
+                    user.is_active = False
+                    user.save()
+            # 4b If the user is in the register, it means they are still staff, set their account active if it isn't already
+            else:
+                if not user.is_active:
+                    user.is_active = True
+                    user.save()
+
+            # 5 Set the employee_id and it_asset_id, if applicable. Set is_hidden.
+            # Return the user's staff profile data, it assets data and active state
+            staff_profile = user.staff_profile
+            it_asset_data = None
+            if (
+                email.lower() in it_asset_data_by_email
+                and user.is_active
+                and (
+                    it_asset_data_by_email[email.lower()]["division"]
+                    == "Biodiversity and Conservation Science"
+                )
+            ):
+                staff_profile.it_asset_id = it_asset_data_by_email[email.lower()].get(
+                    "id"
+                )
+                staff_profile.employee_id = it_asset_data_by_email[email.lower()].get(
+                    "employee_id"
+                )
+                staff_profile.is_hidden = False
+                staff_profile.save()
+                it_asset_data = it_asset_data_by_email[email.lower()]
+            else:
+                staff_profile.it_asset_id = None
+                staff_profile.employee_id = None
+                staff_profile.is_hidden = True
+                staff_profile.save()
+
+            ser = StaffProfileSerializer(
+                staff_profile,
+                context={
+                    "request": req,
+                    "it_asset_data": it_asset_data,
+                },
+            )
+            return Response(
+                ser.data,
+                status=HTTP_200_OK,
+            )
+        else:
+            settings.LOGGER.error(
+                f"Failed to fetch user data: {response.status_code} {response.text}"
+            )
+            return Response(
+                {"detail": "An error occurred while fetching the data."},
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
 class StaffProfiles(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 

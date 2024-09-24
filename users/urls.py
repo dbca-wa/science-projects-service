@@ -29,6 +29,10 @@ urlpatterns = [
     path("<int:pk>/remove_avatar", views.RemoveAvatar.as_view()),
     path("<int:pk>/projects", views.UsersProjects.as_view()),
     # Staff Profile Views
+    path(
+        "<int:pk>/check_staff_profile",
+        views.CheckStaffProfileAndReturnDataAndActiveState.as_view(),
+    ),
     path("get_staff_profile_emails", views.ActiveStaffProfileEmails.as_view()),
     path("mypublicprofile", views.MyStaffProfile.as_view()),
     path("staffprofiles", views.StaffProfiles.as_view()),
