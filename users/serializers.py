@@ -14,7 +14,7 @@ from agencies.serializers import (
     TinyBusinessAreaSerializer,
 )
 from medias.models import UserAvatar
-from medias.serializers import UserAvatarSerializer
+from medias.serializers import StaffProfileAvatarSerializer, UserAvatarSerializer
 from projects.models import ProjectMember
 from .models import (
     EducationEntry,
@@ -456,10 +456,17 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
     display_first_name = serializers.CharField(read_only=True)
     display_last_name = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
+    avatar = StaffProfileAvatarSerializer(read_only=True)
 
     class Meta:
         model = User
-        fields = ("pk", "display_first_name", "display_last_name", "email")
+        fields = (
+            "pk",
+            "display_first_name",
+            "display_last_name",
+            "email",
+            "avatar",
+        )
 
 
 class KeywordTagSerializer(serializers.ModelSerializer):

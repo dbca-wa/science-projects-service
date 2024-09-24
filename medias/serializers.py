@@ -478,4 +478,23 @@ class UserAvatarSerializer(ModelSerializer):
             }
 
 
+class StaffProfileAvatarSerializer(ModelSerializer):
+    user = SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = UserAvatar
+        fields = [
+            "id",
+            "file",
+            "user",
+        ]
+
+    def get_user(self, obj):
+        user = obj.user
+        if user:
+            return {
+                "id": user.id,
+            }
+
+
 # endregion  ===================================
