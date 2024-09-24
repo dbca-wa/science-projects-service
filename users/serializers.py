@@ -2,6 +2,7 @@
 
 # Project Imports -----------------------------
 from math import e
+from os import read
 from agencies.models import Affiliation, Branch, BusinessArea
 from agencies.serializers import (
     AffiliationSerializer,
@@ -345,6 +346,14 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     # Contact
     phone = serializers.CharField(source="contact.phone")
     fax = serializers.CharField(source="contact.fax")
+    # Staff Profile
+    staff_profile_pk = serializers.PrimaryKeyRelatedField(
+        source="staff_profile", read_only=True
+    )
+    public_email = serializers.EmailField(
+        source="staff_profile.public_email",
+        read_only=True,
+    )
 
     class Meta:
         model = User
@@ -373,6 +382,8 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "fax",
             "affiliation",
             "business_areas_led",
+            "staff_profile_pk",
+            "public_email",
         )
 
 
