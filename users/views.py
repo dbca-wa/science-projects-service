@@ -796,7 +796,7 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
     5. Return the user's staff profile data, it assets data and active state
     """
 
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, req, pk):
         settings.LOGGER.info(
