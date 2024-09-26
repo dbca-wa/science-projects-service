@@ -88,51 +88,51 @@ jobs:
               with:
                   sarif_file: "trivy-results.sarif"
 
-    cleanup:
-        name: Cleanup old tags (keep latest 16)
-        runs-on: ubuntu-latest
-        needs: [build]
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+    # cleanup:
+    #     name: Cleanup old tags (keep latest 16)
+    #     runs-on: ubuntu-latest
+    #     needs: [build]
+    #     steps:
+    #         - name: Checkout repository
+    #           uses: actions/checkout@v4
+    #           with:
+    #               fetch-depth: 0
 
-            - name: Run tag cleanup script
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  echo "Fetching list of tags..."
-                  tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[] | .name + " " + (.commit.committer.date)')
+    #         - name: Run tag cleanup script
+    #           env:
+    #               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #           run: |
+    #               echo "Fetching list of tags..."
+    #               tags=$(curl -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[] | .name + " " + (.commit.committer.date)')
 
-                  # Prepare a list to hold all tags
-                  tag_list=()
-                  while IFS= read -r line; do
-                      tag_list+=("$line")
-                  done <<< "$tags"
+    #               # Prepare a list to hold all tags
+    #               tag_list=()
+    #               while IFS= read -r line; do
+    #                   tag_list+=("$line")
+    #               done <<< "$tags"
 
-                  # Sort tags by push date (latest first)
-                  IFS=$'\n' sorted_tags=($(sort -r -t ' ' -k 2 <<< "${tag_list[*]}"))
+    #               # Sort tags by push date (latest first)
+    #               IFS=$'\n' sorted_tags=($(sort -r -t ' ' -k 2 <<< "${tag_list[*]}"))
 
-                  # Keep the latest 16 tags
-                  keep_tags=("${sorted_tags[@]:0:16}")
-                  keep_tags_names=()
-                  for tag in "${keep_tags[@]}"; do
-                      tag_name=$(echo "$tag" | cut -d ' ' -f 1)
-                      keep_tags_names+=("$tag_name")
-                  done
+    #               # Keep the latest 16 tags
+    #               keep_tags=("${sorted_tags[@]:0:16}")
+    #               keep_tags_names=()
+    #               for tag in "${keep_tags[@]}"; do
+    #                   tag_name=$(echo "$tag" | cut -d ' ' -f 1)
+    #                   keep_tags_names+=("$tag_name")
+    #               done
 
-                  echo "Keeping latest 16 tags: ${keep_tags_names[*]}"
+    #               echo "Keeping latest 16 tags: ${keep_tags_names[*]}"
 
-                  # Loop through each tag and delete if not in keep list
-                  for line in "${sorted_tags[@]}"; do
-                      tag_name=$(echo "$line" | cut -d ' ' -f 1)
+    #               # Loop through each tag and delete if not in keep list
+    #               for line in "${sorted_tags[@]}"; do
+    #                   tag_name=$(echo "$line" | cut -d ' ' -f 1)
 
-                      if ! [[ " ${keep_tags_names[*]} " =~ " $tag_name " ]]; then
-                          echo "Deleting tag $tag_name..."
-                          curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
-                          https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$tag_name
-                      else
-                          echo "Keeping tag $tag_name"
-                      fi
-                  done
+    #                   if ! [[ " ${keep_tags_names[*]} " =~ " $tag_name " ]]; then
+    #                       echo "Deleting tag $tag_name..."
+    #                       curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" \
+    #                       https://api.github.com/repos/${{ github.repository }}/git/refs/tags/$tag_name
+    #                   else
+    #                       echo "Keeping tag $tag_name"
+    #                   fi
+    #               done
