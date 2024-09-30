@@ -5,7 +5,7 @@ from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import (
     NotFound,
     PermissionDenied,
@@ -934,7 +934,7 @@ class AgencyPhotoDetail(APIView):
 
 
 class UserAvatars(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, req):
         all = UserAvatar.objects.all()
@@ -967,7 +967,7 @@ class UserAvatars(APIView):
 
 
 class UserAvatarDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def go(self, pk):
         try:
