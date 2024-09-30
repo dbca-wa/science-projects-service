@@ -801,8 +801,6 @@ function removeInlineStyles(htmlContent) {
                             <div class="progress_report_container">
                                 <div class="progress_report_top_container">
                                     <div class="progress_report_top_container_main_section">
-                                        {% if not forloop.counter|divisibleby:2 %}
-
                                         <div class="pr_img_container_lhs">
                                             {% if report.document.project.image.file %}
                                                 <img class="pr_image" alt="{{ report.document.project.title }} Image" src="{{ server_url }}{{ report.document.project.image.file }}">
@@ -811,9 +809,6 @@ function removeInlineStyles(htmlContent) {
                                             {% endif %}
                                         </div>
                                         <div class="pr_data_rhs">
-                                        {% else %}
-                                            <div class="pr_data_lhs">
-                                        {% endif %}
                                             <div class="pr_title_container">
                                                 <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
                                                     {{report.document.project.title | safe  }}
@@ -827,19 +822,6 @@ function removeInlineStyles(htmlContent) {
                                                 <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if item.role == "supervising" or item.role == "research" or item.role == "technical" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name|slice:":1" }} {{ item.user.display_last_name }}{% endif %}{% endfor %}</p>
                                             </div>
                                         </div>
-                                        {% if forloop.counter|divisibleby:2 %}
-                                            <div class="pr_img_container_rhs">
-                                                {% if report.document.project.image.file %}
-                                                    <img class="pr_image"
-                                                    alt="{{report.document.project.title}} Image"
-                                                    src="{{server_url}}{{report.document.project.image.file}}"
-                                                />
-                                                {% else %}
-                                                    <div class="pr_image_placeholder"></div>
-                                                {% endif %}
-                                            </div>
-                                        {% endif %}
-
                                     </div> 
                                     {% comment %} <div class="pr_top_filler"> {% endcomment %}
                                         <p class="small_text">spacer</p>
@@ -847,11 +829,7 @@ function removeInlineStyles(htmlContent) {
                                     {% comment %} </div> {% endcomment %}
                                 </div>
                             </div>
-                                {% if forloop.counter|divisibleby:2 %}
-                                <div class="progress_report_bottom_container_rhs">
-                                {% else %}
                                 <div class="progress_report_bottom_container">
-                                {% endif %}                                    
                                     <div class="pr_subsection">
                                         <div class="pr_subsection_content_container">
                                             <div class="pr_subsection_title">
