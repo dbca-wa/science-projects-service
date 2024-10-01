@@ -236,6 +236,8 @@ class TinyStudentProjectARSerializer(ModelSerializer):
             "business_area",
             "image",
             "student_level",
+            "start_date",
+            "end_date",
         )
 
 

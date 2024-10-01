@@ -979,7 +979,7 @@ function removeInlineStyles(htmlContent) {
                                             <tr class="sr_table_tr">
                                                 <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe }}</td>
                                                 <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.display_first_name }} {{ student.user.display_last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
-                                                <td class="duration_td sr_table_td">2023 - 2024</td>
+                                                <td class="duration_td sr_table_td">{{report.document.project.start_date|year_only}} - {{report.document.project.end_date|year_only}}</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
                                                 <td class="academic_td sr_table_td">
                                                     {% with sorted_academics=report.team_members|filter_by_role:"academicsuper"|sort_by_affiliation_and_name %}

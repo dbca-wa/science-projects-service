@@ -6829,58 +6829,65 @@ class BeginUnapprovedReportDocGeneration(APIView):
             return formatted_datetime
 
         settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
-        html_content = get_template("annual_report.html").render(
-            {
-                # Styles & url
-                # "rte_css_path": rte_css_path,
-                "time_generated": get_formatted_datetime(datetime.datetime.now()),
-                "prince_css_path": prince_css_path,
-                "dbca_image_path": dbca_image_path,
-                "dbca_cropped_image_path": dbca_cropped_image_path,
-                "no_image_path": no_image_path,
-                "server_url": (
-                    "http://127.0.0.1:8000"
-                    if settings.DEBUG == True
-                    # else settings.SITE_URL
-                    else settings.PRINCE_SERVER_URL
-                ),
-                "frontend_url": (
-                    "http://127.0.0.1:3000"
-                    if settings.DEBUG == True
-                    else settings.SITE_URL
-                ),
-                "base_url": settings.BASE_DIR,
-                # Chapter Images
-                "cover_chapter_image": cover_chapter_image,
-                "rear_cover_chapter_image": rear_cover_chapter_image,
-                "research_chapter_image": research_chapter_image,
-                "partnerships_chapter_image": partnerships_chapter_image,
-                "collaborations_chapter_image": collaborations_chapter_image,
-                "student_projects_chapter_image": student_projects_chapter_image,
-                "publications_chapter_image": publications_chapter_image,
-                "generic_chapter_image_path": generic_chapter_image,
-                # Cover page
-                "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
-                # ED Message
-                "directors_message_data": directors_message_data,
-                "directors_message_sign_off": directors_message_sign_off,
-                # TABLE CONTENTS
-                # SDS
-                "sds_data": sds_data,
-                # BA & Progress Reports
-                "sorted_ba_data_and_pr_dict": sorted_ba_data,
-                # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
-                "sorted_external_project_data": sorted_external_project_data,
-                # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
-                # Student Reports
-                "sorted_student_report_array": sorted_srs,
-                # Publications and Reports
-                "publications_data": publications_data,
-                # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
-                "population_time": f"{float(time.time() - start_time):.3f}",
-            }
-        )
-
+        try:
+            html_content = get_template("annual_report.html").render(
+                {
+                    # Styles & url
+                    # "rte_css_path": rte_css_path,
+                    "time_generated": get_formatted_datetime(datetime.datetime.now()),
+                    "prince_css_path": prince_css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        # else settings.SITE_URL
+                        else settings.PRINCE_SERVER_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "base_url": settings.BASE_DIR,
+                    # Chapter Images
+                    "cover_chapter_image": cover_chapter_image,
+                    "rear_cover_chapter_image": rear_cover_chapter_image,
+                    "research_chapter_image": research_chapter_image,
+                    "partnerships_chapter_image": partnerships_chapter_image,
+                    "collaborations_chapter_image": collaborations_chapter_image,
+                    "student_projects_chapter_image": student_projects_chapter_image,
+                    "publications_chapter_image": publications_chapter_image,
+                    "generic_chapter_image_path": generic_chapter_image,
+                    # Cover page
+                    "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
+                    # ED Message
+                    "directors_message_data": directors_message_data,
+                    "directors_message_sign_off": directors_message_sign_off,
+                    # TABLE CONTENTS
+                    # SDS
+                    "sds_data": sds_data,
+                    # BA & Progress Reports
+                    "sorted_ba_data_and_pr_dict": sorted_ba_data,
+                    # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
+                    "sorted_external_project_data": sorted_external_project_data,
+                    # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
+                    # Student Reports
+                    "sorted_student_report_array": sorted_srs,
+                    # Publications and Reports
+                    "publications_data": publications_data,
+                    # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
+                    "population_time": f"{float(time.time() - start_time):.3f}",
+                }
+            )
+        except Exception as e:
+            settings.LOGGER.error(f"There was an error generating report: {e}")
+            set_report_generation_status(report=report, is_generating=False)
+            return Response(
+                {"error": True},
+                status=HTTP_400_BAD_REQUEST,
+            )
         end_time = time.time()
         elapsed_time = end_time - start_time
         settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
@@ -6910,8 +6917,12 @@ class BeginUnapprovedReportDocGeneration(APIView):
         if p.returncode:
             # Handle `errs`.
             print(p.returncode)
-            set_report_generation_status(report, False)
-
+            set_report_generation_status(report=report, is_generating=False)
+            return Response(
+                {"error": True},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        
         else:
             pdf = outs
             pdf_filename = f"_Annual_Report_{report.pk}.pdf"
@@ -6946,6 +6957,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                         default_storage.delete(pdfs_file_path)
                         os.remove(html_file_path)
                         doc_pdf = ser.save()
+                        set_report_generation_status(report, False)
                         return Response(
                             AnnualReportPDFSerializer(doc_pdf).data,
                             status=HTTP_202_ACCEPTED,
@@ -6954,6 +6966,11 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     else:
                         print("\n\nERROR HERE 1\n\n")
                         print(ser.errors)
+                        set_report_generation_status(report, False)
+                        return Response(
+                            {"error": True},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
 
             except AnnualReportPDF.DoesNotExist:
                 # If the item doesn't exist, create a new one
@@ -6973,12 +6990,11 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 else:
                     print("nERROR HERE 2")
                     print(ser.errors)
-
-        set_report_generation_status(report=report, is_generating=False)
-        return Response(
-            {"error": True},
-            status=HTTP_400_BAD_REQUEST,
-        )
+                    set_report_generation_status(report, False)
+                    return Response(
+                        {"error": True},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
 
 
 class BeginReportDocGeneration(APIView):
@@ -7329,7 +7345,8 @@ class BeginReportDocGeneration(APIView):
         # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
 
         settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
-        html_content = get_template("annual_report.html").render(
+        try:
+            html_content = get_template("annual_report.html").render(
             {
                 # Styles & url
                 # "rte_css_path": rte_css_path,
@@ -7381,6 +7398,14 @@ class BeginReportDocGeneration(APIView):
             }
         )
 
+        except Exception as e:
+            settings.LOGGER.error(f"There was an error generating report: {e}")
+            set_report_generation_status(report=report, is_generating=False)
+            return Response(
+                {"error": True},
+                status=HTTP_400_BAD_REQUEST,
+            )
+   
         end_time = time.time()
         elapsed_time = end_time - start_time
         settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
@@ -7411,7 +7436,10 @@ class BeginReportDocGeneration(APIView):
             # Handle `errs`.
             print(p.returncode)
             set_report_generation_status(report, False)
-
+            return Response(
+                {"error": True},
+                status=HTTP_400_BAD_REQUEST,
+            )
         else:
             pdf = outs
             pdf_filename = f"_Annual_Report_{report.pk}.pdf"
@@ -7446,6 +7474,7 @@ class BeginReportDocGeneration(APIView):
                         default_storage.delete(pdfs_file_path)
                         os.remove(html_file_path)
                         doc_pdf = ser.save()
+                        set_report_generation_status(report=report, is_generating=False)
                         return Response(
                             AnnualReportPDFSerializer(doc_pdf).data,
                             status=HTTP_202_ACCEPTED,
@@ -7455,6 +7484,11 @@ class BeginReportDocGeneration(APIView):
                         print("\n\nERROR HERE 1\n\n")
                         print("error on try ser")
                         print(ser.errors)
+                        set_report_generation_status(report=report, is_generating=False)
+                        return Response(
+                            {"error": True},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
 
             except AnnualReportPDF.DoesNotExist:
                 # If the item doesn't exist, create a new one
@@ -7474,12 +7508,13 @@ class BeginReportDocGeneration(APIView):
                 else:
                     print("error on except ser")
                     print(ser.errors)
+                    set_report_generation_status(report=report, is_generating=False)
+                    return Response(
+                        {"error": True},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
 
-        set_report_generation_status(report=report, is_generating=False)
-        return Response(
-            {"error": True},
-            status=HTTP_400_BAD_REQUEST,
-        )
+
 
 
 class CancelReportDocGeneration(APIView):

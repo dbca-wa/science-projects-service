@@ -1,3 +1,4 @@
+from datetime import datetime
 from pprint import pprint
 from django import template
 from operator import attrgetter
@@ -21,6 +22,21 @@ def get_item(dictionary, key):
     if isinstance(dictionary, dict):
         return dictionary.get(key)
     return None
+
+
+@register.filter
+def year_only(value):
+    """Extract the year from a date or string."""
+    if value:
+        # Check if value is a string and attempt to convert it to a date
+        if isinstance(value, str):
+            try:
+                value = datetime.strptime(value, "%Y-%m-%d")
+            except ValueError:
+                return ""
+        # Return the year if value is a valid date object
+        return value.year
+    return ""
 
 
 @register.filter
@@ -55,8 +71,8 @@ def filter_by_area(areas, area_types):
 
 @register.filter
 def get_scientists(team_members):
-    excluded_roles = ["academicsuper", "student"]
-    return [item for item in team_members if item.get("role") not in excluded_roles]
+    included_roles = ["supervising", "research"]
+    return [item for item in team_members if item.get("role") in included_roles]
 
 
 @register.filter
