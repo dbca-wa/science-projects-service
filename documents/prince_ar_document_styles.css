@@ -36,7 +36,7 @@
 	margin-top: auto;
 	content: target-counter(attr(href), page);
 	text-decoration: none;
-	color: #6888cc;
+	color: #2a6096;
 }
 
 /* For setting the page counter */
@@ -543,7 +543,7 @@ ul {
 }
 
 .pr_title_container {
-	color: #6888cc;
+	color: #2a6096;
 }
 
 .pr_title_container p,
@@ -936,7 +936,7 @@ progress_report_bottom_container_rhs {
 }
 .page_td {
 	text-align: right !important;
-	color: #6888cc;
+	color: #2a6096;
 	width: 5%; /* Remaining width after the above cells take their share */
 }
 
