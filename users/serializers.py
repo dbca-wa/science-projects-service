@@ -567,9 +567,9 @@ class EducationEntrySerializer(serializers.ModelSerializer):
         fields = (
             "pk",
             "public_profile",
-            "qualification_kind",
-            "qualification_field",
-            "with_honours",
+            # "qualification_kind",
+            # "qualification_field",
+            # "with_honours",
             "qualification_name",
             "start_year",
             "end_year",

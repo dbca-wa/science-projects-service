@@ -290,7 +290,7 @@ class EducationEntry(models.Model):
     location = models.CharField(max_length=200)
 
     def __str__(self):
-        return f"{self.qualification_kind} {self.qualification_field} from {self.institution} ({self.end_year})"
+        return f"{self.qualification_name} from {self.institution} ({self.end_year})"
 
 
 # For adding DOI publications
