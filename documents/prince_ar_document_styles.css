@@ -509,7 +509,7 @@ ul {
 	position: "relative";
 }
 
-.pr_img_container_rhs {
+/* .pr_img_container_rhs {
 	min-width: 225px;
 	max-width: 225px;
 	min-height: 162px;
@@ -517,7 +517,7 @@ ul {
 	border-radius: 8px;
 	overflow: hidden;
 	position: "relative";
-}
+} */
 
 .pr_image_placeholder {
 	/* position: absolute; */
@@ -599,11 +599,6 @@ ul {
 	/* This property prevents breaking a single publication across columns */
 }
 
-.pr_subsection,
-.pr_subsection * {
-	text-align: justify !important;
-}
-
 /* .pr_subsection {
     padding-bottom: 
 } */
@@ -675,9 +670,9 @@ ul {
 	padding: 0;
 	margin: 0;
 	margin-bottom: 8px;
-	page-break-before: avoid;
-	orphans: 3;
-	widows: 3;
+	/* page-break-before: avoid; */
+	/* orphans: 3;
+	widows: 3; */
 
 	/* page-break-inside: avoid; */
 	/* color: orange !important; */
@@ -686,8 +681,8 @@ ul {
 }
 
 .orphanage_widow li {
-	page-break-inside: avoid !important;
-	widows: 2 !important;
+	/* page-break-inside: avoid !important; */
+	/* widows: 2 !important; */
 	/* word-spacing: normal; */
 	text-align: justify !important;
 	list-style-position: outside !important;
@@ -725,8 +720,8 @@ ul {
 	margin-bottom: 5px;
 	/* color: pink !important;  */
 	/* orphans: 4; */
-	page-break-after: avoid;
-	page-break-inside: avoid;
+	/* page-break-after: avoid;
+	page-break-inside: avoid; */
 }
 
 .progress_report_top_container_main_section {
@@ -766,15 +761,15 @@ ul {
 }
 
 .progress_report_top_container {
-	break-inside: avoid;
-	break-after: avoid;
+	/* break-inside: avoid;
+	break-after: avoid; */
 }
 
 .progress_report_top_container p {
 	margin: 0;
 	padding: 0;
 	orphans: 0;
-	widows: 1;
+	/* widows: 1; */
 }
 
 .small_text {
@@ -793,8 +788,7 @@ ul {
 	margin-top: 20px;
 }
 
-.progress_report_bottom_container,
-progress_report_bottom_container_rhs {
+.progress_report_bottom_container {
 	/* margin-top: 8px; */
 	margin-top: -5px;
 	page-break-before: avoid;
@@ -805,8 +799,8 @@ progress_report_bottom_container_rhs {
 	page-break-before: avoid;
 } */
 
-.progress_report_bottom_container li,
-.progress_report_bottom_container_rhs li {
+.progress_report_bottom_container li
+/* .progress_report_bottom_container_rhs li  */ {
 	margin-left: 25px;
 	padding-left: 0px;
 	margin-bottom: 0px;
@@ -832,7 +826,6 @@ progress_report_bottom_container_rhs {
 } */
 
 .pr_data_rhs {
-	/* background-color: red; */
 	flex: 1;
 	padding-left: 18px;
 }
@@ -1019,4 +1012,20 @@ progress_report_bottom_container_rhs {
 .directors_message_sign_off_container br,
 .directors_message_sign_off_container span {
 	white-space: pre-wrap !important;
+}
+
+.pr_subsection,
+.pr_subsection * {
+	text-align: justify !important;
+}
+
+.pr_subsection_title * {
+	/* page-break-before: avoid; */
+	page-break-after: avoid !important;
+	/* orphans: 1 !important;  */
+}
+
+.orphanage_widow * {
+	orphans: 2 !important; /* Ensures at least 2 lines are at the bottom of a page */
+	widows: 0 !important; /* Ensures no lines are at the top of a page */
 }
