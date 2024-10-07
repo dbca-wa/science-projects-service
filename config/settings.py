@@ -248,7 +248,7 @@ if not DEBUG:
     def before_send(event, hint):
         # Filter out N+1 query errors by checking the message or tags
         if event.get("logentry") and "N+1" in event["logentry"].get("message", ""):
-            return None  # This will ignore the event
+            return None
         return event
 
     sentry_sdk.init(
