@@ -244,9 +244,17 @@ if not DEBUG:
         if ON_TEST_NETWORK == False or ON_TEST_NETWORK == "False"
         else "staging"
     )
+
+    def before_send(event, hint):
+        # Filter out N+1 query errors by checking the message or tags
+        if event.get("logentry") and "N+1" in event["logentry"].get("message", ""):
+            return None  # This will ignore the event
+        return event
+
     sentry_sdk.init(
         environment=env_type,
         dsn=env("SENTRY_URL"),
+        before_send=before_send,
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
     )
