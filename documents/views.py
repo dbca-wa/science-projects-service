@@ -1,4 +1,3 @@
-
 # region IMPORTS ==================================================
 
 import datetime, json, os, re, subprocess, time, tempfile
@@ -107,6 +106,7 @@ from .serializers import (
 
 # region Emails ==========================================================
 
+
 class ReviewDocumentEmail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -120,7 +120,9 @@ class ReviewDocumentEmail(APIView):
 
         # Get actioning user details (User causing email to be sent)
         actioning_user = User.objects.get(pk=req.user.pk)
-        actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
+        actioning_user_name = (
+            f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
+        )
         actioning_user_email = f"{actioning_user.email}"
 
         # Get recipient list
@@ -158,7 +160,7 @@ class ReviewDocumentEmail(APIView):
                 if recipient["pk"] not in processed:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        
+
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -168,7 +170,9 @@ class ReviewDocumentEmail(APIView):
                             "actioning_user_name": actioning_user_name,
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(document_kind),
+                            "document_type": determine_doc_kind_url_string(
+                                document_kind
+                            ),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -184,7 +188,9 @@ class ReviewDocumentEmail(APIView):
                                 "actioning_user_name": actioning_user_name,
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(document_kind),
+                                "document_type": determine_doc_kind_url_string(
+                                    document_kind
+                                ),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -194,10 +200,10 @@ class ReviewDocumentEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -220,7 +226,9 @@ class ReviewDocumentEmail(APIView):
                                 "actioning_user_name": actioning_user_name,
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(document_kind),
+                                "document_type": determine_doc_kind_url_string(
+                                    document_kind
+                                ),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -236,7 +244,9 @@ class ReviewDocumentEmail(APIView):
                                     "actioning_user_name": actioning_user_name,
                                     "project_id": project_pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(document_kind),
+                                    "document_type": determine_doc_kind_url_string(
+                                        document_kind
+                                    ),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
@@ -246,10 +256,10 @@ class ReviewDocumentEmail(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -261,7 +271,7 @@ class ReviewDocumentEmail(APIView):
                                     status=HTTP_400_BAD_REQUEST,
                                 )
                     processed.append(recipient["pk"])
-                
+
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -309,7 +319,7 @@ class ProjectClosureEmail(APIView):
                     if recipient["pk"] not in processed:
                         if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                             print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                            
+
                             email_subject = f"SPMS: {project_tag} Closed"
                             to_email = [recipient["email"]]
 
@@ -327,10 +337,10 @@ class ProjectClosureEmail(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -357,15 +367,17 @@ class ProjectClosureEmail(APIView):
                                     "project_id": project_pk,
                                 }
 
-                                template_content = render_to_string(templ, template_props)
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
 
                                 try:
                                     send_mail(
                                         email_subject,
-                                        template_content, 
+                                        template_content,
                                         from_email,
                                         to_email,
-                                        fail_silently=False,  
+                                        fail_silently=False,
                                         html_message=template_content,
                                     )
                                 except Exception as e:
@@ -377,7 +389,7 @@ class ProjectClosureEmail(APIView):
                                         status=HTTP_400_BAD_REQUEST,
                                     )
                         processed.append(recipient["pk"])
-            
+
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -412,7 +424,6 @@ class DocumentReadyEmail(APIView):
         if project:
             html_project_title = project.title
             plain_project_name = html_project_title
-            
 
             # Get document kind information
             document_kind = req.data["document_kind"]
@@ -428,10 +439,12 @@ class DocumentReadyEmail(APIView):
             processed = []
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
-                    
+
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = f"SPMS: New {document_kind_as_title} Ready ({project_tag})"
+                        email_subject = (
+                            f"SPMS: New {document_kind_as_title} Ready ({project_tag})"
+                        )
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -439,7 +452,9 @@ class DocumentReadyEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(document_kind),
+                            "document_type": determine_doc_kind_url_string(
+                                document_kind
+                            ),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -450,10 +465,10 @@ class DocumentReadyEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -476,7 +491,9 @@ class DocumentReadyEmail(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(document_kind),
+                                "document_type": determine_doc_kind_url_string(
+                                    document_kind
+                                ),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -487,10 +504,10 @@ class DocumentReadyEmail(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -556,10 +573,12 @@ class DocumentSentBackEmail(APIView):
             processed = []
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
-                    
+
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
+                        email_subject = (
+                            f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
+                        )
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -570,7 +589,9 @@ class DocumentSentBackEmail(APIView):
                             ),
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(document_kind),
+                            "document_type": determine_doc_kind_url_string(
+                                document_kind
+                            ),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -581,10 +602,10 @@ class DocumentSentBackEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -607,11 +628,15 @@ class DocumentSentBackEmail(APIView):
                                 "email_subject": email_subject,
                                 "recipient_name": recipient["name"],
                                 "actioning_user_role": (
-                                    "directorate" if stage == 3 else "business area lead"
+                                    "directorate"
+                                    if stage == 3
+                                    else "business area lead"
                                 ),
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(document_kind),
+                                "document_type": determine_doc_kind_url_string(
+                                    document_kind
+                                ),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -622,10 +647,10 @@ class DocumentSentBackEmail(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -637,7 +662,7 @@ class DocumentSentBackEmail(APIView):
                                     status=HTTP_400_BAD_REQUEST,
                                 )
                     processed.append(recipient["pk"])
-        
+
         return Response(
             "Emails Sent!",
             status=HTTP_202_ACCEPTED,
@@ -691,7 +716,9 @@ class ConceptPlanEmail(APIView):
                     if (
                         recipient["pk"] == 101073
                     ):  # Change to if settings.DEBUG == True mass replace
-                        email_subject = f"SPMS: Review {document_kind_as_title} ({project_tag})"
+                        email_subject = (
+                            f"SPMS: Review {document_kind_as_title} ({project_tag})"
+                        )
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -699,7 +726,9 @@ class ConceptPlanEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(document_kind),
+                            "document_type": determine_doc_kind_url_string(
+                                document_kind
+                            ),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -710,10 +739,10 @@ class ConceptPlanEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -775,10 +804,12 @@ class DocumentApprovedEmail(APIView):
             processed = []
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
-                
+
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
+                        email_subject = (
+                            f"SPMS: {document_kind_as_title} Approved ({project_tag})"
+                        )
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -786,7 +817,9 @@ class DocumentApprovedEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(document_kind),
+                            "document_type": determine_doc_kind_url_string(
+                                document_kind
+                            ),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -797,10 +830,10 @@ class DocumentApprovedEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -824,7 +857,9 @@ class DocumentApprovedEmail(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(document_kind),
+                                "document_type": determine_doc_kind_url_string(
+                                    document_kind
+                                ),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -835,10 +870,10 @@ class DocumentApprovedEmail(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -850,7 +885,7 @@ class DocumentApprovedEmail(APIView):
                                     status=HTTP_400_BAD_REQUEST,
                                 )
                     processed.append(recipient["pk"])
-               
+
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -867,22 +902,30 @@ class GetProjectLeadEmail(APIView):
 
     def post(self, req):
         settings.LOGGER.info(
-                msg=f"{req.user} is requesting active project lead emails to send a message to"
-            )  
-        states = [Project.StatusChoices.ACTIVE, Project.StatusChoices.UPDATING, Project.StatusChoices.SUSPENDED]
-        activeproj_leaders = ProjectMember.objects.filter(is_leader=True, project__status__in=states).all()
+            msg=f"{req.user} is requesting active project lead emails to send a message to"
+        )
+        states = [
+            Project.StatusChoices.ACTIVE,
+            Project.StatusChoices.UPDATING,
+            Project.StatusChoices.SUSPENDED,
+        ]
+        activeproj_leaders = ProjectMember.objects.filter(
+            is_leader=True, project__status__in=states
+        ).all()
         unique_active_project_leads = list(
-                set(
-                    lead_member_object.user
-                    for lead_member_object in activeproj_leaders
-                    if lead_member_object.user.is_active and lead_member_object.user.is_staff
-                )
+            set(
+                lead_member_object.user
+                for lead_member_object in activeproj_leaders
+                if lead_member_object.user.is_active
+                and lead_member_object.user.is_staff
             )
+        )
         unique_inactive_leads = list(
             set(
                 lead_member_object.user
                 for lead_member_object in activeproj_leaders
-                if not lead_member_object.user.is_active or not lead_member_object.user.is_staff
+                if not lead_member_object.user.is_active
+                or not lead_member_object.user.is_staff
             )
         )
 
@@ -893,13 +936,11 @@ class GetProjectLeadEmail(APIView):
         other_users = []
         other_emails = []
 
-
         inactive_leaders = []
 
         file_content.append(
             "-------------------------------------------------------------------------------------\nUnique Project Leads marked as staff and active (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
         )
-  
 
         for leader in unique_active_project_leads:
             if leader.email.endswith("dbca.wa.gov.au"):
@@ -911,18 +952,18 @@ class GetProjectLeadEmail(APIView):
         file_content.append(
             "------\nWith DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
         )
-  
+
         for user in dbca_users:
             file_content.append(f"{user.email}\n")
             image = user.get_image()
             dbca_emails.append(
                 {
-                'pk': user.pk, 
-                'name': f'{user.display_first_name} {user.display_last_name}', 
-                'email': f'{user.email}', 
-                'is_staff': user.is_staff, 
-                'is_active': user.is_active,
-                'image': image['file'] if image is not None else None,
+                    "pk": user.pk,
+                    "name": f"{user.display_first_name} {user.display_last_name}",
+                    "email": f"{user.email}",
+                    "is_staff": user.is_staff,
+                    "is_active": user.is_active,
+                    "image": image["file"] if image is not None else None,
                 }
             )
 
@@ -934,7 +975,6 @@ class GetProjectLeadEmail(APIView):
             file_content.append(f"{user.email}\n")
             other_emails.append({user.email})
 
-
         file_content.append(
             "\n\n-------------------------------------------------------------------------------------\nUnique Project Leads marked as NOT staff or INACTIVE (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
         )
@@ -944,14 +984,16 @@ class GetProjectLeadEmail(APIView):
         inactive_email_list = []
         for leader in inactive_leaders:
             image = leader.get_image()
-            inactive_email_list.append({
-                'pk': leader.pk, 
-                'name': f'{leader.display_first_name} {leader.display_last_name}', 
-                'email': f'{leader.email}', 
-                'is_staff': leader.is_staff, 
-                'is_active': leader.is_active,
-                'image': image['file'] if image is not None else None,
-                })
+            inactive_email_list.append(
+                {
+                    "pk": leader.pk,
+                    "name": f"{leader.display_first_name} {leader.display_last_name}",
+                    "email": f"{leader.email}",
+                    "is_staff": leader.is_staff,
+                    "is_active": leader.is_active,
+                    "image": image["file"] if image is not None else None,
+                }
+            )
             projects_belonging_to = activeproj_leaders.filter(user=leader).all()
             file_content.append(
                 f"\nUser: {leader.email} | {leader.display_first_name} {leader.display_last_name}\nProjects Led:\n"
@@ -969,9 +1011,7 @@ class GetProjectLeadEmail(APIView):
             "unique_dbca_emails_list": dbca_emails,
             "unique_non_dbca_emails_list": inactive_email_list,
         }
-        settings.LOGGER.warning(
-                msg=f"{req.user} has been sent the email list"
-        )  
+        settings.LOGGER.warning(msg=f"{req.user} has been sent the email list")
         return Response(
             data=return_data,
             status=HTTP_200_OK,
@@ -986,13 +1026,13 @@ class SPMSInviteEmail(APIView):
             msg=f"{req.user} is attempting to send an email (SPMS Invite Link) for users {req.data['invitee']}"
         )
         from_email = settings.DEFAULT_FROM_EMAIL
-        inviting_email = req.data['invitor']
+        inviting_email = req.data["invitor"]
         templ = "./email_templates/spms_link_email.html"
-        invitee = req.data["invitee"]  
+        invitee = req.data["invitee"]
 
         recipients_list = []
         # Validate
-        if invitee.endswith('@dbca.wa.gov.au'):
+        if invitee.endswith("@dbca.wa.gov.au"):
             recipients_list.append(invitee)
 
         processed = []
@@ -1015,10 +1055,10 @@ class SPMSInviteEmail(APIView):
                     try:
                         send_mail(
                             email_subject,
-                            template_content, 
+                            template_content,
                             from_email,
                             to_email,
-                            fail_silently=False,  
+                            fail_silently=False,
                             html_message=template_content,
                         )
                     except Exception as e:
@@ -1032,7 +1072,7 @@ class SPMSInviteEmail(APIView):
                 else:
                     # test
                     print(f"TEST: Sending email to {recipient}")
-                    if recipient == 'jarid.prince@dbca.wa.gov.au':
+                    if recipient == "jarid.prince@dbca.wa.gov.au":
                         email_subject = f"SPMS Invite"
                         to_email = [recipient]
 
@@ -1048,10 +1088,10 @@ class SPMSInviteEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -1064,7 +1104,7 @@ class SPMSInviteEmail(APIView):
                             )
                 processed.append(recipient)
                 print(f"Sent invite to {recipient}")
-        
+
         return Response(
             "Email Sent!",
             status=HTTP_202_ACCEPTED,
@@ -1111,9 +1151,7 @@ class DocumentRecalledEmail(APIView):
             document_kind_as_title = document_kind_dict[document_kind]
 
             actioning_user = User.objects.get(pk=req.user.pk)
-            actioning_user_name = (
-                f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-            )
+            actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
             actioning_user_email = f"{actioning_user.email}"
             stage = req.data["stage"]
             if stage:
@@ -1125,8 +1163,10 @@ class DocumentRecalledEmail(APIView):
                 if recipient["pk"] not in processed:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        
-                        email_subject = f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
+
+                        email_subject = (
+                            f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
+                        )
                         to_email = [recipient["email"]]
 
                         template_props = {
@@ -1139,7 +1179,9 @@ class DocumentRecalledEmail(APIView):
                             "recipient_name": recipient["name"],
                             "project_id": project_pk,
                             "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(document_kind),
+                            "document_type": determine_doc_kind_url_string(
+                                document_kind
+                            ),
                             "document_type_title": document_kind_as_title,
                             "site_url": settings.SITE_URL,
                             "dbca_image_path": get_encoded_image(),
@@ -1150,10 +1192,10 @@ class DocumentRecalledEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -1174,7 +1216,9 @@ class DocumentRecalledEmail(APIView):
 
                             template_props = {
                                 "user_kind": (
-                                    "Project Lead" if stage == 2 else "Business Area Lead"
+                                    "Project Lead"
+                                    if stage == 2
+                                    else "Business Area Lead"
                                 ),
                                 "email_subject": email_subject,
                                 "actioning_user_email": actioning_user_email,
@@ -1182,7 +1226,9 @@ class DocumentRecalledEmail(APIView):
                                 "recipient_name": recipient["name"],
                                 "project_id": project_pk,
                                 "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(document_kind),
+                                "document_type": determine_doc_kind_url_string(
+                                    document_kind
+                                ),
                                 "document_type_title": document_kind_as_title,
                                 "site_url": settings.SITE_URL,
                                 "dbca_image_path": get_encoded_image(),
@@ -1193,10 +1239,10 @@ class DocumentRecalledEmail(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -1208,7 +1254,7 @@ class DocumentRecalledEmail(APIView):
                                     status=HTTP_400_BAD_REQUEST,
                                 )
                     processed.append(recipient["pk"])
-            
+
             return Response(
                 "Emails Sent!",
                 status=HTTP_202_ACCEPTED,
@@ -1239,7 +1285,11 @@ class NewCycleOpenEmail(APIView):
         if also_updating == True or also_updating == "True":
             active_project_leads = (
                 ProjectMember.objects.filter(
-                    project__status__in=[Project.StatusChoices.ACTIVE, Project.StatusChoices.UPDATING], is_leader=True
+                    project__status__in=[
+                        Project.StatusChoices.ACTIVE,
+                        Project.StatusChoices.UPDATING,
+                    ],
+                    is_leader=True,
                 )
                 .values_list("user__pk", flat=True)
                 .distinct()
@@ -1276,8 +1326,10 @@ class NewCycleOpenEmail(APIView):
             if recipient["pk"] not in processed:
                 if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                     print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                    
-                    email_subject = f"SPMS: {financial_year_string} Reporting Cycle Open"
+
+                    email_subject = (
+                        f"SPMS: {financial_year_string} Reporting Cycle Open"
+                    )
                     to_email = [recipient["email"]]
 
                     template_props = {
@@ -1296,7 +1348,7 @@ class NewCycleOpenEmail(APIView):
                             template_content,
                             from_email,
                             to_email,
-                            fail_silently=False, 
+                            fail_silently=False,
                             html_message=template_content,
                         )
                     except Exception as e:
@@ -1329,10 +1381,10 @@ class NewCycleOpenEmail(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False, 
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -1774,7 +1826,7 @@ class GetWithPDFs(APIView):
             many=True,
         )
         return Response(serializer.data, status=HTTP_200_OK)
-    
+
 
 class GetLegacyPDFs(APIView):
     permission_classes = [IsAuthenticated]
@@ -1806,10 +1858,12 @@ class GetCompletedReports(APIView):
         else:
             return None
 
+
 # endregion ==========================================================
 
 
 # region Latest Year's Reports ==========================================================
+
 
 class BeginAnnualReportDocGeneration(APIView):
     permission_classes = [IsAuthenticated]
@@ -1965,10 +2019,12 @@ class FullLatestReport(APIView):
                 HTTP_404_NOT_FOUND,
             )
 
+
 # endregion ==================================================
 
 
 # region PROJECT DOCUMENTS ==============================================
+
 
 class ProjectDocuments(APIView):
     permission_classes = [IsAuthenticated]
@@ -1993,7 +2049,7 @@ class ProjectDocuments(APIView):
         project_pk = req.data.get("project")
         project_kind = req.data.get("projectKind")
 
-        data={
+        data = {
             "old_id": 1,
             "kind": kind,
             "status": ProjectDocument.StatusChoices.NEW,
@@ -2487,7 +2543,7 @@ class ProjectDocuments(APIView):
                     reason = req.data.get("reason")
                     outcome = req.data.get("outcome")
                     project = req.data.get("project")
-                  
+
                     closure_data_object = {
                         "document": doc.pk,
                         "project": project,
@@ -2520,8 +2576,6 @@ class ProjectDocuments(APIView):
                         ),
                     }
 
-                    
-           
                     closure_serializer = ProjectClosureCreationSerializer(
                         data=closure_data_object
                     )
@@ -2530,10 +2584,16 @@ class ProjectDocuments(APIView):
                         try:
                             with transaction.atomic():
                                 closure = closure_serializer.save()
-                                if kind == "projectclosure" and project_kind and project_kind != "science":
+                                if (
+                                    kind == "projectclosure"
+                                    and project_kind
+                                    and project_kind != "science"
+                                ):
                                     closure.document.project.status = outcome
                                 else:
-                                    closure.document.project.status = "closure_requested"
+                                    closure.document.project.status = (
+                                        "closure_requested"
+                                    )
                                 closure.document.project.save()
 
                         except Exception as e:
@@ -2864,7 +2924,9 @@ class ProjectDocsPendingMyActionStageTwo(APIView):
                             ba_input_required.append(doc)
             else:
                 # Create a temporary file
-                temp_dir = tempfile.gettempdir()  # Use the system temp directory or customize
+                temp_dir = (
+                    tempfile.gettempdir()
+                )  # Use the system temp directory or customize
                 temp_file_path = os.path.join(temp_dir, "activeProjectsWithoutBAs.txt")
 
                 with open(temp_file_path, "a+") as temp_file:
@@ -2932,7 +2994,9 @@ class ProjectDocsPendingMyActionStageThree(APIView):
                             ba_input_required.append(doc)
             else:
                 # Create a temporary file
-                temp_dir = tempfile.gettempdir()  # Use the system temp directory or customize
+                temp_dir = (
+                    tempfile.gettempdir()
+                )  # Use the system temp directory or customize
                 temp_file_path = os.path.join(temp_dir, "activeProjectsWithoutBAs.txt")
 
                 with open(temp_file_path, "a+") as temp_file:
@@ -3068,8 +3132,8 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         if small_user_object:
             ba = small_user_object.work.business_area
             is_directorate = (
-                ba != None and ba.name == "Directorate" 
-            ) or req.user.is_superuser                
+                ba != None and ba.name == "Directorate"
+            ) or req.user.is_superuser
 
             active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
 
@@ -3155,9 +3219,11 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 documents.append(doc)
                 if doc.project_id in lead_project_ids:
                     pl_input_required.append(doc)
-            
+
             # Project membership attention required
-            my_non_leader_memberships = ProjectMember.objects.filter(user=req.user, is_leader=False).all()
+            my_non_leader_memberships = ProjectMember.objects.filter(
+                user=req.user, is_leader=False
+            ).all()
             my_projects = []
             for membership in my_non_leader_memberships:
                 my_projects.append(membership.project)
@@ -3165,10 +3231,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 ProjectDocument.objects.exclude(
                     status=ProjectDocument.StatusChoices.APPROVED
                 )
-                .filter(
-                    project_lead_approval_granted=False,
-                    project__in=my_projects
-                )
+                .filter(project_lead_approval_granted=False, project__in=my_projects)
                 .all()
             )
             for doc in docs_requiring_team_attention:
@@ -3249,7 +3312,9 @@ class ProjectDocumentComments(APIView):
         )
 
     def post(self, req, pk):
-        settings.LOGGER.info(msg=f"{req.user} is trying to post a comment to doc {pk}:\n{extract_text_content(req.data['payload'])}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is trying to post a comment to doc {pk}:\n{extract_text_content(req.data['payload'])}"
+        )
         ser = TinyCommentCreateSerializer(
             data={
                 "document": pk,
@@ -3305,18 +3370,23 @@ class DocumentSpawner(APIView):
 
 class GetPreviousReportsData(APIView):
     permission_classes = [IsAuthenticated]
+
     def post(self, req):
         project_pk = req.data["project_pk"]
         doc_kind = req.data["writeable_document_kind"]
         section = req.data["section"]
 
         if doc_kind == "Progress Report":
-            documents_of_type_from_project = ProgressReport.objects.filter(project=project_pk).order_by('-year')
+            documents_of_type_from_project = ProgressReport.objects.filter(
+                project=project_pk
+            ).order_by("-year")
         elif doc_kind == "Student Report":
-            documents_of_type_from_project = StudentReport.objects.filter(project=project_pk).order_by('-year')
+            documents_of_type_from_project = StudentReport.objects.filter(
+                project=project_pk
+            ).order_by("-year")
         else:
             return Response(status=HTTP_400_BAD_REQUEST)
-        
+
         # Check if there are at least two documents (IE can actually prepopulate with prior data)
         if documents_of_type_from_project.count() < 2:
             return Response(status=HTTP_400_BAD_REQUEST)
@@ -3329,12 +3399,12 @@ class GetPreviousReportsData(APIView):
             section_data = getattr(second_last_one, section)
         except AttributeError:
             return Response(status=HTTP_400_BAD_REQUEST)
-        
+
         return Response(data=section_data, status=HTTP_200_OK)
 
 
-
 # region Concept Plans ====================================================================================================
+
 
 class ConceptPlans(APIView):
     permission_classes = [IsAuthenticated]
@@ -3729,10 +3799,12 @@ class ProjectPlanDetail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+
 # endregion Project Plans ====================================================================================================
 
 
 # region Progress Reports ====================================================================================================
+
 
 class ProgressReports(APIView):
     permission_classes = [IsAuthenticated]
@@ -3921,7 +3993,6 @@ class StudentReports(APIView):
             )
 
 
-
 class StudentReportDetail(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -3998,9 +4069,8 @@ class StudentReportByYear(APIView):
             ser.data,
             status=HTTP_200_OK,
         )
-    
 
-    
+
 class UpdateStudentReport(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -4030,8 +4100,6 @@ class UpdateStudentReport(APIView):
                 ser.errors,
                 HTTP_400_BAD_REQUEST,
             )
-
-
 
 
 # endregion Student Reports ====================================================================================================
@@ -4075,7 +4143,7 @@ class ProjectClosures(APIView):
 
 
 class ProjectClosureDetail(APIView):
-    
+
     permission_classes = [IsAuthenticated]
 
     def go(self, pk):
@@ -4301,8 +4369,8 @@ class SeekEndorsement(APIView):
                         # Create a new file
                         new_instance_data = {
                             "file": pdf_file,
-                            "endorsement": updated.id,  
-                            "creator": req.user.id, 
+                            "endorsement": updated.id,
+                            "creator": req.user.id,
                         }
                         new_instance_serializer = AECPDFCreateSerializer(
                             data=new_instance_data
@@ -4418,7 +4486,9 @@ class RepoenProject(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_base_document(self, project_pk):
-        obj = ProjectDocument.objects.filter(project=project_pk, kind="projectclosure").first()
+        obj = ProjectDocument.objects.filter(
+            project=project_pk, kind="projectclosure"
+        ).first()
         if obj is None:
             return None
         return obj
@@ -4431,7 +4501,7 @@ class RepoenProject(APIView):
             try:
                 settings.LOGGER.info(msg=f"{req.user} is reopening project {pk}")
                 project_document = self.get_base_document(pk)
-                
+
                 if project_document == None:
                     project = Project.objects.filter(pk=pk).first()
                     project.status = Project.StatusChoices.UPDATING
@@ -4439,7 +4509,9 @@ class RepoenProject(APIView):
                 else:
                     project_document.project.status = "updating"
                     project_document.project.save()
-                    project = Project.objects.filter(pk=project_document.project.pk).first()
+                    project = Project.objects.filter(
+                        pk=project_document.project.pk
+                    ).first()
                     project_document.delete()
                 print("SENDING PROJECT REOPENED EMAIL")
                 # Preset info
@@ -4449,17 +4521,17 @@ class RepoenProject(APIView):
                 if project:
                     html_project_title = project.title
                     plain_project_name = html_project_title
-                    
+
                     actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = (
-                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    )
+                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     actioning_user_email = f"{actioning_user.email}"
 
                     # Get recipient list
                     recipients_list = []
                     # get pl as the ba lead is the actioning user
-                    p_leader = ProjectMember.objects.get(project=project, is_leader=True)
+                    p_leader = ProjectMember.objects.get(
+                        project=project, is_leader=True
+                    )
                     pl_user = p_leader.user.pk
                     pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                     pl_user_email = f"{p_leader.user.email}"
@@ -4473,8 +4545,13 @@ class RepoenProject(APIView):
                     processed = []
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
-                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                            if (
+                                settings.ON_TEST_NETWORK != True
+                                and settings.DEBUG != True
+                            ):
+                                print(
+                                    f"PRODUCTION: Sending email to {recipient["name"]}"
+                                )
                                 email_subject = f"SPMS: {project_tag} Re-Opened"
                                 to_email = [recipient["email"]]
 
@@ -4491,15 +4568,17 @@ class RepoenProject(APIView):
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(templ, template_props)
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
 
                                 try:
                                     send_mail(
                                         email_subject,
-                                        template_content,  
+                                        template_content,
                                         from_email,
                                         to_email,
-                                        fail_silently=False,  
+                                        fail_silently=False,
                                         html_message=template_content,
                                     )
                                 except Exception as e:
@@ -4530,15 +4609,17 @@ class RepoenProject(APIView):
                                         "dbca_image_path": get_encoded_image(),
                                     }
 
-                                    template_content = render_to_string(templ, template_props)
+                                    template_content = render_to_string(
+                                        templ, template_props
+                                    )
 
                                     try:
                                         send_mail(
                                             email_subject,
-                                            template_content, 
+                                            template_content,
                                             from_email,
                                             to_email,
-                                            fail_silently=False,  
+                                            fail_silently=False,
                                             html_message=template_content,
                                         )
                                     except Exception as e:
@@ -4876,7 +4957,9 @@ class DocApproval(APIView):
             # If stage 3
             if u_document.kind == "concept" and (stage == 3 or stage == "3"):
                 # ONLY CREATE IF A PROJECT PLAN DOESNT ALREADY EXIST FOR THIS PROJECT
-                already_exists = ProjectPlan.objects.filter(project=document.project.pk).exists()
+                already_exists = ProjectPlan.objects.filter(
+                    project=document.project.pk
+                ).exists()
                 if not already_exists:
                     # Create a fresh document with type of project plan =====================
                     # Get the project id
@@ -5148,7 +5231,9 @@ class DocApproval(APIView):
                                         e,
                                         status=HTTP_400_BAD_REQUEST,
                                     )
-                                u_document.project.status = Project.StatusChoices.PENDING
+                                u_document.project.status = (
+                                    Project.StatusChoices.PENDING
+                                )
                                 u_document.project.save()
                             else:
                                 settings.LOGGER.error(
@@ -5196,7 +5281,7 @@ class DocApproval(APIView):
                 if project:
                     html_project_title = project.title
                     plain_project_name = html_project_title
-                    
+
                     # Get document kind information
                     document_kind_dict = {
                         "concept": "Science Concept Plan",
@@ -5208,9 +5293,7 @@ class DocApproval(APIView):
                     document_kind_as_title = document_kind_dict[u_document.kind]
 
                     actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = (
-                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    )
+                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     actioning_user_email = f"{actioning_user.email}"
 
                     # Get recipient list
@@ -5219,7 +5302,9 @@ class DocApproval(APIView):
                         # get ba lead user as the pl is the actioning user
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        user_name = (
+                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        )
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         recipients_list.append(data_obj)
@@ -5253,9 +5338,7 @@ class DocApproval(APIView):
                             project=project, is_leader=True
                         )
                         pl_user = p_leader.user.pk
-                        pl_user_name = (
-                            f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                        )
+                        pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                         pl_user_email = f"{p_leader.user.email}"
                         p_leader_data_obj = {
                             "pk": pl_user,
@@ -5266,7 +5349,9 @@ class DocApproval(APIView):
 
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        user_name = (
+                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        )
                         user_email = f"{ba_lead.email}"
                         ba_data_obj = {
                             "pk": user,
@@ -5279,9 +5364,14 @@ class DocApproval(APIView):
                     processed = []
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
-                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                                
+                            if (
+                                settings.ON_TEST_NETWORK != True
+                                and settings.DEBUG != True
+                            ):
+                                print(
+                                    f"PRODUCTION: Sending email to {recipient["name"]}"
+                                )
+
                                 email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
                                 to_email = [recipient["email"]]
 
@@ -5293,21 +5383,25 @@ class DocApproval(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(u_document.kind),
+                                    "document_type": determine_doc_kind_url_string(
+                                        u_document.kind
+                                    ),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(templ, template_props)
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
 
                                 try:
                                     send_mail(
                                         email_subject,
-                                        template_content, 
+                                        template_content,
                                         from_email,
                                         to_email,
-                                        fail_silently=False,  
+                                        fail_silently=False,
                                         html_message=template_content,
                                     )
                                 except Exception as e:
@@ -5323,9 +5417,7 @@ class DocApproval(APIView):
                                 # test
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
-                                    email_subject = (
-                                        f"SPMS: {document_kind_as_title} Approved ({project_tag})"
-                                    )
+                                    email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
                                     to_email = [recipient["email"]]
 
                                     template_props = {
@@ -5336,7 +5428,9 @@ class DocApproval(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": determine_doc_kind_url_string(u_document.kind),
+                                        "document_type": determine_doc_kind_url_string(
+                                            u_document.kind
+                                        ),
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
@@ -5349,10 +5443,10 @@ class DocApproval(APIView):
                                     try:
                                         send_mail(
                                             email_subject,
-                                            template_content, 
+                                            template_content,
                                             from_email,
                                             to_email,
-                                            fail_silently=False,  
+                                            fail_silently=False,
                                             html_message=template_content,
                                         )
                                     except Exception as e:
@@ -5484,9 +5578,7 @@ class DocRecall(APIView):
                     document_kind_as_title = document_kind_dict[u_document.kind]
 
                     actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = (
-                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    )
+                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     actioning_user_email = f"{actioning_user.email}"
 
                     # Get recipient list
@@ -5495,7 +5587,9 @@ class DocRecall(APIView):
                         # get ba lead user as the pl is the actioning user
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        user_name = (
+                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        )
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         print(data_obj)
@@ -5531,9 +5625,7 @@ class DocRecall(APIView):
                                 project=project, is_leader=True
                             )
                             pl_user = p_leader.user.pk
-                            pl_user_name = (
-                                f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                            )
+                            pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                             pl_user_email = f"{p_leader.user.email}"
                             p_leader_data_obj = {
                                 "pk": pl_user,
@@ -5549,9 +5641,7 @@ class DocRecall(APIView):
                                 project=project, is_leader=True
                             )
                             pl_user = p_leader.user.pk
-                            pl_user_name = (
-                                f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                            )
+                            pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                             pl_user_email = f"{p_leader.user.email}"
                             p_leader_data_obj = {
                                 "pk": pl_user,
@@ -5570,8 +5660,13 @@ class DocRecall(APIView):
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
 
-                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
+                            if (
+                                settings.ON_TEST_NETWORK != True
+                                and settings.DEBUG != True
+                            ):
+                                print(
+                                    f"PRODUCTION: Sending email to {recipient["name"]}"
+                                )
                                 email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'} ({project_tag})"
                                 to_email = [recipient["email"]]
 
@@ -5587,21 +5682,25 @@ class DocRecall(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(document.kind),
+                                    "document_type": determine_doc_kind_url_string(
+                                        document.kind
+                                    ),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(templ, template_props)
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
 
                                 try:
                                     send_mail(
                                         email_subject,
-                                        template_content, 
+                                        template_content,
                                         from_email,
                                         to_email,
-                                        fail_silently=False,  
+                                        fail_silently=False,
                                         html_message=template_content,
                                     )
                                 except Exception as e:
@@ -5631,7 +5730,9 @@ class DocRecall(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": determine_doc_kind_url_string(document.kind),
+                                        "document_type": determine_doc_kind_url_string(
+                                            document.kind
+                                        ),
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
@@ -5644,10 +5745,10 @@ class DocRecall(APIView):
                                     try:
                                         send_mail(
                                             email_subject,
-                                            template_content, 
+                                            template_content,
                                             from_email,
                                             to_email,
-                                            fail_silently=False,  
+                                            fail_silently=False,
                                             html_message=template_content,
                                         )
                                     except Exception as e:
@@ -5755,9 +5856,7 @@ class DocSendBack(APIView):
                     document_kind_as_title = document_kind_dict[u_document.kind]
 
                     actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = (
-                        f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    )
+                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                     actioning_user_email = f"{actioning_user.email}"
 
                     # Get recipient list
@@ -5771,9 +5870,7 @@ class DocSendBack(APIView):
                             project=project, is_leader=True
                         )
                         pl_user = p_leader.user.pk
-                        pl_user_name = (
-                            f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                        )
+                        pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
                         pl_user_email = f"{p_leader.user.email}"
                         p_leader_data_obj = {
                             "pk": pl_user,
@@ -5786,7 +5883,9 @@ class DocSendBack(APIView):
                         # get ba lead user as the directorate is the actioning user
                         ba_lead = User.objects.get(pk=project.business_area.leader.pk)
                         user = ba_lead.pk
-                        user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        user_name = (
+                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                        )
                         user_email = f"{ba_lead.email}"
                         data_obj = {"pk": user, "name": user_name, "email": user_email}
                         recipients_list.append(data_obj)
@@ -5795,9 +5894,14 @@ class DocSendBack(APIView):
                     project_tag = project.get_project_tag()
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
-                            if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                                print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                                
+                            if (
+                                settings.ON_TEST_NETWORK != True
+                                and settings.DEBUG != True
+                            ):
+                                print(
+                                    f"PRODUCTION: Sending email to {recipient["name"]}"
+                                )
+
                                 email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
                                 to_email = [recipient["email"]]
 
@@ -5813,21 +5917,25 @@ class DocSendBack(APIView):
                                     "recipient_name": recipient["name"],
                                     "project_id": project.pk,
                                     "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(document.kind),
+                                    "document_type": determine_doc_kind_url_string(
+                                        document.kind
+                                    ),
                                     "document_type_title": document_kind_as_title,
                                     "site_url": settings.SITE_URL,
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(templ, template_props)
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
 
                                 try:
                                     send_mail(
                                         email_subject,
-                                        template_content, 
+                                        template_content,
                                         from_email,
                                         to_email,
-                                        fail_silently=False,  
+                                        fail_silently=False,
                                         html_message=template_content,
                                     )
                                 except Exception as e:
@@ -5842,9 +5950,7 @@ class DocSendBack(APIView):
                                 # test
                                 print(f"TEST: Sending email to {recipient["name"]}")
                                 if recipient["pk"] == 101073:
-                                    email_subject = (
-                                        f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
-                                    )
+                                    email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
                                     to_email = [recipient["email"]]
 
                                     template_props = {
@@ -5859,7 +5965,9 @@ class DocSendBack(APIView):
                                         "recipient_name": recipient["name"],
                                         "project_id": project.pk,
                                         "plain_project_name": plain_project_name,
-                                        "document_type": determine_doc_kind_url_string(document.kind),
+                                        "document_type": determine_doc_kind_url_string(
+                                            document.kind
+                                        ),
                                         "document_type_title": document_kind_as_title,
                                         "site_url": settings.SITE_URL,
                                         "dbca_image_path": get_encoded_image(),
@@ -5872,10 +5980,10 @@ class DocSendBack(APIView):
                                     try:
                                         send_mail(
                                             email_subject,
-                                            template_content, 
+                                            template_content,
                                             from_email,
                                             to_email,
-                                            fail_silently=False,  
+                                            fail_silently=False,
                                             html_message=template_content,
                                         )
                                     except Exception as e:
@@ -5944,7 +6052,7 @@ class DocReopenProject(APIView):
         should_send_email = req.data["shouldSendEmail"]
 
         if should_send_email == "true":
-            
+
             print("SENDING PROJECT REOPENED EMAIL")
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
@@ -5968,9 +6076,7 @@ class DocReopenProject(APIView):
                 document_kind_as_title = document_kind_dict[document.kind]
 
                 actioning_user = User.objects.get(pk=req.user.pk)
-                actioning_user_name = (
-                    f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                )
+                actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
                 actioning_user_email = f"{actioning_user.email}"
 
                 # Get recipient list
@@ -5993,13 +6099,15 @@ class DocReopenProject(APIView):
                     if recipient["pk"] not in processed:
                         if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                             print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                            
+
                             email_subject = f"SPMS: {project_tag} Re-Opened"
                             to_email = [recipient["email"]]
 
                             template_props = {
                                 "user_kind": (
-                                    "Project Lead" if stage == 2 else "Business Area Lead"
+                                    "Project Lead"
+                                    if stage == 2
+                                    else "Business Area Lead"
                                 ),
                                 "email_subject": email_subject,
                                 "actioning_user_email": actioning_user_email,
@@ -6018,10 +6126,10 @@ class DocReopenProject(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False,  
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -6057,7 +6165,9 @@ class DocReopenProject(APIView):
                                     "dbca_image_path": get_encoded_image(),
                                 }
 
-                                template_content = render_to_string(templ, template_props)
+                                template_content = render_to_string(
+                                    templ, template_props
+                                )
 
                                 try:
                                     send_mail(
@@ -6065,7 +6175,7 @@ class DocReopenProject(APIView):
                                         template_content,
                                         from_email,
                                         to_email,
-                                        fail_silently=False, 
+                                        fail_silently=False,
                                         html_message=template_content,
                                     )
                                 except Exception as e:
@@ -6075,7 +6185,7 @@ class DocReopenProject(APIView):
                                     return Response(
                                         {"error": str(e)},
                                         status=HTTP_400_BAD_REQUEST,
-                                    )                        
+                                    )
                         processed.append(recipient["pk"])
 
                 return Response(
@@ -6194,7 +6304,13 @@ class NewCycleOpen(APIView):
                                 # check for previous aims and context as this doesnt usually change
                                 # so prepopulate that anyway
                                 try:
-                                    last_one = ProgressReport.objects.filter(project=project.pk).order_by('-year').first()
+                                    last_one = (
+                                        ProgressReport.objects.filter(
+                                            project=project.pk
+                                        )
+                                        .order_by("-year")
+                                        .first()
+                                    )
                                 except ProgressReport.DoesNotExist:
                                     last_one = None
 
@@ -6203,7 +6319,7 @@ class NewCycleOpen(APIView):
                                 prepopulated_implications = "<p></p>"
 
                                 if last_one != None:
-                                    prepopulated_aims = last_one.aims 
+                                    prepopulated_aims = last_one.aims
                                     prepopulated_implications = last_one.implications
                                     prepopulated_context = last_one.context
 
@@ -6222,7 +6338,13 @@ class NewCycleOpen(APIView):
                             else:
                                 # PREPOPULATE WITH LAST YEARS DATA
                                 try:
-                                    last_one = ProgressReport.objects.filter(project=project.pk).order_by('-year').first()
+                                    last_one = (
+                                        ProgressReport.objects.filter(
+                                            project=project.pk
+                                        )
+                                        .order_by("-year")
+                                        .first()
+                                    )
                                 except ProgressReport.DoesNotExist:
                                     last_one = None
                                 if last_one != None:
@@ -6252,7 +6374,6 @@ class NewCycleOpen(APIView):
                                         "progress": "<p></p>",
                                         "aims": "<p></p>",
                                     }
-
 
                             progress_report = ProgressReportCreateSerializer(
                                 data=progress_report_data
@@ -6291,7 +6412,11 @@ class NewCycleOpen(APIView):
                             else:
                                 # PREPOPULATE WITH LAST YEARS DATA
                                 try:
-                                    last_one = StudentReport.objects.filter(project=project.pk).order_by('-year').first()
+                                    last_one = (
+                                        StudentReport.objects.filter(project=project.pk)
+                                        .order_by("-year")
+                                        .first()
+                                    )
                                 except StudentReport.DoesNotExist:
                                     last_one = None
                                 if last_one != None:
@@ -6346,9 +6471,7 @@ class NewCycleOpen(APIView):
             templ = "./email_templates/new_cycle_open_email.html"
 
             actioning_user = User.objects.get(pk=req.user.pk)
-            actioning_user_name = (
-                f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-            )
+            actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
             actioning_user_email = f"{actioning_user.email}"
 
             # Get report details:
@@ -6360,7 +6483,9 @@ class NewCycleOpen(APIView):
                 ba_lead = ba.leader
                 if ba_lead and ba_lead.is_active and ba_lead.is_staff:
                     user = ba_lead.pk
-                    user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                    user_name = (
+                        f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                    )
                     user_email = f"{ba_lead.email}"
                     data_obj = {"pk": user, "name": user_name, "email": user_email}
                     recipients_list.append(data_obj)
@@ -6371,7 +6496,7 @@ class NewCycleOpen(APIView):
                 if recipient["pk"] not in processed:
                     if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        
+
                         email_subject = f"SPMS: New Reporting Cycle Open"
                         to_email = [recipient["email"]]
 
@@ -6390,10 +6515,10 @@ class NewCycleOpen(APIView):
                         try:
                             send_mail(
                                 email_subject,
-                                template_content, 
+                                template_content,
                                 from_email,
                                 to_email,
-                                fail_silently=False,  
+                                fail_silently=False,
                                 html_message=template_content,
                             )
                         except Exception as e:
@@ -6426,10 +6551,10 @@ class NewCycleOpen(APIView):
                             try:
                                 send_mail(
                                     email_subject,
-                                    template_content, 
+                                    template_content,
                                     from_email,
                                     to_email,
-                                    fail_silently=False, 
+                                    fail_silently=False,
                                     html_message=template_content,
                                 )
                             except Exception as e:
@@ -6454,7 +6579,8 @@ class NewCycleOpen(APIView):
 
 # region PDF GENERATION ===================================================
 
-def determine_doc_kind_url_string(dockind:str):
+
+def determine_doc_kind_url_string(dockind: str):
     if dockind == "conceptplan" or dockind == "concept":
         return "concept"
     elif dockind == "projectplan" or dockind == "project":
@@ -6465,11 +6591,10 @@ def determine_doc_kind_url_string(dockind:str):
         return "student"
     else:
         return "closure"
-                
+
 
 class BeginUnapprovedReportDocGeneration(APIView):
     permission_classes = [IsAuthenticated]
-
 
     def go(self, pk):
         try:
@@ -6487,28 +6612,34 @@ class BeginUnapprovedReportDocGeneration(APIView):
         return obj
 
     def get_external_projects_for_ar(self, report):
-        settings.LOGGER.info(
-            msg=f"Getting All Valid External Project..."
-        )
+        settings.LOGGER.info(msg=f"Getting All Valid External Project...")
         if report:
             # Get progress report documents which belong to it and belong to active and approved projects
-            active_external_projects = Project.objects.filter(Q(
-                    kind__in=[
-                        Project.CategoryKindChoices.EXTERNAL,
-                    ]
+            active_external_projects = (
+                Project.objects.filter(
+                    Q(
+                        kind__in=[
+                            Project.CategoryKindChoices.EXTERNAL,
+                        ]
+                    )
                 )
-            ).exclude(
-                Q(business_area__division__name__isnull=True)
-                | ~Q(
-                    business_area__division__name="Biodiversity and Conservation Science"
-                ) 
-            ).exclude(
-                Q(status__in=[
-                    Project.StatusChoices.COMPLETED,
-                    Project.StatusChoices.SUSPENDED,
-                    Project.StatusChoices.TERMINATED
-                ])
-            ).order_by('title')  
+                .exclude(
+                    Q(business_area__division__name__isnull=True)
+                    | ~Q(
+                        business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                )
+                .exclude(
+                    Q(
+                        status__in=[
+                            Project.StatusChoices.COMPLETED,
+                            Project.StatusChoices.SUSPENDED,
+                            Project.StatusChoices.TERMINATED,
+                        ]
+                    )
+                )
+                .order_by("title")
+            )
 
             # REPLACE WITH AR EXT PROJECT SERIALIAZER
             proj_ser = ARExternalProjectSerializer(
@@ -6527,22 +6658,18 @@ class BeginUnapprovedReportDocGeneration(APIView):
             msg=f"Getting All Student & Progress Reports for current year"
         )
         if report:
-            active_sr_docs = StudentReport.objects.filter(
-                 Q(report=report)
-            ).exclude(
+            active_sr_docs = StudentReport.objects.filter(Q(report=report)).exclude(
                 Q(project__business_area__division__name__isnull=True)
-                    | ~Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
-                    )
+                | ~Q(
+                    project__business_area__division__name="Biodiversity and Conservation Science"
+                )
             )
 
-            active_pr_docs = ProgressReport.objects.filter(
-                Q(report=report)
-            ).exclude(
+            active_pr_docs = ProgressReport.objects.filter(Q(report=report)).exclude(
                 Q(project__business_area__division__name__isnull=True)
-                    | ~Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
-                    )
+                | ~Q(
+                    project__business_area__division__name="Biodiversity and Conservation Science"
+                )
             )
 
             def removeempty_p(html_content):
@@ -6557,7 +6684,6 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 report.progress = removeempty_p(report.progress)
                 report.implications = removeempty_p(report.implications)
                 report.future = removeempty_p(report.future)
-
 
             for sreport in active_sr_docs:
                 sreport.progress_report = removeempty_p(sreport.progress_report)
@@ -6702,7 +6828,6 @@ class BeginUnapprovedReportDocGeneration(APIView):
             print(f"\n\n{e}\n\n")
             set_report_generation_status(report, False)
 
-
         # Business Areas with Participating Projects
         bas = []
         for pr in participating_reports["progress_reports"]:
@@ -6743,13 +6868,9 @@ class BeginUnapprovedReportDocGeneration(APIView):
             progress_reports_by_ba[ba_pk].append(item)
 
         sorted_external_project_data = sorted(
-            [
-                project
-                for project in participating_external_projects
-            ],
+            [project for project in participating_external_projects],
             key=lambda x: get_distilled_title(x["title"]).lower(),
         )
-        
 
         sorted_ba_data = []
         existing_ba_names = set()  # To keep track of existing ba_names
@@ -6762,16 +6883,18 @@ class BeginUnapprovedReportDocGeneration(APIView):
             if ba_name not in existing_ba_names:
                 # Prepare progress reports that match the business area's pk
                 progress_reports = progress_reports_by_ba.get(ba["pk"], [])
-                
+
                 # Sort progress reports first by year (descending) and then alphabetically by title
                 sorted_progress_reports = sorted(
                     progress_reports,
                     key=lambda x: (
-                        -int(x["document"]["project"]["year"]),  # Negative for descending order
-                        get_distilled_title(x["document"]["project"]["title"]).lower()
-                    )
+                        -int(
+                            x["document"]["project"]["year"]
+                        ),  # Negative for descending order
+                        get_distilled_title(x["document"]["project"]["title"]).lower(),
+                    ),
                 )
-                
+
                 # Create an object
                 ba_object = {
                     "ba_name": ba_name,
@@ -6794,9 +6917,13 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 if report["document"]["project"]
             ],
             key=lambda x: (
-                -int(x["document"]["project"]["year"]),  # Negative for descending order by year
-                get_distilled_title(x["document"]["project"]["title"]).lower()  # Alphabetical order by title
-            )
+                -int(
+                    x["document"]["project"]["year"]
+                ),  # Negative for descending order by year
+                get_distilled_title(
+                    x["document"]["project"]["title"]
+                ).lower(),  # Alphabetical order by title
+            ),
         )
 
         # Handle Generation
@@ -6805,6 +6932,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
             settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
         )
 
+        # dbca_image_path = get_encoded_ar_dbca_image()
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
         )
@@ -6892,11 +7020,8 @@ class BeginUnapprovedReportDocGeneration(APIView):
         elapsed_time = end_time - start_time
         settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
 
-        temp_dir = tempfile.gettempdir()  
-        html_file_path = os.path.join(
-            temp_dir,  
-            f"_Annual_Report_{report.pk}.html"
-        )
+        temp_dir = tempfile.gettempdir()
+        html_file_path = os.path.join(temp_dir, f"_Annual_Report_{report.pk}.html")
 
         # Write to the temporary file
         with open(html_file_path, "w", encoding="utf-8") as html_file:
@@ -6922,7 +7047,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 {"error": True},
                 status=HTTP_400_BAD_REQUEST,
             )
-        
+
         else:
             pdf = outs
             pdf_filename = f"_Annual_Report_{report.pk}.pdf"
@@ -7213,14 +7338,14 @@ class BeginReportDocGeneration(APIView):
         participating_external_projects = self.get_approved_external_projects_for_ar(
             report=report
         )
-        
+
         # Participating Reports (Dict in format of student_reports, progress_reports)
         try:
             participating_reports = self.get_approved_reports_for_ar(report=report)
         except Exception as e:
             print(e)
             set_report_generation_status(report, False)
-            
+
         # Business Areas with Participating Projects
         bas = []
         for pr in participating_reports["progress_reports"]:
@@ -7260,10 +7385,7 @@ class BeginReportDocGeneration(APIView):
             progress_reports_by_ba[ba_pk].append(item)
 
         sorted_external_project_data = sorted(
-            [
-                project
-                for project in participating_external_projects
-            ],
+            [project for project in participating_external_projects],
             key=lambda x: get_distilled_title(x["title"]).lower(),
         )
         sorted_ba_data = []
@@ -7277,16 +7399,18 @@ class BeginReportDocGeneration(APIView):
             if ba_name not in existing_ba_names:
                 # Prepare progress reports that match the business area's pk
                 progress_reports = progress_reports_by_ba.get(ba["pk"], [])
-                
+
                 # Sort progress reports first by year (descending) and then alphabetically by title
                 sorted_progress_reports = sorted(
                     progress_reports,
                     key=lambda x: (
-                        -int(x["document"]["project"]["year"]),  # Negative for descending order
-                        get_distilled_title(x["document"]["project"]["title"]).lower()
-                    )
+                        -int(
+                            x["document"]["project"]["year"]
+                        ),  # Negative for descending order
+                        get_distilled_title(x["document"]["project"]["title"]).lower(),
+                    ),
                 )
-                
+
                 # Create an object
                 ba_object = {
                     "ba_name": ba_name,
@@ -7309,9 +7433,13 @@ class BeginReportDocGeneration(APIView):
                 if report["document"]["project"]
             ],
             key=lambda x: (
-                -int(x["document"]["project"]["year"]),  # Negative for descending order by year
-                get_distilled_title(x["document"]["project"]["title"]).lower()  # Alphabetical order by title
-            )
+                -int(
+                    x["document"]["project"]["year"]
+                ),  # Negative for descending order by year
+                get_distilled_title(
+                    x["document"]["project"]["title"]
+                ).lower(),  # Alphabetical order by title
+            ),
         )
 
         # Handle Generation
@@ -7319,6 +7447,7 @@ class BeginReportDocGeneration(APIView):
         prince_css_path = os.path.join(
             settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
         )
+        # dbca_image_path = get_encoded_ar_dbca_image()
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
         )
@@ -7347,56 +7476,56 @@ class BeginReportDocGeneration(APIView):
         settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
         try:
             html_content = get_template("annual_report.html").render(
-            {
-                # Styles & url
-                # "rte_css_path": rte_css_path,
-                "time_generated": get_formatted_datetime(datetime.datetime.now()),
-                "prince_css_path": prince_css_path,
-                "dbca_image_path": dbca_image_path,
-                "dbca_cropped_image_path": dbca_cropped_image_path,
-                "no_image_path": no_image_path,
-                "server_url": (
-                    "http://127.0.0.1:8000"
-                    if settings.DEBUG == True
-                    # else settings.SITE_URL
-                    else settings.PRINCE_SERVER_URL
-                ),
-                "frontend_url": (
-                    "http://127.0.0.1:3000"
-                    if settings.DEBUG == True
-                    else settings.SITE_URL
-                ),
-                "base_url": settings.BASE_DIR,
-                # Chapter Images
-                "cover_chapter_image": cover_chapter_image,
-                "rear_cover_chapter_image": rear_cover_chapter_image,
-                "research_chapter_image": research_chapter_image,
-                "partnerships_chapter_image": partnerships_chapter_image,
-                "collaborations_chapter_image": collaborations_chapter_image,
-                "student_projects_chapter_image": student_projects_chapter_image,
-                "publications_chapter_image": publications_chapter_image,
-                "generic_chapter_image_path": generic_chapter_image,
-                # Cover page
-                "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
-                # ED Message
-                "directors_message_data": directors_message_data,
-                "directors_message_sign_off": directors_message_sign_off,
-                # TABLE CONTENTS
-                # SDS
-                "sds_data": sds_data,
-                # BA & Progress Reports
-                "sorted_ba_data_and_pr_dict": sorted_ba_data,
-                # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
-                "sorted_external_project_data": sorted_external_project_data,
-                # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
-                # Student Reports
-                "sorted_student_report_array": sorted_srs,
-                # Publications and Reports
-                "publications_data": publications_data,
-                # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
-                "population_time": f"{float(time.time() - start_time):.3f}",
-            }
-        )
+                {
+                    # Styles & url
+                    # "rte_css_path": rte_css_path,
+                    "time_generated": get_formatted_datetime(datetime.datetime.now()),
+                    "prince_css_path": prince_css_path,
+                    "dbca_image_path": dbca_image_path,
+                    "dbca_cropped_image_path": dbca_cropped_image_path,
+                    "no_image_path": no_image_path,
+                    "server_url": (
+                        "http://127.0.0.1:8000"
+                        if settings.DEBUG == True
+                        # else settings.SITE_URL
+                        else settings.PRINCE_SERVER_URL
+                    ),
+                    "frontend_url": (
+                        "http://127.0.0.1:3000"
+                        if settings.DEBUG == True
+                        else settings.SITE_URL
+                    ),
+                    "base_url": settings.BASE_DIR,
+                    # Chapter Images
+                    "cover_chapter_image": cover_chapter_image,
+                    "rear_cover_chapter_image": rear_cover_chapter_image,
+                    "research_chapter_image": research_chapter_image,
+                    "partnerships_chapter_image": partnerships_chapter_image,
+                    "collaborations_chapter_image": collaborations_chapter_image,
+                    "student_projects_chapter_image": student_projects_chapter_image,
+                    "publications_chapter_image": publications_chapter_image,
+                    "generic_chapter_image_path": generic_chapter_image,
+                    # Cover page
+                    "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
+                    # ED Message
+                    "directors_message_data": directors_message_data,
+                    "directors_message_sign_off": directors_message_sign_off,
+                    # TABLE CONTENTS
+                    # SDS
+                    "sds_data": sds_data,
+                    # BA & Progress Reports
+                    "sorted_ba_data_and_pr_dict": sorted_ba_data,
+                    # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
+                    "sorted_external_project_data": sorted_external_project_data,
+                    # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
+                    # Student Reports
+                    "sorted_student_report_array": sorted_srs,
+                    # Publications and Reports
+                    "publications_data": publications_data,
+                    # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
+                    "population_time": f"{float(time.time() - start_time):.3f}",
+                }
+            )
 
         except Exception as e:
             settings.LOGGER.error(f"There was an error generating report: {e}")
@@ -7405,16 +7534,13 @@ class BeginReportDocGeneration(APIView):
                 {"error": True},
                 status=HTTP_400_BAD_REQUEST,
             )
-   
+
         end_time = time.time()
         elapsed_time = end_time - start_time
         settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
 
-        temp_dir = tempfile.gettempdir()  
-        html_file_path = os.path.join(
-            temp_dir,  
-            f"_Annual_Report_{report.pk}.html"
-        )
+        temp_dir = tempfile.gettempdir()
+        html_file_path = os.path.join(temp_dir, f"_Annual_Report_{report.pk}.html")
 
         # Write to the temporary file
         with open(html_file_path, "w", encoding="utf-8") as html_file:
@@ -7515,8 +7641,6 @@ class BeginReportDocGeneration(APIView):
                     )
 
 
-
-
 class CancelReportDocGeneration(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -7610,7 +7734,9 @@ class BeginProjectDocGeneration(APIView):
 
     def post(self, req, pk):
         doc = self.get_main_doc(pk=pk)
-        settings.LOGGER.info(msg=f"{req.user} is generating Project Doc PDF for document {doc}")
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating Project Doc PDF for document {doc}"
+        )
         document_type = doc.kind
 
         # General Helper Funcs
@@ -7943,7 +8069,6 @@ class BeginProjectDocGeneration(APIView):
             project_status = concept_plan_data.project.status
             business_area_name = concept_plan_data.project.business_area.name
 
-
             service = get_associated_service(pk=concept_plan_data.project.pk)
             if service:
                 departmental_service_name = service.name
@@ -8037,7 +8162,6 @@ class BeginProjectDocGeneration(APIView):
             else:
                 departmental_service_name = "No Dept. Service"
 
-
             project_team = get_project_team(project_plan_data.project.pk)
 
             project_image_data = TinyProjectPhotoSerializer(
@@ -8082,7 +8206,6 @@ class BeginProjectDocGeneration(APIView):
             external_funds = project_plan_data.operating_budget_external
             related_projects = project_plan_data.related_projects
 
-
             # Get the endorsement specific items
             endorsements = Endorsement.objects.filter(
                 project_plan=project_plan_data.pk
@@ -8093,7 +8216,7 @@ class BeginProjectDocGeneration(APIView):
             data_document_pk = project_plan_data.pk
             main_document_pk = project_plan_data.document.pk
             project_pk = project_plan_data.project.pk
-            
+
             return {
                 "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
@@ -8177,7 +8300,6 @@ class BeginProjectDocGeneration(APIView):
             progress = progress_report_data.progress
             implications = progress_report_data.implications
             future = progress_report_data.future
-
 
             data_document_pk = progress_report_data.pk
             main_document_pk = progress_report_data.document.pk
@@ -8275,8 +8397,6 @@ class BeginProjectDocGeneration(APIView):
             main_document_pk = student_report_data.document.pk
             project_pk = student_report_data.project.pk
 
-
-
             return {
                 "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
@@ -8360,7 +8480,6 @@ class BeginProjectDocGeneration(APIView):
             else:
                 departmental_service_name = "No Dept. Service"
 
-
             return {
                 "departmental_service_name": departmental_service_name,
                 "project_kind": project_kind,
@@ -8392,10 +8511,14 @@ class BeginProjectDocGeneration(APIView):
 
         # Doc Wide Variables
         rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
-        fonts_folder_path = os.path.join(settings.BASE_DIR, "documents", "static", "fonts")
+        fonts_folder_path = os.path.join(
+            settings.BASE_DIR, "documents", "static", "fonts"
+        )
         prince_css_path = os.path.join(
             settings.BASE_DIR, "documents", "prince_project_document_styles.css"
         )
+        # dbca_image_path = get_encoded_ar_dbca_image()
+
         dbca_image_path = os.path.join(
             settings.BASE_DIR, "documents", "BCSTransparent.png"
         )
@@ -8939,8 +9062,8 @@ class CancelProjectDocGeneration(APIView):
                 HTTP_400_BAD_REQUEST,
             )
 
+
 # endregion ==================================================
 
 
 # endregion  ====================================================================================================
-
