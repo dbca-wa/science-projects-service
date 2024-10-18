@@ -1002,6 +1002,7 @@ ul {
 .academic_td {
 	width: 20%;
 	padding: 5px 10px 5px;
+	white-space: nowrap;
 }
 
 * {

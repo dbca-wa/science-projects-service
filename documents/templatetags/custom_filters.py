@@ -147,8 +147,10 @@ def abbreviated_name(user_obj):
 
     # print(user_obj)
     if user_obj["title"]:
-        return f"{get_title_rep(user_obj['title'])} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
-    return f"{user_obj['display_first_name'][0]} {user_obj['display_last_name']}"
+        return f"{get_title_rep(user_obj['title'])} {user_obj['display_first_name'][0]} {user_obj['display_last_name']}".strip()
+    return (
+        f"{user_obj['display_first_name'][0]} {user_obj['display_last_name']}".strip()
+    )
 
 
 # Changed as requested

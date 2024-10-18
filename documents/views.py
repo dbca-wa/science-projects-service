@@ -7080,7 +7080,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                         # Delete the previous file
                         pdfs_file_path = doc_pdf.file.path
                         default_storage.delete(pdfs_file_path)
-                        os.remove(html_file_path)
+                        # os.remove(html_file_path)
                         doc_pdf = ser.save()
                         set_report_generation_status(report, False)
                         return Response(
