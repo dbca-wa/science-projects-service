@@ -139,18 +139,21 @@ class DBCAMiddleware(MiddlewareMixin):
                 if value in request.META:
                     attributemap[key] = request.META[value]
 
+            email = attributemap.get("email")
+            username = attributemap.get("username")
+            # Check if the user exists by email first
+            user = None
+
             if (
-                attributemap["email"]
+                email
                 and User.objects.filter(email__iexact=attributemap["email"]).exists()
             ):
-                user = User.objects.filter(email__iexact=attributemap["email"])[0]
-            elif (
-                User.__name__ != "EmailUser"
-                and User.objects.filter(
+                user = User.objects.filter(email__iexact=attributemap["email"]).first()
+
+            elif username and User.objects.filter(username__iexact=username).exists():
+                user = User.objects.filter(
                     username__iexact=attributemap["username"]
-                ).exists()
-            ):
-                user = User.objects.filter(username__iexact=attributemap["username"])[0]
+                ).first()
             else:
                 user = self.create_user_and_associated_entries(request, attributemap)
 
