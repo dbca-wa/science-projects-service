@@ -26,6 +26,7 @@ spec:
               name: spms-media-test
       containers:
         - name: spms-backend
+          image: ghcr.io/dbca-wa/science-projects-service
           env:
           - name: DATABASE_URL
             valueFrom:
