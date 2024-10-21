@@ -1,5 +1,6 @@
 from datetime import datetime
-from pprint import pprint
+
+# from pprint import pprint
 from django import template
 from operator import attrgetter
 from itertools import groupby
@@ -97,7 +98,7 @@ def get_student_level_text(value):
 
 @register.filter
 def sort_by_affiliation_and_name(team_members):
-    pprint(team_members)
+    # pprint(team_members)
     return sorted(
         team_members,
         key=lambda member: (

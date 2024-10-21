@@ -666,42 +666,6 @@ class MergeUsers(APIView):
         return Response(status=HTTP_200_OK)
 
 
-class SetProjectCaretaker(APIView):
-    """
-    This function allows users to request setting a project caretaker.
-    A project caretaker is a user who is responsible for a project, in the absense of
-    the project leader (whether they left the department or on leave).
-    Users can set a duration for caretaking, and the system will automatically revert
-
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get_user_to_set_caretaker(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise NotFound
-
-    # Also prevent taking credit on ar if caretaking at the time of report
-    # Should always show original user
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is setting project caretaker")
-
-        if not req.user.is_superuser:
-            return Response(
-                {"detail": "You do not have permission to set project caretaker."},
-                status=HTTP_401_UNAUTHORIZED,
-            )
-        memberships = req.data.get("project")
-        user_pk = req.data.get("user")
-        project = Project.objects.get(pk=project_pk)
-        user = User.objects.get(pk=user_pk)
-        project.caretaker = user
-        project.save()
-        return Response(status=HTTP_200_OK)
-
-
 # endregion
 
 # region Staff Profile Views ============================================

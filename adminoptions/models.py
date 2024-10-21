@@ -131,9 +131,24 @@ class AdminTask(CommonModel):
     class TaskStatus(models.TextChoices):
         PENDING = "pending", "Pending"
         APPROVED = "approved", "Approved"
+        FULFILLED = "fulfilled", "Fulfilled"
         REJECTED = "rejected", "Rejected"
 
-    # Fields associated with the project admin actions
+    # Main Fields
+    action = models.CharField(
+        max_length=50,
+        choices=ActionTypes.choices,
+        default=ActionTypes.DELETEPROJECT,
+    )
+
+    # Status of task
+    status = models.CharField(
+        max_length=50,
+        choices=TaskStatus.choices,
+        default=TaskStatus.PENDING,
+    )
+
+    # Fields associated with the project admin actions (when deleting)
     project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
@@ -142,7 +157,15 @@ class AdminTask(CommonModel):
         related_name="admintasks",
     )
 
-    # Fields associated with the user admin actions
+    requester = models.ForeignKey(
+        "users.User",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="adminrequests",
+    )
+
+    # Fields associated with the user admin actions (will be requester if not set for caretaker)
     primary_user = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -155,41 +178,92 @@ class AdminTask(CommonModel):
     secondary_users = models.JSONField(
         blank=True,
         null=True,
-        help_text="An array of user pks to merge or set caretaker",
+        help_text="An array of user pks to merge or set caretaker (array of 1)",
     )
 
-    # Main Fields
-    action = models.CharField(
-        max_length=50,
-        choices=ActionTypes.choices,
-        default=ActionTypes.DELETEPROJECT,
-    )
-
-    requestor = models.ForeignKey(
-        "users.User",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="adminrequests",
-    )
-
-    reasoning = models.TextField(
+    reason = models.TextField(
         blank=True,
         null=True,
-        help_text="The requestor's reasoning for the task",
+        help_text="The requester's reasoning for the task",
     )
 
-    status = models.CharField(
-        max_length=50,
-        choices=TaskStatus.choices,
-        default=TaskStatus.PENDING,
+    start_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="The date the task was initiated",
+    )
+
+    end_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="The date the task was completed",
+    )
+
+    reason = models.TextField(
+        blank=True,
+        null=True,
+        help_text="The reasoning for the task",
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Any additional notes for the task",
     )
 
     def __str__(self) -> str:
-        return f"{self.action} - {self.project} - {self.requestor}"
+        return f"{self.action} - {self.project} - {self.requester}"
 
     class Meta:
-        verbose_name = "Admin Tasks"
+        verbose_name = "Admin Task"
+        verbose_name_plural = "Admin Tasks"
+
+
+class Caretaker(CommonModel):
+    """Entries for approved caretaker requests"""
+
+    user = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="caretaker",
+    )
+
+    caretaker = models.ForeignKey(
+        "users.User",
+        on_delete=models.CASCADE,
+        related_name="caretaker_for",
+    )
+
+    start_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="The date the caretaker request was initiated",
+    )
+
+    end_date = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="The date the caretaker request was completed",
+    )
+
+    reason = models.TextField(
+        blank=True,
+        null=True,
+        help_text="The reasoning for the caretaker request",
+    )
+
+    notes = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Any additional notes for the caretaker request",
+    )
+
+    def __str__(self) -> str:
+        return f"{self.user}, {self.reason} | {self.start_date}"
+
+    class Meta:
+        verbose_name = "Caretaker"
+        verbose_name_plural = "Caretakers"
 
 
 # endregion  =================================================================================================

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from adminoptions.models import AdminOptions, AdminTask
+from adminoptions.models import AdminOptions, AdminTask, Caretaker
 
 
 @admin.register(AdminOptions)
@@ -16,7 +16,20 @@ class AdminTaskAdmin(admin.ModelAdmin):
         "pk",
         "project",
         "action",
-        "requestor",
-        "reasoning",
+        "requester",
+        "reason",
         "status",
+    ]
+
+
+@admin.register(Caretaker)
+class CaretakerAdmin(admin.ModelAdmin):
+    list_display = [
+        "pk",
+        "user",
+        "caretaker",
+        "reason",
+        "start_date",
+        "end_date",
+        "created_at",
     ]

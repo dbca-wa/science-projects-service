@@ -1,6 +1,6 @@
 # region IMPORTS ====================================================================================================
 from rest_framework import serializers
-from adminoptions.models import AdminOptions, AdminTask
+from adminoptions.models import AdminOptions, AdminTask, Caretaker
 from users.serializers import MiniUserSerializer
 
 # endregion  =================================================================================================
@@ -44,6 +44,14 @@ class AdminOptionsSerializer(serializers.ModelSerializer):
 class AdminTaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminTask
+        fields = "__all__"
+
+
+class CaretakerSerializer(serializers.ModelSerializer):
+    user = MiniUserSerializer()
+
+    class Meta:
+        model = Caretaker
         fields = "__all__"
 
 
