@@ -30,6 +30,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_201_CREATED,
     HTTP_401_UNAUTHORIZED,
+    HTTP_404_NOT_FOUND,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from rest_framework.permissions import (
@@ -767,7 +768,12 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
             msg=f"{req.user} is checking staff profile and returning data and active state"
         )
         # 1 Get the user object
-        user = User.objects.get(pk=pk)
+        user = User.objects.filter(pk=pk).first()
+        if not user:
+            return Response(
+                {"detail": "User not found."},
+                status=HTTP_404_NOT_FOUND,
+            )
         # 2 Get the user's email address
         email = user.email
         # 3a Check if the email is in the IT Assets API
