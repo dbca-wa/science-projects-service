@@ -8,6 +8,7 @@ from django.forms import ValidationError
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 
+from adminoptions.models import AdminTask
 from common.models import CommonModel
 
 # endregion ==============================================
@@ -154,6 +155,20 @@ class Project(CommonModel):
         on_delete=models.SET_NULL,
         #  related_name='business'
     )
+
+    deletion_requested = models.BooleanField(
+        default=False,
+        help_text="Request for deletion of project",
+    )
+
+    def get_deletion_request_id(self):
+        # Check if there's a pending AdminTask related to this project with the action 'deleteproject'
+        deletion_task = AdminTask.objects.filter(
+            action=AdminTask.ActionTypes.DELETEPROJECT,
+            project=self.pk,
+            status=AdminTask.TaskStatus.PENDING,
+        ).first()
+        return deletion_task.id if deletion_task else None
 
     def extract_inner_text(self, html_string):
         # Parse the HTML using BeautifulSoup

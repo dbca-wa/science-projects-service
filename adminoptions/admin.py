@@ -14,11 +14,12 @@ class AdminOptionsAdmin(admin.ModelAdmin):
 class AdminTaskAdmin(admin.ModelAdmin):
     list_display = [
         "pk",
-        "project",
+        "status",
         "action",
         "requester",
+        "created_at",
         "reason",
-        "status",
+        "project",
     ]
 
 

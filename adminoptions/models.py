@@ -132,7 +132,13 @@ class AdminTask(CommonModel):
         PENDING = "pending", "Pending"
         APPROVED = "approved", "Approved"
         FULFILLED = "fulfilled", "Fulfilled"
+        CANCELLED = "cancelled", "Cancelled"
         REJECTED = "rejected", "Rejected"
+
+    class ProjectDeletionReasons(models.TextChoices):
+        DUPLICATE = "duplicate", "Duplicate project"
+        MISTAKE = "mistake", "Made by mistake"
+        OTHER = "other", "Other"
 
     # Main Fields
     action = models.CharField(
@@ -197,12 +203,6 @@ class AdminTask(CommonModel):
         blank=True,
         null=True,
         help_text="The date the task was completed",
-    )
-
-    reason = models.TextField(
-        blank=True,
-        null=True,
-        help_text="The reasoning for the task",
     )
 
     notes = models.TextField(

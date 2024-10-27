@@ -1,6 +1,7 @@
 # region IMPORTS ====================================================================================================
 from rest_framework import serializers
 from adminoptions.models import AdminOptions, AdminTask, Caretaker
+from projects.models import Project
 from users.models import User
 from users.serializers import MiniUserSerializer
 
@@ -48,8 +49,24 @@ class IAdminTaskRequesterSerializer(serializers.ModelSerializer):
         fields = ["pk", "display_first_name", "display_last_name"]
 
 
+class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
+
+    requester = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = AdminTask
+        fields = "__all__"
+
+
+class IAdminTaskProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ["pk", "title"]
+
+
 class AdminTaskSerializer(serializers.ModelSerializer):
     requester = IAdminTaskRequesterSerializer()
+    project = IAdminTaskProjectSerializer()
 
     class Meta:
         model = AdminTask

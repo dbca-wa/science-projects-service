@@ -15,12 +15,13 @@ from rest_framework.status import (
 )
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from adminoptions.models import AdminOptions, AdminTask, Caretaker
 from adminoptions.serializers import (
     AdminOptionsMaintainerSerializer,
     AdminOptionsSerializer,
+    AdminTaskRequestCreationSerializer,
     AdminTaskSerializer,
     CaretakerSerializer,
 )
@@ -139,6 +140,31 @@ class AdminControlsDetail(APIView):
 class AdminTasks(APIView):
     permission_classes = [IsAuthenticated]
 
+    def check_existing_deletion_task(self, data):
+        if AdminTask.objects.filter(
+            action=data["action"],
+            project=data["project"],
+            status=AdminTask.TaskStatus.PENDING,
+        ).exists():
+            return True
+        return False
+
+    def set_project_deletion_requested(self, data):
+        try:
+            project = Project.objects.get(pk=data["project"])
+            # Prevent duplicate requests
+            if project.deletion_requested:
+                return "Project already has a deletion request"
+
+            project.deletion_requested = True
+            project.save()
+            return True
+        except Exception as e:
+            settings.LOGGER.error(
+                msg=f"Error in setting project deletion requested: {e}"
+            )
+            return e
+
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting all admin tasks")
         all = AdminTask.objects.all()
@@ -152,17 +178,91 @@ class AdminTasks(APIView):
         )
 
     def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is posting an instance of admin tasks ({req.data["action"]})"
-        )
+        details_string = ""
+        data = req.data
+        if req.data["action"] == AdminTask.ActionTypes.MERGEUSER:
+            details_string = f"{req.user} wishes to merge {req.data['secondary_users']} into {req.data['primary_user']}"
+        elif req.data["action"] == AdminTask.ActionTypes.SETCARETAKER:
+            details_string = f"{req.user} wishes to set {req.data['secondary_users'][0]} as caretaker for {req.data['primary_user']}"
+        else:
+            details_string = (
+                f"{req.user} wishes to delete project {req.data['project']}"
+            )
 
-        ser = AdminTaskSerializer(
+        settings.LOGGER.info(
+            msg=f"{req.user} is posting an instance of admin tasks ({req.data["action"]} - {details_string})"
+        )
+        try:
+            # Merge user request validation
+            if (data["action"] == AdminTask.ActionTypes.MERGEUSER) and (
+                data["primary_user"] is None
+                or data["secondary_users"] is None
+                or len(data["secondary_users"]) < 1
+            ):
+                raise ValueError(
+                    "Primary and single secondary users must be set to merge"
+                )
+
+            # Caretaker request validation
+            if (data["action"] == AdminTask.ActionTypes.SETCARETAKER) and (
+                data["primary_user"] is None
+                or data["secondary_users"] is None
+                or len(data["secondary_users"]) < 1
+            ):
+                raise ValueError(
+                    "Primary and single secondary users must be set to merge"
+                )
+
+            # Delete project request validation
+            if (data["action"] == AdminTask.ActionTypes.DELETEPROJECT) and (
+                data["project"] is None
+            ):
+                raise ValueError("Project must be set to delete")
+            if data["action"] == AdminTask.ActionTypes.DELETEPROJECT:
+                if data["reason"] is None:
+                    raise ValueError("Reason must be set to delete project")
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"Error in creating task: {e}")
+            return Response(
+                e,
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        requester = req.user
+        data["requester"] = requester.pk
+        data["status"] = AdminTask.TaskStatus.PENDING
+
+        if data["action"] == AdminTask.ActionTypes.DELETEPROJECT:
+            # First check if there is already a pending deletion request for this project
+            if self.check_existing_deletion_task(data):
+                settings.LOGGER.error(
+                    msg=f"Error in setting project deletion requested: Project already has a pending deletion request"
+                )
+                return Response(
+                    "Project already has a pending deletion request",
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            # Check the project specifically if the flag is set to true
+            res = self.set_project_deletion_requested(data)
+            if res != True:
+                settings.LOGGER.error(
+                    msg=f"Error in setting project deletion requested: {res}"
+                )
+                return Response(
+                    f"{res}",
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
+        # If all is good, create the task
+
+        ser = AdminTaskRequestCreationSerializer(
             data=req.data,
         )
         if ser.is_valid():
             task = ser.save()
             return Response(
-                AdminTaskSerializer(task).data,
+                AdminTaskRequestCreationSerializer(task).data,
                 status=HTTP_201_CREATED,
             )
         else:
@@ -171,6 +271,22 @@ class AdminTasks(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class PendingTasks(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is getting all pending admin tasks")
+        all = AdminTask.objects.filter(status=AdminTask.TaskStatus.PENDING)
+        ser = AdminTaskSerializer(
+            all,
+            many=True,
+        )
+        return Response(
+            ser.data,
+            status=HTTP_200_OK,
+        )
 
 
 class AdminTaskDetail(APIView):
@@ -314,7 +430,7 @@ class CaretakerDetail(APIView):
 
 
 class ApproveTask(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def go(self, pk):
         try:
@@ -344,7 +460,7 @@ class ApproveTask(APIView):
             raise NotFound
         return obj
 
-    def put(self, req, pk):
+    def post(self, req, pk):
         task = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is approving task {task}")
 
@@ -357,7 +473,9 @@ class ApproveTask(APIView):
             if task.action == AdminTask.ActionTypes.DELETEPROJECT:
                 if task.project is None:
                     raise ValueError("Project must be set to delete")
+                task.notes = f"Project deletion approved - {task.project.title}"
                 task.project.delete()
+                task.project = None
                 # This will delete all related documents and memberships
             elif task.action == AdminTask.ActionTypes.MERGEUSER:
                 if (
@@ -465,6 +583,96 @@ class ApproveTask(APIView):
         # Fulfill the task
         task.status = AdminTask.TaskStatus.FULFILLED
         task.save()
+
+        return Response(
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+class RejectTask(APIView):
+
+    permission_classes = [IsAdminUser]
+
+    def go(self, pk):
+        try:
+            obj = AdminTask.objects.get(pk=pk)
+        except AdminTask.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_user(self, pk):
+        try:
+            obj = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        task = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is rejecting task {task}")
+
+        # Reject the task
+        task.status = AdminTask.TaskStatus.REJECTED
+        task.save()
+
+        # Handle based on type of task
+        if task.action == AdminTask.ActionTypes.DELETEPROJECT:
+            # If a project deletion is rejected, the project deletion is cancelled
+            task.project.deletion_requested = False
+            task.project.save()
+
+        if task.action == AdminTask.ActionTypes.MERGEUSER:
+            # If a user merge is rejected, the merge is cancelled
+
+            pass
+
+        if task.action == AdminTask.ActionTypes.SETCARETAKER:
+            # If a caretaker request is rejected, the caretaker request is cancelled
+            primary_user = self.get_user(pk=task.primary_user)
+            primary_user.caretaker_mode = False
+            primary_user.caretaker = None
+            pass
+
+        return Response(
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+class CancelTask(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = AdminTask.objects.get(pk=pk)
+        except AdminTask.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        task = self.go(pk)
+        settings.LOGGER.info(msg=f"{req.user} is cancelling request for task {task}")
+
+        # Cancel the task
+        task.status = AdminTask.TaskStatus.CANCELLED
+        task.save()
+
+        # Handle based on type of task
+        if task.action == AdminTask.ActionTypes.DELETEPROJECT:
+            # If a project deletion is cancelled, the project deletion is cancelled
+            task.project.deletion_requested = False
+            task.project.save()
+
+        if task.action == AdminTask.ActionTypes.MERGEUSER:
+            # If a user merge is cancelled, the merge is cancelled
+            pass
+
+        if task.action == AdminTask.ActionTypes.SETCARETAKER:
+            # If a caretaker request is cancelled, the caretaker request is cancelled
+            primary_user = self.get_user(pk=task.primary_user)
+            primary_user.caretaker_mode = False
+            primary_user.caretaker = None
+            pass
 
         return Response(
             status=HTTP_202_ACCEPTED,

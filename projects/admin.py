@@ -63,6 +63,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "year",
         "kind",
         "status",
+        "deletion_requested",
         "business_area",
     ]
 

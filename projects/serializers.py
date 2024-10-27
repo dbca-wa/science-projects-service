@@ -147,10 +147,15 @@ class ProblematicProjectSerializer(ModelSerializer):
 class ProjectSerializer(ModelSerializer):
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
+    deletion_request_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = "__all__"
+
+    def get_deletion_request_id(self, instance):
+        # Use the method defined on the Project model to get the deletion request ID
+        return instance.get_deletion_request_id()
 
     def to_representation(self, instance):
         # Get the serialized data from the parent class
@@ -159,6 +164,9 @@ class ProjectSerializer(ModelSerializer):
         # Check if the custom context key is present and use 'pk' instead of 'id'
         if self.context.get("use_pk_for_id"):
             representation["pk"] = representation.pop("id")
+
+        # If a deletion request exists, add the deletion request ID to the representation
+        representation["deletion_request_id"] = self.get_deletion_request_id(instance)
 
         return representation
 
