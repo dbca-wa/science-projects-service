@@ -722,6 +722,14 @@ class MergeUsers(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
+        if primary_user_id in secondary_user_ids:
+            return Response(
+                {
+                    "detail": "Invalid data. Primary user cannot also be a secondary user."
+                },
+                status=HTTP_400_BAD_REQUEST,
+            )
+
         primary_user = self.get_user(primary_user_id)
         secondary_users = User.objects.filter(pk__in=secondary_user_ids)
         print({"primaryUser": primary_user, "secondaryUsers": secondary_users})
@@ -842,6 +850,14 @@ class SetCaretaker(APIView):
         if not primary_user_id or not secondary_user_ids:
             return Response(
                 {"detail": "Invalid data. Primary and secondary users are required."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        if primary_user_id in secondary_user_ids:
+            return Response(
+                {
+                    "detail": "Invalid data. Primary user cannot also be a secondary user."
+                },
                 status=HTTP_400_BAD_REQUEST,
             )
 
