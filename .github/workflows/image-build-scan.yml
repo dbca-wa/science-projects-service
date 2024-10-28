@@ -72,22 +72,10 @@ jobs:
             security-events: write
         steps:
             #----------------------------------------------
-            # Cache Trivy database
-            #----------------------------------------------
-            - name: Cache Trivy database
-              uses: actions/cache@v3
-              with:
-                  path: ~/.cache/trivy
-                  key: ${{ runner.os }}-trivy-db
-                  restore-keys: |
-                      ${{ runner.os }}-trivy-db
-            #----------------------------------------------
             # Run vulnerability scan on built image
             #----------------------------------------------
             - name: Run Trivy vulnerability scanner
               uses: aquasecurity/trivy-action@0.24.0
-              env:
-                  GITHUB_PAT: ${{ secrets.GH_PAT }}
               with:
                   scan-type: "image"
                   image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
@@ -95,33 +83,10 @@ jobs:
                   severity: "HIGH,CRITICAL"
                   format: "sarif"
                   output: "trivy-results.sarif"
-
-            #----------------------------------------------
-            # Upload Trivy scan results to GitHub Security tab
-            #----------------------------------------------
             - name: Upload Trivy scan results to GitHub Security tab
               uses: github/codeql-action/upload-sarif@v3
               with:
                   sarif_file: "trivy-results.sarif"
-
-            # #----------------------------------------------
-            # # Run vulnerability scan on built image
-            # #----------------------------------------------
-            # - name: Run Trivy vulnerability scanner
-            #   uses: aquasecurity/trivy-action@0.24.0
-            #   env:
-            #       GITHUB_PAT: ${{ secrets.GH_PAT }}
-            #   with:
-            #       scan-type: "image"
-            #       image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
-            #       vuln-type: "os,library"
-            #       severity: "HIGH,CRITICAL"
-            #       format: "sarif"
-            #       output: "trivy-results.sarif"
-            # - name: Upload Trivy scan results to GitHub Security tab
-            #   uses: github/codeql-action/upload-sarif@v3
-            #   with:
-            #       sarif_file: "trivy-results.sarif"
 
     # cleanup:
     #     name: Cleanup old tags (keep latest 16)
