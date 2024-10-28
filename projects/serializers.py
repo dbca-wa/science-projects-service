@@ -281,6 +281,7 @@ class PkAndKindOnlyProjectSerializer(ModelSerializer):
 class MiniUserSerializer(ModelSerializer):
     title = serializers.SerializerMethodField()
     affiliation = serializers.SerializerMethodField()
+    caretakers = serializers.SerializerMethodField()
 
     def get_title(self, user):
         return user.profile.title
@@ -304,7 +305,24 @@ class MiniUserSerializer(ModelSerializer):
             "is_staff",
             "title",
             "affiliation",
+            "caretakers",
         ]
+
+    def get_caretakers(self, obj):
+        # Call the user model's get_caretakers method
+        caretakers = obj.get_caretakers()
+        # Set caretaker data using list comprehension
+        caretakers_data = [
+            {
+                "pk": obj.caretaker.pk,
+                "display_first_name": obj.caretaker.display_first_name,
+                "display_last_name": obj.caretaker.display_last_name,
+                "email": obj.caretaker.email,
+            }
+            for obj in caretakers
+        ]
+        # Return whatever data is available
+        return caretakers_data
 
 
 class MiniProjectMemberSerializer(ModelSerializer):

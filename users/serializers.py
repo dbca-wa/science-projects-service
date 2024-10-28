@@ -86,6 +86,8 @@ class PrivateTinyUserSerializer(serializers.ModelSerializer):
 
 
 class MiniUserSerializer(serializers.ModelSerializer):
+    caretakers = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -96,7 +98,24 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "email",
             "is_active",
             "is_superuser",
+            "caretakers",
         )
+
+    def get_caretakers(self, obj):
+        # Call the user model's get_caretakers method
+        caretakers = obj.get_caretakers()
+        # Set caretaker data using list comprehension
+        caretakers_data = [
+            {
+                "pk": cobj.caretaker.pk,
+                "display_first_name": cobj.caretaker.display_first_name,
+                "display_last_name": cobj.caretaker.display_last_name,
+                "email": cobj.caretaker.email,
+            }
+            for cobj in caretakers
+        ]
+        # Return whatever data is available
+        return caretakers_data
 
 
 class TinyUserSerializer(serializers.ModelSerializer):
@@ -105,6 +124,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
     business_area = TinyBusinessAreaSerializer(source="work.business_area")
     image = UserAvatarSerializer(source="profile.image")
     affiliation = AffiliationSerializer(source="work.affiliation")
+    caretakers = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -125,7 +145,24 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "branch",
             "business_area",
             "affiliation",
+            "caretakers",
         )
+
+    def get_caretakers(self, obj):
+        # Call the user model's get_caretakers method
+        caretakers = obj.get_caretakers()
+        # Set caretaker data using list comprehension
+        caretakers_data = [
+            {
+                "pk": cobj.caretaker.pk,
+                "display_first_name": cobj.caretaker.display_first_name,
+                "display_last_name": cobj.caretaker.display_last_name,
+                "email": cobj.caretaker.email,
+            }
+            for cobj in caretakers
+        ]
+        # Return whatever data is available
+        return caretakers_data
 
 
 class ManagerSerializer(serializers.Serializer):
@@ -354,6 +391,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         source="staff_profile.public_email",
         read_only=True,
     )
+    caretakers = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -384,7 +422,24 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "business_areas_led",
             "staff_profile_pk",
             "public_email",
+            "caretakers",
         )
+
+    def get_caretakers(self, obj):
+        # Call the user model's get_caretakers method
+        caretakers = obj.get_caretakers()
+        # Set caretaker data using list comprehension
+        caretakers_data = [
+            {
+                "pk": cobj.caretaker.pk,
+                "display_first_name": cobj.caretaker.display_first_name,
+                "display_last_name": cobj.caretaker.display_last_name,
+                "email": cobj.caretaker.email,
+            }
+            for cobj in caretakers
+        ]
+        # Return whatever data is available
+        return caretakers_data
 
 
 # endregion
@@ -404,6 +459,7 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
     unit = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     position = serializers.SerializerMethodField()
+    caretakers = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -423,7 +479,24 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
             "unit",
             "location",
             "position",
+            "caretakers",
         )
+
+    def get_caretakers(self, obj):
+        # Call the user model's get_caretakers method
+        caretakers = obj.get_caretakers()
+        # Set caretaker data using list comprehension
+        caretakers_data = [
+            {
+                "pk": cobj.caretaker.pk,
+                "display_first_name": cobj.caretaker.display_first_name,
+                "display_last_name": cobj.caretaker.display_last_name,
+                "email": cobj.caretaker.email,
+            }
+            for cobj in caretakers
+        ]
+        # Return whatever data is available
+        return caretakers_data
 
     def get_employee_id(self, obj):
         return obj.staff_profile.employee_id

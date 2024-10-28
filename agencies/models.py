@@ -102,6 +102,15 @@ class BusinessArea(CommonModel):  # Renamed from program
         on_delete=models.SET_NULL,
         related_name="business_areas_led",
     )
+    # If leader sets a caretaker
+    caretaker = models.ForeignKey(
+        "users.User",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="business_areas_caretaker",
+    )
+
     finance_admin = models.ForeignKey(
         "users.User",
         default=1,

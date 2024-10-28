@@ -30,7 +30,6 @@ class CaretakerAdmin(admin.ModelAdmin):
         "user",
         "caretaker",
         "reason",
-        "start_date",
         "end_date",
         "created_at",
     ]

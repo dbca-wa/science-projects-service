@@ -687,7 +687,7 @@ class CancelTask(APIView):
 
 # endregion  =================================================================================================
 
-# region Merge Users =================================================================================================
+# region Merge Users / Set Caretaker =================================================================================================
 
 
 class MergeUsers(APIView):
@@ -807,6 +807,63 @@ class MergeUsers(APIView):
 
                 # Delete the user (associated fields will cascade delete on deletion of the user)
                 u.delete()
+
+        return Response(status=HTTP_200_OK)
+
+
+class SetCaretaker(APIView):
+    """
+    Sets a caretaker for a user.
+    The caretaker is a user who can act on behalf of the user.
+    """
+
+    permission_classes = [IsAdminUser]
+
+    def get_user(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is setting a caretaker")
+        if not req.user.is_superuser:
+            return Response(
+                {"detail": "You do not have permission to set a caretaker."},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
+        primary_user_id = req.data.get("primaryUser")
+        secondary_user_ids = req.data.get("secondaryUsers")
+        reason = req.data.get("reason")
+        end_date = req.data.get("endDate")
+        notes = req.data.get("notes")
+
+        if not primary_user_id or not secondary_user_ids:
+            return Response(
+                {"detail": "Invalid data. Primary and secondary users are required."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        if not reason:
+            return Response(
+                {"detail": "Invalid data. Reason is required."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        primary_user = self.get_user(primary_user_id)
+        secondary_users = User.objects.filter(pk__in=secondary_user_ids)
+        print({"primaryUser": primary_user, "secondaryUsers": secondary_users})
+
+        with transaction.atomic():
+            for caretaker_user in secondary_users:
+                Caretaker.objects.create(
+                    user=primary_user,
+                    caretaker=caretaker_user,
+                    reason=reason,
+                    end_date=end_date if end_date else None,
+                    notes=notes if notes else None,
+                )
 
         return Response(status=HTTP_200_OK)
 

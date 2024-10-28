@@ -16,6 +16,7 @@ urlpatterns = [
     path("tasks/<int:pk>/approve", views.ApproveTask.as_view()),
     path("tasks/<int:pk>/reject", views.RejectTask.as_view()),
     path("tasks/<int:pk>/cancel", views.CancelTask.as_view()),
-    # Merging USers ======================================================
+    # Direct Merging & Setting Caretaker (Admin) ======================================================
     path("mergeusers", views.MergeUsers.as_view()),
+    path("setcaretaker", views.SetCaretaker.as_view()),
 ]

@@ -234,16 +234,10 @@ class Caretaker(CommonModel):
         related_name="caretaker_for",
     )
 
-    start_date = models.DateTimeField(
-        blank=True,
-        null=True,
-        help_text="The date the caretaker request was initiated",
-    )
-
     end_date = models.DateTimeField(
         blank=True,
         null=True,
-        help_text="The date the caretaker request was completed",
+        help_text="The date at which caretaker status ends",
     )
 
     reason = models.TextField(
@@ -259,7 +253,7 @@ class Caretaker(CommonModel):
     )
 
     def __str__(self) -> str:
-        return f"{self.user}, {self.reason} | {self.start_date}"
+        return f"USER: {self.user} -> CARETAKER: {self.caretaker}; {self.reason}"
 
     class Meta:
         verbose_name = "Caretaker"

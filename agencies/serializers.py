@@ -150,10 +150,11 @@ class BranchSerializer(serializers.ModelSerializer):
 
 class MiniBASerializer(serializers.ModelSerializer):
     leader = UserPkOnly()
+    caretaker = UserPkOnly()
 
     class Meta:
         model = BusinessArea
-        fields = ["pk", "name", "leader"]
+        fields = ["pk", "name", "leader", "caretaker"]
 
 
 class BusinessAreaSerializer(serializers.ModelSerializer):
@@ -185,6 +186,7 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             "introduction",
             "image",
             "leader",
+            "caretaker",
             "finance_admin",
             "data_custodian",
             "is_active",

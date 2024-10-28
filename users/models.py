@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import requests
+from adminoptions.models import Caretaker
 from common.models import CommonModel
 from medias.models import UserAvatar
 from rest_framework import serializers
@@ -79,6 +80,9 @@ class User(AbstractUser):
         default=False,
         help_text="Whether this user can act as animal ethics committee if not an admin",
     )
+
+    def get_caretakers(self):
+        return Caretaker.objects.filter(user=self)
 
     def save(self, *args, **kwargs):
         if not self.display_first_name:
