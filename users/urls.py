@@ -7,7 +7,6 @@ urlpatterns = [
     path("", views.Users.as_view()),
     path("<int:pk>", views.UserDetail.as_view()),
     path("me", views.Me.as_view()),
-    path("merge", views.MergeUsers.as_view()),
     path("smallsearch", views.SmallInternalUserSearch.as_view()),
     path("directorate", views.DirectorateUsers.as_view()),
     # Login / Config Views

@@ -37,6 +37,7 @@ from rest_framework.permissions import (
     IsAuthenticated,
     IsAuthenticatedOrReadOnly,
     AllowAny,
+    IsAdminUser,
 )
 
 # endregion
@@ -606,66 +607,6 @@ class DirectorateUsers(ListAPIView):
         user_works = UserWork.objects.filter(business_area__name="Directorate")
         user_ids = user_works.values_list("user", flat=True)
         return User.objects.filter(id__in=user_ids)
-
-
-class MergeUsers(APIView):
-    """
-    Merges a list of users into a primary user.
-    For each user in the list, the project members are updated to the primary user.
-    The primary user's data is not overwritten, and the secondary users are deleted.
-    """
-
-    permission_classes = [IsAuthenticated]
-
-    def get_user(self, pk):
-        try:
-            return User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            raise NotFound
-
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is merging users")
-        if not req.user.is_superuser:
-            return Response(
-                {"detail": "You do not have permission to merge users."},
-                status=HTTP_401_UNAUTHORIZED,
-            )
-        primary_user = self.get_user(req.data.get("primaryUser"))
-        secondary_users = req.data.get("secondaryUsers")
-        for user_pk in secondary_users:
-            # Get the user object
-            this_user = self.get_user(user_pk)
-            # Update the project members
-            user_projects = ProjectMember.objects.filter(user=this_user)
-            user_projects.update(user=primary_user)
-
-            # These are commented out as the primary user has the relevant data
-            # which should not be overwritten.
-
-            # # Update the user works
-            # user_works = UserWork.objects.filter(user=this_user)
-            # user_works.update(user=primary_user)
-
-            # # Update the user profiles
-            # user_profiles = UserProfile.objects.filter(user=this_user)
-            # user_profiles.update(user=primary_user)
-
-            # # Update the user contacts
-            # user_contacts = UserContact.objects.filter(user=this_user)
-            # user_contacts.update(user=primary_user)
-
-            # # Update the staff profiles
-            # staff_profiles = PublicStaffProfile.objects.filter(user=this_user)
-            # staff_profiles.update(user=primary_user)
-
-            # # Update the user avatars
-            # user_avatars = UserAvatar.objects.filter(user=this_user)
-            # user_avatars.update(user=primary_user)
-            # Delete the user
-            this_user.delete()
-            # associated fields will cascade delete on deletion of the user
-        return Response(status=HTTP_200_OK)
-
 
 # endregion
 
