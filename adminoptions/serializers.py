@@ -64,13 +64,26 @@ class IAdminTaskProjectSerializer(serializers.ModelSerializer):
         fields = ["pk", "title"]
 
 
+class SecondaryUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["pk", "display_first_name", "display_last_name"]
+
+
 class AdminTaskSerializer(serializers.ModelSerializer):
     requester = IAdminTaskRequesterSerializer()
     project = IAdminTaskProjectSerializer()
+    secondary_users = serializers.SerializerMethodField()
 
     class Meta:
         model = AdminTask
         fields = "__all__"
+
+    def get_secondary_users(self, obj):
+        if obj.secondary_users:
+            users = User.objects.filter(pk__in=obj.secondary_users)
+            return SecondaryUserSerializer(users, many=True).data
+        return []
 
 
 class CaretakerSerializer(serializers.ModelSerializer):

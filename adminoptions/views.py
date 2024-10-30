@@ -153,6 +153,34 @@ class AdminTasks(APIView):
             return True
         return False
 
+    def check_existing_merge_user_task(self, data):
+        if AdminTask.objects.filter(
+            action=data["action"],
+            primary_user=data["primary_user"],
+            secondary_users=data["secondary_users"],
+            status=AdminTask.TaskStatus.PENDING,
+        ).exists():
+            return True
+        return False
+
+    def check_existing_caretaker_task(self, data):
+        if AdminTask.objects.filter(
+            action=data["action"],
+            primary_user=data["primary_user"],
+            # secondary_users=data["secondary_users"],
+            status=AdminTask.TaskStatus.PENDING,
+        ).exists():
+            return True
+        return False
+
+    def check_existing_caretaker_object(self, data):
+        if Caretaker.objects.filter(
+            user=data["primary_user"],
+            caretaker=data["secondary_users"][0],
+        ).exists():
+            return True
+        return False
+
     def set_project_deletion_requested(self, data):
         try:
             project = Project.objects.get(pk=data["project"])
@@ -255,6 +283,35 @@ class AdminTasks(APIView):
                 )
                 return Response(
                     f"{res}",
+                    status=HTTP_400_BAD_REQUEST,
+                )
+        elif data["action"] == AdminTask.ActionTypes.MERGEUSER:
+            # First check if there is already a pending merge user request for these users
+            if self.check_existing_merge_user_task(data):
+                settings.LOGGER.error(
+                    msg=f"Error in setting merge user requested: Users already have a pending merge user request"
+                )
+                return Response(
+                    "Users already have a pending merge user request",
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
+        elif data["action"] == AdminTask.ActionTypes.SETCARETAKER:
+            # First check if there is already a pending merge user request for these users
+            if self.check_existing_caretaker_task(data):
+                settings.LOGGER.error(
+                    msg=f"Error in setting caretaker: Users already has a pending caretaker request"
+                )
+                return Response(
+                    "User already has a pending caretaker request",
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            if self.check_existing_caretaker_object(data):
+                settings.LOGGER.error(
+                    msg=f"Error in setting caretaker: User already has a caretaker"
+                )
+                return Response(
+                    "User already has a caretaker",
                     status=HTTP_400_BAD_REQUEST,
                 )
 
@@ -428,6 +485,39 @@ class CaretakerDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class CheckCaretaker(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is checking if they have a caretaker")
+        user = req.user
+        caretaker_object = Caretaker.objects.filter(user=user)
+        if caretaker_object.exists():
+            caretaker_object = caretaker_object.first()
+        else:
+            caretaker_object = None
+        caretaker_request_object = AdminTask.objects.filter(
+            primary_user=user,
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+        )
+        if caretaker_request_object.exists():
+            caretaker_request_object = caretaker_request_object.first()
+        else:
+            caretaker_request_object = None
+        return Response(
+            {
+                "caretaker_object": CaretakerSerializer(caretaker_object).data
+                if caretaker_object
+                else None,
+                "caretaker_request_object": AdminTaskSerializer(caretaker_request_object).data
+                if caretaker_request_object
+                else None,
+            },
+            status=HTTP_200_OK,
+        )
 
 
 # endregion  =================================================================================================

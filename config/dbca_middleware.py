@@ -15,6 +15,8 @@ from users.models import PublicStaffProfile, UserProfile, UserWork
 User = get_user_model()
 
 
+# Extended custom middleware is necessary as the base middleware only has
+# specific fields available (SPMS needs to populate more tables with data on creation)
 class DBCAMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response

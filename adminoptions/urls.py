@@ -12,6 +12,7 @@ urlpatterns = [
     # Caretaker ==========================================================
     path("caretakers", views.Caretakers.as_view()),
     path("caretakers/<int:pk>", views.CaretakerDetail.as_view()),
+    path("caretakers/checkcaretaker", views.CheckCaretaker.as_view()),
     # Functions on approval of tasks =====================================
     path("tasks/<int:pk>/approve", views.ApproveTask.as_view()),
     path("tasks/<int:pk>/reject", views.RejectTask.as_view()),
