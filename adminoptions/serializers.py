@@ -72,6 +72,7 @@ class SecondaryUserSerializer(serializers.ModelSerializer):
 
 class AdminTaskSerializer(serializers.ModelSerializer):
     requester = IAdminTaskRequesterSerializer()
+    primary_user = IAdminTaskRequesterSerializer()
     project = IAdminTaskProjectSerializer()
     secondary_users = serializers.SerializerMethodField()
 

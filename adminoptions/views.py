@@ -509,12 +509,16 @@ class CheckCaretaker(APIView):
             caretaker_request_object = None
         return Response(
             {
-                "caretaker_object": CaretakerSerializer(caretaker_object).data
-                if caretaker_object
-                else None,
-                "caretaker_request_object": AdminTaskSerializer(caretaker_request_object).data
-                if caretaker_request_object
-                else None,
+                "caretaker_object": (
+                    CaretakerSerializer(caretaker_object).data
+                    if caretaker_object
+                    else None
+                ),
+                "caretaker_request_object": (
+                    AdminTaskSerializer(caretaker_request_object).data
+                    if caretaker_request_object
+                    else None
+                ),
             },
             status=HTTP_200_OK,
         )
@@ -565,53 +569,79 @@ class ApproveTask(APIView):
         task.save()
 
         # Run related functionality
-        try:
-            if task.action == AdminTask.ActionTypes.DELETEPROJECT:
-                if task.project is None:
-                    raise ValueError("Project must be set to delete")
-                task.notes = f"Project deletion approved - {task.project.title}"
-                task.project.delete()
-                task.project = None
-                # This will delete all related documents and memberships
-            elif task.action == AdminTask.ActionTypes.MERGEUSER:
-                if (
-                    task.primary_user is None
-                    or task.secondary_users is None
-                    or len(task.secondary_users) < 1
-                ):
-                    raise ValueError(
-                        "Primary and single secondary users must be set to merge"
-                    )
-                # Get the primary user
-                user_to_merge_into = self.get_user(task.primary_user)
-                # Get the secondary user/s
-                users_to_merge = [self.get_user(pk) for pk in task.secondary_users]
-                primary_is_staff = user_to_merge_into.is_staff
-                for merging_user in users_to_merge:
-                    # ========= HANDLE THE PROJECT MEMBERSHIPS =========
-                    # Merge the users projects and memberships into the primary user
-                    for membership in self.get_memberships(merging_user):
-                        # First check if a membership already exists for the primary user
-                        existing_membership = ProjectMember.objects.get(
-                            project=membership.project, user=user_to_merge_into
+        with transaction.atomic():
+            try:
+                if task.action == AdminTask.ActionTypes.DELETEPROJECT:
+                    if task.project is None:
+                        raise ValueError("Project must be set to delete")
+                    task.notes = f"Project deletion approved - {task.project.title}"
+                    task.project.delete()
+                    task.project = None
+                    # This will delete all related documents and memberships
+                elif task.action == AdminTask.ActionTypes.MERGEUSER:
+                    if (
+                        task.primary_user is None
+                        or task.secondary_users is None
+                        or len(task.secondary_users) < 1
+                    ):
+                        raise ValueError(
+                            "Primary and single secondary users must be set to merge"
                         )
-                        if existing_membership:
-                            # If it does and they are leader, retain the leader status
-                            if (
-                                membership.role == ProjectMember.RoleChoices.SUPERVISING
-                                or existing_membership.role
-                                == ProjectMember.RoleChoices.SUPERVISING
-                            ):
-                                existing_membership.role = (
-                                    ProjectMember.RoleChoices.SUPERVISING
-                                )
+                    # Get the primary user
+                    user_to_merge_into = self.get_user(task.primary_user.pk)
+                    # Get the secondary user/s
+                    users_to_merge = [self.get_user(u) for u in task.secondary_users]
+                    primary_is_staff = user_to_merge_into.is_staff
+                    for merging_user in users_to_merge:
+                        # ========= HANDLE THE PROJECT MEMBERSHIPS =========
+                        # Merge the users projects and memberships into the primary user
+                        for membership in self.get_memberships(merging_user):
+                            # First check if a membership already exists for the primary user
+                            existing_membership = ProjectMember.objects.filter(
+                                project=membership.project, user=user_to_merge_into
+                            ).exists()
+                            if existing_membership:
+                                # If it does and they are leader, retain the leader status
+                                if (
+                                    membership.role
+                                    == ProjectMember.RoleChoices.SUPERVISING
+                                    or existing_membership.role
+                                    == ProjectMember.RoleChoices.SUPERVISING
+                                ):
+                                    existing_membership.role = (
+                                        ProjectMember.RoleChoices.SUPERVISING
+                                    )
+                                else:
+                                    if primary_is_staff:
+                                        if membership.role in [
+                                            ProjectMember.RoleChoices.RESEARCH,
+                                            ProjectMember.RoleChoices.TECHNICAL,
+                                        ]:
+                                            existing_membership.role = membership.role
+                                    else:
+                                        if membership.role in [
+                                            ProjectMember.RoleChoices.EXTERNALCOL,
+                                            ProjectMember.RoleChoices.EXTERNALPEER,
+                                            ProjectMember.RoleChoices.ACADEMICSUPER,
+                                            ProjectMember.RoleChoices.STUDENT,
+                                            ProjectMember.RoleChoices.CONSULTED,
+                                            ProjectMember.RoleChoices.GROUP,
+                                        ]:
+                                            existing_membership.role = membership.role
+                                # Save the existing membership
+                                existing_membership.save()
+                                # Remove the old membership
+                                membership.delete()
+                            # If no existing membership with the same user, change the secondary users membership to the primary user
                             else:
+                                membership.user = user_to_merge_into
+                                # Ensure that the role is appropriate for the primary user
                                 if primary_is_staff:
                                     if membership.role in [
                                         ProjectMember.RoleChoices.RESEARCH,
                                         ProjectMember.RoleChoices.TECHNICAL,
                                     ]:
-                                        existing_membership.role = membership.role
+                                        membership.role = membership.role
                                 else:
                                     if membership.role in [
                                         ProjectMember.RoleChoices.EXTERNALCOL,
@@ -621,68 +651,43 @@ class ApproveTask(APIView):
                                         ProjectMember.RoleChoices.CONSULTED,
                                         ProjectMember.RoleChoices.GROUP,
                                     ]:
-                                        existing_membership.role = membership.role
-                            # Save the existing membership
-                            existing_membership.save()
-                            # Remove the old membership
-                            membership.delete()
-                        # If no existing membership with the same user, change the secondary users membership to the primary user
-                        else:
-                            membership.user = user_to_merge_into
-                            # Ensure that the role is appropriate for the primary user
-                            if primary_is_staff:
-                                if membership.role in [
-                                    ProjectMember.RoleChoices.RESEARCH,
-                                    ProjectMember.RoleChoices.TECHNICAL,
-                                ]:
-                                    membership.role = membership.role
-                            else:
-                                if membership.role in [
-                                    ProjectMember.RoleChoices.EXTERNALCOL,
-                                    ProjectMember.RoleChoices.EXTERNALPEER,
-                                    ProjectMember.RoleChoices.ACADEMICSUPER,
-                                    ProjectMember.RoleChoices.STUDENT,
-                                    ProjectMember.RoleChoices.CONSULTED,
-                                    ProjectMember.RoleChoices.GROUP,
-                                ]:
-                                    membership.role = membership.role
-                            membership.save()
+                                        membership.role = membership.role
+                                membership.save()
 
-                    # ========= HANDLE DELETION =========
-                    # Delete the user
-                    merging_user.delete()
+                        # ========= HANDLE DELETION =========
+                        # Delete the user
+                        merging_user.delete()
 
-            elif task.action == AdminTask.ActionTypes.SETCARETAKER:
-                # Set the caretaker
-                # Get the primary user
-                user_who_needs_caretaker = self.get_user(task.primary_user)
-                # Get the caretaker
-                caretaker = self.get_user(task.secondary_users[0])
-                # Create the caretaker
-                Caretaker.objects.create(
-                    user=user_who_needs_caretaker,
-                    caretaker=caretaker,
-                    reason=task.reasoning,
-                    start_date=task.start_date,
-                    end_date=task.end_date,  # This will be null if the caretaker is permanent
-                    notes=task.notes,
+                elif task.action == AdminTask.ActionTypes.SETCARETAKER:
+                    # Set the caretaker
+                    # Get the primary user
+                    user_who_needs_caretaker = self.get_user(task.primary_user.pk)
+                    # Get the caretaker
+                    caretaker = self.get_user(task.secondary_users[0])
+                    # Create the caretaker
+                    Caretaker.objects.create(
+                        user=user_who_needs_caretaker,
+                        caretaker=caretaker,
+                        reason=task.reason,
+                        end_date=task.end_date,  # This will be null if the caretaker is permanent
+                        notes=task.notes,
+                    )
+                else:
+                    raise ValueError("Task action not recognised")
+
+            except Exception as e:
+                settings.LOGGER.error(msg=f"Error in fulfilling task: {e}")
+                return Response(
+                    status=HTTP_400_BAD_REQUEST,
                 )
-            else:
-                raise ValueError("Task action not recognised")
 
-        except Exception as e:
-            settings.LOGGER.error(msg=f"Error in fulfilling task: {e}")
+            # Fulfill the task
+            task.status = AdminTask.TaskStatus.FULFILLED
+            task.save()
+
             return Response(
-                status=HTTP_400_BAD_REQUEST,
+                status=HTTP_202_ACCEPTED,
             )
-
-        # Fulfill the task
-        task.status = AdminTask.TaskStatus.FULFILLED
-        task.save()
-
-        return Response(
-            status=HTTP_202_ACCEPTED,
-        )
 
 
 class RejectTask(APIView):
@@ -716,17 +721,16 @@ class RejectTask(APIView):
             # If a project deletion is rejected, the project deletion is cancelled
             task.project.deletion_requested = False
             task.project.save()
+            # Potentially extend to send emails of rejection
+
+        if task.action == AdminTask.ActionTypes.SETCARETAKER:
+            # If a caretaker request is rejected, the caretaker request is cancelled, no additional action is required
+            # Potentially extend to send emails of rejection
+            pass
 
         if task.action == AdminTask.ActionTypes.MERGEUSER:
             # If a user merge is rejected, the merge is cancelled
-
-            pass
-
-        if task.action == AdminTask.ActionTypes.SETCARETAKER:
-            # If a caretaker request is rejected, the caretaker request is cancelled
-            primary_user = self.get_user(pk=task.primary_user)
-            primary_user.caretaker_mode = False
-            primary_user.caretaker = None
+            # Potentially extend to send emails of rejection
             pass
 
         return Response(
