@@ -304,6 +304,8 @@ ul {
 	height: 100%;
 	object-fit: cover;
 	top: 0;
+	object-position: center top; /* Adjust position to show more of the top */
+	margin-bottom: -28px; /* Adjusts the bottom space without adding extra space */
 	left: 0;
 	z-index: 99;
 }
