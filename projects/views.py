@@ -1297,7 +1297,7 @@ class ProjectDetails(APIView):
                 settings.LOGGER.error(msg=f"BA not convertable to int: {business_area}")
                 pass
 
-        print(updated_base_proj_data)
+        # print(updated_base_proj_data)
 
         updated_proj_detail_data = {
             key: value
