@@ -1,9 +1,10 @@
 # region IMPORTS ====================================================================================================
 from rest_framework import serializers
 from adminoptions.models import AdminOptions, AdminTask, Caretaker
+from medias.serializers import UserAvatarSerializer
 from projects.models import Project
 from users.models import User
-from users.serializers import MiniUserSerializer
+from users.serializers import BasicUserSerializer, MiniUserSerializer
 
 # endregion  =================================================================================================
 
@@ -65,9 +66,11 @@ class IAdminTaskProjectSerializer(serializers.ModelSerializer):
 
 
 class SecondaryUserSerializer(serializers.ModelSerializer):
+    image = UserAvatarSerializer(source="profile.image")
+
     class Meta:
         model = User
-        fields = ["pk", "display_first_name", "display_last_name"]
+        fields = ["pk", "display_first_name", "display_last_name", "image"]
 
 
 class AdminTaskSerializer(serializers.ModelSerializer):
@@ -88,6 +91,7 @@ class AdminTaskSerializer(serializers.ModelSerializer):
 
 
 class CaretakerSerializer(serializers.ModelSerializer):
+    caretaker = BasicUserSerializer()
     user = MiniUserSerializer()
 
     class Meta:

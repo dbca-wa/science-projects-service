@@ -118,6 +118,22 @@ class MiniUserSerializer(serializers.ModelSerializer):
         return caretakers_data
 
 
+class BasicUserSerializer(serializers.ModelSerializer):
+    pk = serializers.IntegerField()
+    display_first_name = serializers.CharField()
+    display_last_name = serializers.CharField()
+    image = UserAvatarSerializer(source="profile.image")
+
+    class Meta:
+        model = User
+        fields = (
+            "pk",
+            "display_first_name",
+            "display_last_name",
+            "image",
+        )
+
+
 class TinyUserSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source="work.role")
     branch = TinyBranchSerializer(source="work.branch")
