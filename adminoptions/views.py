@@ -1,5 +1,6 @@
 # region IMPORTS ====================================================================================================
 
+from operator import is_, le
 from re import A
 from tracemalloc import start
 from django.conf import settings
@@ -27,7 +28,9 @@ from adminoptions.serializers import (
     AdminTaskSerializer,
     CaretakerSerializer,
 )
+from agencies.models import BusinessArea
 from documents.models import ProjectDocument
+from documents.serializers import TinyProjectDocumentSerializer
 from projects.models import Project, ProjectMember
 from communications.models import Comment
 import users
@@ -348,6 +351,178 @@ class PendingTasks(APIView):
             ser.data,
             status=HTTP_200_OK,
         )
+
+
+class PendingCaretakerTasks(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_directorate_documents(self, project_queryset):
+        """
+        Returns documents requiring Directorate attention
+        """
+        return ProjectDocument.objects.exclude(
+            status=ProjectDocument.StatusChoices.APPROVED
+        ).filter(
+            project__in=project_queryset,
+            business_area_lead_approval_granted=True,
+            directorate_approval_granted=False,
+        )
+
+    def get_ba_documents(self, project_queryset):
+        """
+        Returns documents requiring BA attention
+        """
+        return ProjectDocument.objects.exclude(
+            status=ProjectDocument.StatusChoices.APPROVED
+        ).filter(
+            project__in=project_queryset,
+            project_lead_approval_granted=True,
+            business_area_lead_approval_granted=False,
+        )
+
+    def get_lead_documents(self, project_queryset):
+        """
+        Returns documents requiring project lead attention
+        """
+        return ProjectDocument.objects.exclude(
+            status=ProjectDocument.StatusChoices.APPROVED
+        ).filter(
+            project__in=project_queryset,
+            project_lead_approval_granted=False,
+        )
+
+    def get(self, request, pk):
+        settings.LOGGER.info(
+            msg=f"{request.user} is getting pending caretaker documents pending action"
+        )
+
+        # 1) Gather caretaker assignments
+        caretaker_assignments = Caretaker.objects.filter(caretaker=pk)
+        # the actual "users" being cared for
+        caretaker_users = [assignment.user for assignment in caretaker_assignments]
+
+        # 2) Determine if at least one caretaker user is "Directorate" or superuser
+        #    Similarly, gather all BA leader user IDs, etc.
+        directorate_user_found = False
+        ba_leader_user_ids = set()
+        project_lead_user_ids = set()
+        team_member_user_ids = set()
+
+        for assignment in caretaker_assignments:
+            user = assignment.user
+            user_ba = user.work.business_area if hasattr(user, "work") else None
+
+            # Check Directorate
+            if (
+                not request.user.is_superuser
+                and (user_ba and user_ba.name == "Directorate")
+                or user.is_superuser
+            ):
+                directorate_user_found = True
+
+            # Check if BA leader
+            business_areas_led = user.business_areas_led.values_list("id", flat=True)
+            if business_areas_led:
+                ba_leader_user_ids.add(user.id)
+
+            # Check if project lead
+            # This will help gather project lead IDs for further filtering
+            lead_memberships = ProjectMember.objects.exclude(
+                project__status=Project.CLOSED_ONLY
+            ).filter(user=user, is_leader=True)
+            if lead_memberships.exists():
+                project_lead_user_ids.add(user.id)
+
+            # Check if team member (non-leader)
+            non_leader_memberships = ProjectMember.objects.filter(
+                user=user, is_leader=False
+            )
+            if non_leader_memberships.exists():
+                team_member_user_ids.add(user.id)
+
+        # 3) Find the relevant projects
+        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY)
+
+        # 4) Build up the final document list from each condition
+        all_documents = []
+
+        # 4a) Directorate docs
+        directorate_documents = []
+        if directorate_user_found:
+            directorate_documents = self.get_directorate_documents(active_projects)
+            all_documents.extend(directorate_documents)
+
+        # 4b) BA docs
+        ba_documents = []
+        if ba_leader_user_ids:
+            # Find all BA-led projects for those user(s)
+            # Possibly you need more advanced logic if BA is the business_area of the project, etc.
+            ba_projects = active_projects.filter(
+                business_area__leader__in=ba_leader_user_ids
+            )
+            ba_documents = self.get_ba_documents(ba_projects)
+            all_documents.extend(ba_documents)
+
+        # 4c) Project lead docs
+        lead_documents = []
+        if project_lead_user_ids:
+            # Projects led by those caretaker users
+            lead_projects = ProjectMember.objects.filter(
+                user_id__in=project_lead_user_ids, is_leader=True
+            ).values_list("project_id", flat=True)
+            lead_documents = self.get_lead_documents(lead_projects)
+            all_documents.extend(lead_documents)
+
+        # 4d) Team member docs
+        # If you need separate logic for normal team members, do so similarly
+        member_documents = []
+        if team_member_user_ids:
+            # This example reuses the same lead_documents filter with
+            # project_lead_approval_granted=False, but specifically for those team members’ projects
+            # You might need a separate query if your logic differs.
+            team_projects = ProjectMember.objects.filter(
+                user_id__in=team_member_user_ids,
+                is_leader=False,
+                project__in=active_projects,
+            ).values_list("project_id", flat=True)
+
+            member_documents = ProjectDocument.objects.exclude(
+                status=ProjectDocument.StatusChoices.APPROVED
+            ).filter(
+                project__in=team_projects,
+                project_lead_approval_granted=False,
+            )
+            all_documents.extend(member_documents)
+
+        # 5) Remove duplicates
+        unique_documents = list({doc.id: doc for doc in all_documents}.values())
+
+        # 6) Serialize final results
+        ser_all = TinyProjectDocumentSerializer(
+            unique_documents, many=True, context={"request": request}
+        )
+        ser_directorate = TinyProjectDocumentSerializer(
+            directorate_documents, many=True, context={"request": request}
+        )
+        ser_ba = TinyProjectDocumentSerializer(
+            ba_documents, many=True, context={"request": request}
+        )
+        ser_lead = TinyProjectDocumentSerializer(
+            lead_documents, many=True, context={"request": request}
+        )
+        ser_member = TinyProjectDocumentSerializer(
+            member_documents, many=True, context={"request": request}
+        )
+
+        data = {
+            "all": ser_all.data,
+            "directorate": ser_directorate.data,
+            "ba": ser_ba.data,
+            "lead": ser_lead.data,
+            "team": ser_member.data,
+        }
+
+        return Response(data, status=HTTP_200_OK)
 
 
 class AdminTaskDetail(APIView):
@@ -909,6 +1084,63 @@ class MergeUsers(APIView):
 
                 # Delete the user (associated fields will cascade delete on deletion of the user)
                 u.delete()
+
+        return Response(status=HTTP_200_OK)
+
+
+class AdminSetCaretaker(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get_user(self, pk):
+        try:
+            return User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is setting a caretaker")
+        if not req.user.is_superuser:
+            return Response(
+                {"detail": "You do not have permission to set a caretaker."},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
+        primary_user_id = req.data.get("userPk")
+        secondary_user_id = req.data.get("caretakerPk")
+        reason = req.data.get("reason")
+        end_date = req.data.get("endDate")
+        notes = req.data.get("notes")
+
+        if not primary_user_id or not secondary_user_id:
+            return Response(
+                {"detail": "Invalid data. Primary and secondary users are required."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        if primary_user_id == secondary_user_id:
+            return Response(
+                {"detail": "Invalid data. Primary user cannot also be secondary user."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        if not reason:
+            return Response(
+                {"detail": "Invalid data. Reason is required."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        primary_user = self.get_user(primary_user_id)
+        secondary_user = self.get_user(secondary_user_id)
+        print({"primaryUser": primary_user, "secondaryUsers": secondary_user})
+
+        with transaction.atomic():
+            Caretaker.objects.create(
+                user=primary_user,
+                caretaker=secondary_user,
+                reason=reason,
+                end_date=end_date if end_date else None,
+                notes=notes if notes else None,
+            )
 
         return Response(status=HTTP_200_OK)
 

@@ -108,9 +108,15 @@ class MiniUserSerializer(serializers.ModelSerializer):
         caretakers_data = [
             {
                 "pk": cobj.caretaker.pk,
+                "caretaker_obj_id": cobj.pk,
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
+                "image": (
+                    cobj.caretaker.avatar.file.url
+                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                    else None
+                ),
             }
             for cobj in caretakers
         ]
@@ -122,7 +128,7 @@ class BasicUserSerializer(serializers.ModelSerializer):
     pk = serializers.IntegerField()
     display_first_name = serializers.CharField()
     display_last_name = serializers.CharField()
-    image = UserAvatarSerializer(source="profile.image")
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -132,6 +138,13 @@ class BasicUserSerializer(serializers.ModelSerializer):
             "display_last_name",
             "image",
         )
+
+    def get_image(self, obj):
+        try:
+            return obj.get_image()
+        except Exception as e:
+            print("Error getting image: ", e)
+            return None
 
 
 class TinyUserSerializer(serializers.ModelSerializer):
@@ -171,9 +184,15 @@ class TinyUserSerializer(serializers.ModelSerializer):
         caretakers_data = [
             {
                 "pk": cobj.caretaker.pk,
+                "caretaker_obj_id": cobj.pk,
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
+                "image": (
+                    cobj.caretaker.avatar.file.url
+                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                    else None
+                ),
             }
             for cobj in caretakers
         ]
@@ -442,15 +461,27 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         )
 
     def get_caretakers(self, obj):
+
         # Call the user model's get_caretakers method
         caretakers = obj.get_caretakers()
+
+        # for caretaker in caretakers:
+        #     print(caretaker.user.profile.image)
+
         # Set caretaker data using list comprehension
         caretakers_data = [
             {
                 "pk": cobj.caretaker.pk,
+                "caretaker_obj_id": cobj.pk,
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
+                # "image": cobj.caretaker.get_image(),
+                "image": (
+                    cobj.caretaker.avatar.file.url
+                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                    else None
+                ),
             }
             for cobj in caretakers
         ]
@@ -505,9 +536,15 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
         caretakers_data = [
             {
                 "pk": cobj.caretaker.pk,
+                "caretaker_obj_id": cobj.pk,
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
+                "image": (
+                    cobj.caretaker.avatar.file.url
+                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                    else None
+                ),
             }
             for cobj in caretakers
         ]

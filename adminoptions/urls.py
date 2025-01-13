@@ -12,12 +12,14 @@ urlpatterns = [
     # Caretaker ==========================================================
     path("caretakers", views.Caretakers.as_view()),
     path("caretakers/<int:pk>", views.CaretakerDetail.as_view()),
+    path("caretakers/pending/<int:pk>", views.PendingCaretakerTasks.as_view()),
+    path("caretakers/adminsetcaretaker", views.AdminSetCaretaker.as_view()),
     path("caretakers/checkcaretaker", views.CheckCaretaker.as_view()),
     # Functions on approval of tasks =====================================
     path("tasks/<int:pk>/approve", views.ApproveTask.as_view()),
     path("tasks/<int:pk>/reject", views.RejectTask.as_view()),
     path("tasks/<int:pk>/cancel", views.CancelTask.as_view()),
-    # Direct Merging & Setting Caretaker (Admin) ======================================================
+    # Misc (Admin) ======================================================
     path("mergeusers", views.MergeUsers.as_view()),
-    path("setcaretaker", views.SetCaretaker.as_view()),
+    path("caretakers/setcaretaker", views.SetCaretaker.as_view()),
 ]
