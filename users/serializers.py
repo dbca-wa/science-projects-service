@@ -101,6 +101,18 @@ class MiniUserSerializer(serializers.ModelSerializer):
             "caretakers",
         )
 
+    def safe_avatar_url(self, user):
+        try:
+            return user.avatar.file.url
+        except:
+            #     (
+            #     AttributeError,
+            #     ValueError,
+            #     user.avatar.RelatedObjectDoesNotExist,
+            #     user.models.User.avatar.RelatedObjectDoesNotExist,
+            # )
+            return None
+
     def get_caretakers(self, obj):
         # Call the user model's get_caretakers method
         caretakers = obj.get_caretakers()
@@ -112,11 +124,12 @@ class MiniUserSerializer(serializers.ModelSerializer):
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
-                "image": (
-                    cobj.caretaker.avatar.file.url
-                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                    else None
-                ),
+                # "image": (
+                #     cobj.caretaker.avatar.file.url
+                #     if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                #     else None
+                # ),
+                "image": self.safe_avatar_url(cobj.caretaker),
             }
             for cobj in caretakers
         ]
@@ -179,9 +192,26 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "caretaking_for",
         )
 
+    def safe_avatar_url(self, user):
+        try:
+            return user.avatar.file.url
+        except:
+            #     (
+            #     AttributeError,
+            #     ValueError,
+            #     user.avatar.RelatedObjectDoesNotExist,
+            #     user.models.User.avatar.RelatedObjectDoesNotExist,
+            # )
+            return None
+
     def get_caretakers(self, obj):
+
         # Call the user model's get_caretakers method
         caretakers = obj.get_caretakers()
+
+        # for caretaker in caretakers:
+        #     print(caretaker.user.profile.image)
+
         # Set caretaker data using list comprehension
         caretakers_data = [
             {
@@ -190,11 +220,12 @@ class TinyUserSerializer(serializers.ModelSerializer):
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
-                "image": (
-                    cobj.caretaker.avatar.file.url
-                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                    else None
-                ),
+                "image": self.safe_avatar_url(cobj.caretaker),
+                # "image": (
+                #     cobj.caretaker.avatar.file.url
+                #     if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                #     else None
+                # ),
             }
             for cobj in caretakers
         ]
@@ -207,13 +238,16 @@ class TinyUserSerializer(serializers.ModelSerializer):
         # Set caretaker data using list comprehension
         caretaking_data = [
             {
-                "pk": cobj.pk,
-                "display_first_name": cobj.display_first_name,
-                "display_last_name": cobj.display_last_name,
-                "email": cobj.email,
-                "image": (
-                    cobj.avatar.file.url if cobj.avatar and cobj.avatar.file else None
-                ),
+                "pk": cobj.user.pk,
+                "display_first_name": cobj.user.display_first_name,
+                "display_last_name": cobj.user.display_last_name,
+                "email": cobj.user.email,
+                "image": self.safe_avatar_url(cobj.user),
+                # "image": (
+                #     cobj.user.avatar.file.url
+                #     if cobj.user.avatar and cobj.user.avatar.file
+                #     else None
+                # ),
             }
             for cobj in caretaking
         ]
@@ -483,6 +517,18 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "caretaking_for",
         )
 
+    def safe_avatar_url(self, user):
+        try:
+            return user.avatar.file.url
+        except:
+            #     (
+            #     AttributeError,
+            #     ValueError,
+            #     user.avatar.RelatedObjectDoesNotExist,
+            #     user.models.User.avatar.RelatedObjectDoesNotExist,
+            # )
+            return None
+
     def get_caretakers(self, obj):
 
         # Call the user model's get_caretakers method
@@ -499,12 +545,12 @@ class ProfilePageSerializer(serializers.ModelSerializer):
                 "display_first_name": cobj.caretaker.display_first_name,
                 "display_last_name": cobj.caretaker.display_last_name,
                 "email": cobj.caretaker.email,
-                # "image": cobj.caretaker.get_image(),
-                "image": (
-                    cobj.caretaker.avatar.file.url
-                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                    else None
-                ),
+                "image": self.safe_avatar_url(cobj.caretaker),
+                # "image": (
+                #     cobj.caretaker.avatar.file.url
+                #     if cobj.caretaker.avatar and cobj.caretaker.avatar.file
+                #     else None
+                # ),
             }
             for cobj in caretakers
         ]
@@ -521,11 +567,12 @@ class ProfilePageSerializer(serializers.ModelSerializer):
                 "display_first_name": cobj.user.display_first_name,
                 "display_last_name": cobj.user.display_last_name,
                 "email": cobj.user.email,
-                "image": (
-                    cobj.user.avatar.file.url
-                    if cobj.user.avatar and cobj.user.avatar.file
-                    else None
-                ),
+                "image": self.safe_avatar_url(cobj.user),
+                # "image": (
+                #     cobj.user.avatar.file.url
+                #     if cobj.user.avatar and cobj.user.avatar.file
+                #     else None
+                # ),
             }
             for cobj in caretaking
         ]

@@ -228,18 +228,11 @@ class AdminTasks(APIView):
             msg=f"{req.user} is posting an instance of admin tasks ({req.data["action"]} - {details_string})"
         )
         try:
-            # Merge user request validation
-            if (data["action"] == AdminTask.ActionTypes.MERGEUSER) and (
-                data["primary_user"] is None
-                or data["secondary_users"] is None
-                or len(data["secondary_users"]) < 1
-            ):
-                raise ValueError(
-                    "Primary and single secondary users must be set to merge"
-                )
-
-            # Caretaker request validation
-            if (data["action"] == AdminTask.ActionTypes.SETCARETAKER) and (
+            # Caretaker/Merge user request validation
+            if (
+                data["action"] == AdminTask.ActionTypes.MERGEUSER
+                or data["action"] == AdminTask.ActionTypes.SETCARETAKER
+            ) and (
                 data["primary_user"] is None
                 or data["secondary_users"] is None
                 or len(data["secondary_users"]) < 1
@@ -318,8 +311,9 @@ class AdminTasks(APIView):
                     status=HTTP_400_BAD_REQUEST,
                 )
 
-        # If all is good, create the task
+        # If all is good, and not admin create the task
 
+        # if not req.user.is_superuser:
         ser = AdminTaskRequestCreationSerializer(
             data=req.data,
         )
@@ -335,6 +329,8 @@ class AdminTasks(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+        # else:
+        #     # Create and fulfill the task
 
 
 class PendingTasks(APIView):
@@ -349,6 +345,24 @@ class PendingTasks(APIView):
         )
         return Response(
             ser.data,
+            status=HTTP_200_OK,
+        )
+
+
+class CheckPendingCaretakerRequestForUser(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req, pk):
+        settings.LOGGER.info(
+            msg=f"{req.user} is checking if user with pk {pk} has an open caretaker request"
+        )
+        has_request = AdminTask.objects.filter(
+            primary_user=pk,
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+        ).exists()
+        return Response(
+            {"has_request": has_request},
             status=HTTP_200_OK,
         )
 
@@ -678,10 +692,18 @@ class CheckCaretaker(APIView):
             action=AdminTask.ActionTypes.SETCARETAKER,
             status=AdminTask.TaskStatus.PENDING,
         )
+        become_caretaker_request_object = AdminTask.objects.filter(
+            # Check if user in secondary users
+            secondary_users__contains=[user.pk],
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+        )
         if caretaker_request_object.exists():
             caretaker_request_object = caretaker_request_object.first()
         else:
             caretaker_request_object = None
+        if become_caretaker_request_object.exists():
+            become_caretaker_request_object = become_caretaker_request_object.first()
         return Response(
             {
                 "caretaker_object": (
@@ -692,6 +714,11 @@ class CheckCaretaker(APIView):
                 "caretaker_request_object": (
                     AdminTaskSerializer(caretaker_request_object).data
                     if caretaker_request_object
+                    else None
+                ),
+                "become_caretaker_request_object": (
+                    AdminTaskSerializer(become_caretaker_request_object).data
+                    if become_caretaker_request_object
                     else None
                 ),
             },
@@ -1131,6 +1158,13 @@ class AdminSetCaretaker(APIView):
 
         primary_user = self.get_user(primary_user_id)
         secondary_user = self.get_user(secondary_user_id)
+        # Reject if secondary user has a caretaker
+        if secondary_user.caretaker is not None:
+            return Response(
+                {"detail": "Cannot set a user with a caretaker as caretaker."},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
         print({"primaryUser": primary_user, "secondaryUsers": secondary_user})
 
         with transaction.atomic():
