@@ -154,6 +154,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
     image = UserAvatarSerializer(source="profile.image")
     affiliation = AffiliationSerializer(source="work.affiliation")
     caretakers = serializers.SerializerMethodField()
+    caretaking_for = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -175,6 +176,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "business_area",
             "affiliation",
             "caretakers",
+            "caretaking_for",
         )
 
     def get_caretakers(self, obj):
@@ -198,6 +200,25 @@ class TinyUserSerializer(serializers.ModelSerializer):
         ]
         # Return whatever data is available
         return caretakers_data
+
+    def get_caretaking_for(self, obj):
+        # Call the user model's get_caretaking method
+        caretaking = obj.get_caretaking_for()
+        # Set caretaker data using list comprehension
+        caretaking_data = [
+            {
+                "pk": cobj.pk,
+                "display_first_name": cobj.display_first_name,
+                "display_last_name": cobj.display_last_name,
+                "email": cobj.email,
+                "image": (
+                    cobj.avatar.file.url if cobj.avatar and cobj.avatar.file else None
+                ),
+            }
+            for cobj in caretaking
+        ]
+        # Return whatever data is available
+        return caretaking_data
 
 
 class ManagerSerializer(serializers.Serializer):
@@ -427,6 +448,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         read_only=True,
     )
     caretakers = serializers.SerializerMethodField()
+    caretaking_for = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -458,6 +480,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "staff_profile_pk",
             "public_email",
             "caretakers",
+            "caretaking_for",
         )
 
     def get_caretakers(self, obj):
@@ -487,6 +510,27 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         ]
         # Return whatever data is available
         return caretakers_data
+
+    def get_caretaking_for(self, obj):
+        # Call the user model's get_caretaking method
+        caretaking = obj.get_caretaking_for()
+        # Set caretaker data using list comprehension
+        caretaking_data = [
+            {
+                "pk": cobj.user.pk,
+                "display_first_name": cobj.user.display_first_name,
+                "display_last_name": cobj.user.display_last_name,
+                "email": cobj.user.email,
+                "image": (
+                    cobj.user.avatar.file.url
+                    if cobj.user.avatar and cobj.user.avatar.file
+                    else None
+                ),
+            }
+            for cobj in caretaking
+        ]
+        # Return whatever data is available
+        return caretaking_data
 
 
 # endregion

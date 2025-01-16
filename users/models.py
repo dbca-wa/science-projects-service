@@ -82,7 +82,13 @@ class User(AbstractUser):
     )
 
     def get_caretakers(self):
-        return Caretaker.objects.filter(user=self)
+        all = Caretaker.objects.filter(user=self)
+        return all
+
+    def get_caretaking_for(self):
+        all = Caretaker.objects.filter(caretaker=self)
+        print(all)
+        return all
 
     def save(self, *args, **kwargs):
         if not self.display_first_name:
