@@ -408,15 +408,96 @@ class PendingCaretakerTasks(APIView):
             project_lead_approval_granted=False,
         )
 
+    def get_all_caretaker_assignments(self, user_id, processed_users=None):
+        """
+        Recursively gather all caretaker assignments, including nested relationships.
+
+        Args:
+            user_id: The ID of the user to get assignments for
+            processed_users: Set of user IDs already processed (to prevent infinite loops)
+
+        Returns:
+            List of all Caretaker assignments, including nested relationships
+        """
+        if processed_users is None:
+            processed_users = set()
+
+        # If we've already processed this user, return empty list to prevent cycles
+        if user_id in processed_users:
+            return []
+
+        # Add current user to processed set
+        processed_users.add(user_id)
+
+        # Get direct caretaker assignments for this user
+        direct_assignments = Caretaker.objects.filter(caretaker=user_id)
+        all_assignments = list(direct_assignments)
+
+        # For each user being caretaken, get their caretaker assignments
+        for assignment in direct_assignments:
+            nested_assignments = self.get_all_caretaker_assignments(
+                assignment.user.id, processed_users
+            )
+            all_assignments.extend(nested_assignments)
+
+        return all_assignments
+
+    def return_deduplicated_docs(self, docs, is_serialized=False):
+        """
+        Returns a list of unique document tasks, removing duplicates based on document pk and document kind.
+
+        Args:
+            docs: List of documents (either serialized data or model instances)
+            is_serialized: Boolean indicating if the docs are already serialized (default: False)
+
+        Returns:
+            List of unique documents
+        """
+        doc_dict = {}
+
+        for doc in docs:
+            try:
+                if is_serialized:
+                    # For serialized data, doc is a dictionary
+                    key = f"{doc["pk"]}_{doc["kind"]}"
+
+                else:
+                    # For model instances, doc is a ProjectDocument object
+                    key = f"{doc.pk}_{getattr(doc, 'kind', '')}"
+
+                print("Key is ", key)
+                if key in doc_dict:
+                    # Skip duplicates
+                    continue
+                    # doc_dict[key] = doc
+
+                doc_dict[key] = doc
+
+            except (KeyError, AttributeError) as e:
+                # Log error but continue processing
+                print(f"Error processing document: {e}")
+                continue
+
+        print(
+            {
+                "Before:": len(docs),
+                "After:": len(doc_dict),
+            }
+        )
+
+        return list(doc_dict.values())
+
     def get(self, request, pk):
         settings.LOGGER.info(
             msg=f"{request.user} is getting pending caretaker documents pending action"
         )
 
         # 1) Gather caretaker assignments
-        caretaker_assignments = Caretaker.objects.filter(caretaker=pk)
+        # caretaker_assignments = Caretaker.objects.filter(caretaker=pk)
         # the actual "users" being cared for
-        caretaker_users = [assignment.user for assignment in caretaker_assignments]
+        # caretaker_users = [assignment.user for assignment in caretaker_assignments]
+
+        caretaker_assignments = self.get_all_caretaker_assignments(pk)
 
         # 2) Determine if at least one caretaker user is "Directorate" or superuser
         #    Similarly, gather all BA leader user IDs, etc.
@@ -571,21 +652,24 @@ class PendingCaretakerTasks(APIView):
                 )
                 member_serialized.extend(ser.data)
 
-        # All documents - combine all serialized data
+        # All documents - combine all serialized data and REMOVE DUPLICATES FROM EACH LIST
         all_serialized = []
         if directorate_documents:
             all_serialized.extend(ser_directorate.data)
         all_serialized.extend(ba_serialized)
         all_serialized.extend(lead_serialized)
         all_serialized.extend(member_serialized)
-        all_serialized = list({item["pk"]: item for item in all_serialized}.values())
 
         data = {
-            "all": all_serialized,
-            "directorate": ser_directorate.data,
-            "ba": ba_serialized,
-            "lead": lead_serialized,
-            "team": member_serialized,
+            "all": self.return_deduplicated_docs(all_serialized, is_serialized=True),
+            "directorate": self.return_deduplicated_docs(
+                ser_directorate.data, is_serialized=True
+            ),
+            "ba": self.return_deduplicated_docs(ba_serialized, is_serialized=True),
+            "lead": self.return_deduplicated_docs(lead_serialized, is_serialized=True),
+            "team": self.return_deduplicated_docs(
+                member_serialized, is_serialized=True
+            ),
         }
 
         return Response(data, status=HTTP_200_OK)
