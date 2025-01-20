@@ -87,7 +87,7 @@ class User(AbstractUser):
 
     def get_caretaking_for(self):
         all = Caretaker.objects.filter(caretaker=self)
-        print(all)
+        # print(all)
         return all
 
     def save(self, *args, **kwargs):
