@@ -30,7 +30,10 @@ from adminoptions.serializers import (
 )
 from agencies.models import BusinessArea
 from documents.models import ProjectDocument
-from documents.serializers import TinyProjectDocumentSerializer
+from documents.serializers import (
+    TinyProjectDocumentSerializer,
+    TinyProjectDocumentSerializerWithUserDocsBelongTo,
+)
 from projects.models import Project, ProjectMember
 from communications.models import Comment
 import users
@@ -511,29 +514,78 @@ class PendingCaretakerTasks(APIView):
         # 5) Remove duplicates
         unique_documents = list({doc.id: doc for doc in all_documents}.values())
 
-        # 6) Serialize final results
-        ser_all = TinyProjectDocumentSerializer(
-            unique_documents, many=True, context={"request": request}
-        )
-        ser_directorate = TinyProjectDocumentSerializer(
-            directorate_documents, many=True, context={"request": request}
-        )
-        ser_ba = TinyProjectDocumentSerializer(
-            ba_documents, many=True, context={"request": request}
-        )
-        ser_lead = TinyProjectDocumentSerializer(
-            lead_documents, many=True, context={"request": request}
-        )
-        ser_member = TinyProjectDocumentSerializer(
-            member_documents, many=True, context={"request": request}
+        # 6) Serialize final results (with user context for each item)
+        # ser_all = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+        #     unique_documents, many=True, context={"request": request}
+        # )
+        # ser_directorate = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+        #     directorate_documents, many=True, context={"request": request}
+        # )
+        # ser_ba = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+        #     ba_documents, many=True, context={"request": request}
+        # )
+        # ser_lead = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+        #     lead_documents, many=True, context={"request": request}
+        # )
+        # ser_member = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+        #     member_documents, many=True, context={"request": request}
+        # )
+
+        # Directorate documents - use None for for_user
+        ser_directorate = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+            directorate_documents,
+            many=True,
+            context={"request": request, "for_user": None},
         )
 
+        # BA documents - serialize for each BA leader
+        ba_serialized = []
+        for assignment in caretaker_assignments:
+            if assignment.user.business_areas_led.exists():
+                ser = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+                    ba_documents,
+                    many=True,
+                    context={"request": request, "for_user": assignment.user},
+                )
+                ba_serialized.extend(ser.data)
+
+        # Lead documents - serialize for each project lead
+        lead_serialized = []
+        for assignment in caretaker_assignments:
+            if assignment.user.id in project_lead_user_ids:
+                ser = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+                    lead_documents,
+                    many=True,
+                    context={"request": request, "for_user": assignment.user},
+                )
+                lead_serialized.extend(ser.data)
+
+        # Team member documents - serialize for each team member
+        member_serialized = []
+        for assignment in caretaker_assignments:
+            if assignment.user.id in team_member_user_ids:
+                ser = TinyProjectDocumentSerializerWithUserDocsBelongTo(
+                    member_documents,
+                    many=True,
+                    context={"request": request, "for_user": assignment.user},
+                )
+                member_serialized.extend(ser.data)
+
+        # All documents - combine all serialized data
+        all_serialized = []
+        if directorate_documents:
+            all_serialized.extend(ser_directorate.data)
+        all_serialized.extend(ba_serialized)
+        all_serialized.extend(lead_serialized)
+        all_serialized.extend(member_serialized)
+        all_serialized = list({item["pk"]: item for item in all_serialized}.values())
+
         data = {
-            "all": ser_all.data,
+            "all": all_serialized,
             "directorate": ser_directorate.data,
-            "ba": ser_ba.data,
-            "lead": ser_lead.data,
-            "team": ser_member.data,
+            "ba": ba_serialized,
+            "lead": lead_serialized,
+            "team": member_serialized,
         }
 
         return Response(data, status=HTTP_200_OK)

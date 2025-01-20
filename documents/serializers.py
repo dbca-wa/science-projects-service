@@ -134,6 +134,55 @@ class TinyProjectDocumentSerializer(serializers.ModelSerializer):
         ]
 
 
+class TinyProjectDocumentSerializerWithUserDocsBelongTo(serializers.ModelSerializer):
+    project = TinyProjectSerializer(read_only=True)
+    created_year = serializers.SerializerMethodField()
+    pdf = ProjectDocumentPDFSerializer(read_only=True)  # Include the PDF serializer
+    for_user = serializers.SerializerMethodField()
+
+    def get_created_year(self, obj):
+        return obj.created_at.year
+
+    def get_for_user(self, obj):
+        # Retrieve the user from the serializer context
+        user = self.context.get("for_user", None)
+        if user:
+            # Safely access the related profile and its image
+            profile = getattr(
+                user, "profile", None
+            )  # Get profile, or None if it doesn't exist
+            image_url = profile.image.file if profile and profile.image else None
+
+            return {
+                "pk": user.pk,
+                "email": user.email,
+                "display_first_name": user.display_first_name,
+                "display_last_name": user.display_last_name,
+                "image": image_url,
+            }
+        return None
+
+    class Meta:
+        model = ProjectDocument
+        fields = [
+            "pk",
+            "created_at",
+            "updated_at",
+            "creator",
+            "modifier",
+            "created_year",
+            "kind",
+            "status",
+            "project",
+            "project_lead_approval_granted",
+            "business_area_lead_approval_granted",
+            "directorate_approval_granted",
+            "pdf",
+            "pdf_generation_in_progress",
+            "for_user",
+        ]
+
+
 class TinyProjectDocumentARSerializer(serializers.ModelSerializer):
     project = TinyProjectSerializer(read_only=True)
     created_year = serializers.SerializerMethodField()
