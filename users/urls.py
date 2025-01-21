@@ -35,6 +35,10 @@ urlpatterns = [
     path("get_staff_profile_emails", views.ActiveStaffProfileEmails.as_view()),
     path("mypublicprofile", views.MyStaffProfile.as_view()),
     path("staffprofiles", views.StaffProfiles.as_view()),
+    path(
+        "staffprofiles/<int:pk>/toggle_visibility",
+        views.TogglePublicVisibility.as_view(),
+    ),
     path("staffprofiles/<int:pk>", views.StaffProfileDetail.as_view()),
     path("staffprofiles/<int:pk>/hero", views.StaffProfileHeroDetail.as_view()),
     path("staffprofiles/<int:pk>/overview", views.StaffProfileOverviewDetail.as_view()),

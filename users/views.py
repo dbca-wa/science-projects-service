@@ -762,7 +762,7 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
                 staff_profile.employee_id = it_asset_data_by_email[email.lower()].get(
                     "employee_id"
                 )
-                staff_profile.is_hidden = False
+                # staff_profile.is_hidden = False
                 staff_profile.save()
                 it_asset_data = it_asset_data_by_email[email.lower()]
             else:
@@ -831,6 +831,9 @@ class StaffProfiles(APIView):
 
         else:
             users = User.objects.filter(is_staff=True).all()
+
+        # Exclude hidden staff profiles
+        users = users.exclude(staff_profile__is_hidden=True)
 
         # Sort users alphabetically based on email
         users = users.order_by("first_name")
@@ -1078,6 +1081,29 @@ class StaffProfileDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class TogglePublicVisibility(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = PublicStaffProfile.objects.get(pk=pk)
+        except PublicStaffProfile.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        staff_profile = self.go(pk)
+        settings.LOGGER.info(
+            msg=f"{req.user} is toggling public visibility of staff profile: {staff_profile}"
+        )
+        staff_profile.is_hidden = not staff_profile.is_hidden
+        staff_profile.save()
+        return Response(
+            {"visibility": staff_profile.is_hidden},
+            status=HTTP_200_OK,
+        )
 
 
 class StaffProfileHeroDetail(APIView):

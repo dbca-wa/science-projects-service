@@ -478,6 +478,9 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     staff_profile_pk = serializers.PrimaryKeyRelatedField(
         source="staff_profile", read_only=True
     )
+    staff_profile_hidden = serializers.BooleanField(
+        source="staff_profile.is_hidden", read_only=True
+    )
     public_email = serializers.EmailField(
         source="staff_profile.public_email",
         read_only=True,
@@ -513,6 +516,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "affiliation",
             "business_areas_led",
             "staff_profile_pk",
+            "staff_profile_hidden",
             "public_email",
             "caretakers",
             "caretaking_for",
