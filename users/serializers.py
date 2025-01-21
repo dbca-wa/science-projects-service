@@ -792,7 +792,7 @@ class EducationEntrySerializer(serializers.ModelSerializer):
             # "qualification_field",
             # "with_honours",
             "qualification_name",
-            "start_year",
+            # "start_year",
             "end_year",
             "institution",
             "location",

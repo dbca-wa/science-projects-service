@@ -294,7 +294,7 @@ class EducationEntry(models.Model):
     #     max_length=50, choices=QualificationKindChoices.choices
     # )
     qualification_name = models.CharField(max_length=200)
-    start_year = models.PositiveIntegerField(blank=True, null=True)
+    # start_year = models.PositiveIntegerField(blank=True, null=True)
     end_year = models.PositiveIntegerField()
     institution = models.CharField(max_length=200)
     location = models.CharField(max_length=200)

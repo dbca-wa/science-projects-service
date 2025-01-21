@@ -1246,6 +1246,7 @@ class StaffProfileEducationEntries(APIView):
                 )
         else:
             # If the serializer is not valid, return the errors
+            print(ser.errors)
             return Response(ser.errors, status=HTTP_400_BAD_REQUEST)
 
 
