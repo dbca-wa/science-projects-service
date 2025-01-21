@@ -608,6 +608,7 @@ class DirectorateUsers(ListAPIView):
         user_ids = user_works.values_list("user", flat=True)
         return User.objects.filter(id__in=user_ids)
 
+
 # endregion
 
 # region Staff Profile Views ============================================

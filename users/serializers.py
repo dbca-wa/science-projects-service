@@ -717,7 +717,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
 
     name = serializers.SerializerMethodField()
     user = UserStaffProfileSerializer()  # Nested serializer for user
-    keyword_tags = KeywordTagSerializer(many=True)
+    # keyword_tags = KeywordTagSerializer(many=True)
     it_asset_data = serializers.SerializerMethodField()
 
     class Meta:
@@ -726,7 +726,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
             "pk",
             "user",
             "title",
-            "keyword_tags",
+            # "keyword_tags",
             "name",
             "it_asset_data",
             "it_asset_id",
@@ -743,6 +743,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
 class StaffProfileOverviewSerializer(serializers.ModelSerializer):
 
     user = UserStaffProfileSerializer()  # Nested serializer for user
+    keyword_tags = KeywordTagSerializer(many=True)
 
     class Meta:
         model = PublicStaffProfile
@@ -751,6 +752,7 @@ class StaffProfileOverviewSerializer(serializers.ModelSerializer):
             "user",
             "about",
             "expertise",
+            "keyword_tags",
         )
 
 
