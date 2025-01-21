@@ -465,7 +465,7 @@ class PendingCaretakerTasks(APIView):
                     # For model instances, doc is a ProjectDocument object
                     key = f"{doc.pk}_{getattr(doc, 'kind', '')}"
 
-                print("Key is ", key)
+                # print("Key is ", key)
                 if key in doc_dict:
                     # Skip duplicates
                     continue
@@ -478,12 +478,12 @@ class PendingCaretakerTasks(APIView):
                 print(f"Error processing document: {e}")
                 continue
 
-        print(
-            {
-                "Before:": len(docs),
-                "After:": len(doc_dict),
-            }
-        )
+        # print(
+        #     {
+        #         "Before:": len(docs),
+        #         "After:": len(doc_dict),
+        #     }
+        # )
 
         return list(doc_dict.values())
 

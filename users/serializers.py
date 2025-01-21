@@ -564,6 +564,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         # Set caretaker data using list comprehension
         caretaking_data = [
             {
+                "caretaker_obj_id": cobj.pk,
                 "pk": cobj.user.pk,
                 "display_first_name": cobj.user.display_first_name,
                 "display_last_name": cobj.user.display_last_name,
