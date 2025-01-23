@@ -27,11 +27,121 @@ from .models import (
 )
 
 from rest_framework import serializers
+from django.core.cache import cache
 
 
 # endregion
 
 # region User Serializers =====================================
+
+
+# def get_caretaker_data(self, caretaker, visited_pks=None):
+#     """Helper method to get caretaker data recursively."""
+#     if visited_pks is None:
+#         visited_pks = set()
+
+#     # Prevent infinite recursion
+#     if caretaker.pk in visited_pks:
+#         return None
+#     visited_pks.add(caretaker.pk)
+
+#     return {
+#         "pk": caretaker.pk,
+#         "caretaker_obj_id": caretaker.pk,  # Adjust if needed
+#         "display_first_name": caretaker.display_first_name,
+#         "display_last_name": caretaker.display_last_name,
+#         "is_superuser": caretaker.is_superuser,
+#         "email": caretaker.email,
+#         "image": (
+#             caretaker.avatar.file.url
+#             if caretaker.avatar and caretaker.avatar.file
+#             else None
+#         ),
+#     }
+
+
+# def get_caretakee_data(self, user, visited_pks=None):
+#     """Helper method to get caretakee data recursively."""
+#     if visited_pks is None:
+#         visited_pks = set()
+
+#     # Prevent infinite recursion
+#     if user.pk in visited_pks:
+#         return None
+#     visited_pks.add(user.pk)
+
+#     return {
+#         "pk": user.pk,
+#         "caretaker_obj_id": user.pk,  # Adjust if needed
+#         "display_first_name": user.display_first_name,
+#         "display_last_name": user.display_last_name,
+#         "is_superuser": user.is_superuser,
+#         "email": user.email,
+#         "image": self.safe_avatar_url(user),
+#     }
+
+
+# def get_caretaking_for(self, obj, max_depth=5):
+#     """Get users being caretaken for with recursive relationships."""
+
+#     def get_caretaking_recursive(user, depth=0, visited_pks=None):
+#         if visited_pks is None:
+#             visited_pks = set()
+
+#         if depth >= max_depth or user.pk in visited_pks:
+#             return []
+
+#         visited_pks.add(user.pk)
+#         caretaking = user.get_caretaking_for()
+
+#         return [
+#             {
+#                 **self.get_caretakee_data(cobj.user, visited_pks.copy()),
+#                 # Recursively get who this user is caretaking for
+#                 "caretaking_for": get_caretaking_recursive(
+#                     cobj.user, depth + 1, visited_pks.copy()
+#                 ),
+#                 # Also include their caretakers for the permissions check
+#                 "caretakers": [
+#                     self.get_caretakee_data(caretaker.caretaker, visited_pks.copy())
+#                     for caretaker in cobj.user.get_caretakers()
+#                     if self.get_caretakee_data(caretaker.caretaker, visited_pks.copy())
+#                     is not None
+#                 ],
+#             }
+#             for cobj in caretaking
+#             if self.get_caretakee_data(cobj.user, visited_pks.copy()) is not None
+#         ]
+
+#     return get_caretaking_recursive(obj)
+
+
+# def get_caretakers(self, obj, max_depth=5):
+#     """Get caretakers with recursive relationships."""
+
+#     def get_caretakers_recursive(user, depth=0, visited_pks=None):
+#         if visited_pks is None:
+#             visited_pks = set()
+
+#         if depth >= max_depth or user.pk in visited_pks:
+#             return []
+
+#         visited_pks.add(user.pk)
+#         caretakers = user.get_caretakers()
+
+#         return [
+#             {
+#                 **self.get_caretaker_data(cobj.caretaker, visited_pks.copy()),
+#                 # Recursively get caretakers of this caretaker
+#                 "caretakers": get_caretakers_recursive(
+#                     cobj.caretaker, depth + 1, visited_pks.copy()
+#                 ),
+#             }
+#             for cobj in caretakers
+#             if self.get_caretaker_data(cobj.caretaker, visited_pks.copy()) is not None
+#         ]
+
+#     return get_caretakers_recursive(obj)
 
 
 class StaffProfileEmailListSerializer(serializers.ModelSerializer):
@@ -114,27 +224,26 @@ class MiniUserSerializer(serializers.ModelSerializer):
             return None
 
     def get_caretakers(self, obj):
-        # Call the user model's get_caretakers method
-        caretakers = obj.get_caretakers()
-        # Set caretaker data using list comprehension
-        caretakers_data = [
-            {
-                "pk": cobj.caretaker.pk,
-                "caretaker_obj_id": cobj.pk,
-                "display_first_name": cobj.caretaker.display_first_name,
-                "display_last_name": cobj.caretaker.display_last_name,
-                "email": cobj.caretaker.email,
-                # "image": (
-                #     cobj.caretaker.avatar.file.url
-                #     if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                #     else None
-                # ),
-                "image": self.safe_avatar_url(cobj.caretaker),
-            }
-            for cobj in caretakers
-        ]
-        # Return whatever data is available
-        return caretakers_data
+        """Get recursive caretaker relationships with caching."""
+        cache_key = f"caretakers_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretakers_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
+
+    def get_caretaking_for(self, obj):
+        """Get recursive caretaking_for relationships with caching."""
+        cache_key = f"caretaking_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretaking_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
 
 
 class BasicUserSerializer(serializers.ModelSerializer):
@@ -192,68 +301,33 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "caretaking_for",
         )
 
+    def get_caretakers(self, obj):
+        """Get recursive caretaker relationships with caching."""
+        cache_key = f"caretakers_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretakers_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
+
+    def get_caretaking_for(self, obj):
+        """Get recursive caretaking_for relationships with caching."""
+        cache_key = f"caretaking_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretaking_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
+
     def safe_avatar_url(self, user):
         try:
             return user.avatar.file.url
         except:
-            #     (
-            #     AttributeError,
-            #     ValueError,
-            #     user.avatar.RelatedObjectDoesNotExist,
-            #     user.models.User.avatar.RelatedObjectDoesNotExist,
-            # )
             return None
-
-    def get_caretakers(self, obj):
-
-        # Call the user model's get_caretakers method
-        caretakers = obj.get_caretakers()
-
-        # for caretaker in caretakers:
-        #     print(caretaker.user.profile.image)
-
-        # Set caretaker data using list comprehension
-        caretakers_data = [
-            {
-                "pk": cobj.caretaker.pk,
-                "caretaker_obj_id": cobj.pk,
-                "display_first_name": cobj.caretaker.display_first_name,
-                "display_last_name": cobj.caretaker.display_last_name,
-                "email": cobj.caretaker.email,
-                "image": self.safe_avatar_url(cobj.caretaker),
-                # "image": (
-                #     cobj.caretaker.avatar.file.url
-                #     if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                #     else None
-                # ),
-            }
-            for cobj in caretakers
-        ]
-        # Return whatever data is available
-        return caretakers_data
-
-    def get_caretaking_for(self, obj):
-        # Call the user model's get_caretaking method
-        caretaking = obj.get_caretaking_for()
-        # Set caretaker data using list comprehension
-        caretaking_data = [
-            {
-                "caretaker_obj_id": cobj.pk,
-                "pk": cobj.user.pk,
-                "display_first_name": cobj.user.display_first_name,
-                "display_last_name": cobj.user.display_last_name,
-                "email": cobj.user.email,
-                "image": self.safe_avatar_url(cobj.user),
-                # "image": (
-                #     cobj.user.avatar.file.url
-                #     if cobj.user.avatar and cobj.user.avatar.file
-                #     else None
-                # ),
-            }
-            for cobj in caretaking
-        ]
-        # Return whatever data is available
-        return caretaking_data
 
 
 class ManagerSerializer(serializers.Serializer):
@@ -522,68 +596,33 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "caretaking_for",
         )
 
+    def get_caretakers(self, obj):
+        """Get recursive caretaker relationships with caching."""
+        cache_key = f"caretakers_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretakers_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
+
+    def get_caretaking_for(self, obj):
+        """Get recursive caretaking_for relationships with caching."""
+        cache_key = f"caretaking_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretaking_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
+
     def safe_avatar_url(self, user):
         try:
             return user.avatar.file.url
         except:
-            #     (
-            #     AttributeError,
-            #     ValueError,
-            #     user.avatar.RelatedObjectDoesNotExist,
-            #     user.models.User.avatar.RelatedObjectDoesNotExist,
-            # )
             return None
-
-    def get_caretakers(self, obj):
-
-        # Call the user model's get_caretakers method
-        caretakers = obj.get_caretakers()
-
-        # for caretaker in caretakers:
-        #     print(caretaker.user.profile.image)
-
-        # Set caretaker data using list comprehension
-        caretakers_data = [
-            {
-                "pk": cobj.caretaker.pk,
-                "caretaker_obj_id": cobj.pk,
-                "display_first_name": cobj.caretaker.display_first_name,
-                "display_last_name": cobj.caretaker.display_last_name,
-                "email": cobj.caretaker.email,
-                "image": self.safe_avatar_url(cobj.caretaker),
-                # "image": (
-                #     cobj.caretaker.avatar.file.url
-                #     if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                #     else None
-                # ),
-            }
-            for cobj in caretakers
-        ]
-        # Return whatever data is available
-        return caretakers_data
-
-    def get_caretaking_for(self, obj):
-        # Call the user model's get_caretaking method
-        caretaking = obj.get_caretaking_for()
-        # Set caretaker data using list comprehension
-        caretaking_data = [
-            {
-                "caretaker_obj_id": cobj.pk,
-                "pk": cobj.user.pk,
-                "display_first_name": cobj.user.display_first_name,
-                "display_last_name": cobj.user.display_last_name,
-                "email": cobj.user.email,
-                "image": self.safe_avatar_url(cobj.user),
-                # "image": (
-                #     cobj.user.avatar.file.url
-                #     if cobj.user.avatar and cobj.user.avatar.file
-                #     else None
-                # ),
-            }
-            for cobj in caretaking
-        ]
-        # Return whatever data is available
-        return caretaking_data
 
 
 # endregion
@@ -627,26 +666,26 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
         )
 
     def get_caretakers(self, obj):
-        # Call the user model's get_caretakers method
-        caretakers = obj.get_caretakers()
-        # Set caretaker data using list comprehension
-        caretakers_data = [
-            {
-                "pk": cobj.caretaker.pk,
-                "caretaker_obj_id": cobj.pk,
-                "display_first_name": cobj.caretaker.display_first_name,
-                "display_last_name": cobj.caretaker.display_last_name,
-                "email": cobj.caretaker.email,
-                "image": (
-                    cobj.caretaker.avatar.file.url
-                    if cobj.caretaker.avatar and cobj.caretaker.avatar.file
-                    else None
-                ),
-            }
-            for cobj in caretakers
-        ]
-        # Return whatever data is available
-        return caretakers_data
+        """Get recursive caretaker relationships with caching."""
+        cache_key = f"caretakers_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretakers_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
+
+    def get_caretaking_for(self, obj):
+        """Get recursive caretaking_for relationships with caching."""
+        cache_key = f"caretaking_{obj.pk}"
+        cached_data = cache.get(cache_key)
+        if cached_data is not None:
+            return cached_data
+
+        data = obj.get_caretaking_recursive(max_depth=5)
+        cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
+        return data
 
     def get_employee_id(self, obj):
         return obj.staff_profile.employee_id

@@ -81,6 +81,79 @@ class User(AbstractUser):
         help_text="Whether this user can act as animal ethics committee if not an admin",
     )
 
+    def get_caretaker_data(self, visited_pks=None):
+        """Helper method to get data about this user as a caretaker."""
+        if visited_pks is None:
+            visited_pks = set()
+
+        # Prevent infinite recursion
+        if self.pk in visited_pks:
+            return None
+        visited_pks.add(self.pk)
+
+        # Get avatar
+        avatar = self.get_image()
+
+        return {
+            "pk": self.pk,
+            "caretaker_obj_id": self.pk,
+            "display_first_name": self.display_first_name,
+            "display_last_name": self.display_last_name,
+            "is_superuser": self.is_superuser,
+            "email": self.email,
+            "image": avatar.get("file") if avatar else None,
+        }
+
+    def get_caretakers_recursive(self, depth=0, max_depth=5, visited_pks=None):
+        """Get all caretakers with recursive relationships."""
+        if visited_pks is None:
+            visited_pks = set()
+
+        if depth >= max_depth or self.pk in visited_pks:
+            return []
+
+        visited_pks.add(self.pk)
+        caretakers = self.get_caretakers()
+
+        return [
+            {
+                **caretaker.caretaker.get_caretaker_data(visited_pks.copy()),
+                # Recursively get caretakers of this caretaker
+                "caretakers": caretaker.caretaker.get_caretakers_recursive(
+                    depth + 1, max_depth, visited_pks.copy()
+                ),
+            }
+            for caretaker in caretakers
+            if caretaker.caretaker.get_caretaker_data(visited_pks.copy()) is not None
+        ]
+
+    def get_caretaking_recursive(self, depth=0, max_depth=5, visited_pks=None):
+        """Get all users being caretaken for with recursive relationships."""
+        if visited_pks is None:
+            visited_pks = set()
+
+        if depth >= max_depth or self.pk in visited_pks:
+            return []
+
+        visited_pks.add(self.pk)
+        caretaking = self.get_caretaking_for()
+
+        return [
+            {
+                **caretaking_user.user.get_caretaker_data(visited_pks.copy()),
+                # Recursively get who this user is caretaking for
+                "caretaking_for": caretaking_user.user.get_caretaking_recursive(
+                    depth + 1, max_depth, visited_pks.copy()
+                ),
+                # Also include their caretakers for the permissions check
+                "caretakers": caretaking_user.user.get_caretakers_recursive(
+                    0, max_depth, visited_pks.copy()  # Start fresh depth for caretakers
+                ),
+            }
+            for caretaking_user in caretaking
+            if caretaking_user.user.get_caretaker_data(visited_pks.copy()) is not None
+        ]
+
     def get_caretakers(self):
         all = Caretaker.objects.filter(user=self)
         return all

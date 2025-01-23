@@ -2,6 +2,7 @@
 from django.db import models
 from django.forms import ValidationError
 from common.models import CommonModel
+from django.core.cache import cache
 
 # endregion  =================================================================================================
 
@@ -254,6 +255,14 @@ class Caretaker(CommonModel):
 
     def __str__(self) -> str:
         return f"USER: {self.user} -> CARETAKER: {self.caretaker}; {self.reason}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Clear cache for both users involved
+        cache.delete(f"caretakers_{self.user.pk}")
+        cache.delete(f"caretaking_{self.user.pk}")
+        cache.delete(f"caretakers_{self.caretaker.pk}")
+        cache.delete(f"caretaking_{self.caretaker.pk}")
 
     class Meta:
         verbose_name = "Caretaker"
