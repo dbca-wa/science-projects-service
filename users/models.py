@@ -81,15 +81,14 @@ class User(AbstractUser):
         help_text="Whether this user can act as animal ethics committee if not an admin",
     )
 
-    def get_caretaker_data(self, visited_pks=None):
+    def get_caretaker_data(self, current_path=None):
         """Helper method to get data about this user as a caretaker."""
-        if visited_pks is None:
-            visited_pks = set()
+        if current_path is None:
+            current_path = []
 
-        # Prevent infinite recursion
-        if self.pk in visited_pks:
+        # Only prevent recursion if we're repeating the exact same path
+        if self.pk in current_path:
             return None
-        visited_pks.add(self.pk)
 
         # Get avatar
         avatar = self.get_image()
@@ -104,54 +103,57 @@ class User(AbstractUser):
             "image": avatar.get("file") if avatar else None,
         }
 
-    def get_caretakers_recursive(self, depth=0, max_depth=5, visited_pks=None):
+    def get_caretakers_recursive(self, depth=0, max_depth=5, current_path=None):
         """Get all caretakers with recursive relationships."""
-        if visited_pks is None:
-            visited_pks = set()
+        if current_path is None:
+            current_path = []
 
-        if depth >= max_depth or self.pk in visited_pks:
+        if depth >= max_depth or self.pk in current_path:
             return []
 
-        visited_pks.add(self.pk)
+        # Add current user to the path
+        new_path = current_path + [self.pk]
         caretakers = self.get_caretakers()
 
         return [
             {
-                **caretaker.caretaker.get_caretaker_data(visited_pks.copy()),
+                **caretaker.caretaker.get_caretaker_data(new_path),
                 # Recursively get caretakers of this caretaker
                 "caretakers": caretaker.caretaker.get_caretakers_recursive(
-                    depth + 1, max_depth, visited_pks.copy()
+                    depth + 1, max_depth, new_path
                 ),
             }
             for caretaker in caretakers
-            if caretaker.caretaker.get_caretaker_data(visited_pks.copy()) is not None
+            if caretaker.caretaker.get_caretaker_data(new_path) is not None
         ]
 
-    def get_caretaking_recursive(self, depth=0, max_depth=5, visited_pks=None):
+    def get_caretaking_recursive(self, depth=0, max_depth=5, current_path=None):
         """Get all users being caretaken for with recursive relationships."""
-        if visited_pks is None:
-            visited_pks = set()
+        if current_path is None:
+            current_path = []
 
-        if depth >= max_depth or self.pk in visited_pks:
+        if depth >= max_depth or self.pk in current_path:
             return []
 
-        visited_pks.add(self.pk)
+        # Add current user to the path
+        new_path = current_path + [self.pk]
         caretaking = self.get_caretaking_for()
 
         return [
             {
-                **caretaking_user.user.get_caretaker_data(visited_pks.copy()),
+                **caretaking_user.user.get_caretaker_data(new_path),
                 # Recursively get who this user is caretaking for
                 "caretaking_for": caretaking_user.user.get_caretaking_recursive(
-                    depth + 1, max_depth, visited_pks.copy()
+                    depth + 1, max_depth, new_path
                 ),
                 # Also include their caretakers for the permissions check
+                # Start with a fresh path for caretakers since it's a different relationship type
                 "caretakers": caretaking_user.user.get_caretakers_recursive(
-                    0, max_depth, visited_pks.copy()  # Start fresh depth for caretakers
+                    0, max_depth, []  # Start with empty path for caretakers
                 ),
             }
             for caretaking_user in caretaking
-            if caretaking_user.user.get_caretaker_data(visited_pks.copy()) is not None
+            if caretaking_user.user.get_caretaker_data(new_path) is not None
         ]
 
     def get_caretakers(self):
