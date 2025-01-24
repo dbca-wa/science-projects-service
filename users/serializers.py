@@ -603,7 +603,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         if cached_data is not None:
             return cached_data
 
-        data = obj.get_caretakers_recursive(max_depth=5)
+        data = obj.get_caretakers_recursive(max_depth=100)
         cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
         return data
 
@@ -614,7 +614,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         if cached_data is not None:
             return cached_data
 
-        data = obj.get_caretaking_recursive(max_depth=5)
+        data = obj.get_caretaking_recursive(max_depth=100)
         cache.set(cache_key, data, timeout=3600)  # Cache for 1 hour
         return data
 

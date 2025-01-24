@@ -103,7 +103,7 @@ class User(AbstractUser):
             "image": avatar.get("file") if avatar else None,
         }
 
-    def get_caretakers_recursive(self, depth=0, max_depth=5, current_path=None):
+    def get_caretakers_recursive(self, depth=0, max_depth=12, current_path=None):
         """Get all caretakers with recursive relationships."""
         if current_path is None:
             current_path = []
@@ -127,7 +127,7 @@ class User(AbstractUser):
             if caretaker.caretaker.get_caretaker_data(new_path) is not None
         ]
 
-    def get_caretaking_recursive(self, depth=0, max_depth=5, current_path=None):
+    def get_caretaking_recursive(self, depth=0, max_depth=12, current_path=None):
         """Get all users being caretaken for with recursive relationships."""
         if current_path is None:
             current_path = []
@@ -138,23 +138,32 @@ class User(AbstractUser):
         # Add current user to the path
         new_path = current_path + [self.pk]
         caretaking = self.get_caretaking_for()
+        result = []
 
-        return [
-            {
-                **caretaking_user.user.get_caretaker_data(new_path),
-                # Recursively get who this user is caretaking for
-                "caretaking_for": caretaking_user.user.get_caretaking_recursive(
-                    depth + 1, max_depth, new_path
-                ),
-                # Also include their caretakers for the permissions check
-                # Start with a fresh path for caretakers since it's a different relationship type
-                "caretakers": caretaking_user.user.get_caretakers_recursive(
-                    0, max_depth, []  # Start with empty path for caretakers
-                ),
-            }
-            for caretaking_user in caretaking
-            if caretaking_user.user.get_caretaker_data(new_path) is not None
-        ]
+        for caretaking_user in caretaking:
+            user_data = caretaking_user.user.get_caretaker_data(new_path)
+            if user_data is not None:
+                # Use a new path for each branch to avoid cross-branch conflicts
+                branch_path = new_path.copy()
+
+                caretaking_chain = caretaking_user.user.get_caretaking_recursive(
+                    depth + 1, max_depth, branch_path
+                )
+
+                # Use a fresh path for caretakers to avoid conflicts with caretaking chain
+                caretakers_chain = caretaking_user.user.get_caretakers_recursive(
+                    0, max_depth, []
+                )
+
+                result.append(
+                    {
+                        **user_data,
+                        "caretaking_for": caretaking_chain,
+                        "caretakers": caretakers_chain,
+                    }
+                )
+
+        return result
 
     def get_caretakers(self):
         all = Caretaker.objects.filter(user=self)
