@@ -93,9 +93,15 @@ class User(AbstractUser):
         # Get avatar
         avatar = self.get_image()
 
+        # Get the first related caretaker instance (if any)
+        caretaker_instance = (
+            self.caretaker.first()
+        )  # Use `.first()` to get a specific instance
+        caretaker_pk = caretaker_instance.pk if caretaker_instance else None
+
         return {
             "pk": self.pk,
-            "caretaker_obj_id": self.pk,
+            "caretaker_obj_id": caretaker_pk,
             "display_first_name": self.display_first_name,
             "display_last_name": self.display_last_name,
             "is_superuser": self.is_superuser,

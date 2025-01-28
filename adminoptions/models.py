@@ -264,6 +264,14 @@ class Caretaker(CommonModel):
         cache.delete(f"caretakers_{self.caretaker.pk}")
         cache.delete(f"caretaking_{self.caretaker.pk}")
 
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)  # Ensure the parent delete is called
+        # Clear cache for both users involved
+        cache.delete(f"caretakers_{self.user.pk}")
+        cache.delete(f"caretaking_{self.user.pk}")
+        cache.delete(f"caretakers_{self.caretaker.pk}")
+        cache.delete(f"caretaking_{self.caretaker.pk}")
+
     class Meta:
         verbose_name = "Caretaker"
         verbose_name_plural = "Caretakers"
