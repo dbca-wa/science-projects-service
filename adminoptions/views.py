@@ -592,26 +592,6 @@ class PendingCaretakerTasks(APIView):
             )
             all_documents.extend(member_documents)
 
-        # 5) Remove duplicates
-        unique_documents = list({doc.id: doc for doc in all_documents}.values())
-
-        # 6) Serialize final results (with user context for each item)
-        # ser_all = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-        #     unique_documents, many=True, context={"request": request}
-        # )
-        # ser_directorate = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-        #     directorate_documents, many=True, context={"request": request}
-        # )
-        # ser_ba = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-        #     ba_documents, many=True, context={"request": request}
-        # )
-        # ser_lead = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-        #     lead_documents, many=True, context={"request": request}
-        # )
-        # ser_member = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-        #     member_documents, many=True, context={"request": request}
-        # )
-
         # Directorate documents - use None for for_user
         ser_directorate = TinyProjectDocumentSerializerWithUserDocsBelongTo(
             directorate_documents,
@@ -623,8 +603,16 @@ class PendingCaretakerTasks(APIView):
         ba_serialized = []
         for assignment in caretaker_assignments:
             if assignment.user.business_areas_led.exists():
+                # Filter BA documents for just this user's business areas
+                user_ba_areas = assignment.user.business_areas_led.values_list(
+                    "id", flat=True
+                )
+                user_ba_documents = ba_documents.filter(
+                    project__business_area__in=user_ba_areas
+                )
+
                 ser = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-                    ba_documents,
+                    user_ba_documents,  # Now only passing this user's BA documents
                     many=True,
                     context={"request": request, "for_user": assignment.user},
                 )
@@ -634,8 +622,17 @@ class PendingCaretakerTasks(APIView):
         lead_serialized = []
         for assignment in caretaker_assignments:
             if assignment.user.id in project_lead_user_ids:
+                # Filter lead_documents for just this user's projects
+                user_lead_projects = ProjectMember.objects.filter(
+                    user=assignment.user, is_leader=True
+                ).values_list("project_id", flat=True)
+
+                user_lead_documents = lead_documents.filter(
+                    project__in=user_lead_projects
+                )
+
                 ser = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-                    lead_documents,
+                    user_lead_documents,  # Now only passing this user's documents
                     many=True,
                     context={"request": request, "for_user": assignment.user},
                 )
@@ -645,8 +642,17 @@ class PendingCaretakerTasks(APIView):
         member_serialized = []
         for assignment in caretaker_assignments:
             if assignment.user.id in team_member_user_ids:
+                # Filter member documents for just this user's projects
+                user_team_projects = ProjectMember.objects.filter(
+                    user=assignment.user, is_leader=False, project__in=active_projects
+                ).values_list("project_id", flat=True)
+
+                user_member_documents = member_documents.filter(
+                    project__in=user_team_projects
+                )
+
                 ser = TinyProjectDocumentSerializerWithUserDocsBelongTo(
-                    member_documents,
+                    user_member_documents,  # Now only passing this user's team documents
                     many=True,
                     context={"request": request, "for_user": assignment.user},
                 )
