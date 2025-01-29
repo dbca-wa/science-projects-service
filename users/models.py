@@ -107,6 +107,7 @@ class User(AbstractUser):
             "is_superuser": self.is_superuser,
             "email": self.email,
             "image": avatar.get("file") if avatar else None,
+            "end_date": caretaker_instance.end_date if caretaker_instance else None,
         }
 
     def get_caretakers_recursive(self, depth=0, max_depth=12, current_path=None):
