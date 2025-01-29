@@ -347,7 +347,9 @@ class SmallInternalUserSearch(APIView):
 
             # Check if the search term has a space
             if " " in search_term:
-                first_name, last_name = search_term.split(" ")
+                first_name, last_name = search_term.split(
+                    " ", 1
+                )  # Ensure that there is only 1 split for 2 parts
                 search_filter |= Q(first_name__icontains=first_name) & Q(
                     last_name__icontains=last_name
                 )
