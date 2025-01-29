@@ -2,7 +2,8 @@
 # ====================== IMAGE & CONFIG ======================
 
 # Use the local version that works with poetry config when testing in dev (3.12.3)
-FROM python:3.12.6
+# FROM python:3.12.6
+FROM python:3.13.0
 LABEL org.opencontainers.image.source=https://github.com/dbca-wa/science-project-service
 # Ensures Python output sent to terminal for logging
 ENV PYTHONUNBUFFERED=1
@@ -32,7 +33,8 @@ ENV PATH="${PATH}:/etc/poetry/bin"
 RUN echo "Downloading Prince Package" \
     && DEB_FILE=prince.deb \
     && wget -O ${DEB_FILE} \
-    https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
+    # https://www.princexml.com/download/prince_15.3-1_debian12_amd64.deb
+    https://www.princexml.com/download/prince_15.4.1-1_debian12_amd64.deb
 
 # Prince installer
 RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
@@ -65,7 +67,7 @@ WORKDIR /usr/src/app/backend
 # Configure Poetry to not use virtualenv
 RUN poetry config virtualenvs.create false
 # Install deps from poetry lock file made in dev
-RUN poetry install 
+RUN poetry install --no-root
 
 # ====================== USER & PERMISSIONS ======================
 
