@@ -374,110 +374,42 @@ class SmallInternalUserSearch(APIView):
 class Users(APIView):
     permission_classes = [IsAuthenticated]
 
-    # def get(self, request):
-    #     settings.LOGGER.info(msg=f"{request.user} is viewing/filtering users")
-    #     try:
-    #         page = int(request.query_params.get("page", 1))
-    #     except ValueError:
-    #         # If the user sends a non-integer value as the page parameter
-    #         page = 1
-
-    #     page_size = settings.PAGE_SIZE
-    #     start = (page - 1) * page_size
-    #     end = start + page_size
-
-    #     search_term = request.GET.get("searchTerm")
-    #     business_area = request.GET.get("businessArea")
-
-    #     # Get the values of the checkboxes
-    #     only_superuser = bool(request.GET.get("only_superuser", False))
-    #     only_staff = bool(request.GET.get("only_staff", False))
-    #     only_external = bool(request.GET.get("only_external", False))
-
-    #     # Interaction logic between checkboxes
-    #     if only_external:
-    #         only_staff = False
-    #         only_superuser = False
-    #     elif only_staff or only_superuser:
-    #         only_external = False
-
-    #     if search_term:
-    #         # Check if there is a space in the search term (fn + ln)
-    #         search_parts = search_term.split(" ", 1)
-    #         # Apply filtering based on the search term
-    #         if len(search_parts) == 2:
-    #             first_name, last_name = search_parts
-    #             users = User.objects.filter(
-    #                 Q(first_name__icontains=first_name)
-    #                 & Q(last_name__icontains=last_name)
-    #                 | Q(display_first_name__icontains=first_name)
-    #                 & Q(display_last_name__icontains=last_name)
-    #                 | Q(email__icontains=search_term)
-    #                 | Q(username__icontains=search_term)
-    #             )
-
-    #         else:
-    #             # If the search term cannot be split, continue with the existing logic
-    #             users = User.objects.filter(
-    #                 Q(first_name__icontains=search_term)
-    #                 | Q(last_name__icontains=search_term)
-    #                 | Q(display_first_name__icontains=search_term)
-    #                 | Q(display_last_name__icontains=search_term)
-    #                 | Q(email__icontains=search_term)
-    #                 | Q(username__icontains=search_term)
-    #             )
-
-    #     else:
-    #         users = User.objects.all()
-
-    #     # Filter users based on checkbox values
-    #     if only_external:
-    #         users = users.filter(is_staff=False)
-    #     elif only_staff:
-    #         users = users.filter(is_staff=True)
-    #     elif only_superuser:
-    #         users = users.filter(is_superuser=True)
-
-    #     if business_area != "All":
-    #         users = users.filter(work__business_area__pk=business_area).all()
-
-    #     # Sort users alphabetically based on email
-    #     users = users.order_by("email")
-
-    #     total_users = users.count()
-    #     total_pages = ceil(total_users / page_size)
-
-    #     serialized_users = TinyUserSerializer(
-    #         users[start:end], many=True, context={"request": request}
-    #     ).data
-
-    #     response_data = {
-    #         "users": serialized_users,
-    #         "total_results": total_users,
-    #         "total_pages": total_pages,
-    #     }
-
-    #     return Response(response_data, status=HTTP_200_OK)
-
     def get(self, request):
+        settings.LOGGER.info(msg=f"{request.user} is viewing/filtering users")
+
         # Pagination
-        page = int(request.GET.get("page", 1))
-        page_size = int(request.GET.get("pageSize", 5))
+        try:
+            page = int(request.GET.get("page", 1))
+        except ValueError:
+            page = 1
+        page_size = settings.PAGE_SIZE
         start = (page - 1) * page_size
         end = start + page_size
 
         # Query Parameters
         search_term = request.GET.get("searchTerm", "").strip()
+        business_area = request.GET.get("businessArea")
         only_internal = request.GET.get("onlyInternal", "False")
         project_pk = request.GET.get("fromProject")
         ignore_string = request.GET.get("ignoreArray", "")
-        print(f"\n\nIGNORE STRING: {ignore_string}\n\n")
+
+        # Get the values of the checkboxes
+        only_superuser = bool(request.GET.get("only_superuser", False))
+        only_staff = bool(request.GET.get("only_staff", False))
+        only_external = bool(request.GET.get("only_external", False))
 
         # Parse only_internal to boolean
         try:
             only_internal = ast.literal_eval(only_internal)
         except (ValueError, SyntaxError):
             only_internal = False
+
+        # Interaction logic between checkboxes
+        if only_external:
+            only_staff = False
+            only_superuser = False
+        elif only_staff or only_superuser:
+            only_external = False
 
         # Build the base query
         if only_internal:
@@ -503,31 +435,57 @@ class Users(APIView):
 
         # Apply the search filter
         if search_term:
-            q_filter = (
-                Q(first_name__icontains=search_term)
-                | Q(last_name__icontains=search_term)
-                | Q(email__icontains=search_term)
-                | Q(username__icontains=search_term)
-            )
-
-            # Split on space to filter by full name
-            if " " in search_term:
-                first_name, last_name = search_term.split(" ", 1)
-                q_filter |= Q(first_name__icontains=first_name) & Q(
-                    last_name__icontains=last_name
+            search_parts = search_term.split(" ", 1)
+            if len(search_parts) == 2:
+                first_name, last_name = search_parts
+                users = users.filter(
+                    Q(first_name__icontains=first_name)
+                    & Q(last_name__icontains=last_name)
+                    | Q(display_first_name__icontains=first_name)
+                    & Q(display_last_name__icontains=last_name)
+                    | Q(email__icontains=search_term)
+                    | Q(username__icontains=search_term)
+                )
+            else:
+                users = users.filter(
+                    Q(first_name__icontains=search_term)
+                    | Q(last_name__icontains=search_term)
+                    | Q(display_first_name__icontains=search_term)
+                    | Q(display_last_name__icontains=search_term)
+                    | Q(email__icontains=search_term)
+                    | Q(username__icontains=search_term)
                 )
 
-            users = users.filter(q_filter)
+        # Filter users based on checkbox values
+        if only_external:
+            users = users.filter(is_staff=False)
+        elif only_staff:
+            users = users.filter(is_staff=True)
+        elif only_superuser:
+            users = users.filter(is_superuser=True)
+
+        # Filter by business area
+        if business_area and business_area != "All":
+            users = users.filter(work__business_area__pk=business_area)
+
+        # Count total before pagination
+        total_users = users.count()
+        total_pages = ceil(total_users / page_size)
 
         # Sort and paginate
-        users = users.order_by("first_name")[start:end]
+        users = users.order_by("email")[start:end]
 
         # Serialize and respond
         serialized_users = TinyUserSerializer(
             users, many=True, context={"request": request}
         ).data
 
-        response_data = {"users": serialized_users}
+        response_data = {
+            "users": serialized_users,
+            "total_results": total_users,
+            "total_pages": total_pages,
+        }
+
         return Response(response_data, status=HTTP_200_OK)
 
     def post(self, req):
