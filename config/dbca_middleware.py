@@ -24,6 +24,11 @@ class DBCAMiddleware(MiddlewareMixin):
     def create_user_and_associated_entries(self, request, attributemap):
         try:
             with transaction.atomic():
+                # Initialize IT Assets variables with defaults
+                it_asset_id = None
+                employee_id = None
+
+                # Create user and basic profile entities
                 user = User.objects.create_user(
                     username=attributemap["username"],
                     first_name=attributemap["first_name"],
@@ -40,48 +45,50 @@ class DBCAMiddleware(MiddlewareMixin):
                 user.set_password(settings.EXTERNAL_PASS)
                 user.save()
 
-                # IT ASSETS
-                try:
-                    api_url = settings.IT_ASSETS_URL
-                    response = requests.get(
-                        api_url,
-                        auth=(
-                            settings.IT_ASSETS_USER,
-                            settings.IT_ASSETS_ACCESS_TOKEN,
-                        ),
-                    )
-                    if response.status_code == 200:
-                        api_data = response.json()
-                        matching_record = next(
-                            (
-                                item
-                                for item in api_data
-                                if item["email"] == attributemap["email"]
+                # Try to get IT Assets data, but don't fail if unavailable
+                if hasattr(settings, "IT_ASSETS_URL") and settings.IT_ASSETS_URL:
+                    try:
+                        # Add timeout to prevent long waits
+                        response = requests.get(
+                            settings.IT_ASSETS_URL,
+                            auth=(
+                                settings.IT_ASSETS_USER or "",
+                                settings.IT_ASSETS_ACCESS_TOKEN or "",
                             ),
-                            None,
+                            timeout=5,  # 5 seconds timeout
                         )
-                        it_asset_id = matching_record["id"] if matching_record else None
-                        employee_id = (
-                            matching_record["employee_id"] if matching_record else None
-                        )
-                    else:
-                        if settings.IT_ASSETS_USER == None:
-                            settings.LOGGER.warning(
-                                "No IT_ASSETS_USER found in settings/env"
-                            )
-                        if settings.IT_ASSETS_ACCESS_TOKEN == None:
-                            settings.LOGGER.warning(
-                                "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
-                            )
-                        it_asset_id = None
-                        print(
-                            f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
-                        )
-                except requests.exceptions.RequestException as api_err:
-                    it_asset_id = None
-                    settings.LOGGER.error(f"API Error: {str(api_err)}")
 
-                # Create PublicStaffProfile even if IT asset data is not available
+                        if response.status_code == 200:
+                            try:
+                                api_data = response.json()
+                                matching_record = next(
+                                    (
+                                        item
+                                        for item in api_data
+                                        if item["email"] == attributemap["email"]
+                                    ),
+                                    None,
+                                )
+                                if matching_record:
+                                    it_asset_id = matching_record.get("id")
+                                    employee_id = matching_record.get("employee_id")
+                            except (ValueError, KeyError) as json_err:
+                                settings.LOGGER.error(
+                                    f"Failed to parse IT Assets response: {str(json_err)}"
+                                )
+                        else:
+                            settings.LOGGER.warning(
+                                f"IT Assets API returned status {response.status_code}"
+                            )
+
+                    except requests.exceptions.RequestException as api_err:
+                        settings.LOGGER.warning(
+                            f"Failed to connect to IT Assets service: {str(api_err)}"
+                        )
+                else:
+                    settings.LOGGER.warning("IT Assets URL not configured")
+
+                # Create PublicStaffProfile with whatever data we have (even if none)
                 PublicStaffProfile.objects.create(
                     user=user,
                     is_hidden=False,
@@ -92,7 +99,8 @@ class DBCAMiddleware(MiddlewareMixin):
                 return user
 
         except Exception as e:
-            raise ParseError(str(e))
+            settings.LOGGER.error(f"Error creating user: {str(e)}")
+            raise ParseError(f"Failed to create user: {str(e)}")
 
     def save_request_meta_to_file(self, meta_data):
         # Create a temporary file using tempfile

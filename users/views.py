@@ -907,7 +907,7 @@ class StaffProfiles(APIView):
             }
         else:
             settings.LOGGER.error(
-                f"Failed to fetch user data: {response.status_code} {response.text}"
+                f"Failed to fetch Staff Profile data (IT ASSETS issue): {response.status_code} {response.text}"
             )
             it_asset_data_by_email = {}  # Empty dict if API call fails
         # Process each user and update their it_asset_id if needed
