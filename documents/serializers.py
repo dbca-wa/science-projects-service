@@ -807,6 +807,8 @@ class ResponseDataSerializer(serializers.Serializer):
     start = serializers.IntegerField(required=False, default=0)
     numFoundExact = serializers.BooleanField(required=False, default=False)
     docs = PublicationDocSerializer(many=True, required=False, default=list)
+    isError = serializers.BooleanField(required=False, default=False)
+    errorMessage = serializers.CharField(required=False, default="", allow_blank=True)
 
 
 class LibraryResponseSerializer(serializers.Serializer):
@@ -814,7 +816,6 @@ class LibraryResponseSerializer(serializers.Serializer):
     response = ResponseDataSerializer()
 
     def to_representation(self, instance):
-        # Just return the response part
         data = super().to_representation(instance)
         return data["response"]
 

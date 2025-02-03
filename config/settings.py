@@ -10,6 +10,7 @@ env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=True)  # Add overwrite=True
 
 DEBUG = True if os.environ.get("DJANGO_DEBUG") != "False" else False
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -17,9 +18,7 @@ ON_TEST_NETWORK = True if os.environ.get("ON_TEST_NETWORK") != "False" else Fals
 SITE_URL_HTTP = f'https://{env("SITE_URL")}'
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
-LIBRARY_API_URL = env(
-    "LIBRARY_API_URL"
-)  # link needs to be followed by employee id number
+LIBRARY_API_URL = env("LIBRARY_API_URL")
 LIBRARY_BEARER_TOKEN = env("LIBRARY_BEARER_TOKEN")
 IT_ASSETS_ACCESS_TOKEN = env("IT_ASSETS_ACCESS_TOKEN")
 IT_ASSETS_USER = env("IT_ASSETS_USER")

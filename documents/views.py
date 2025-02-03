@@ -9076,44 +9076,59 @@ class CancelProjectDocGeneration(APIView):
 
 class UserPublications(APIView):
     def get(self, req, employee_id):
+        settings.LOGGER.info(
+            f"{req.user} is getting UserPublications for {employee_id}"
+        )
         if not employee_id:
-            settings.LOGGER.error(
+            settings.LOGGER.warn(
                 "Employee ID not provided when searching for publications"
             )
             return Response(
-                {"numFound": 0, "start": 0, "numFoundExact": True, "docs": []},
-                status=HTTP_200_OK,  # Return 200 with empty data
+                {
+                    "numFound": 0,
+                    "start": 0,
+                    "numFoundExact": True,
+                    "docs": [],
+                    "isError": True,
+                    "errorMessage": "No employee ID provided",
+                },
+                status=HTTP_200_OK,
             )
 
-            # return Response(
-            #     {"error": "No employee_id found"},
-            #     status=HTTP_400_BAD_REQUEST,
-            # )
-
         if not settings.LIBRARY_API_URL:
-            # return Response(
-            #     {"error": "No LIBRARY_API_URL found in settings/env"},
-            #     status=HTTP_500_INTERNAL_SERVER_ERROR,
-            # )
-            settings.LOGGER.error("Missing LIBRARY_API_URL in settings/env")
+            settings.LOGGER.warn("Missing LIBRARY_API_URL in settings/env")
             return Response(
-                {"numFound": 0, "start": 0, "numFoundExact": True, "docs": []},
-                status=HTTP_200_OK,  # Return 200 with empty data
+                {
+                    "numFound": 0,
+                    "start": 0,
+                    "numFoundExact": True,
+                    "docs": [],
+                    "isError": True,
+                    "errorMessage": "Library API configuration missing",
+                },
+                status=HTTP_200_OK,
             )
 
         if not settings.LIBRARY_BEARER_TOKEN:
-            # return Response(
-            #     {"error": "No LIBRARY_BEARER_TOKEN found in settings/env"},
-            #     status=HTTP_500_INTERNAL_SERVER_ERROR,
-            # )
-            settings.LOGGER.error("Missing LIBRARY_BEARER_TOKEN in settings/env")
+            settings.LOGGER.warn("Missing LIBRARY_BEARER_TOKEN in settings/env")
             return Response(
-                {"numFound": 0, "start": 0, "numFoundExact": True, "docs": []},
-                status=HTTP_200_OK,  # Return 200 with empty data
+                {
+                    "numFound": 0,
+                    "start": 0,
+                    "numFoundExact": True,
+                    "docs": [],
+                    "isError": True,
+                    "errorMessage": "Library Token configuration missing",
+                },
+                status=HTTP_200_OK,
             )
 
         api_url = f"{settings.LIBRARY_API_URL}{employee_id}"
-        # print("URL", api_url)
+
+        # if settings.LIBRARY_API_URL and settings.LIBRARY_BEARER_TOKEN:
+        #     print("API URL", settings.LIBRARY_API_URL)
+        #     print("Combined URL", api_url)
+        #     print("Bearer Token", settings.LIBRARY_BEARER_TOKEN)
 
         # Strip any 'Bearer ' prefix if it exists in the token
         token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")
@@ -9121,25 +9136,32 @@ class UserPublications(APIView):
 
         try:
             response = requests.get(api_url, headers=headers)
+            # print(response.json()["response"])
 
             if response.status_code != 200:
                 settings.LOGGER.error(
                     f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
                 )
-                # return Response(
-                #     {"error": f"API request failed with status {response.status_code}"},
-                #     status=response.status_code,
-                # )
                 return Response(
-                    {"numFound": 0, "start": 0, "numFoundExact": True, "docs": []},
-                    status=HTTP_200_OK,  # Return 200 with empty data
+                    {
+                        "numFound": 0,
+                        "start": 0,
+                        "numFoundExact": True,
+                        "docs": [],
+                        "isError": True,
+                        "errorMessage": f"API request failed with status {response.status_code}",
+                    },
+                    status=HTTP_200_OK,
                 )
 
             api_data = response.json()
-            # Log data
-            # settings.LOGGER.info(f"API data retrieved: {api_data}")
 
-            settings.LOGGER.info(f"Raw API response structure: {api_data.keys()}")
+            # Ensure response exists in api_data
+            if "response" not in api_data:
+                api_data["response"] = {}
+            # Add isError field to the response
+            api_data["response"]["isError"] = False
+            api_data["response"]["errorMessage"] = ""
 
             serializer = LibraryResponseSerializer(data=api_data)
 
@@ -9150,18 +9172,28 @@ class UserPublications(APIView):
                 settings.LOGGER.error(
                     f"Library Publication Serializer errors: {serializer.errors}"
                 )
-                # return Response(
-                #     {"error": "Invalid data format from API"},
-                #     status=HTTP_502_BAD_GATEWAY,
-                # )
                 return Response(
-                    {"numFound": 0, "start": 0, "numFoundExact": True, "docs": []},
-                    status=HTTP_200_OK,  # Return 200 with empty data
+                    {
+                        "numFound": 0,
+                        "start": 0,
+                        "numFoundExact": True,
+                        "docs": [],
+                        "isError": True,
+                        "errorMessage": "Invalid data format from API",
+                    },
+                    status=HTTP_200_OK,
                 )
 
         except (requests.exceptions.RequestException, ValueError) as e:
             settings.LOGGER.error(f"Error processing request: {str(e)}")
             return Response(
-                {"numFound": 0, "start": 0, "numFoundExact": True, "docs": []},
-                status=HTTP_200_OK,  # Return 200 with empty data
+                {
+                    "numFound": 0,
+                    "start": 0,
+                    "numFoundExact": True,
+                    "docs": [],
+                    "isError": True,
+                    "errorMessage": "Failed to process API request",
+                },
+                status=HTTP_200_OK,
             )
