@@ -426,7 +426,8 @@ class PublicStaffProfile(CommonModel):
         blank=True,
         null=True,
     )
-    employee_id = models.PositiveIntegerField(
+    employee_id = models.CharField(
+        max_length=50,
         blank=True,
         null=True,
     )

@@ -129,4 +129,6 @@ urlpatterns = [
     path("actions/send_back", views.DocSendBack.as_view()),
     # Helper ========================================================
     path("downloadProjectDocument/<int:pk>", views.DownloadProjectDocument.as_view()),
+    # Publications ========================================================
+    path("publications/<str:employee_id>", views.UserPublications.as_view()),
 ]

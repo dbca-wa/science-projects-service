@@ -17,6 +17,10 @@ ON_TEST_NETWORK = True if os.environ.get("ON_TEST_NETWORK") != "False" else Fals
 SITE_URL_HTTP = f'https://{env("SITE_URL")}'
 SECRET_KEY = env("SECRET_KEY")
 EXTERNAL_PASS = env("EXTERNAL_PASS")
+LIBRARY_API_URL = env(
+    "LIBRARY_API_URL"
+)  # link needs to be followed by employee id number
+LIBRARY_BEARER_TOKEN = env("LIBRARY_BEARER_TOKEN")
 IT_ASSETS_ACCESS_TOKEN = env("IT_ASSETS_ACCESS_TOKEN")
 IT_ASSETS_USER = env("IT_ASSETS_USER")
 IT_ASSETS_URL = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"

@@ -764,3 +764,59 @@ class ProjectClosureSerializer(serializers.ModelSerializer):
 
 
 # endregion  ===================================
+
+
+# region Publication Serializers ===================================
+
+
+class PublicationDocSerializer(serializers.Serializer):
+    DocId = serializers.CharField(allow_blank=True, required=False, default="")
+    BiblioText = serializers.CharField(required=False, default="")
+    staff_only = serializers.BooleanField(required=False, default=False)
+    UserName = serializers.CharField(required=False, default="")
+    recno = serializers.IntegerField(required=False)
+    content = serializers.ListField(
+        child=serializers.CharField(allow_blank=True, required=False),
+        required=False,
+        default=list,
+    )
+    title = serializers.CharField(required=False, default="")
+    Material = serializers.CharField(required=False, default="")
+    publisher = serializers.CharField(allow_blank=True, required=False, default="")
+    AuthorBiblio = serializers.CharField(required=False, default="")
+    year = serializers.CharField(required=False, default="")
+    documentKey = serializers.CharField(required=False, default="")
+    UserId = serializers.CharField(required=False, default="")
+    author = serializers.CharField(required=False, default="")
+    citation = serializers.CharField(allow_blank=True, required=False, default="")
+    place = serializers.CharField(allow_blank=True, required=False, default="")
+    BiblioEditors = serializers.CharField(allow_blank=True, required=False, default="")
+    link_address = serializers.ListField(
+        child=serializers.CharField(allow_blank=True), required=False, default=list
+    )
+    link_category = serializers.ListField(
+        child=serializers.CharField(allow_blank=True), required=False, default=list
+    )
+    link_notes = serializers.ListField(
+        child=serializers.CharField(allow_blank=True), required=False, default=list
+    )
+
+
+class ResponseDataSerializer(serializers.Serializer):
+    numFound = serializers.IntegerField(required=False, default=0)
+    start = serializers.IntegerField(required=False, default=0)
+    numFoundExact = serializers.BooleanField(required=False, default=False)
+    docs = PublicationDocSerializer(many=True, required=False, default=list)
+
+
+class LibraryResponseSerializer(serializers.Serializer):
+    responseHeader = serializers.JSONField(required=False)
+    response = ResponseDataSerializer()
+
+    def to_representation(self, instance):
+        # Just return the response part
+        data = super().to_representation(instance)
+        return data["response"]
+
+
+# endregion  ===================================

@@ -164,7 +164,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source="work.role")
     branch = TinyBranchSerializer(source="work.branch")
     business_area = TinyBusinessAreaSerializer(source="work.business_area")
-    image = UserAvatarSerializer(source="profile.image")
+    image = UserAvatarSerializer(source="avatar")
     affiliation = AffiliationSerializer(source="work.affiliation")
     caretakers = serializers.SerializerMethodField()
     caretaking_for = serializers.SerializerMethodField()

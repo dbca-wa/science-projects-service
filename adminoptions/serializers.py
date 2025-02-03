@@ -66,7 +66,7 @@ class IAdminTaskProjectSerializer(serializers.ModelSerializer):
 
 
 class SecondaryUserSerializer(serializers.ModelSerializer):
-    image = UserAvatarSerializer(source="profile.image")
+    image = UserAvatarSerializer(source="profile.avatar")
 
     class Meta:
         model = User

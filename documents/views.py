@@ -16,6 +16,7 @@ from django.template.loader import get_template
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 
+import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -30,6 +31,9 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+    HTTP_502_BAD_GATEWAY,
+    HTTP_503_SERVICE_UNAVAILABLE,
 )
 
 from agencies.models import BusinessArea
@@ -77,6 +81,7 @@ from .serializers import (
     ConceptPlanSerializer,
     EndorsementCreationSerializer,
     EndorsementSerializer,
+    LibraryResponseSerializer,
     MiniAnnualReportSerializer,
     MiniEndorsementSerializer,
     ProgressReportAnnualReportSerializer,
@@ -9067,3 +9072,75 @@ class CancelProjectDocGeneration(APIView):
 
 
 # endregion  ====================================================================================================
+
+
+class UserPublications(APIView):
+    def get(self, req, employee_id):
+        if not employee_id:
+            return Response(
+                {"error": "No employee_id found"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        # else:
+        #     print("Employee ID", employee_id)
+
+        if not settings.LIBRARY_BEARER_TOKEN:
+            return Response(
+                {"error": "No LIBRARY_BEARER_TOKEN found in settings/env"},
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        if not settings.LIBRARY_API_URL:
+            return Response(
+                {"error": "No LIBRARY_API_URL found in settings/env"},
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        api_url = f"{settings.LIBRARY_API_URL}{employee_id}"
+        # print("URL", api_url)
+
+        # Strip any 'Bearer ' prefix if it exists in the token
+        token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")
+        headers = {"Authorization": f"Bearer {token}"}
+
+        try:
+            response = requests.get(api_url, headers=headers)
+
+            if response.status_code != 200:
+                settings.LOGGER.error(
+                    f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
+                )
+                return Response(
+                    {"error": f"API request failed with status {response.status_code}"},
+                    status=response.status_code,
+                )
+
+            api_data = response.json()
+            # Log data
+            # settings.LOGGER.info(f"API data retrieved: {api_data}")
+
+            settings.LOGGER.info(f"Raw API response structure: {api_data.keys()}")
+
+            serializer = LibraryResponseSerializer(data=api_data)
+
+            # serializer = PublicationResponseSerializer(data=api_data)
+            if serializer.is_valid():
+                return Response(serializer.data, status=HTTP_200_OK)
+            else:
+                settings.LOGGER.error(f"Serializer errors: {serializer.errors}")
+                return Response(
+                    {"error": "Invalid data format from API"},
+                    status=HTTP_502_BAD_GATEWAY,
+                )
+
+        except requests.exceptions.RequestException as e:
+            settings.LOGGER.error(f"Request failed: {str(e)}")
+            return Response(
+                {"error": "Failed to connect to API service"},
+                status=HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        except ValueError as e:  # for json parsing errors
+            settings.LOGGER.error(f"Failed to parse API response: {str(e)}")
+            return Response(
+                {"error": "Invalid response from API"}, status=HTTP_502_BAD_GATEWAY
+            )
