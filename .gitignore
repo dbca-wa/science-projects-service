@@ -5,6 +5,8 @@ extracted_table_data
 legacy_data
 
 # *.csv
+.DS_Store
+*.DS_Store
 *.dump
 *.sql
 *.env
