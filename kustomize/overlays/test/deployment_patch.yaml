@@ -98,6 +98,16 @@ spec:
               secretKeyRef:
                 name: spms-env-test
                 key: SPMS_MAINTAINER_EMAIL
+          - name: LIBRARY_API_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-prod
+                key: LIBRARY_API_URL
+          - name: LIBRARY_BEARER_TOKEN
+            valueFrom:
+                secretKeyRef:
+                name: spms-env-prod
+                key: LIBRARY_BEARER_TOKEN
           volumeMounts:
             - mountPath: /usr/src/app/backend/files
               name: spms-media-test

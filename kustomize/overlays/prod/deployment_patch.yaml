@@ -26,7 +26,7 @@ spec:
               name: spms-media-prod
       containers:
         - name: spms-backend
-          image: ghcr.io/dbca-wa/science-projects-service:3.2.5
+          image: ghcr.io/dbca-wa/science-projects-service:3.3.1
           env:
           - name: DATABASE_URL
             valueFrom:
@@ -98,11 +98,21 @@ spec:
               secretKeyRef:
                 name: spms-env-prod
                 key: SPMS_MAINTAINER_EMAIL
+          - name: LIBRARY_API_URL
+            valueFrom:
+              secretKeyRef:
+                name: spms-env-prod
+                key: LIBRARY_API_URL
+          - name: LIBRARY_BEARER_TOKEN
+            valueFrom:
+                secretKeyRef:
+                name: spms-env-prod
+                key: LIBRARY_BEARER_TOKEN
           volumeMounts:
             - mountPath: /usr/src/app/backend/files
               name: spms-media-prod
         - name: spms-frontend
-          image: ghcr.io/dbca-wa/science-projects-client:3.2.5
+          image: ghcr.io/dbca-wa/science-projects-client:3.3.1
       volumes:
         - name: spms-media-prod
           persistentVolumeClaim:
