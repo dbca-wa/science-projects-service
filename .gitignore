@@ -4,6 +4,8 @@ docker-compose.yaml
 extracted_table_data
 legacy_data
 
+*.unlighthouse/*
+
 # *.csv
 .DS_Store
 *.DS_Store

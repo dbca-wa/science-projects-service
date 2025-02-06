@@ -771,23 +771,27 @@ class ProjectClosureSerializer(serializers.ModelSerializer):
 
 class PublicationDocSerializer(serializers.Serializer):
     DocId = serializers.CharField(allow_blank=True, required=False, default="")
-    BiblioText = serializers.CharField(required=False, default="")
+    BiblioText = serializers.CharField(allow_blank=True, required=False, default="")
     staff_only = serializers.BooleanField(required=False, default=False)
-    UserName = serializers.CharField(required=False, default="")
-    recno = serializers.IntegerField(required=False)
+    UserName = serializers.CharField(allow_blank=True, required=False, default="")
+    recno = serializers.IntegerField(required=False, allow_null=True)  # Add allow_null
     content = serializers.ListField(
         child=serializers.CharField(allow_blank=True, required=False),
         required=False,
         default=list,
     )
-    title = serializers.CharField(required=False, default="")
-    Material = serializers.CharField(required=False, default="")
+    title = serializers.CharField(allow_blank=True, required=False, default="")
+    Material = serializers.CharField(
+        allow_blank=True, required=False, default=""
+    )  # Add allow_blank
     publisher = serializers.CharField(allow_blank=True, required=False, default="")
-    AuthorBiblio = serializers.CharField(required=False, default="")
-    year = serializers.CharField(required=False, default="")
-    documentKey = serializers.CharField(required=False, default="")
-    UserId = serializers.CharField(required=False, default="")
-    author = serializers.CharField(required=False, default="")
+    AuthorBiblio = serializers.CharField(
+        allow_blank=True, required=False, default=""
+    )  # Add allow_blank
+    year = serializers.CharField(allow_blank=True, required=False, default="")
+    documentKey = serializers.CharField(allow_blank=True, required=False, default="")
+    UserId = serializers.CharField(allow_blank=True, required=False, default="")
+    author = serializers.CharField(allow_blank=True, required=False, default="")
     citation = serializers.CharField(allow_blank=True, required=False, default="")
     place = serializers.CharField(allow_blank=True, required=False, default="")
     BiblioEditors = serializers.CharField(allow_blank=True, required=False, default="")

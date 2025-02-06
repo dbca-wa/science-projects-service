@@ -15,6 +15,8 @@ from django.template.loader import get_template
 from django.template.loader import get_template
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.core.cache import cache
+from datetime import timedelta
 
 import requests
 from rest_framework.views import APIView
@@ -9123,12 +9125,21 @@ class UserPublications(APIView):
                 status=HTTP_200_OK,
             )
 
-        api_url = f"{settings.LIBRARY_API_URL}{employee_id}"
+        # Check cache first
+        cache_key = f"user_publications_{employee_id}"
+        cached_data = cache.get(cache_key)
 
-        # if settings.LIBRARY_API_URL and settings.LIBRARY_BEARER_TOKEN:
-        #     print("API URL", settings.LIBRARY_API_URL)
-        #     print("Combined URL", api_url)
-        #     print("Bearer Token", settings.LIBRARY_BEARER_TOKEN)
+        if cached_data:
+            settings.LOGGER.info(f"Returning cached publications for {employee_id}")
+            return Response(cached_data, status=HTTP_200_OK)
+
+        # Users do not have more than 400 publications, but future proofing to 1000
+        api_url = f"{settings.LIBRARY_API_URL}{employee_id}&rows=1000"
+
+        if settings.LIBRARY_API_URL and settings.LIBRARY_BEARER_TOKEN:
+            print("API URL", settings.LIBRARY_API_URL)
+            print("Combined URL", api_url)
+            print("Bearer Token", settings.LIBRARY_BEARER_TOKEN)
 
         # Strip any 'Bearer ' prefix if it exists in the token
         token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")
@@ -9167,6 +9178,13 @@ class UserPublications(APIView):
 
             # serializer = PublicationResponseSerializer(data=api_data)
             if serializer.is_valid():
+                # Cache the serialized data for 24 hours
+                cache.set(
+                    cache_key,
+                    serializer.data,
+                    timeout=timedelta(hours=24).total_seconds(),
+                )
+
                 return Response(serializer.data, status=HTTP_200_OK)
             else:
                 settings.LOGGER.error(
