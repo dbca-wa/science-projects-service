@@ -1,5 +1,6 @@
 # region IMPORTS ======================================
 import csv, requests
+from datetime import datetime
 from operator import is_
 import os
 import pandas as pd
@@ -150,6 +151,104 @@ def create_staff_profiles(model_admin, req, selected):
     model_admin.message_user(
         req, f"public profiles created for {users_to_update.count()} user(s)."
     )
+
+
+@admin.action(description="Generate CSV of active staff data")
+def generate_active_staff_csv(model_admin, request, selected):
+    if len(selected) > 1:
+        print("PLEASE SELECT ONLY ONE")
+        return
+
+    # Create the HttpResponse object with CSV header
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    response = HttpResponse(
+        content_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="staff_data_{timestamp}.csv"'
+        },
+    )
+
+    # Create CSV writer
+    writer = csv.writer(response)
+
+    # Write header row
+    writer.writerow(
+        [
+            "ID",
+            "Name",
+            "Title",
+            "Location",
+            "Email",
+            "Division",
+            "Unit",
+            "Employee ID",
+            "Manager",
+            "Manager Email",
+            "Manager ID",
+        ]
+    )
+
+    # Get all active staff users
+    users = User.objects.filter(is_staff=True, is_active=True).exclude(
+        staff_profile__is_hidden=True
+    )
+
+    # Fetch IT Assets data
+    try:
+        response_it = requests.get(
+            settings.IT_ASSETS_URL,
+            auth=(settings.IT_ASSETS_USER, settings.IT_ASSETS_ACCESS_TOKEN),
+        )
+
+        if response_it.status_code == 200:
+            it_asset_data = response_it.json()
+            # Create lookup dictionary
+            it_asset_data_by_email = {
+                user_data["email"]: user_data
+                for user_data in it_asset_data
+                if "email" in user_data
+            }
+
+            # Write data rows
+            for user in users:
+                user_data = it_asset_data_by_email.get(user.email, {})
+
+                # Only include BCS division staff
+                if user_data.get("division") == "Biodiversity and Conservation Science":
+                    writer.writerow(
+                        [
+                            user_data.get("id", ""),
+                            f"{user.first_name} {user.last_name}",
+                            user_data.get("title", ""),
+                            user_data.get("location", {}).get("name", ""),
+                            user.email,
+                            user_data.get("division", ""),
+                            user_data.get("unit", ""),
+                            user_data.get("employee_id", ""),
+                            user_data.get("manager", {}).get("name", ""),
+                            user_data.get("manager", {}).get("email", ""),
+                            user_data.get("manager", {}).get("id", ""),
+                        ]
+                    )
+        else:
+            model_admin.message_user(
+                request,
+                f"Failed to fetch IT Assets data: {response_it.status_code}",
+                level="ERROR",
+            )
+            return None
+
+    except Exception as e:
+        model_admin.message_user(
+            request, f"Error generating CSV: {str(e)}", level="ERROR"
+        )
+        return None
+
+    model_admin.message_user(
+        request, "Staff CSV generated successfully!", level="SUCCESS"
+    )
+
+    return response
 
 
 @admin.action(description="Sets the it_asset id ")
@@ -334,6 +433,7 @@ class KeywordTagAdmin(admin.ModelAdmin):
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     actions = [
+        generate_active_staff_csv,
         export_selected_users_to_csv,
         export_current_active_project_leads,
         update_display_names,
