@@ -768,6 +768,7 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
                 {"detail": "User not found."},
                 status=HTTP_404_NOT_FOUND,
             )
+
         # 2 Get the user's email address
         email = user.email
         # 3a Check if the email is in the IT Assets API

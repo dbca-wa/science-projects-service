@@ -535,6 +535,8 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
     position = serializers.SerializerMethodField()
     caretakers = serializers.SerializerMethodField()
 
+    business_area_led = serializers.SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -554,7 +556,13 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
             "location",
             "position",
             "caretakers",
+            "business_area_led",
         )
+
+    def get_business_area_led(self, obj):
+        if obj.business_areas_led.exists():
+            return obj.business_areas_led.first().name
+        return None
 
     def get_caretakers(self, obj):
         """Get recursive caretaker relationships with caching."""
@@ -610,6 +618,7 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
     display_last_name = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
     avatar = StaffProfileAvatarSerializer(read_only=True)
+    ba_lead_status = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -619,7 +628,18 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
             "display_last_name",
             "email",
             "avatar",
+            "ba_lead_status",
         )
+
+    def get_ba_lead_status(self, obj):
+        # Check if the user is a business area lead, if so get that business area name
+        if (
+            obj.work
+            and obj.work.business_area
+            and obj.work.business_area.leader.id == obj.id
+        ):
+            return f"Business Area Leader, {obj.work.business_area.name}"
+        return None
 
 
 class KeywordTagSerializer(serializers.ModelSerializer):
@@ -752,7 +772,7 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
     # branch_name = serializers.SerializerMethodField()
     # business_area_name = serializers.SerializerMethodField()
     # title = serializers.SerializerMethodField()
-
+    ba_lead_status = serializers.SerializerMethodField()
     # def get_branch_name(self, obj):
     #     return obj.work.branch.name if obj.work and obj.work.branch else None
 
@@ -767,6 +787,7 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
+            "ba_lead_status",
             "pk",
             "is_active",
             "display_first_name",
@@ -775,6 +796,16 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
             # "branch_name",
             # "business_area_name",
         )
+
+    def get_ba_lead_status(self, obj):
+        # Check if the user is a business area lead, if so get that business area name
+        if (
+            obj.work
+            and obj.work.business_area
+            and obj.work.business_area.leader.id == obj.id
+        ):
+            return f"Business Area Leader, {obj.work.business_area.name}"
+        return None
 
 
 class StaffProfileSerializer(serializers.ModelSerializer):
