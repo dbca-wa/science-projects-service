@@ -1602,6 +1602,44 @@ class UsersProjects(APIView):
         return Response(serialized_projects.data, HTTP_200_OK)
 
 
+class StaffProfileProjects(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def go(self, pk):
+        try:
+            data = ProjectMember.objects.filter(user=pk)
+        except ProjectMember.DoesNotExist:
+            raise NotFound
+        return data
+
+    def get(self, req, pk):
+        users_memberships = self.go(pk=pk)
+        if len(users_memberships) > 0:
+            user_obj = users_memberships[0].user
+            settings.LOGGER.info(
+                msg=f"{req.user} is viewing {user_obj} and their projects"
+            )
+        else:
+            settings.LOGGER.info(
+                msg=f"{req.user} is viewing user with pk {pk} and their projects (none)"
+            )
+
+        # Only return projects where the user is not in the project.hidden_from_staff_profiles list
+        projects_with_roles = [
+            (membership.project, membership.role)
+            for membership in users_memberships
+            if pk not in membership.project.hidden_from_staff_profiles
+        ]
+
+        serialized_projects = ProjectDataTableSerializer(
+            [proj for proj, _ in projects_with_roles],
+            many=True,
+            context={"projects_with_roles": projects_with_roles},
+        )
+
+        return Response(serialized_projects.data, HTTP_200_OK)
+
+
 class UserStaffEmploymentEntries(APIView):
     def go(self, user_pk):
         try:

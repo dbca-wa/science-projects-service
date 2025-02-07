@@ -1508,6 +1508,38 @@ class ProjectDetails(APIView):
             )
 
 
+class ToggleUserProfileVisibilityForProject(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = Project.objects.get(pk=pk)
+        except Project.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        proj = self.go(pk)
+        print(req.data)
+        userPk = req.data.get("user_pk")
+        settings.LOGGER.info(
+            msg=f"{req.user} is toggling ({userPk}) user profile visibility for project: {proj}"
+        )
+        try:
+            # Access the array hidden_from_staff_profiles and if the user's pk is in it, remove it, otherwise add it
+            if userPk in proj.hidden_from_staff_profiles:
+                proj.hidden_from_staff_profiles.remove(userPk)
+            else:
+                proj.hidden_from_staff_profiles.append(userPk)
+            proj.save()
+            return Response(
+                TinyProjectSerializer(proj).data,
+                status=HTTP_202_ACCEPTED,
+            )
+        except Exception as e:
+            return Response({"error": f"{e}"}, status=HTTP_400_BAD_REQUEST)
+
+
 class SmallProjectSearch(APIView):
     permission_classes = [IsAuthenticated]
 

@@ -5,6 +5,10 @@ urlpatterns = [
     # BASE URLS
     path("", views.Projects.as_view()),
     path("<int:pk>", views.ProjectDetails.as_view()),
+    path(
+        "<int:pk>/toggle_user_profile_visibility",
+        views.ToggleUserProfileVisibilityForProject.as_view(),
+    ),
     path("mine", views.MyProjects.as_view()),
     path("listofyears", views.ProjectYears.as_view()),
     path("smallsearch", views.SmallProjectSearch.as_view()),

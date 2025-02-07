@@ -161,6 +161,15 @@ class Project(CommonModel):
         help_text="Request for deletion of project",
     )
 
+    # An array of primary keys of users who wish this project to be hidden on their staff profile
+    hidden_from_staff_profiles = ArrayField(
+        models.PositiveIntegerField(),
+        default=list,
+        blank=True,
+        # Disallow null values in array
+        null=False,
+    )
+
     def get_deletion_request_id(self):
         # Check if there's a pending AdminTask related to this project with the action 'deleteproject'
         deletion_task = AdminTask.objects.filter(
