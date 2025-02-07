@@ -9136,10 +9136,10 @@ class UserPublications(APIView):
         # Users do not have more than 400 publications, but future proofing to 1000
         api_url = f"{settings.LIBRARY_API_URL}{employee_id}&rows=1000"
 
-        if settings.LIBRARY_API_URL and settings.LIBRARY_BEARER_TOKEN:
-            print("API URL", settings.LIBRARY_API_URL)
-            print("Combined URL", api_url)
-            print("Bearer Token", settings.LIBRARY_BEARER_TOKEN)
+        # if settings.LIBRARY_API_URL and settings.LIBRARY_BEARER_TOKEN:
+        #     print("API URL", settings.LIBRARY_API_URL)
+        #     print("Combined URL", api_url)
+        #     print("Bearer Token", settings.LIBRARY_BEARER_TOKEN)
 
         # Strip any 'Bearer ' prefix if it exists in the token
         token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")

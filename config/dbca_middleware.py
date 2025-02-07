@@ -5,6 +5,7 @@ from django.utils.deprecation import MiddlewareMixin
 from django.contrib.auth import login, get_user_model
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from rest_framework.exceptions import ParseError
 from agencies.models import Agency
 from contacts.models import UserContact
@@ -114,12 +115,14 @@ class DBCAMiddleware(MiddlewareMixin):
         print(f"WRITING META DATA TO TEMP FILE: {temp_file_path}")
 
     def __call__(self, request):
+        # First check if there is a staff user in the request, return if there is not
         if (
             "HTTP_REMOTE_USER" not in request.META
             or not request.META["HTTP_REMOTE_USER"]
         ):
             return self.get_response(request)
 
+        # Logout details commented out as it is not needed for SPMS SSO
         # if (
         #     (
         #         request.path.startswith("/logout")
@@ -135,9 +138,9 @@ class DBCAMiddleware(MiddlewareMixin):
         #     data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
         #     return HttpResponse(data, HTTP_200_OK)
 
+        # Check if the user is authenticated
         user_auth = request.user.is_authenticated
         if not user_auth:
-            # Not authenticated before
             attributemap = {
                 "username": "HTTP_REMOTE_USER",
                 "last_name": "HTTP_X_LAST_NAME",
@@ -151,29 +154,21 @@ class DBCAMiddleware(MiddlewareMixin):
 
             email = attributemap.get("email")
             username = attributemap.get("username")
-            # Check if the user exists by email first
-            user = None
 
-            if (
-                email
-                and User.objects.filter(email__iexact=attributemap["email"]).exists()
-            ):
-                user = User.objects.filter(email__iexact=attributemap["email"]).first()
-
-            elif username and User.objects.filter(username__iexact=username).exists():
+            # Check if the user exists in the database, if not create a new user
+            with transaction.atomic():
                 user = User.objects.filter(
-                    username__iexact=attributemap["username"]
+                    Q(email__iexact=email) | Q(username__iexact=username)
                 ).first()
-            else:
-                user = self.create_user_and_associated_entries(request, attributemap)
+                if not user:
+                    user = self.create_user_and_associated_entries(
+                        request, attributemap
+                    )
 
-            # user.__dict__.update(attributemap)
-            # Set is_staff to True
-            # user.is_staff = True
-            # user.save()
-            user.backend = "django.contrib.auth.backends.ModelBackend"
-            login(request, user)
+                user.backend = "django.contrib.auth.backends.ModelBackend"
+                login(request, user)
 
+        # Handling authenticated users (update last login)
         username = request.META.get("HTTP_REMOTE_USER")
         first_name = request.META.get("HTTP_X_FIRST_NAME")
         last_name = request.META.get("HTTP_X_LAST_NAME")
@@ -184,6 +179,5 @@ class DBCAMiddleware(MiddlewareMixin):
             if user:
                 request.user = user
                 user.save(update_fields=["last_login"])
-                return self.get_response(request)
 
         return self.get_response(request)
