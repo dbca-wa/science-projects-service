@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Max
 from .models import (
     AnnualReport,
+    CustomPublication,
     ProjectDocument,
     ConceptPlan,
     ProjectPlan,
@@ -34,6 +35,28 @@ class UserFilterWidget(FilteredSelectMultiple):
         if isinstance(value, int):
             value = [str(value)]  # Convert the value to a string
         return [str(v) for v in value]  # Convert each value to a string
+
+
+# region Publication Admin ========================================================================================================
+
+
+@admin.register(CustomPublication)
+class CustomPublicationAdmin(admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "public_profile",
+        "title",
+        "year",
+    )
+
+    ordering = ["-year"]
+
+    list_filter = ("year",)
+
+    search_fields = ["title"]
+
+
+# endregion ========================================================================================================
 
 
 # region Admin Actions ========================================================================================================

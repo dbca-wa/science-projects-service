@@ -1014,3 +1014,34 @@ class ProjectClosure(models.Model):
 
 
 # endregion ==================================
+
+
+# region ================== Custom Publication Models ==================
+
+
+class CustomPublication(models.Model):
+    """
+    Model Definition for Publication
+    """
+
+    public_profile = models.ForeignKey(
+        "users.PublicStaffProfile",
+        on_delete=models.CASCADE,
+        related_name="custom_publications",
+    )
+
+    year = models.PositiveIntegerField(
+        help_text="Year of publication",
+    )
+
+    title = models.CharField(
+        max_length=1000,
+        help_text="Title of the publication",
+    )
+
+    def __str__(self) -> str:
+        return self.title
+
+    class Meta:
+        verbose_name = "Publication"
+        verbose_name_plural = "Publications"

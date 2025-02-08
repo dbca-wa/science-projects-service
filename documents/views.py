@@ -1,6 +1,7 @@
 # region IMPORTS ==================================================
 
 import datetime, json, os, re, subprocess, time, tempfile
+from turtle import pu
 from bs4 import BeautifulSoup
 from operator import attrgetter
 
@@ -66,9 +67,10 @@ from medias.serializers import (
 )
 from projects.models import Project, ProjectDetail, ProjectMember
 from projects.serializers import ARExternalProjectSerializer, ProjectSerializer
-from users.models import User, UserWork
+from users.models import PublicStaffProfile, User, UserWork
 from .models import (
     ConceptPlan,
+    CustomPublication,
     ProgressReport,
     ProjectClosure,
     ProjectPlan,
@@ -81,9 +83,11 @@ from .serializers import (
     AnnualReportSerializer,
     ConceptPlanCreateSerializer,
     ConceptPlanSerializer,
+    CustomPublicationSerializer,
     EndorsementCreationSerializer,
     EndorsementSerializer,
-    LibraryResponseSerializer,
+    LibraryPublicationResponseSerializer,
+    # LibraryResponseSerializer,
     MiniAnnualReportSerializer,
     MiniEndorsementSerializer,
     ProgressReportAnnualReportSerializer,
@@ -95,6 +99,7 @@ from .serializers import (
     ProjectDocumentSerializer,
     ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
+    PublicationResponseSerializer,
     StudentReportAnnualReportSerializer,
     StudentReportCreateSerializer,
     StudentReportSerializer,
@@ -9076,142 +9081,205 @@ class CancelProjectDocGeneration(APIView):
 # endregion  ====================================================================================================
 
 
+class CustomPublications(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        settings.LOGGER.info(f"{req.user} is getting CustomPublications")
+        custom_publications = CustomPublication.objects.all()
+        serializer = CustomPublicationSerializer(custom_publications, many=True)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def post(self, req):
+        settings.LOGGER.info(f"{req.user} is creating a CustomPublication")
+
+        serializer = CustomPublicationSerializer(data=req.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTP_201_CREATED)
+        else:
+            settings.LOGGER.error(
+                f"Error creating CustomPublication: {serializer.errors}"
+            )
+            print(req.data)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+
+class CustomPublicationDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def go(self, pk):
+        try:
+            obj = CustomPublication.objects.get(pk=pk)
+        except CustomPublication.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get(self, req, pk):
+        settings.LOGGER.info(f"{req.user} is getting CustomPublication {pk}")
+        obj = self.go(req, pk)
+        serializer = CustomPublicationSerializer(obj)
+        return Response(serializer.data, status=HTTP_200_OK)
+
+    def put(self, req, pk):
+        settings.LOGGER.info(f"{req.user} is updating CustomPublication {pk}")
+        obj = self.go(pk)
+
+        puplic_profile = obj.public_profile
+        title = req.data.get("title")
+        year = req.data.get("year")
+        # print(req.data)
+
+        serializer = CustomPublicationSerializer(
+            obj,
+            data={"title": title, "year": year, "public_profile": puplic_profile.pk},
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=HTTP_200_OK)
+
+        settings.LOGGER.error(f"Error updating CustomPublication: {serializer.errors}")
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
+    def delete(self, req, pk):
+        settings.LOGGER.info(f"{req.user} is deleting CustomPublication {pk}")
+        obj = self.go(pk)
+        obj.delete()
+        return Response(status=HTTP_204_NO_CONTENT)
+
+
 class UserPublications(APIView):
+
+    def _error_response(self, message):
+        return Response(
+            {
+                "staffProfilePk": 0,
+                "libraryData": {
+                    "numFound": 0,
+                    "start": 0,
+                    "numFoundExact": True,
+                    "docs": [],
+                    "isError": True,
+                    "errorMessage": message,
+                },
+                "customPublications": [],
+            },
+            status=HTTP_200_OK,
+        )
+
+    def _get_library_publications(self, employee_id):
+        api_url = f"{settings.LIBRARY_API_URL}{employee_id}&rows=1000"
+        token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = requests.get(api_url, headers=headers)
+
+        if response.status_code != 200:
+            settings.LOGGER.error(
+                f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
+            )
+            raise Exception(f"API request failed with status {response.status_code}")
+
+        return response.json()
+
     def get(self, req, employee_id):
         settings.LOGGER.info(
             f"{req.user} is getting UserPublications for {employee_id}"
         )
+
+        # Initial validation checks
         if not employee_id:
-            settings.LOGGER.warn(
-                "Employee ID not provided when searching for publications"
-            )
-            return Response(
-                {
-                    "numFound": 0,
-                    "start": 0,
-                    "numFoundExact": True,
-                    "docs": [],
-                    "isError": True,
-                    "errorMessage": "No employee ID provided",
-                },
-                status=HTTP_200_OK,
-            )
+            return self._error_response("No employee ID provided")
 
         if not settings.LIBRARY_API_URL:
-            settings.LOGGER.warn("Missing LIBRARY_API_URL in settings/env")
-            return Response(
-                {
-                    "numFound": 0,
-                    "start": 0,
-                    "numFoundExact": True,
-                    "docs": [],
-                    "isError": True,
-                    "errorMessage": "Library API configuration missing",
-                },
-                status=HTTP_200_OK,
-            )
+            return self._error_response("Library API configuration missing")
 
         if not settings.LIBRARY_BEARER_TOKEN:
-            settings.LOGGER.warn("Missing LIBRARY_BEARER_TOKEN in settings/env")
-            return Response(
-                {
-                    "numFound": 0,
-                    "start": 0,
-                    "numFoundExact": True,
-                    "docs": [],
-                    "isError": True,
-                    "errorMessage": "Library Token configuration missing",
-                },
-                status=HTTP_200_OK,
-            )
+            return self._error_response("Library Token configuration missing")
 
         # Check cache first
         cache_key = f"user_publications_{employee_id}"
         cached_data = cache.get(cache_key)
 
+        # Get staff profile
+        staff_profile = PublicStaffProfile.objects.filter(
+            employee_id=employee_id
+        ).first()
+
+        # Get custom publications (needed for both cached and non-cached responses)
+        custom_publications = CustomPublication.objects.filter(
+            public_profile__employee_id=employee_id
+        ).all()
+
         if cached_data:
             settings.LOGGER.info(f"Returning cached publications for {employee_id}")
-            return Response(cached_data, status=HTTP_200_OK)
-
-        # Users do not have more than 400 publications, but future proofing to 1000
-        api_url = f"{settings.LIBRARY_API_URL}{employee_id}&rows=1000"
-
-        # if settings.LIBRARY_API_URL and settings.LIBRARY_BEARER_TOKEN:
-        #     print("API URL", settings.LIBRARY_API_URL)
-        #     print("Combined URL", api_url)
-        #     print("Bearer Token", settings.LIBRARY_BEARER_TOKEN)
-
-        # Strip any 'Bearer ' prefix if it exists in the token
-        token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")
-        headers = {"Authorization": f"Bearer {token}"}
+            response_data = {
+                "staffProfilePk": staff_profile.pk,
+                "libraryData": cached_data,
+                "customPublications": CustomPublicationSerializer(
+                    custom_publications, many=True
+                ).data,
+            }
+            return Response(response_data, status=HTTP_200_OK)
 
         try:
-            response = requests.get(api_url, headers=headers)
-            # print(response.json()["response"])
+            # Get library publications
+            library_data = self._get_library_publications(employee_id)
 
-            if response.status_code != 200:
-                settings.LOGGER.error(
-                    f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"
-                )
-                return Response(
-                    {
-                        "numFound": 0,
-                        "start": 0,
-                        "numFoundExact": True,
-                        "docs": [],
-                        "isError": True,
-                        "errorMessage": f"API request failed with status {response.status_code}",
-                    },
-                    status=HTTP_200_OK,
-                )
+            # Get custom publications
+            custom_publications = CustomPublication.objects.filter(
+                public_profile__employee_id=employee_id
+            ).all()
 
-            api_data = response.json()
+            # Process library data first
+            library_response = {
+                "numFound": library_data.get("response", {}).get("numFound", 0),
+                "start": library_data.get("response", {}).get("start", 0),
+                "numFoundExact": library_data.get("response", {}).get(
+                    "numFoundExact", True
+                ),
+                "docs": library_data.get("response", {}).get("docs", []),
+                "isError": False,
+                "errorMessage": "",
+            }
 
-            # Ensure response exists in api_data
-            if "response" not in api_data:
-                api_data["response"] = {}
-            # Add isError field to the response
-            api_data["response"]["isError"] = False
-            api_data["response"]["errorMessage"] = ""
-
-            serializer = LibraryResponseSerializer(data=api_data)
-
-            # serializer = PublicationResponseSerializer(data=api_data)
-            if serializer.is_valid():
-                # Cache the serialized data for 24 hours
-                cache.set(
-                    cache_key,
-                    serializer.data,
-                    timeout=timedelta(hours=24).total_seconds(),
-                )
-
-                return Response(serializer.data, status=HTTP_200_OK)
-            else:
-                settings.LOGGER.error(
-                    f"Library Publication Serializer errors: {serializer.errors}"
-                )
-                return Response(
-                    {
-                        "numFound": 0,
-                        "start": 0,
-                        "numFoundExact": True,
-                        "docs": [],
-                        "isError": True,
-                        "errorMessage": "Invalid data format from API",
-                    },
-                    status=HTTP_200_OK,
-                )
-
-        except (requests.exceptions.RequestException, ValueError) as e:
-            settings.LOGGER.error(f"Error processing request: {str(e)}")
-            return Response(
-                {
-                    "numFound": 0,
-                    "start": 0,
-                    "numFoundExact": True,
-                    "docs": [],
-                    "isError": True,
-                    "errorMessage": "Failed to process API request",
-                },
-                status=HTTP_200_OK,
+            # Serialize and cache library data
+            library_serializer = LibraryPublicationResponseSerializer(
+                data=library_response
             )
+            if not library_serializer.is_valid():
+                settings.LOGGER.error(
+                    f"Library Serializer errors: {library_serializer.errors}"
+                )
+                return self._error_response("Invalid library data format")
+
+            # Cache the library data
+            cache.set(
+                cache_key,
+                library_serializer.data,
+                timeout=timedelta(hours=24).total_seconds(),
+            )
+
+            # Combine everything for the final response
+            response_data = {
+                "staffProfilePk": staff_profile.pk,
+                "libraryData": library_serializer.data,
+                "customPublications": CustomPublicationSerializer(
+                    custom_publications, many=True
+                ).data,
+            }
+
+            # Final serialization for response format
+            final_serializer = PublicationResponseSerializer(data=response_data)
+            if not final_serializer.is_valid():
+                settings.LOGGER.error(
+                    f"Final Serializer errors: {final_serializer.errors}"
+                )
+                return self._error_response("Invalid response format")
+
+            return Response(final_serializer.data, status=HTTP_200_OK)
+
+        except Exception as e:
+            settings.LOGGER.error(f"Error processing request: {str(e)}")
+            return self._error_response("Failed to process request")

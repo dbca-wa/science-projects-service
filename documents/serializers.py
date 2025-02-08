@@ -1,4 +1,5 @@
 # region Imports ===================================
+from calendar import c
 from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 
@@ -12,6 +13,7 @@ from projects.serializers import (
 )
 from .models import (
     ConceptPlan,
+    CustomPublication,
     ProjectPlan,
     ProgressReport,
     StudentReport,
@@ -769,25 +771,27 @@ class ProjectClosureSerializer(serializers.ModelSerializer):
 # region Publication Serializers ===================================
 
 
+class CustomPublicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomPublication
+        fields = ["pk", "public_profile", "title", "year"]
+
+
 class PublicationDocSerializer(serializers.Serializer):
     DocId = serializers.CharField(allow_blank=True, required=False, default="")
     BiblioText = serializers.CharField(allow_blank=True, required=False, default="")
     staff_only = serializers.BooleanField(required=False, default=False)
     UserName = serializers.CharField(allow_blank=True, required=False, default="")
-    recno = serializers.IntegerField(required=False, allow_null=True)  # Add allow_null
+    recno = serializers.IntegerField(required=False, allow_null=True)
     content = serializers.ListField(
         child=serializers.CharField(allow_blank=True, required=False),
         required=False,
         default=list,
     )
     title = serializers.CharField(allow_blank=True, required=False, default="")
-    Material = serializers.CharField(
-        allow_blank=True, required=False, default=""
-    )  # Add allow_blank
+    Material = serializers.CharField(allow_blank=True, required=False, default="")
     publisher = serializers.CharField(allow_blank=True, required=False, default="")
-    AuthorBiblio = serializers.CharField(
-        allow_blank=True, required=False, default=""
-    )  # Add allow_blank
+    AuthorBiblio = serializers.CharField(allow_blank=True, required=False, default="")
     year = serializers.CharField(allow_blank=True, required=False, default="")
     documentKey = serializers.CharField(allow_blank=True, required=False, default="")
     UserId = serializers.CharField(allow_blank=True, required=False, default="")
@@ -806,22 +810,19 @@ class PublicationDocSerializer(serializers.Serializer):
     )
 
 
-class ResponseDataSerializer(serializers.Serializer):
+class LibraryPublicationResponseSerializer(serializers.Serializer):
     numFound = serializers.IntegerField(required=False, default=0)
     start = serializers.IntegerField(required=False, default=0)
-    numFoundExact = serializers.BooleanField(required=False, default=False)
+    numFoundExact = serializers.BooleanField(required=False, default=True)
     docs = PublicationDocSerializer(many=True, required=False, default=list)
     isError = serializers.BooleanField(required=False, default=False)
     errorMessage = serializers.CharField(required=False, default="", allow_blank=True)
 
 
-class LibraryResponseSerializer(serializers.Serializer):
-    responseHeader = serializers.JSONField(required=False)
-    response = ResponseDataSerializer()
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return data["response"]
+class PublicationResponseSerializer(serializers.Serializer):
+    staffProfilePk = serializers.IntegerField()
+    libraryData = LibraryPublicationResponseSerializer()
+    customPublications = CustomPublicationSerializer(many=True)
 
 
 # endregion  ===================================
