@@ -22,7 +22,7 @@ from datetime import timedelta
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import (
     NotFound,
 )
@@ -9082,7 +9082,7 @@ class CancelProjectDocGeneration(APIView):
 
 
 class CustomPublications(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, req):
         settings.LOGGER.info(f"{req.user} is getting CustomPublications")
@@ -9106,7 +9106,7 @@ class CustomPublications(APIView):
 
 
 class CustomPublicationDetail(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def go(self, pk):
         try:
@@ -9150,6 +9150,11 @@ class CustomPublicationDetail(APIView):
 
 
 class UserPublications(APIView):
+
+    def get_permissions(self):
+        if self.request.method == "GET":
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def _error_response(self, message):
         return Response(
