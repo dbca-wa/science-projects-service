@@ -20,7 +20,7 @@ from agencies.serializers import (
 )
 from projects.models import ProjectMember
 from users.serializers import TinyUserSerializer
-from users.views import Users
+from users.views import StaffProfiles, Users
 
 # endregion ===========================================
 
@@ -130,6 +130,26 @@ def copy_about_expertise_to_staff_profile(model_admin, req, selected):
     model_admin.message_user(
         req,
         f"Copied profile data over to staff profile for {users_to_update.count()} user(s).",
+    )
+
+
+@admin.action(description="Hide all staff profiles")
+def hide_all_staff_profiles(model_admin, req, selected):
+    if len(selected) > 1:
+        print("Please select only one")
+        return
+    # Find all users that are staff and have a public profile
+    users_to_update = User.objects.filter(
+        is_staff=True,
+        staff_profile__isnull=False,
+    )
+
+    # Update the staff profiles through the related StaffProfile model
+    PublicStaffProfile.objects.filter(user__in=users_to_update).update(is_hidden=True)
+
+    model_admin.message_user(
+        req,
+        f"Staff profiles were hidden for {users_to_update.count()} user(s).",
     )
 
 
@@ -433,6 +453,7 @@ class KeywordTagAdmin(admin.ModelAdmin):
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
     actions = [
+        hide_all_staff_profiles,
         generate_active_staff_csv,
         export_selected_users_to_csv,
         export_current_active_project_leads,
