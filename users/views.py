@@ -882,7 +882,9 @@ class StaffProfiles(APIView):
                 # Single word search
                 users = User.objects.filter(is_staff=True).filter(
                     Q(first_name__icontains=search_term)
-                    | Q(last_name__icontains=last_name)
+                    | Q(
+                        last_name__icontains=search_term
+                    )  # Fixed: using search_term instead of undefined last_name
                 )
         else:
             users = User.objects.filter(is_staff=True).all()
