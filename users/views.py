@@ -7,7 +7,8 @@ from math import ceil
 # region DJANGO IMPORTS ================================
 from django.contrib.auth import authenticate, login, logout
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Q, Case, When, Value, CharField
+from django.db.models.functions import Concat
 from django.db import transaction
 from django.utils.text import capfirst
 from django.core.files.base import ContentFile
@@ -866,22 +867,23 @@ class StaffProfiles(APIView):
 
         if search_term:
             # Check if there is a space in the search term (fn + ln)
-            search_parts = search_term.split(" ", 1)
+            search_parts = search_term.split()
             # Apply filtering based on the search term
-            if len(search_parts) == 2:
-                first_name, last_name = search_parts
+            if len(search_parts) >= 2:
+                # First part is treated as first name
+                first_name = search_parts[0]
+                # Join remaining parts as last name (for instances more than 2 words)
+                last_name = " ".join(search_parts[1:])
                 users = User.objects.filter(is_staff=True).filter(
                     Q(first_name__icontains=first_name)
                     & Q(last_name__icontains=last_name)
                 )
-
             else:
-                # If the search term cannot be split, continue with the existing logic
+                # Single word search
                 users = User.objects.filter(is_staff=True).filter(
                     Q(first_name__icontains=search_term)
-                    | Q(last_name__icontains=search_term)
+                    | Q(last_name__icontains=last_name)
                 )
-
         else:
             users = User.objects.filter(is_staff=True).all()
 
@@ -889,7 +891,21 @@ class StaffProfiles(APIView):
         users = users.exclude(staff_profile__is_hidden=True)
 
         # Sort users alphabetically based on email
-        users = users.order_by("first_name")
+        users = users.annotate(
+            display_name=Case(
+                When(
+                    display_first_name__isnull=False,
+                    display_last_name__isnull=False,
+                    then=Concat(
+                        "display_first_name",
+                        Value(" "),
+                        "display_last_name",
+                    ),
+                ),
+                default=Concat("first_name", Value(" "), "last_name"),
+                output_field=CharField(),
+            )
+        ).order_by("display_name")
 
         # Call the IT Assets API to fetch user data
         api_url = settings.IT_ASSETS_URL
