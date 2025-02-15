@@ -63,6 +63,7 @@ from .serializers import (
 
 # region Affiliation Views ====================================================================================================
 
+
 class Affiliations(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -234,12 +235,11 @@ class AffiliationsMerge(APIView):
         )
 
 
-
-
 # endregion  =================================================================================================
 
 
 # region Agency Views ====================================================================================================
+
 
 class Agencies(APIView):
     permission_classes = [IsAuthenticated]
@@ -272,6 +272,7 @@ class Agencies(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
 
 class AgencyDetail(APIView):
     permission_classes = [IsAuthenticated]
@@ -319,6 +320,7 @@ class AgencyDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
 
 # endregion  =================================================================================================
 
@@ -662,6 +664,12 @@ class BusinessAreaDetail(APIView):
 
         division_id = req.data.get("division")
         print("DIV ID: ", division_id)
+
+        # Pre-process the leader field to set to none if 0 received
+        leader = req.data.get("leader")
+        if leader == "0" or leader == 0:
+            leader = None
+
         ba_data = {
             key: value
             for key, value in {
@@ -673,9 +681,9 @@ class BusinessAreaDetail(APIView):
                 "introduction": req.data.get("introduction"),
                 "data_custodian": req.data.get("data_custodian"),
                 "finance_admin": req.data.get("finance_admin"),
-                "leader": req.data.get("leader"),
+                "leader": leader,
             }.items()
-            if value is not None
+            if value is not None or key == "leader"
             #   and (not isinstance(value, list) or value)
         }
 
@@ -903,6 +911,7 @@ class SetBusinessAreaActive(APIView):
 
 
 # region Division Views ====================================================================================================
+
 
 class Divisions(APIView):
     def get(self, req):
