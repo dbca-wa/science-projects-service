@@ -1,7 +1,6 @@
 # region IMPORTS ==================================================
 
 import datetime, json, os, re, subprocess, time, tempfile
-from turtle import pu
 from bs4 import BeautifulSoup
 from operator import attrgetter
 

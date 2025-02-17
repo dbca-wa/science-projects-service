@@ -6,7 +6,7 @@ authors = ["idabblewith <109533655+idabblewith@users.noreply.github.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "<3.14,>=3.10"
+python = "<3.14,>=3.13.2"
 beautifulsoup4 = "^4.12.2"
 brotli = "^1.1.0"
 dbca-utils = ">=2.0.2"
