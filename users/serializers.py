@@ -536,6 +536,7 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
     caretakers = serializers.SerializerMethodField()
 
     business_area_led = serializers.SerializerMethodField()
+    is_hidden = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -547,6 +548,7 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
             "display_last_name",
             "email",
             "is_active",
+            "is_hidden",
             "role",
             "branch",
             "employee_id",
@@ -558,6 +560,9 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
             "caretakers",
             "business_area_led",
         )
+
+    def get_is_hidden(self, obj):
+        return obj.staff_profile.is_hidden
 
     def get_business_area_led(self, obj):
         if obj.business_areas_led.exists():

@@ -889,8 +889,26 @@ class StaffProfiles(APIView):
         else:
             users = User.objects.filter(is_staff=True).all()
 
-        # Exclude hidden staff profiles
-        users = users.exclude(staff_profile__is_hidden=True)
+        # Exclude hidden staff profiles (if user is not staff)
+        # If they are staff and are admin, get all staff profiles
+        # If they are staff and are not admin, get all staff profiles from their business area
+
+        # If anonymous user, exclude hidden profiles
+        if not req.user.is_authenticated:
+            users = users.exclude(staff_profile__is_hidden=True)
+        # If authenticated user
+        else:
+            # If staff user with admin privileges, show all profiles
+            if req.user.is_staff and req.user.is_superuser:
+                pass  # Don't exclude any profiles
+            # If staff user without admin privileges, show profiles from their business area (if )
+            elif req.user.is_staff and req.user.business_areas_led.exists():
+                users = users.filter(work__business_area=req.user.work.business_area)
+            # In all other cases (bot ba or admin, but staff), exclude hidden profiles except their own
+            else:
+                users = users.exclude(
+                    ~Q(id=req.user.id) & Q(staff_profile__is_hidden=True)
+                )
 
         # Sort users alphabetically based on email
         users = users.annotate(
