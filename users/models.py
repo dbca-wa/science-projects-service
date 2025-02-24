@@ -476,6 +476,17 @@ class PublicStaffProfile(CommonModel):
     public_email = models.EmailField(
         blank=True, null=True, help_text="Publicly displayed email address."
     )
+    public_email_on = models.BooleanField(
+        default=False,
+        help_text="Whether to display the public email on the public profile.",
+    )
+    custom_title = models.CharField(
+        max_length=50, blank=True, null=True, help_text="Custom title or position name."
+    )
+    custom_title_on = models.BooleanField(
+        default=False,
+        help_text="Whether to display the custom title on the public profile.",
+    )
 
     def get_it_asset_data(self):
         it_asset_id = self.it_asset_id

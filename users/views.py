@@ -1502,7 +1502,8 @@ class PublicEmailStaffMember(APIView):
             # Use public email if available, otherwise use IT asset email
             recipient_email = (
                 staff_profile.public_email
-                if staff_profile.public_email not in [None, ""]
+                if staff_profile.public_email_on
+                and staff_profile.public_email not in [None, ""]
                 else staff_profile.get_it_asset_email()
             )
 

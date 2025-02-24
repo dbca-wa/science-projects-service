@@ -5,6 +5,7 @@ extracted_table_data
 legacy_data
 
 *.unlighthouse/*
+SMB_Mosaic_2023.tif
 
 # *.csv
 .DS_Store

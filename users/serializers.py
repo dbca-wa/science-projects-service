@@ -450,6 +450,18 @@ class ProfilePageSerializer(serializers.ModelSerializer):
         source="staff_profile.public_email",
         read_only=True,
     )
+    public_email_on = serializers.BooleanField(
+        source="staff_profile.public_email_on",
+        read_only=True,
+    )
+    custom_title = serializers.CharField(
+        source="staff_profile.custom_title",
+        read_only=True,
+    )
+    custom_title_on = serializers.BooleanField(
+        source="staff_profile.custom_title_on",
+        read_only=True,
+    )
     caretakers = serializers.SerializerMethodField()
     caretaking_for = serializers.SerializerMethodField()
 
@@ -483,6 +495,9 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "staff_profile_pk",
             "staff_profile_hidden",
             "public_email",
+            "public_email_on",
+            "custom_title",
+            "custom_title_on",
             "caretakers",
             "caretaking_for",
         )
@@ -533,6 +548,8 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
     unit = serializers.SerializerMethodField()
     location = serializers.SerializerMethodField()
     position = serializers.SerializerMethodField()
+    custom_title = serializers.SerializerMethodField()
+    custom_title_on = serializers.SerializerMethodField()
     caretakers = serializers.SerializerMethodField()
 
     business_area_led = serializers.SerializerMethodField()
@@ -557,6 +574,8 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
             "unit",
             "location",
             "position",
+            "custom_title",
+            "custom_title_on",
             "caretakers",
             "business_area_led",
         )
@@ -609,6 +628,12 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
 
     def get_position(self, obj):
         return getattr(obj, "position", None)
+
+    def get_custom_title(self, obj):
+        return obj.staff_profile.custom_title
+
+    def get_custom_title_on(self, obj):
+        return obj.staff_profile.custom_title_on
 
 
 class StaffProfileCreationSerializer(serializers.ModelSerializer):
@@ -678,6 +703,8 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
     user = UserStaffProfileSerializer()  # Nested serializer for user
     # keyword_tags = KeywordTagSerializer(many=True)
     it_asset_data = serializers.SerializerMethodField()
+    custom_title = serializers.SerializerMethodField()
+    custom_title_on = serializers.SerializerMethodField()
 
     class Meta:
         model = PublicStaffProfile
@@ -689,6 +716,8 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
             "name",
             "it_asset_data",
             "it_asset_id",
+            "custom_title",
+            "custom_title_on",
         )
 
     def get_name(self, obj):
@@ -697,6 +726,12 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
     def get_it_asset_data(self, obj):
         it_asset_data = obj.get_it_asset_data()
         return it_asset_data
+
+    def get_custom_title(self, obj):
+        return obj.custom_title
+
+    def get_custom_title_on(self, obj):
+        return obj.custom_title_on
 
 
 class StaffProfileOverviewSerializer(serializers.ModelSerializer):
@@ -838,6 +873,9 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             # "publications",
             "it_asset_data",
             "public_email",
+            "public_email_on",
+            "custom_title",
+            "custom_title_on",
         )
 
     def get_it_asset_data(self, obj):
