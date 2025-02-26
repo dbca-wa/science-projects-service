@@ -226,8 +226,16 @@ class Projects(APIView):
         elif only_inactive:
             projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
 
-        total_projects = projects.count()
-        total_pages = ceil(total_projects / page_size)
+        # N+1 query optimization
+        projects = projects.select_related(
+            "business_area",
+            "business_area__division",
+            "business_area__image",  # Select related for the business area image
+            "image",
+            "area",  # Based on serializer
+        ).prefetch_related(
+            "members",
+        )
 
         projects = projects.annotate(
             custom_ordering=Case(
@@ -239,6 +247,9 @@ class Projects(APIView):
             )
         ).order_by("custom_ordering", "-year", "id")
         projects = projects.distinct()
+
+        total_projects = projects.count()
+        total_pages = ceil(total_projects / page_size)
 
         serialized_projects = ProjectSerializer(
             projects[start:end],
@@ -1573,27 +1584,22 @@ class SmallProjectSearch(APIView):
         if req.user.is_superuser:
             projects = Project.objects.all()
         else:
-            # Fetch project memberships of the authenticated user (req.user)
-            user_memberships = ProjectMember.objects.filter(user=req.user)
-
-            # Get the project IDs from the memberships
-            project_ids = user_memberships.values_list("project__id", flat=True)
-
-            # Fetch projects where the user is a member (based on the project IDs)
+            project_ids = ProjectMember.objects.filter(user=req.user).values_list(
+                "project__id", flat=True
+            )
             projects = Project.objects.filter(id__in=project_ids).order_by("title")
 
         if search_term:
-            # Apply filtering based on the search term
-            q_filter = Q(title__icontains=search_term)
+            projects = projects.filter(title__icontains=search_term)
 
-            projects = projects.filter(q_filter)
+        # Optimize based on TinyProjectSerializer needs
+        projects = projects.select_related("business_area", "image")
 
         serialized_projects = TinyProjectSerializer(
             projects[start:end], many=True, context={"request": req}
         ).data
 
         response_data = {"projects": serialized_projects}
-
         return Response(response_data, status=HTTP_200_OK)
 
 
@@ -1601,21 +1607,23 @@ class MyProjects(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, req):
-        # Handle not logged in
         if not req.user.is_authenticated:
             return Response(
                 {"detail": "You are not logged in."}, status=HTTP_401_UNAUTHORIZED
             )
 
-        # Fetch project memberships of the authenticated user (req.user)
-        user_memberships = ProjectMember.objects.filter(user=req.user)
+        # Get project memberships with prefetched projects
+        user_memberships = ProjectMember.objects.filter(user=req.user).select_related(
+            "project", "project__business_area", "project__image"
+        )
 
         projects_with_roles = [
             (membership.project, membership.role) for membership in user_memberships
         ]
+        projects = [proj for proj, _ in projects_with_roles]
 
         serialized_projects = ProjectDataTableSerializer(
-            [proj for proj, _ in projects_with_roles],
+            projects,
             many=True,
             context={"projects_with_roles": projects_with_roles},
         )
@@ -2291,7 +2299,12 @@ class MembersForProject(APIView):
 class ProblematicProjects(APIView):
     def get_projects(self):
         try:
-            projects = Project.objects.all()
+            # Optimize for the ProblematicProjectSerializer needs
+            projects = (
+                Project.objects.all()
+                .select_related("business_area", "image")
+                .prefetch_related("members", "members__user")
+            )
         except Project.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -2307,51 +2320,48 @@ class ProblematicProjects(APIView):
             no_leader_tag_projects = []
             multiple_leader_tag_projects = []
             externally_led_projects = []
+
             for p in all_projects:
-                members = p.members.all()
+                members = p.members.all()  # No DB hit thanks to prefetch_related
                 leader_tag_count = 0
                 external_leader = False
+
                 for mem in members:
                     if mem.role == ProjectMember.RoleChoices.SUPERVISING:
                         leader_tag_count += 1
-                    if mem.is_leader == True:
-                        if mem.user.is_staff == False:
-                            external_leader = True
+                    if mem.is_leader == True and mem.user.is_staff == False:
+                        external_leader = True
 
-                # Handle Memberless
                 if len(members) < 1:
                     memberless_projects.append(p)
                 else:
-                    # Handle external Leader tag
                     if external_leader:
                         externally_led_projects.append(p)
-                    # Handle No Leader Tags
                     if leader_tag_count == 0:
                         no_leader_tag_projects.append(p)
                     elif leader_tag_count > 1:
                         multiple_leader_tag_projects.append(p)
 
-                data = {}
-                data["no_members"] = ProblematicProjectSerializer(
+            data = {
+                "no_members": ProblematicProjectSerializer(
                     memberless_projects, many=True
-                ).data
-                data["no_leader"] = ProblematicProjectSerializer(
+                ).data,
+                "no_leader": ProblematicProjectSerializer(
                     no_leader_tag_projects, many=True
-                ).data
-                data["external_leader"] = ProblematicProjectSerializer(
+                ).data,
+                "external_leader": ProblematicProjectSerializer(
                     externally_led_projects, many=True
-                ).data
-                data["multiple_leads"] = ProblematicProjectSerializer(
+                ).data,
+                "multiple_leads": ProblematicProjectSerializer(
                     multiple_leader_tag_projects, many=True
-                ).data
+                ).data,
+            }
 
-            return Response(
-                data=data,
-                status=HTTP_200_OK,
-            )
+            return Response(data=data, status=HTTP_200_OK)
+
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
-            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+            return Response({"msg": str(e)}, HTTP_400_BAD_REQUEST)
 
 
 # Where the project has 0 members
