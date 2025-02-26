@@ -1071,6 +1071,25 @@ class Projects(APIView):
             )
 
 
+class ProjectMap(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+
+        # Get any location selections (is in json format)
+        location = req.query_params.get("locations", None)
+        if location is not None:
+            location = json.loads(location)
+            projects = Project.objects.filter(projectarea__location__in=location).all()
+        else:
+            projects = Project.objects.all()
+        ser = ProjectSerializer(projects, many=True).data
+        return Response(
+            ser,
+            status=HTTP_200_OK,
+        )
+
+
 class ProjectDetails(APIView):
     def go(self, pk):
         try:
