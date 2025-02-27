@@ -6,11 +6,14 @@ from math import ceil
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Case, When, Value, F, IntegerField
+from django.db.models import Q, Case, When, Value, F, IntegerField, CharField
 from django.core.files.base import ContentFile
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+
+from django.db.models.functions import Cast
+
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -173,6 +176,11 @@ class Projects(APIView):
         only_inactive = bool(request.GET.get("only_inactive", False))
         ba_pk = request.GET.get("businessarea", "All")
 
+        selected_user = request.GET.get("selected_user", None)
+
+        # # print the req data
+        # print(selected_user)
+
         # Get the search term
         search_term = request.GET.get("searchTerm")
         # Handle search by project id string
@@ -189,12 +197,18 @@ class Projects(APIView):
             projects = Project.objects.all()
 
             if search_term:
-                projects = projects.filter(
+                projects = projects.annotate(
+                    number_as_text=Cast("number", output_field=CharField())
+                ).filter(
                     Q(title__icontains=search_term)
                     | Q(description__icontains=search_term)
                     | Q(tagline__icontains=search_term)
                     | Q(keywords__icontains=search_term)
+                    | Q(number_as_text__icontains=search_term)
                 )
+
+        if selected_user:
+            projects = projects.filter(members__user__pk=selected_user)
 
         if ba_pk != "All":
             projects = projects.filter(business_area__pk=ba_pk)
