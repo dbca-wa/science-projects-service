@@ -1100,19 +1100,103 @@ class ProjectMap(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, req):
+        print(f"{req.user} is viewing the map")
+        settings.LOGGER.info(msg=f"{req.user} is viewing/filtering projects")
+        try:
+            page = int(req.query_params.get("page", 1))
+        except ValueError:
+            # If the user sends a non-integer value as the page parameter
+            page = 1
+
+        page_size = 2000
+        start = (page - 1) * page_size
+        end = start + page_size
 
         # Get any location selections (is in json format)
-        location = req.query_params.get("locations", None)
-        if location is not None:
-            location = json.loads(location)
-            projects = Project.objects.filter(projectarea__location__in=location).all()
+        # location = req.query_params.get("locations", None)
+        # print(location)
+        # if location is not None:
+        #     location = json.loads(location)
+        #     projects = Project.objects.filter(projectarea__location__in=location).all()
+        # else:
+        #     projects = Project.objects.all()
+        # Get the search term
+        search_term = req.GET.get("searchTerm")
+        # Handle search by project id string
+        if search_term and (
+            search_term.lower().startswith("cf-")
+            or search_term.lower().startswith("sp-")
+            or search_term.lower().startswith("stp-")
+            or search_term.lower().startswith("ext-")
+        ):
+            projects = self.parse_search_term(search_term=search_term)
+
+        # Ordinary filtering
         else:
             projects = Project.objects.all()
-        ser = ProjectSerializer(projects, many=True).data
-        return Response(
-            ser,
-            status=HTTP_200_OK,
+
+            if search_term:
+                projects = projects.annotate(
+                    number_as_text=Cast("number", output_field=CharField())
+                ).filter(
+                    Q(title__icontains=search_term)
+                    | Q(description__icontains=search_term)
+                    | Q(tagline__icontains=search_term)
+                    | Q(keywords__icontains=search_term)
+                    | Q(number_as_text__icontains=search_term)
+                )
+
+        selected_user = req.GET.get("selected_user", None)
+
+        if selected_user:
+            projects = projects.filter(members__user__pk=selected_user)
+
+        business_areas = req.GET.get("businessarea", None)
+        if business_areas:
+            business_areas = business_areas.split(",")
+            projects = projects.filter(business_area__pk__in=business_areas)
+
+        # N+1 query optimization
+        projects = projects.select_related(
+            "business_area",
+            "business_area__division",
+            "business_area__image",  # Select related for the business area image
+            "image",
+            "area",  # Based on serializer
+        ).prefetch_related(
+            "members",
         )
+
+        projects = projects.annotate(
+            custom_ordering=Case(
+                When(
+                    status__in=["suspended", "completed", "terminated"], then=Value(1)
+                ),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by("custom_ordering", "-year", "id")
+        projects = projects.distinct()
+
+        total_projects = projects.count()
+        total_pages = ceil(total_projects / page_size)
+
+        serialized_projects = ProjectSerializer(
+            projects[start:end],
+            many=True,
+            context={
+                "request": req,
+                "projects": projects[start:end],
+            },
+        )
+
+        response_data = {
+            "projects": serialized_projects.data,
+            "total_results": total_projects,
+            "total_pages": total_pages,
+        }
+
+        return Response(response_data, status=HTTP_200_OK)
 
 
 class ProjectDetails(APIView):

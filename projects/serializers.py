@@ -173,7 +173,7 @@ class ProjectSerializer(ModelSerializer):
         return representation
 
     def get_areas(self, instance):
-        return {"areas": instance.area.areas}
+        return instance.area.areas
         # return TinyAreaSerializer(areas).data
 
 
