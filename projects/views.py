@@ -6,11 +6,14 @@ from math import ceil
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Case, When, Value, F, IntegerField
+from django.db.models import Q, Case, When, Value, F, IntegerField, CharField
 from django.core.files.base import ContentFile
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+
+from django.db.models.functions import Cast
+
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -173,6 +176,11 @@ class Projects(APIView):
         only_inactive = bool(request.GET.get("only_inactive", False))
         ba_pk = request.GET.get("businessarea", "All")
 
+        selected_user = request.GET.get("selected_user", None)
+
+        # # print the req data
+        # print(selected_user)
+
         # Get the search term
         search_term = request.GET.get("searchTerm")
         # Handle search by project id string
@@ -189,12 +197,18 @@ class Projects(APIView):
             projects = Project.objects.all()
 
             if search_term:
-                projects = projects.filter(
+                projects = projects.annotate(
+                    number_as_text=Cast("number", output_field=CharField())
+                ).filter(
                     Q(title__icontains=search_term)
                     | Q(description__icontains=search_term)
                     | Q(tagline__icontains=search_term)
                     | Q(keywords__icontains=search_term)
+                    | Q(number_as_text__icontains=search_term)
                 )
+
+        if selected_user:
+            projects = projects.filter(members__user__pk=selected_user)
 
         if ba_pk != "All":
             projects = projects.filter(business_area__pk=ba_pk)
@@ -226,8 +240,16 @@ class Projects(APIView):
         elif only_inactive:
             projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
 
-        total_projects = projects.count()
-        total_pages = ceil(total_projects / page_size)
+        # N+1 query optimization
+        projects = projects.select_related(
+            "business_area",
+            "business_area__division",
+            "business_area__image",  # Select related for the business area image
+            "image",
+            "area",  # Based on serializer
+        ).prefetch_related(
+            "members",
+        )
 
         projects = projects.annotate(
             custom_ordering=Case(
@@ -239,6 +261,9 @@ class Projects(APIView):
             )
         ).order_by("custom_ordering", "-year", "id")
         projects = projects.distinct()
+
+        total_projects = projects.count()
+        total_pages = ceil(total_projects / page_size)
 
         serialized_projects = ProjectSerializer(
             projects[start:end],
@@ -1071,6 +1096,109 @@ class Projects(APIView):
             )
 
 
+class ProjectMap(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        print(f"{req.user} is viewing the map")
+        settings.LOGGER.info(msg=f"{req.user} is viewing/filtering projects")
+        try:
+            page = int(req.query_params.get("page", 1))
+        except ValueError:
+            # If the user sends a non-integer value as the page parameter
+            page = 1
+
+        page_size = 2000
+        start = (page - 1) * page_size
+        end = start + page_size
+
+        # Get any location selections (is in json format)
+        # location = req.query_params.get("locations", None)
+        # print(location)
+        # if location is not None:
+        #     location = json.loads(location)
+        #     projects = Project.objects.filter(projectarea__location__in=location).all()
+        # else:
+        #     projects = Project.objects.all()
+        # Get the search term
+        search_term = req.GET.get("searchTerm")
+        # Handle search by project id string
+        if search_term and (
+            search_term.lower().startswith("cf-")
+            or search_term.lower().startswith("sp-")
+            or search_term.lower().startswith("stp-")
+            or search_term.lower().startswith("ext-")
+        ):
+            projects = self.parse_search_term(search_term=search_term)
+
+        # Ordinary filtering
+        else:
+            projects = Project.objects.all()
+
+            if search_term:
+                projects = projects.annotate(
+                    number_as_text=Cast("number", output_field=CharField())
+                ).filter(
+                    Q(title__icontains=search_term)
+                    | Q(description__icontains=search_term)
+                    | Q(tagline__icontains=search_term)
+                    | Q(keywords__icontains=search_term)
+                    | Q(number_as_text__icontains=search_term)
+                )
+
+        selected_user = req.GET.get("selected_user", None)
+
+        if selected_user:
+            projects = projects.filter(members__user__pk=selected_user)
+
+        business_areas = req.GET.get("businessarea", None)
+        if business_areas:
+            business_areas = business_areas.split(",")
+            projects = projects.filter(business_area__pk__in=business_areas)
+
+        # N+1 query optimization
+        projects = projects.select_related(
+            "business_area",
+            "business_area__division",
+            "business_area__image",  # Select related for the business area image
+            "image",
+            "area",  # Based on serializer
+        ).prefetch_related(
+            "members",
+        )
+
+        projects = projects.annotate(
+            custom_ordering=Case(
+                When(
+                    status__in=["suspended", "completed", "terminated"], then=Value(1)
+                ),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).order_by("custom_ordering", "-year", "id")
+        projects = projects.distinct()
+
+        total_projects = projects.count()
+        total_pages = ceil(total_projects / page_size)
+
+        serialized_projects = ProjectSerializer(
+            projects[start:end],
+            many=True,
+            context={
+                "request": req,
+                "projects": projects[start:end],
+            },
+        )
+
+        response_data = {
+            "projects": serialized_projects.data,
+            "total_results": total_projects,
+            "total_pages": total_pages,
+        }
+
+        return Response(response_data, status=HTTP_200_OK)
+
+
 class ProjectDetails(APIView):
     def go(self, pk):
         try:
@@ -1554,27 +1682,22 @@ class SmallProjectSearch(APIView):
         if req.user.is_superuser:
             projects = Project.objects.all()
         else:
-            # Fetch project memberships of the authenticated user (req.user)
-            user_memberships = ProjectMember.objects.filter(user=req.user)
-
-            # Get the project IDs from the memberships
-            project_ids = user_memberships.values_list("project__id", flat=True)
-
-            # Fetch projects where the user is a member (based on the project IDs)
+            project_ids = ProjectMember.objects.filter(user=req.user).values_list(
+                "project__id", flat=True
+            )
             projects = Project.objects.filter(id__in=project_ids).order_by("title")
 
         if search_term:
-            # Apply filtering based on the search term
-            q_filter = Q(title__icontains=search_term)
+            projects = projects.filter(title__icontains=search_term)
 
-            projects = projects.filter(q_filter)
+        # Optimize based on TinyProjectSerializer needs
+        projects = projects.select_related("business_area", "image")
 
         serialized_projects = TinyProjectSerializer(
             projects[start:end], many=True, context={"request": req}
         ).data
 
         response_data = {"projects": serialized_projects}
-
         return Response(response_data, status=HTTP_200_OK)
 
 
@@ -1582,21 +1705,23 @@ class MyProjects(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, req):
-        # Handle not logged in
         if not req.user.is_authenticated:
             return Response(
                 {"detail": "You are not logged in."}, status=HTTP_401_UNAUTHORIZED
             )
 
-        # Fetch project memberships of the authenticated user (req.user)
-        user_memberships = ProjectMember.objects.filter(user=req.user)
+        # Get project memberships with prefetched projects
+        user_memberships = ProjectMember.objects.filter(user=req.user).select_related(
+            "project", "project__business_area", "project__image"
+        )
 
         projects_with_roles = [
             (membership.project, membership.role) for membership in user_memberships
         ]
+        projects = [proj for proj, _ in projects_with_roles]
 
         serialized_projects = ProjectDataTableSerializer(
-            [proj for proj, _ in projects_with_roles],
+            projects,
             many=True,
             context={"projects_with_roles": projects_with_roles},
         )
@@ -2272,7 +2397,12 @@ class MembersForProject(APIView):
 class ProblematicProjects(APIView):
     def get_projects(self):
         try:
-            projects = Project.objects.all()
+            # Optimize for the ProblematicProjectSerializer needs
+            projects = (
+                Project.objects.all()
+                .select_related("business_area", "image")
+                .prefetch_related("members", "members__user")
+            )
         except Project.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -2288,51 +2418,48 @@ class ProblematicProjects(APIView):
             no_leader_tag_projects = []
             multiple_leader_tag_projects = []
             externally_led_projects = []
+
             for p in all_projects:
-                members = p.members.all()
+                members = p.members.all()  # No DB hit thanks to prefetch_related
                 leader_tag_count = 0
                 external_leader = False
+
                 for mem in members:
                     if mem.role == ProjectMember.RoleChoices.SUPERVISING:
                         leader_tag_count += 1
-                    if mem.is_leader == True:
-                        if mem.user.is_staff == False:
-                            external_leader = True
+                    if mem.is_leader == True and mem.user.is_staff == False:
+                        external_leader = True
 
-                # Handle Memberless
                 if len(members) < 1:
                     memberless_projects.append(p)
                 else:
-                    # Handle external Leader tag
                     if external_leader:
                         externally_led_projects.append(p)
-                    # Handle No Leader Tags
                     if leader_tag_count == 0:
                         no_leader_tag_projects.append(p)
                     elif leader_tag_count > 1:
                         multiple_leader_tag_projects.append(p)
 
-                data = {}
-                data["no_members"] = ProblematicProjectSerializer(
+            data = {
+                "no_members": ProblematicProjectSerializer(
                     memberless_projects, many=True
-                ).data
-                data["no_leader"] = ProblematicProjectSerializer(
+                ).data,
+                "no_leader": ProblematicProjectSerializer(
                     no_leader_tag_projects, many=True
-                ).data
-                data["external_leader"] = ProblematicProjectSerializer(
+                ).data,
+                "external_leader": ProblematicProjectSerializer(
                     externally_led_projects, many=True
-                ).data
-                data["multiple_leads"] = ProblematicProjectSerializer(
+                ).data,
+                "multiple_leads": ProblematicProjectSerializer(
                     multiple_leader_tag_projects, many=True
-                ).data
+                ).data,
+            }
 
-            return Response(
-                data=data,
-                status=HTTP_200_OK,
-            )
+            return Response(data=data, status=HTTP_200_OK)
+
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
-            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+            return Response({"msg": str(e)}, HTTP_400_BAD_REQUEST)
 
 
 # Where the project has 0 members

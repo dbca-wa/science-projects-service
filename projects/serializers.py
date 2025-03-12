@@ -11,6 +11,7 @@ from agencies.serializers import (
     TinyBusinessAreaSerializer,
 )
 from documents.templatetags.custom_filters import extract_text_content
+import locations
 from locations.models import Area
 from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
 from locations.serializers import TinyAreaSerializer
@@ -148,6 +149,7 @@ class ProjectSerializer(ModelSerializer):
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     deletion_request_id = serializers.SerializerMethodField()
+    areas = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -169,6 +171,10 @@ class ProjectSerializer(ModelSerializer):
         representation["deletion_request_id"] = self.get_deletion_request_id(instance)
 
         return representation
+
+    def get_areas(self, instance):
+        return instance.area.areas
+        # return TinyAreaSerializer(areas).data
 
 
 class ProjectBAUpdateSerializer(ModelSerializer):
