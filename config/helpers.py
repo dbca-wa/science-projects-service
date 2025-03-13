@@ -49,7 +49,7 @@ def send_email_with_embedded_image(
     recipient_email, subject, html_content, from_email=None
 ):
     """
-    Send an email with an embedded image and HTML content.
+    Send an email with embedded image via HTML content.
 
     :param recipient_email: Email address of the recipient
     :param subject: Email subject line
@@ -66,30 +66,11 @@ def send_email_with_embedded_image(
         # Plain text fallback
         "Please view this email in an HTML-compatible email client.",
         from_email,
-        # [recipient_email],
         recipient_email,
     )
 
     # Attach HTML alternative
     msg.attach_alternative(html_content, "text/html")
-
-    # Attach image if exists
-    try:
-        image_path = os.path.join(settings.BASE_DIR, "documents", "dbca.jpg")
-
-        # Determine the correct MIME type
-        mime_type, _ = mimetypes.guess_type(image_path)
-        if not mime_type:
-            mime_type = "image/jpeg"  # Default to JPEG if can't guess
-
-        with open(image_path, "rb") as img:
-            image = MIMEImage(img.read(), _subtype=mime_type.split("/")[-1])
-            image.add_header("Content-ID", "<dbca_logo>")
-            msg.attach(image)
-    except Exception as e:
-        settings.LOGGER.error(f"Error attaching image: {e}")
-        settings.LOGGER.error(f"Image path: {image_path}")
-        # Continue sending email even if image attachment fails
 
     # Send the message
     msg.send()

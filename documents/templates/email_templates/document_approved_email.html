@@ -42,7 +42,7 @@
       <tbody>
         <tr style="width: 100%">
           <td>
-            {% if dbca_image_path and 'data:image' in dbca_image_path %}
+            {% comment %} {% if dbca_image_path and 'data:image' in dbca_image_path %}
             <table
                 align="center"
                 width="100%"
@@ -68,8 +68,7 @@
                     </tr>
                 </tbody>
             </table>
-            {% endif %}
-
+            {% endif %} {% endcomment %}
             <h1
               class=""
               style="

@@ -11,7 +11,7 @@
       <tbody>
         <tr style="width:100%">
           <td>
-            {% if dbca_image_path and 'data:image' in dbca_image_path %}
+            {% comment %} {% if dbca_image_path and 'data:image' in dbca_image_path %}
             <table
                 align="center"
                 width="100%"
@@ -37,7 +37,7 @@
                     </tr>
                 </tbody>
             </table>
-            {% endif %}            
+            {% endif %}             {% endcomment %}
             <h1 class="" style="color:rgb(0,0,0);font-size:24px;font-weight:400;text-align:center;padding:0px;margin-top:1rem;margin-bottom:30px;margin-left:0px;margin-right:0px">Project Reopened</h1>
             <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hello {{recipient_name}},</p>
             <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Your project <strong>&#x27;{% spaceless %}{{ plain_project_name|extract_text_content }}{% endspaceless %}&#x27;</strong> has been reopened.</p>
