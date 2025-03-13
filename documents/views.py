@@ -44,7 +44,7 @@ from communications.serializers import (
     TinyCommentCreateSerializer,
     TinyCommentSerializer,
 )
-from config.helpers import get_encoded_image
+from config.helpers import get_encoded_image, send_email_with_embedded_image
 from documents.templatetags.custom_filters import extract_text_content
 from medias.models import (
     AECEndorsementPDF,
@@ -209,13 +209,18 @@ class ReviewDocumentEmail(APIView):
                         )
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
                         except Exception as e:
                             settings.LOGGER.error(
@@ -265,13 +270,18 @@ class ReviewDocumentEmail(APIView):
                             )
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
                             except Exception as e:
                                 settings.LOGGER.error(
@@ -346,13 +356,18 @@ class ProjectClosureEmail(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
                             except Exception as e:
                                 settings.LOGGER.error(
@@ -383,13 +398,18 @@ class ProjectClosureEmail(APIView):
                                 )
 
                                 try:
-                                    send_mail(
-                                        email_subject,
-                                        template_content,
-                                        from_email,
-                                        to_email,
-                                        fail_silently=False,
-                                        html_message=template_content,
+                                    # send_mail(
+                                    #     email_subject,
+                                    #     template_content,
+                                    #     from_email,
+                                    #     to_email,
+                                    #     fail_silently=False,
+                                    #     html_message=template_content,
+                                    # )
+                                    send_email_with_embedded_image(
+                                        recipient_email=to_email,
+                                        subject=email_subject,
+                                        html_content=template_content,
                                     )
                                 except Exception as e:
                                     settings.LOGGER.error(
@@ -474,13 +494,18 @@ class DocumentReadyEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
                         except Exception as e:
                             settings.LOGGER.error(
@@ -513,13 +538,18 @@ class DocumentReadyEmail(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
                             except Exception as e:
                                 settings.LOGGER.error(
@@ -611,13 +641,18 @@ class DocumentSentBackEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
                         except Exception as e:
                             settings.LOGGER.error(
@@ -656,13 +691,18 @@ class DocumentSentBackEmail(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
                             except Exception as e:
                                 settings.LOGGER.error(
@@ -748,13 +788,18 @@ class ConceptPlanEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
                         except Exception as e:
                             settings.LOGGER.error(
@@ -839,14 +884,19 @@ class DocumentApprovedEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
                         except Exception as e:
                             settings.LOGGER.error(
                                 msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -879,14 +929,19 @@ class DocumentApprovedEmail(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
                             except Exception as e:
                                 settings.LOGGER.error(
                                     msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -1064,14 +1119,19 @@ class SPMSInviteEmail(APIView):
                     template_content = render_to_string(templ, template_props)
 
                     try:
-                        send_mail(
-                            email_subject,
-                            template_content,
-                            from_email,
-                            to_email,
-                            fail_silently=False,
-                            html_message=template_content,
+                        send_email_with_embedded_image(
+                            recipient_email=to_email,
+                            subject=email_subject,
+                            html_content=template_content,
                         )
+                        # send_mail(
+                        #     email_subject,
+                        #     template_content,
+                        #     from_email,
+                        #     to_email,
+                        #     fail_silently=False,
+                        #     html_message=template_content,
+                        # )
                     except Exception as e:
                         settings.LOGGER.error(
                             msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -1097,14 +1157,19 @@ class SPMSInviteEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
                         except Exception as e:
                             settings.LOGGER.error(
                                 msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -1201,14 +1266,19 @@ class DocumentRecalledEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
                         except Exception as e:
                             settings.LOGGER.error(
                                 msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -1248,14 +1318,19 @@ class DocumentRecalledEmail(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
                             except Exception as e:
                                 settings.LOGGER.error(
                                     msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -1354,14 +1429,19 @@ class NewCycleOpenEmail(APIView):
                     template_content = render_to_string(templ, template_props)
 
                     try:
-                        send_mail(
-                            email_subject,
-                            template_content,
-                            from_email,
-                            to_email,
-                            fail_silently=False,
-                            html_message=template_content,
+                        send_email_with_embedded_image(
+                            recipient_email=to_email,
+                            subject=email_subject,
+                            html_content=template_content,
                         )
+                        # send_mail(
+                        #     email_subject,
+                        #     template_content,
+                        #     from_email,
+                        #     to_email,
+                        #     fail_silently=False,
+                        #     html_message=template_content,
+                        # )
                     except Exception as e:
                         settings.LOGGER.error(
                             msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -1390,14 +1470,19 @@ class NewCycleOpenEmail(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
                         except Exception as e:
                             settings.LOGGER.error(
                                 msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -4584,14 +4669,19 @@ class RepoenProject(APIView):
                                 )
 
                                 try:
-                                    send_mail(
-                                        email_subject,
-                                        template_content,
-                                        from_email,
-                                        to_email,
-                                        fail_silently=False,
-                                        html_message=template_content,
+                                    send_email_with_embedded_image(
+                                        recipient_email=to_email,
+                                        subject=email_subject,
+                                        html_content=template_content,
                                     )
+                                    # send_mail(
+                                    #     email_subject,
+                                    #     template_content,
+                                    #     from_email,
+                                    #     to_email,
+                                    #     fail_silently=False,
+                                    #     html_message=template_content,
+                                    # )
                                 except Exception as e:
                                     settings.LOGGER.error(
                                         msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -4625,14 +4715,19 @@ class RepoenProject(APIView):
                                     )
 
                                     try:
-                                        send_mail(
-                                            email_subject,
-                                            template_content,
-                                            from_email,
-                                            to_email,
-                                            fail_silently=False,
-                                            html_message=template_content,
+                                        send_email_with_embedded_image(
+                                            recipient_email=to_email,
+                                            subject=email_subject,
+                                            html_content=template_content,
                                         )
+                                        # send_mail(
+                                        #     email_subject,
+                                        #     template_content,
+                                        #     from_email,
+                                        #     to_email,
+                                        #     fail_silently=False,
+                                        #     html_message=template_content,
+                                        # )
                                     except Exception as e:
                                         settings.LOGGER.error(
                                             msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -5407,14 +5502,19 @@ class DocApproval(APIView):
                                 )
 
                                 try:
-                                    send_mail(
-                                        email_subject,
-                                        template_content,
-                                        from_email,
-                                        to_email,
-                                        fail_silently=False,
-                                        html_message=template_content,
+                                    send_email_with_embedded_image(
+                                        recipient_email=to_email,
+                                        subject=email_subject,
+                                        html_content=template_content,
                                     )
+                                    # send_mail(
+                                    #     email_subject,
+                                    #     template_content,
+                                    #     from_email,
+                                    #     to_email,
+                                    #     fail_silently=False,
+                                    #     html_message=template_content,
+                                    # )
                                 except Exception as e:
                                     settings.LOGGER.error(
                                         msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -5452,14 +5552,19 @@ class DocApproval(APIView):
                                     )
 
                                     try:
-                                        send_mail(
-                                            email_subject,
-                                            template_content,
-                                            from_email,
-                                            to_email,
-                                            fail_silently=False,
-                                            html_message=template_content,
+                                        send_email_with_embedded_image(
+                                            recipient_email=to_email,
+                                            subject=email_subject,
+                                            html_content=template_content,
                                         )
+                                        # send_mail(
+                                        #     email_subject,
+                                        #     template_content,
+                                        #     from_email,
+                                        #     to_email,
+                                        #     fail_silently=False,
+                                        #     html_message=template_content,
+                                        # )
                                     except Exception as e:
                                         settings.LOGGER.error(
                                             msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -5706,14 +5811,19 @@ class DocRecall(APIView):
                                 )
 
                                 try:
-                                    send_mail(
-                                        email_subject,
-                                        template_content,
-                                        from_email,
-                                        to_email,
-                                        fail_silently=False,
-                                        html_message=template_content,
+                                    send_email_with_embedded_image(
+                                        recipient_email=to_email,
+                                        subject=email_subject,
+                                        html_content=template_content,
                                     )
+                                    # send_mail(
+                                    #     email_subject,
+                                    #     template_content,
+                                    #     from_email,
+                                    #     to_email,
+                                    #     fail_silently=False,
+                                    #     html_message=template_content,
+                                    # )
                                 except Exception as e:
                                     settings.LOGGER.error(
                                         msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -5754,13 +5864,23 @@ class DocRecall(APIView):
                                     )
 
                                     try:
-                                        send_mail(
-                                            email_subject,
-                                            template_content,
-                                            from_email,
-                                            to_email,
-                                            fail_silently=False,
-                                            html_message=template_content,
+                                        # send_email_with_embedded_image(
+                                        #     recipient_email=to_email,
+                                        #     subject=email_subject,
+                                        #     html_content=template_content
+                                        # )
+                                        # send_mail(
+                                        #     email_subject,
+                                        #     template_content,
+                                        #     from_email,
+                                        #     to_email,
+                                        #     fail_silently=False,
+                                        #     html_message=template_content,
+                                        # )
+                                        send_email_with_embedded_image(
+                                            recipient_email=to_email,
+                                            subject=email_subject,
+                                            html_content=template_content,
                                         )
                                     except Exception as e:
                                         settings.LOGGER.error(
@@ -5941,14 +6061,19 @@ class DocSendBack(APIView):
                                 )
 
                                 try:
-                                    send_mail(
-                                        email_subject,
-                                        template_content,
-                                        from_email,
-                                        to_email,
-                                        fail_silently=False,
-                                        html_message=template_content,
+                                    send_email_with_embedded_image(
+                                        recipient_email=to_email,
+                                        subject=email_subject,
+                                        html_content=template_content,
                                     )
+                                    # send_mail(
+                                    #     email_subject,
+                                    #     template_content,
+                                    #     from_email,
+                                    #     to_email,
+                                    #     fail_silently=False,
+                                    #     html_message=template_content,
+                                    # )
                                 except Exception as e:
                                     settings.LOGGER.error(
                                         msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -5989,13 +6114,18 @@ class DocSendBack(APIView):
                                     )
 
                                     try:
-                                        send_mail(
-                                            email_subject,
-                                            template_content,
-                                            from_email,
-                                            to_email,
-                                            fail_silently=False,
-                                            html_message=template_content,
+                                        # send_mail(
+                                        #     email_subject,
+                                        #     template_content,
+                                        #     from_email,
+                                        #     to_email,
+                                        #     fail_silently=False,
+                                        #     html_message=template_content,
+                                        # )
+                                        send_email_with_embedded_image(
+                                            recipient_email=to_email,
+                                            subject=email_subject,
+                                            html_content=template_content,
                                         )
                                     except Exception as e:
                                         settings.LOGGER.error(
@@ -6135,14 +6265,19 @@ class DocReopenProject(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
                             except Exception as e:
                                 settings.LOGGER.error(
                                     msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -6181,14 +6316,19 @@ class DocReopenProject(APIView):
                                 )
 
                                 try:
-                                    send_mail(
-                                        email_subject,
-                                        template_content,
-                                        from_email,
-                                        to_email,
-                                        fail_silently=False,
-                                        html_message=template_content,
+                                    send_email_with_embedded_image(
+                                        recipient_email=to_email,
+                                        subject=email_subject,
+                                        html_content=template_content,
                                     )
+                                    # send_mail(
+                                    #     email_subject,
+                                    #     template_content,
+                                    #     from_email,
+                                    #     to_email,
+                                    #     fail_silently=False,
+                                    #     html_message=template_content,
+                                    # )
                                 except Exception as e:
                                     settings.LOGGER.error(
                                         msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -6524,14 +6664,19 @@ class NewCycleOpen(APIView):
                         template_content = render_to_string(templ, template_props)
 
                         try:
-                            send_mail(
-                                email_subject,
-                                template_content,
-                                from_email,
-                                to_email,
-                                fail_silently=False,
-                                html_message=template_content,
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
                             )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
                         except Exception as e:
                             settings.LOGGER.error(
                                 msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -6560,14 +6705,19 @@ class NewCycleOpen(APIView):
                             template_content = render_to_string(templ, template_props)
 
                             try:
-                                send_mail(
-                                    email_subject,
-                                    template_content,
-                                    from_email,
-                                    to_email,
-                                    fail_silently=False,
-                                    html_message=template_content,
+                                send_email_with_embedded_image(
+                                    recipient_email=to_email,
+                                    subject=email_subject,
+                                    html_content=template_content,
                                 )
+                                # send_mail(
+                                #     email_subject,
+                                #     template_content,
+                                #     from_email,
+                                #     to_email,
+                                #     fail_silently=False,
+                                #     html_message=template_content,
+                                # )
                             except Exception as e:
                                 settings.LOGGER.error(
                                     msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
