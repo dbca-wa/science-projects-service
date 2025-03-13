@@ -25,12 +25,23 @@ from email.mime.image import MIMEImage
 
 def get_encoded_image():
     """
-    Return a filename or empty string (for template compatibility)
+    Encodes the DBCA logo image as a base64 string for email embedding.
     """
     try:
-        return "dbca.jpg"
+        image_path = os.path.join(settings.BASE_DIR, "documents", "dbca.jpg")
+        with open(image_path, "rb") as img:
+            import base64
+
+            encoded_image = base64.b64encode(img.read()).decode("utf-8")
+
+            # Validate the encoded image
+            if len(encoded_image) > 0:
+                return f"data:image/jpeg;base64,{encoded_image}"
+            else:
+                settings.LOGGER.error("Encoded image is empty")
+                return ""
     except Exception as e:
-        settings.LOGGER.error(f"Error getting image: {e}")
+        settings.LOGGER.error(f"Error encoding image: {e}")
         return ""
 
 

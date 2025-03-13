@@ -42,7 +42,7 @@
       <tbody>
         <tr style="width: 100%">
           <td>
-            {% if dbca_image_path %}
+            {% if dbca_image_path and 'data:image' in dbca_image_path %}
             <table
                 align="center"
                 width="100%"
@@ -56,29 +56,20 @@
                     <tr>
                         <td>
                             <div style="text-align: center">
-                              {% if 'cid:' in dbca_image_path %}
-                              <img 
-                                  alt="DBCA" 
-                                  height="180" 
-                                  src="cid:dbca_logo" 
-                                  style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
-                                  width="180"
-                              />
-                              {% else %}
-                              <img 
-                                  alt="DBCA" 
-                                  height="180" 
-                                  src="{{dbca_image_path}}" 
-                                  style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
-                                  width="180"
-                              />
-                              {% endif %}
+                                <img 
+                                    alt="DBCA" 
+                                    height="180" 
+                                    src="{{dbca_image_path}}" 
+                                    style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
+                                    width="180"
+                                />
                             </div>
                         </td>
                     </tr>
                 </tbody>
             </table>
             {% endif %}
+
             <h1
               class=""
               style="
