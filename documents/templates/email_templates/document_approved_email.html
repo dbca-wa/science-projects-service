@@ -56,22 +56,23 @@
                     <tr>
                         <td>
                             <div style="text-align: center">
-                                <img
-                                    alt="DBCA"
-                                    height="180"
-                                    src="{{dbca_image_path}}"
-                                    style="
-                                        display: block;
-                                        outline: none;
-                                        border: none;
-                                        text-decoration: none;
-                                        margin-top: 0px;
-                                        margin-bottom: 0px;
-                                        margin-left: auto;
-                                        margin-right: auto;
-                                    "
-                                    width="180"
-                                />
+                              {% if 'cid:' in dbca_image_path %}
+                              <img 
+                                  alt="DBCA" 
+                                  height="180" 
+                                  src="cid:dbca_logo" 
+                                  style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
+                                  width="180"
+                              />
+                              {% else %}
+                              <img 
+                                  alt="DBCA" 
+                                  height="180" 
+                                  src="{{dbca_image_path}}" 
+                                  style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
+                                  width="180"
+                              />
+                              {% endif %}
                             </div>
                         </td>
                     </tr>

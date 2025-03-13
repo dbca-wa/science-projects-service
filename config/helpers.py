@@ -1,3 +1,4 @@
+import mimetypes
 import base64, os
 from django.contrib.staticfiles import finders
 from django.conf import settings
@@ -5,22 +6,31 @@ from django.core.mail import EmailMultiAlternatives
 from email.mime.image import MIMEImage
 
 
+# def get_encoded_image():
+#     """
+#     Encodes the DBCA logo image as a base64 string for email embedding.
+#     """
+#     try:
+#         image_path = os.path.join(settings.BASE_DIR, "documents", "dbca.jpg")
+#         with open(image_path, "rb") as img:
+#             import base64
+
+#             return (
+#                 f"data:image/jpeg;base64,{base64.b64encode(img.read()).decode('utf-8')}"
+#             )
+#     except Exception as e:
+#         settings.LOGGER.error(f"Error encoding image: {e}")
+#         return ""
+
+
 def get_encoded_image():
     """
-    Encodes the DBCA logo image as a base64 string for email embedding.
-    This function follows the pattern in the original implementation.
+    Return a filename or empty string (for template compatibility)
     """
     try:
-        image_path = os.path.join(settings.BASE_DIR, "documents", "dbca.jpg")
-        with open(image_path, "rb") as img:
-            import base64
-
-            return (
-                f"data:image/jpeg;base64,{base64.b64encode(img.read()).decode('utf-8')}"
-            )
+        return "dbca.jpg"
     except Exception as e:
-        # Log the error or handle it appropriately
-        print(f"Error encoding image: {e}")
+        settings.LOGGER.error(f"Error getting image: {e}")
         return ""
 
 
@@ -40,7 +50,13 @@ def send_email_with_embedded_image(
         from_email = settings.DEFAULT_FROM_EMAIL
 
     # Create message
-    msg = EmailMultiAlternatives(subject, "", from_email, [recipient_email])
+    msg = EmailMultiAlternatives(
+        subject,
+        # Plain text fallback
+        "Please view this email in an HTML-compatible email client.",
+        from_email,
+        [recipient_email],
+    )
 
     # Attach HTML alternative
     msg.attach_alternative(html_content, "text/html")
@@ -48,14 +64,20 @@ def send_email_with_embedded_image(
     # Attach image if exists
     try:
         image_path = os.path.join(settings.BASE_DIR, "documents", "dbca.jpg")
+
+        # Determine the correct MIME type
+        mime_type, _ = mimetypes.guess_type(image_path)
+        if not mime_type:
+            mime_type = "image/jpeg"  # Default to JPEG if can't guess
+
         with open(image_path, "rb") as img:
-            image = MIMEImage(img.read())
+            image = MIMEImage(img.read(), _subtype=mime_type.split("/")[-1])
             image.add_header("Content-ID", "<dbca_logo>")
             msg.attach(image)
     except Exception as e:
-        # Log the error or handle it appropriately
-        print(f"Error attaching image: {e}")
-        print(f"Image path: {image_path}")
+        settings.LOGGER.error(f"Error attaching image: {e}")
+        settings.LOGGER.error(f"Image path: {image_path}")
+        # Continue sending email even if image attachment fails
 
     # Send the message
     msg.send()
