@@ -55,7 +55,8 @@ def send_email_with_embedded_image(
         # Plain text fallback
         "Please view this email in an HTML-compatible email client.",
         from_email,
-        [recipient_email],
+        # [recipient_email],
+        recipient_email,
     )
 
     # Attach HTML alternative
