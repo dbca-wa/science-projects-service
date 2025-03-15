@@ -6,6 +6,7 @@ from django.contrib.auth import login, get_user_model
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from rest_framework.exceptions import ParseError
 from agencies.models import Agency
 from contacts.models import UserContact
@@ -25,6 +26,37 @@ class DBCAMiddleware(MiddlewareMixin):
     def create_user_and_associated_entries(self, request, attributemap):
         try:
             with transaction.atomic():
+                # Check if user exists AGAIN just to be safe
+                username = attributemap.get("username")
+                email = attributemap.get("email")
+
+                existing_username = User.objects.filter(
+                    username__exact=username
+                ).exists()
+                existing_email = User.objects.filter(email__iexact=email).exists()
+
+                if existing_username:
+                    # Get the user by username
+                    user = User.objects.get(username__exact=username)
+                    settings.LOGGER.info(f"Found existing user by username: {username}")
+                    # Update user details if needed
+                    user.first_name = attributemap.get("first_name", user.first_name)
+                    user.last_name = attributemap.get("last_name", user.last_name)
+                    user.email = attributemap.get("email", user.email)
+                    user.save()
+                    return user
+
+                elif existing_email:
+                    # Get the user by email
+                    user = User.objects.get(email__iexact=email)
+                    settings.LOGGER.info(f"Found existing user by email: {email}")
+                    # Update username if needed
+                    user.username = username
+                    user.first_name = attributemap.get("first_name", user.first_name)
+                    user.last_name = attributemap.get("last_name", user.last_name)
+                    user.save()
+                    return user
+
                 # Initialize IT Assets variables with defaults
                 it_asset_id = None
                 employee_id = None
@@ -38,6 +70,7 @@ class DBCAMiddleware(MiddlewareMixin):
                     display_last_name=attributemap["last_name"],
                     email=attributemap["email"],
                 )
+
                 agency_instance = Agency.objects.get(pk=1)
                 UserWork.objects.create(user=user, agency=agency_instance)
                 UserProfile.objects.create(user=user)
@@ -99,6 +132,37 @@ class DBCAMiddleware(MiddlewareMixin):
 
                 return user
 
+        except IntegrityError as ie:
+            # Check if this is a duplicate key error
+            if "duplicate key value violates unique constraint" in str(
+                ie
+            ) and "username" in str(ie):
+                settings.LOGGER.warning(
+                    f"Attempted to create duplicate user: {attributemap['username']}"
+                )
+                # Try to fetch the existing user
+                existing_user = User.objects.filter(
+                    username=attributemap["username"]
+                ).first()
+                if existing_user:
+                    # Optionally update user details if needed
+                    existing_user.first_name = attributemap["first_name"]
+                    existing_user.last_name = attributemap["last_name"]
+                    existing_user.email = attributemap["email"]
+                    existing_user.save()
+                    return existing_user
+                else:
+                    # This is unlikely but possible if there's a DB issue
+                    raise ParseError(
+                        f"User appears to exist but cannot be retrieved: {str(ie)}"
+                    )
+            else:
+                # Some other integrity error
+                settings.LOGGER.error(
+                    f"Database integrity error creating user: {str(ie)}"
+                )
+                raise ParseError(f"Database error creating user: {str(ie)}")
+
         except Exception as e:
             settings.LOGGER.error(f"Error creating user: {str(e)}")
             raise ParseError(f"Failed to create user: {str(e)}")
@@ -121,22 +185,6 @@ class DBCAMiddleware(MiddlewareMixin):
             or not request.META["HTTP_REMOTE_USER"]
         ):
             return self.get_response(request)
-
-        # Logout details commented out as it is not needed for SPMS SSO
-        # if (
-        #     (
-        #         request.path.startswith("/logout")
-        #         or request.path.startswith("/api/v1/users/log-out")
-        #         or request.path.startswith("/api/v1/users/logout")
-        #     )
-        #     and "HTTP_X_LOGOUT_URL" in request.META
-        #     and request.META["HTTP_X_LOGOUT_URL"]
-        # ):
-        #     settings.LOGGER.info(msg=f"{request.user} is logging out from call")
-        #     # self.save_request_meta_to_file(request.META)
-        #     logout(request)
-        #     data = {"logoutUrl": request.META["HTTP_X_LOGOUT_URL"]}
-        #     return HttpResponse(data, HTTP_200_OK)
 
         # Check if the user is authenticated
         user_auth = request.user.is_authenticated
