@@ -112,52 +112,66 @@ class Projects(APIView):
         year = None
         number = None
 
+        if not search_term:
+            return Project.objects.none()
+
         # Split the search term into parts using '-'
         parts = search_term.split("-")
 
-        # Check if there are at least three parts
-        if len(parts) == 3:
+        # Get the project kind from the first part
+        if parts and parts[0]:
             db_kind = self.determine_db_kind(parts[0].upper())
             kind = db_kind
-            year = parts[1]
-            number = parts[2]
 
-            try:
-                year_as_int = int(year)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                projects = Project.objects.filter(kind=kind).all()
-                return projects
+            # If db_kind couldn't be determined, return empty queryset
+            if not kind:
+                return Project.objects.none()
+        else:
+            return Project.objects.none()
 
-            if len(year) == 4:
-                projects = Project.objects.filter(kind=kind, year=year_as_int).all()
+        # Initialize the base queryset with the determined kind
+        projects = Project.objects.filter(kind=kind)
+
+        # Case: prefix-year-number (e.g., "CF-2022-123")
+        if len(parts) >= 3:
+            # Handle year part
+            if parts[1]:
+                year = parts[1]
+                try:
+                    year_as_int = int(year)
+                    if len(year) == 4:  # Only filter by year if it's a 4-digit year
+                        projects = projects.filter(year=year_as_int)
+                except (ValueError, TypeError):
+                    # If year can't be converted to int, continue with just the kind filter
+                    pass
+
+            # Handle number part
+            if parts[2]:
+                number = parts[2]
                 try:
                     number_as_int = int(number)
-                except Exception as e:
-                    return projects
-                else:
                     number_filter = Q(number__icontains=number_as_int)
                     projects = projects.filter(number_filter)
-                    return projects
-            else:
-                projects = Project.objects.filter(kind=kind, year=year).all()
-                return projects
+                except (ValueError, TypeError):
+                    # If number can't be converted to int, continue with previous filters
+                    pass
 
+        # Case: prefix-year (e.g., "CF-2022")
         elif len(parts) == 2:
-            year = parts[1]
-            db_kind = self.determine_db_kind(parts[0].upper())
-            kind = db_kind
-            try:
-                year_as_int = int(year)
-            except Exception as e:
-                settings.LOGGER.error(msg=f"{e}")
-                projects = Project.objects.filter(kind=kind).all()
-                return projects
-            if len(year) == 4:
-                projects = Project.objects.filter(kind=kind, year=year_as_int).all()
-            else:
-                projects = Project.objects.filter(kind=kind).all()
-            return projects
+            if parts[1]:
+                year = parts[1]
+                try:
+                    year_as_int = int(year)
+                    if len(year) == 4:  # Only filter by year if it's a 4-digit year
+                        projects = projects.filter(year=year_as_int)
+                except (ValueError, TypeError):
+                    # If year can't be converted to int, continue with just the kind filter
+                    pass
+
+        # Case: just the prefix (e.g., "CF")
+        # We've already filtered by kind above, so no additional filtering needed
+
+        return projects
 
     def get(self, request):
         settings.LOGGER.info(msg=f"{request.user} is viewing/filtering projects")
