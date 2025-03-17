@@ -25,6 +25,7 @@ urlpatterns = [
     # Divisions URLS
     path("divisions", views.Divisions.as_view()),
     path("divisions/<int:pk>", views.DivisionDetail.as_view()),
+    path("divisions/<int:pk>/email_list", views.DivisionEmailList.as_view()),
     # Services URLS
     path("services", views.DepartmentalServices.as_view()),
     path("services/<int:pk>", views.DepartmentalServiceDetail.as_view()),

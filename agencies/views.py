@@ -32,7 +32,7 @@ from projects.serializers import (
     ProblematicProjectSerializer,
 )
 from medias.models import BusinessAreaPhoto
-from users.models import UserWork
+from users.models import User, UserWork
 from users.serializers import (
     UserWorkAffiliationUpdateSerializer,
 )
@@ -988,6 +988,66 @@ class DivisionDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class DivisionEmailList(APIView):
+    def go(self, pk):
+        try:
+            obj = Division.objects.get(pk=pk)
+        except Division.DoesNotExist:
+            print("Could not find division", pk)
+            raise NotFound
+        return obj
+
+    def get_user(self, pk):
+        try:
+            u = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            print("Could not find user", pk)
+            raise NotFound
+        return u
+
+    # Add a GET method to make debugging easier
+    def get(self, request, pk):
+        division = self.go(pk)
+        serializer = TinyDivisionSerializer(division)
+        return Response(serializer.data)
+
+    def post(self, request, pk):
+
+        # Get the division
+        division = self.go(pk)
+        usersArray = request.data.get("usersList", [])
+
+        print(request.data)
+        if not usersArray:
+            return Response({"error": "No users provided"}, status=HTTP_400_BAD_REQUEST)
+
+        print("here")
+        newUserArray = []
+        for u in usersArray:
+            try:
+                user = self.get_user(u)
+                newUserArray.append(user)
+            except NotFound:
+                return Response(
+                    {"error": f"User with pk {u} not found"},
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+
+            division.directorate_email_list.set(newUserArray)
+
+            # Force a refresh by getting the division again
+            division = Division.objects.get(pk=pk)
+            serializer = TinyDivisionSerializer(division)
+
+            return Response(serializer.data, status=HTTP_202_ACCEPTED)
+
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
 
 # endregion  =================================================================================================

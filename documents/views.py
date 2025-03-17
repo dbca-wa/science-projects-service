@@ -38,7 +38,7 @@ from rest_framework.status import (
     HTTP_503_SERVICE_UNAVAILABLE,
 )
 
-from agencies.models import BusinessArea
+from agencies.models import BusinessArea, Division
 from communications.models import Comment
 from communications.serializers import (
     TinyCommentCreateSerializer,
@@ -5416,21 +5416,15 @@ class DocApproval(APIView):
                         recipients_list.append(data_obj)
 
                     if stage == 2:
-                        # get active directorate members as the ba lead is the actioning user
-                        user_works = UserWork.objects.filter(
-                            business_area__name="Directorate"
-                        )
-                        user_ids = user_works.values_list("user", flat=True)
-                        directorate_users = User.objects.filter(id__in=user_ids).all()
-                        for member in directorate_users:
+                        division = project.business_area.division
+                        for member in division.directorate_email_list.all():
                             if member.is_active and member.is_staff:
-                                user = member.pk
-                                user_name = f"{member.display_first_name} {member.display_last_name}"
-                                user_email = f"{member.email}"
+                                # The data structure is already created by get_directorate_email_list
+                                # but if you need to filter for active/staff members:
                                 data_obj = {
-                                    "pk": user,
-                                    "name": user_name,
-                                    "email": user_email,
+                                    "pk": member.pk,
+                                    "name": f"{member.display_first_name} {member.display_last_name}",
+                                    "email": member.email,
                                 }
                                 recipients_list.append(data_obj)
 
@@ -5712,21 +5706,15 @@ class DocRecall(APIView):
                         recipients_list.append(data_obj)
 
                     if stage == 2:
-                        # get active directorate members as the ba lead is the actioning user
-                        user_works = UserWork.objects.filter(
-                            business_area__name="Directorate"
-                        )
-                        user_ids = user_works.values_list("user", flat=True)
-                        directorate_users = User.objects.filter(id__in=user_ids).all()
-                        for member in directorate_users:
+                        division = project.business_area.division
+                        for member in division.directorate_email_list.all():
                             if member.is_active and member.is_staff:
-                                user = member.pk
-                                user_name = f"{member.display_first_name} {member.display_last_name}"
-                                user_email = f"{member.email}"
+                                # The data structure is already created by get_directorate_email_list
+                                # but if you need to filter for active/staff members:
                                 data_obj = {
-                                    "pk": user,
-                                    "name": user_name,
-                                    "email": user_email,
+                                    "pk": member.pk,
+                                    "name": f"{member.display_first_name} {member.display_last_name}",
+                                    "email": member.email,
                                 }
                                 recipients_list.append(data_obj)
 

@@ -24,7 +24,37 @@ class UserPkOnly(serializers.ModelSerializer):
 # region Division Serializers ====================================================================================================
 
 
+class UserInEmailListSerializer(serializers.Serializer):
+    pk = serializers.IntegerField()
+    name = serializers.CharField()
+    email = serializers.EmailField()
+
+
+class DirectorateEmailListSerializer(serializers.Serializer):
+    """
+    Serializer for the users in a directorate's email list
+    """
+
+    def to_representation(self, users):
+        # Convert the users queryset to the desired format
+        return [
+            {
+                "pk": user.pk,
+                "email": user.email,
+                "name": (
+                    f"{user.display_first_name} {user.display_last_name}"
+                    if hasattr(user, "display_first_name")
+                    else user.get_full_name() or user.username
+                ),
+            }
+            for user in users.all()
+        ]
+
+
 class TinyDivisionSerializer(serializers.ModelSerializer):
+
+    directorate_email_list = DirectorateEmailListSerializer()
+
     class Meta:
         model = Division
         fields = (
@@ -33,10 +63,13 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
             "slug",
             "director",
             "approver",
+            "directorate_email_list",
         )
 
 
 class DivisionSerializer(serializers.ModelSerializer):
+    directorate_email_list = DirectorateEmailListSerializer()
+
     class Meta:
         model = Division
         fields = "__all__"
