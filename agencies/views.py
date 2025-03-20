@@ -1007,7 +1007,6 @@ class DivisionEmailList(APIView):
             raise NotFound
         return u
 
-    # Add a GET method to make debugging easier
     def get(self, request, pk):
         division = self.go(pk)
         serializer = TinyDivisionSerializer(division)
@@ -1020,10 +1019,10 @@ class DivisionEmailList(APIView):
         usersArray = request.data.get("usersList", [])
 
         print(request.data)
-        if not usersArray:
-            return Response({"error": "No users provided"}, status=HTTP_400_BAD_REQUEST)
+        # if not usersArray:
+        #     return Response({"error": "No users provided"}, status=HTTP_400_BAD_REQUEST)
 
-        print("here")
+        # print("here")
         newUserArray = []
         for u in usersArray:
             try:
