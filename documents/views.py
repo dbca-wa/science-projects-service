@@ -5374,7 +5374,13 @@ class DocApproval(APIView):
                 u_document.project.save()
 
             # Send Emails
-            should_send_email = req.data["shouldSendEmail"]
+            should_send_email = ""
+            division = u_document.project.business_area.division
+            directorate_list = division.directorate_email_list.all()
+            if len(directorate_list) < 1:
+                should_send_email = "false"
+            else:
+                should_send_email = req.data["shouldSendEmail"]
 
             if should_send_email == "true":
                 print("SENDING DOC APPROVE EMAILS")
@@ -5662,7 +5668,15 @@ class DocRecall(APIView):
                 u_document.project.save()
 
             # Send Emails
-            should_send_email = req.data["shouldSendEmail"]
+
+            # Additional check to ensure that the directorate list is not empty, setting to "false" if it is
+            should_send_email = ""
+            division = u_document.project.business_area.division
+            directorate_list = division.directorate_email_list.all()
+            if len(directorate_list) < 1:
+                should_send_email = "false"
+            else:
+                should_send_email = req.data["shouldSendEmail"]
 
             if should_send_email == "true":
                 print("SENDING DOC RECALLED EMAIL")
@@ -5960,7 +5974,14 @@ class DocSendBack(APIView):
             u_document = ser.save()
 
             # Send Emails
-            should_send_email = req.data["shouldSendEmail"]
+            should_send_email = ""
+            division = u_document.project.business_area.division
+            directorate_list = division.directorate_email_list.all()
+            if len(directorate_list) < 1:
+                should_send_email = "false"
+            else:
+                should_send_email = req.data["shouldSendEmail"]
+
             print(should_send_email)
 
             if should_send_email == "true":
@@ -6189,7 +6210,13 @@ class DocReopenProject(APIView):
         closure.delete()
         document.delete()
         # Send Emails
-        should_send_email = req.data["shouldSendEmail"]
+        should_send_email = ""
+        division = project.business_area.division
+        directorate_list = division.directorate_email_list.all()
+        if len(directorate_list) < 1:
+            should_send_email = "false"
+        else:
+            should_send_email = req.data["shouldSendEmail"]
 
         if should_send_email == "true":
 

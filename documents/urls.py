@@ -106,7 +106,7 @@ urlpatterns = [
         "generate_project_document/<int:pk>", views.BeginProjectDocGeneration.as_view()
     ),
     path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
-    # EMAILS ========================================================
+    # EMAILS (Testing) ========================================================
     path("concept_plan_email", views.ConceptPlanEmail.as_view()),
     path("review_document_email", views.ReviewDocumentEmail.as_view()),
     path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
@@ -117,12 +117,12 @@ urlpatterns = [
     path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
     path("spms_link_email", views.SPMSInviteEmail.as_view()),
     path("get_project_lead_emails", views.GetProjectLeadEmail.as_view()),
-    # ACTIONS ========================================================
+    # ACTIONS (Sends emails) ========================================================
     path("opennewcycle", views.NewCycleOpen.as_view()),
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
-    # Actions (Project Docs) ========================================================
+    # Actions (Project Docs - Sends emails) ========================================================
     path("actions/approve", views.DocApproval.as_view()),
     path("actions/reopen", views.DocReopenProject.as_view()),
     path("actions/recall", views.DocRecall.as_view()),
