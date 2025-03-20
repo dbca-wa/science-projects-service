@@ -5709,8 +5709,6 @@ class DocRecall(APIView):
                         division = project.business_area.division
                         for member in division.directorate_email_list.all():
                             if member.is_active and member.is_staff:
-                                # The data structure is already created by get_directorate_email_list
-                                # but if you need to filter for active/staff members:
                                 data_obj = {
                                     "pk": member.pk,
                                     "name": f"{member.display_first_name} {member.display_last_name}",
@@ -5739,20 +5737,33 @@ class DocRecall(APIView):
                             recipients_list.append(p_leader_data_obj)
 
                         elif u_document.kind == "concept":
-                            # Spawn Proj Plan email
-                            templ = "./email_templates/document_ready_email.html"
-                            p_leader = ProjectMember.objects.get(
-                                project=project, is_leader=True
+                            # send a recall email to ba lead
+                            templ = "./email_templates/document_recalled_email.html"
+                            ba_lead = User.objects.get(
+                                pk=project.business_area.leader.pk
                             )
-                            pl_user = p_leader.user.pk
-                            pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                            pl_user_email = f"{p_leader.user.email}"
-                            p_leader_data_obj = {
-                                "pk": pl_user,
-                                "name": pl_user_name,
-                                "email": pl_user_email,
+                            user = ba_lead.pk
+                            user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
+                            user_email = f"{ba_lead.email}"
+                            data_obj = {
+                                "pk": user,
+                                "name": user_name,
+                                "email": user_email,
                             }
-                            recipients_list.append(p_leader_data_obj)
+                            print(data_obj)
+                            recipients_list.append(data_obj)
+                            # p_leader = ProjectMember.objects.get(
+                            #     project=project, is_leader=True
+                            # )
+                            # pl_user = p_leader.user.pk
+                            # pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
+                            # pl_user_email = f"{p_leader.user.email}"
+                            # p_leader_data_obj = {
+                            #     "pk": pl_user,
+                            #     "name": pl_user_name,
+                            #     "email": pl_user_email,
+                            # }
+                            # recipients_list.append(p_leader_data_obj)
 
                         else:
                             pass  # No need for emails
