@@ -135,7 +135,9 @@ class Projects(APIView):
         # Case: prefix-year-number (e.g., "CF-2022-123")
         if len(parts) >= 3:
             # Handle year part
-            if parts[1]:
+            if (
+                parts[1] and parts[1].strip()
+            ):  # Check if the year part is not empty (fix invalid literal for int)
                 year = parts[1]
                 try:
                     year_as_int = int(year)
@@ -146,7 +148,9 @@ class Projects(APIView):
                     pass
 
             # Handle number part
-            if parts[2]:
+            if (
+                parts[2] and parts[2].strip()
+            ):  # Check if the number part is not empty (fix invalid literal for int)
                 number = parts[2]
                 try:
                     number_as_int = int(number)
@@ -158,7 +162,7 @@ class Projects(APIView):
 
         # Case: prefix-year (e.g., "CF-2022")
         elif len(parts) == 2:
-            if parts[1]:
+            if parts[1] and parts[1].strip():  # Check if the year part is not empty
                 year = parts[1]
                 try:
                     year_as_int = int(year)
