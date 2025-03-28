@@ -8400,15 +8400,61 @@ class BaseDocumentAction(APIView):
 
     # Email methods
     def should_send_emails(self, document, req):
-        """Determine if emails should be sent"""
+        """Determine if emails should be sent (based on req and conditions)"""
         settings.LOGGER.info("DOC ACTION: Determining if should send email")
-        division = document.project.business_area.division
-        directorate_list = division.directorate_email_list.all()
 
-        if not directorate_list.exists():
+        # First check if the request explicitly says not to send emails
+        should_send = req.data.get("shouldSendEmail")
+        if not should_send or should_send == "false":
+            settings.LOGGER.info(
+                "DETERMINATION: Request explicitly says not to send email, so no emails"
+            )
             return False
 
-        return req.data.get("shouldSendEmail") == True
+        # Check if the project has required participants
+        project = document.project
+
+        # Check if business area leader exists
+        try:
+            if not project.business_area or not project.business_area.leader:
+                settings.LOGGER.info(
+                    "DETERMINATION: No business area leader found, so no emails"
+                )
+                return False
+        except Exception as e:
+            settings.LOGGER.error(f"Error checking business area leader: {e}")
+            return False
+
+        # Check if project leader exists (for applicable actions)
+        try:
+            project_leader_exists = ProjectMember.objects.filter(
+                project=project, is_leader=True
+            ).exists()
+
+            if not project_leader_exists:
+                settings.LOGGER.info(
+                    "DETERMINATION: No project leader found, so no emails"
+                )
+                return False
+        except Exception as e:
+            settings.LOGGER.error(f"Error checking project leader: {e}")
+            return False
+
+        # Check if directorate list exists (for stage 2 approvals)
+        try:
+            division = project.business_area.division
+            if not division or not division.directorate_email_list.exists():
+                settings.LOGGER.info(
+                    "DETERMINATION: No directorate list for division, so no emails"
+                )
+                return False
+        except Exception as e:
+            settings.LOGGER.error(f"Error checking directorate list: {e}")
+            return False
+
+        # All checks passed, should send email
+        settings.LOGGER.info("DETERMINATION: All checks passed, should send emails")
+        return True
 
     def get_email_recipients(self, document, stage, action_type):
         """Get list of email recipients based on document, stage and action type"""
