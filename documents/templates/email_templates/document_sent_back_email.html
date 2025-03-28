@@ -11,36 +11,27 @@
       <tbody>
         <tr style="width:100%">
           <td>
-            {% comment %} {% if dbca_image_path and 'data:image' in dbca_image_path %}
-            <table
-                align="center"
-                width="100%"
-                border="0"
-                cellpadding="0"
-                cellspacing="0"
-                role="presentation"
-                style="margin-top: 32px"
-            >
-                <tbody>
-                    <tr>
-                        <td>
-                            <div style="text-align: center">
-                                <img 
-                                    alt="DBCA" 
-                                    height="180" 
-                                    src="{{dbca_image_path}}" 
-                                    style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
-                                    width="180"
-                                />
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            {% endif %} {% endcomment %}
             <h1 class="" style="color:rgb(0,0,0);font-size:24px;font-weight:400;text-align:center;padding:0px;margin-top:1rem;margin-bottom:30px;margin-left:0px;margin-right:0px">{{document_type_title}} Sent Back</h1>
             <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">Hello {{recipient_name}},</p>
             <p style="font-size:14px;line-height:24px;margin:16px 0;color:rgb(0,0,0)">A {{document_type_title}} you submitted for your project <strong>&#x27;{% spaceless %}{{ plain_project_name|extract_text_content }}{% endspaceless %}&#x27;</strong> has been sent back to you. Please review and edit the document before resubmitting for approval.</p>
+            
+            {% if feedback_html %}
+            <!-- Feedback section -->
+            <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="margin-top:24px;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:0.25rem;overflow:hidden">
+              <tbody>
+                <tr>
+                  <td style="padding:16px;background-color:#f9fafb">
+                    <h2 style="color:rgb(0,0,0);font-size:16px;font-weight:600;margin-top:0;margin-bottom:8px">Feedback from {{ actioning_user_name }}:</h2>
+                    <div style="font-size:14px;line-height:24px;color:rgb(0,0,0)">
+                      {{ feedback_html|safe }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            {% endif %}
+            
+            
             <table align="center" width="100%" border="0" cellPadding="0" cellSpacing="0" role="presentation" style="text-align:center;margin-top:32px;margin-bottom:32px">
               <tbody>
                 <tr>
