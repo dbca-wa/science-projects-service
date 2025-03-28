@@ -4,6 +4,7 @@ import datetime, json, os, re, subprocess, time, tempfile
 from bs4 import BeautifulSoup
 from operator import attrgetter
 
+from django.forms import ValidationError
 from django.template.loader import render_to_string
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
@@ -5004,1380 +5005,6 @@ class FinalDocApproval(APIView):
             )
 
 
-class DocApproval(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        if stage:
-            stage = int(stage)
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is approving a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        # document_kind = document.kind
-
-        settings.LOGGER.info(msg=f"{req.user} is approving {document}")
-        if int(stage) == 1:
-            data = {
-                "project_lead_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-
-        elif int(stage) == 2:
-            data = {
-                "business_area_lead_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-        elif int(stage) == 3:
-            data = {
-                "directorate_approval_granted": True,
-                "modifier": req.user.pk,
-                "status": "approved",
-            }
-        else:
-            settings.LOGGER.error(msg=f"No stage provided for approval")
-            return Response(
-                status=HTTP_400_BAD_REQUEST,
-            )
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-
-            # If stage 3
-            if u_document.kind == "concept" and (stage == 3 or stage == "3"):
-                # ONLY CREATE IF A PROJECT PLAN DOESNT ALREADY EXIST FOR THIS PROJECT
-                already_exists = ProjectPlan.objects.filter(
-                    project=document.project.pk
-                ).exists()
-                if not already_exists:
-                    # Create a fresh document with type of project plan =====================
-                    # Get the project id
-                    project_pk = document.project.pk
-                    kind = "projectplan"
-                    document_serializer = ProjectDocumentCreateSerializer(
-                        data={
-                            "old_id": 1,
-                            "kind": kind,
-                            "status": "new",
-                            "project": project_pk,
-                            "creator": req.user.pk,
-                            "modifier": req.user.pk,
-                        }
-                    )
-
-                    if document_serializer.is_valid():
-                        with transaction.atomic():
-                            projplanmaindoc = document_serializer.save()
-                            # Create a project plan
-
-                            project_plan_data_object = {
-                                "document": projplanmaindoc.pk,
-                                "project": project_pk,
-                                "background": "<p></p>",
-                                "methodology": "<p></p>",
-                                "aims": "<p></p>",
-                                "outcome": "<p></p>",
-                                "knowledge_transfer": "<p></p>",
-                                "listed_references": "<p></p>",
-                                "operating_budget": '<table class="table-light">\
-                    <colgroup>\
-                    <col>\
-                    <col>\
-                    <col>\
-                    <col>\
-                    </colgroup>\
-                    <tbody>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Source</span>\
-                        </p>\
-                        </th>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Year 1</span>\
-                        </p>\
-                        </th>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Year 2</span>\
-                        </p>\
-                        </th>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Year 3</span>\
-                        </p>\
-                        </th>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">FTE Scientist</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">FTE Technical</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Equipment</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Vehicle</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Travel</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Other</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Total</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    </tbody>\
-                </table>',
-                                "operating_budget_external": '<table class="table-light">\
-                    <colgroup>\
-                    <col>\
-                    <col>\
-                    <col>\
-                    <col>\
-                    </colgroup>\
-                    <tbody>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Source</span>\
-                        </p>\
-                        </th>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Year 1</span>\
-                        </p>\
-                        </th>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Year 2</span>\
-                        </p>\
-                        </th>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Year 3</span>\
-                        </p>\
-                        </th>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Overheads</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Equipment</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Vehicle</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Travel</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Other</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    <tr>\
-                        <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-                        <p class="editor-p-light" dir="ltr">\
-                            <span style="white-space: pre-wrap;">Total</span>\
-                        </p>\
-                        </th>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                        <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-                    </tr>\
-                    </tbody>\
-                </table>',
-                                "related_projects": "<p></p>",
-                            }
-                            project_plan_serializer = ProjectPlanCreateSerializer(
-                                data=project_plan_data_object
-                            )
-
-                            if project_plan_serializer.is_valid():
-                                # with transaction.atomic():
-                                try:
-                                    projplan = project_plan_serializer.save()
-                                    endorsements = EndorsementCreationSerializer(
-                                        data={
-                                            "project_plan": projplan.pk,
-                                            "ae_endorsement_required": False,
-                                            "ae_endorsement_provided": False,
-                                            "data_management": "<p></p>",
-                                            "no_specimens": "<p></p>",
-                                        }
-                                    )
-                                    if endorsements.is_valid():
-                                        endorsements.save()
-
-                                    else:
-                                        settings.LOGGER.error(
-                                            f"endorsement error: {endorsements.errors}"
-                                        )
-                                        return Response(
-                                            endorsements.errors,
-                                            HTTP_400_BAD_REQUEST,
-                                        )
-
-                                except Exception as e:
-                                    settings.LOGGER.error(msg=f"{e}")
-                                    return Response(
-                                        e,
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
-                                u_document.project.status = (
-                                    Project.StatusChoices.PENDING
-                                )
-                                u_document.project.save()
-                            else:
-                                settings.LOGGER.error(
-                                    msg=f"{project_plan_serializer.errors}"
-                                )
-                                return Response(
-                                    project_plan_serializer.errors,
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-
-                    else:
-                        settings.LOGGER.error(msg=f"{document_serializer.errors}")
-                        return Response(
-                            document_serializer.errors,
-                            HTTP_400_BAD_REQUEST,
-                        )
-            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-            if u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.ACTIVE
-                u_document.project.save()
-            if u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.ACTIVE
-                u_document.project.save()
-            if u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                settings.LOGGER.info(msg=f"{req.user} is closing a project")
-                # find the closure matching
-                closure_doc = ProjectClosure.objects.get(document=u_document)
-                outcome = closure_doc.intended_outcome
-                u_document.project.status = outcome
-                u_document.project.save()
-
-            # Send Emails
-            should_send_email = ""
-            division = u_document.project.business_area.division
-            directorate_list = division.directorate_email_list.all()
-            if len(directorate_list) < 1:
-                should_send_email = "false"
-            else:
-                should_send_email = req.data["shouldSendEmail"]
-
-            if should_send_email == "true":
-                print("SENDING DOC APPROVE EMAILS")
-                # Preset info
-                from_email = settings.DEFAULT_FROM_EMAIL
-                templ = "./email_templates/document_approved_email.html"
-
-                # Get project information
-                project = Project.objects.filter(pk=document.project.pk).first()
-                if project:
-                    html_project_title = project.title
-                    plain_project_name = html_project_title
-
-                    # Get document kind information
-                    document_kind_dict = {
-                        "concept": "Science Concept Plan",
-                        "projectplan": "Science Project Plan",
-                        "progressreport": "Progress Report",
-                        "studentreport": "Student Report",
-                        "projectclosure": "Project Closure",
-                    }
-                    document_kind_as_title = document_kind_dict[u_document.kind]
-
-                    actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    actioning_user_email = f"{actioning_user.email}"
-
-                    # Get recipient list
-                    recipients_list = []
-                    if stage == 1:
-                        # get ba lead user as the pl is the actioning user
-                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
-                        user = ba_lead.pk
-                        user_name = (
-                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
-                        )
-                        user_email = f"{ba_lead.email}"
-                        data_obj = {"pk": user, "name": user_name, "email": user_email}
-                        recipients_list.append(data_obj)
-
-                    if stage == 2:
-                        division = project.business_area.division
-                        for member in division.directorate_email_list.all():
-                            if member.is_active and member.is_staff:
-                                # The data structure is already created by get_directorate_email_list
-                                # but if you need to filter for active/staff members:
-                                data_obj = {
-                                    "pk": member.pk,
-                                    "name": f"{member.display_first_name} {member.display_last_name}",
-                                    "email": member.email,
-                                }
-                                recipients_list.append(data_obj)
-
-                    if stage == 3:
-                        if u_document.kind == "projectclosure":
-                            templ = "./email_templates/project_closed_email.html"
-                        else:
-                            templ = "./email_templates/document_approved_directorate_email.html"
-                        # Send to PL and BA Lead
-                        p_leader = ProjectMember.objects.get(
-                            project=project, is_leader=True
-                        )
-                        pl_user = p_leader.user.pk
-                        pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                        pl_user_email = f"{p_leader.user.email}"
-                        p_leader_data_obj = {
-                            "pk": pl_user,
-                            "name": pl_user_name,
-                            "email": pl_user_email,
-                        }
-                        recipients_list.append(p_leader_data_obj)
-
-                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
-                        user = ba_lead.pk
-                        user_name = (
-                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
-                        )
-                        user_email = f"{ba_lead.email}"
-                        ba_data_obj = {
-                            "pk": user,
-                            "name": user_name,
-                            "email": user_email,
-                        }
-                        recipients_list.append(ba_data_obj)
-                    project_tag = project.get_project_tag()
-
-                    processed = []
-                    for recipient in recipients_list:
-                        if recipient["pk"] not in processed:
-                            if (
-                                settings.ON_TEST_NETWORK != True
-                                and settings.DEBUG != True
-                            ):
-                                print(
-                                    f"PRODUCTION: Sending email to {recipient["name"]}"
-                                )
-
-                                email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
-                                to_email = [recipient["email"]]
-
-                                template_props = {
-                                    "stage": stage,
-                                    "actioning_user_email": actioning_user_email,
-                                    "actioning_user_name": actioning_user_name,
-                                    "email_subject": email_subject,
-                                    "recipient_name": recipient["name"],
-                                    "project_id": project.pk,
-                                    "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(
-                                        u_document.kind
-                                    ),
-                                    "document_type_title": document_kind_as_title,
-                                    "site_url": settings.SITE_URL,
-                                    "dbca_image_path": get_encoded_image(),
-                                }
-
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
-
-                                try:
-                                    send_email_with_embedded_image(
-                                        recipient_email=to_email,
-                                        subject=email_subject,
-                                        html_content=template_content,
-                                    )
-                                    # send_mail(
-                                    #     email_subject,
-                                    #     template_content,
-                                    #     from_email,
-                                    #     to_email,
-                                    #     fail_silently=False,
-                                    #     html_message=template_content,
-                                    # )
-                                except Exception as e:
-                                    settings.LOGGER.error(
-                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                    )
-                                    return Response(
-                                        {"error": str(e)},
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
-                            else:
-                                project_tag = project.get_project_tag()
-                                # test
-                                print(f"TEST: Sending email to {recipient["name"]}")
-                                if recipient["pk"] == 101073:
-                                    email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
-                                    to_email = [recipient["email"]]
-
-                                    template_props = {
-                                        "stage": stage,
-                                        "actioning_user_email": actioning_user_email,
-                                        "actioning_user_name": actioning_user_name,
-                                        "email_subject": email_subject,
-                                        "recipient_name": recipient["name"],
-                                        "project_id": project.pk,
-                                        "plain_project_name": plain_project_name,
-                                        "document_type": determine_doc_kind_url_string(
-                                            u_document.kind
-                                        ),
-                                        "document_type_title": document_kind_as_title,
-                                        "site_url": settings.SITE_URL,
-                                        "dbca_image_path": get_encoded_image(),
-                                    }
-
-                                    template_content = render_to_string(
-                                        templ, template_props
-                                    )
-
-                                    try:
-                                        send_email_with_embedded_image(
-                                            recipient_email=to_email,
-                                            subject=email_subject,
-                                            html_content=template_content,
-                                        )
-                                        # send_mail(
-                                        #     email_subject,
-                                        #     template_content,
-                                        #     from_email,
-                                        #     to_email,
-                                        #     fail_silently=False,
-                                        #     html_message=template_content,
-                                        # )
-                                    except Exception as e:
-                                        settings.LOGGER.error(
-                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                        )
-                                        return Response(
-                                            {"error": str(e)},
-                                            status=HTTP_400_BAD_REQUEST,
-                                        )
-                            processed.append(recipient["pk"])
-
-                    return Response(
-                        "Emails Sent!",
-                        status=HTTP_202_ACCEPTED,
-                    )
-                else:
-                    return Response(
-                        {"error": "No matchin project"},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
-
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DocRecall(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        if stage:
-            stage = int(stage)
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is recalling a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        settings.LOGGER.info(msg=f"{req.user} is recalling {document}")
-
-        data = "test"
-        if stage:
-            stage = int(stage)
-        if int(stage) == 1:
-            if document.business_area_lead_approval_granted == False:
-                data = {
-                    "project_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "revising",
-                }
-
-        elif int(stage) == 2:
-            if document.directorate_approval_granted == False:
-                data = {
-                    "business_area_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "inapproval",
-                }
-        elif int(stage) == 3:
-            data = {
-                "directorate_approval_granted": False,
-                "modifier": req.user.pk,
-                "status": "inapproval",
-            }
-
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-            if u_document.kind == "projectplan" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.PENDING
-                u_document.project.save()
-            elif u_document.kind == "projectclosure" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.CLOSUREREQ
-                u_document.project.save()
-
-            elif u_document.kind == "progressreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-
-            elif u_document.kind == "studentreport" and (stage == 3 or stage == "3"):
-                u_document.project.status = Project.StatusChoices.UPDATING
-                u_document.project.save()
-
-            # Send Emails
-
-            # Additional check to ensure that the directorate list is not empty, setting to "false" if it is
-            should_send_email = ""
-            division = u_document.project.business_area.division
-            directorate_list = division.directorate_email_list.all()
-            if len(directorate_list) < 1:
-                should_send_email = "false"
-            else:
-                should_send_email = req.data["shouldSendEmail"]
-
-            if should_send_email == "true":
-                print("SENDING DOC RECALLED EMAIL")
-                # Preset info
-                from_email = settings.DEFAULT_FROM_EMAIL
-                templ = "./email_templates/document_recalled_email.html"
-
-                # Get project information
-                project = Project.objects.filter(pk=document.project.pk).first()
-
-                if project:
-                    html_project_title = project.title
-                    plain_project_name = html_project_title
-
-                    # Get document kind information
-                    document_kind_dict = {
-                        "concept": "Science Concept Plan",
-                        "projectplan": "Science Project Plan",
-                        "progressreport": "Progress Report",
-                        "studentreport": "Student Report",
-                        "projectclosure": "Project Closure",
-                    }
-                    document_kind_as_title = document_kind_dict[u_document.kind]
-
-                    actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    actioning_user_email = f"{actioning_user.email}"
-
-                    # Get recipient list
-                    recipients_list = []
-                    if stage == 1:
-                        # get ba lead user as the pl is the actioning user
-                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
-                        user = ba_lead.pk
-                        user_name = (
-                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
-                        )
-                        user_email = f"{ba_lead.email}"
-                        data_obj = {"pk": user, "name": user_name, "email": user_email}
-                        print(data_obj)
-                        recipients_list.append(data_obj)
-
-                    if stage == 2:
-                        division = project.business_area.division
-                        for member in division.directorate_email_list.all():
-                            if member.is_active and member.is_staff:
-                                data_obj = {
-                                    "pk": member.pk,
-                                    "name": f"{member.display_first_name} {member.display_last_name}",
-                                    "email": member.email,
-                                }
-                                recipients_list.append(data_obj)
-
-                    if stage == 3:
-                        if u_document.kind == "projectclosure":
-                            # Reopen project, keeping closure (recalling an approved stage 3 for a closure means that the project was closed - and is being reopened)
-                            templ = "./email_templates/project_reopened_email.html"
-                            project = document.project
-                            project.status = "closure_requested"
-                            project.save()
-                            p_leader = ProjectMember.objects.get(
-                                project=project, is_leader=True
-                            )
-                            pl_user = p_leader.user.pk
-                            pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                            pl_user_email = f"{p_leader.user.email}"
-                            p_leader_data_obj = {
-                                "pk": pl_user,
-                                "name": pl_user_name,
-                                "email": pl_user_email,
-                            }
-                            recipients_list.append(p_leader_data_obj)
-
-                        elif u_document.kind == "concept":
-                            # send a recall email to ba lead
-                            templ = "./email_templates/document_recalled_email.html"
-                            ba_lead = User.objects.get(
-                                pk=project.business_area.leader.pk
-                            )
-                            user = ba_lead.pk
-                            user_name = f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
-                            user_email = f"{ba_lead.email}"
-                            data_obj = {
-                                "pk": user,
-                                "name": user_name,
-                                "email": user_email,
-                            }
-                            print(data_obj)
-                            recipients_list.append(data_obj)
-                            # p_leader = ProjectMember.objects.get(
-                            #     project=project, is_leader=True
-                            # )
-                            # pl_user = p_leader.user.pk
-                            # pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                            # pl_user_email = f"{p_leader.user.email}"
-                            # p_leader_data_obj = {
-                            #     "pk": pl_user,
-                            #     "name": pl_user_name,
-                            #     "email": pl_user_email,
-                            # }
-                            # recipients_list.append(p_leader_data_obj)
-
-                        else:
-                            pass  # No need for emails
-
-                    print(recipients_list)
-
-                    processed = []
-                    project_tag = project.get_project_tag()
-                    for recipient in recipients_list:
-                        if recipient["pk"] not in processed:
-
-                            if (
-                                settings.ON_TEST_NETWORK != True
-                                and settings.DEBUG != True
-                            ):
-                                print(
-                                    f"PRODUCTION: Sending email to {recipient["name"]}"
-                                )
-                                email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'} ({project_tag})"
-                                to_email = [recipient["email"]]
-
-                                template_props = {
-                                    "user_kind": (
-                                        "Project Lead"
-                                        if stage == 2
-                                        else "Business Area Lead"
-                                    ),
-                                    "email_subject": email_subject,
-                                    "actioning_user_email": actioning_user_email,
-                                    "actioning_user_name": actioning_user_name,
-                                    "recipient_name": recipient["name"],
-                                    "project_id": project.pk,
-                                    "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(
-                                        document.kind
-                                    ),
-                                    "document_type_title": document_kind_as_title,
-                                    "site_url": settings.SITE_URL,
-                                    "dbca_image_path": get_encoded_image(),
-                                }
-
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
-
-                                try:
-                                    send_email_with_embedded_image(
-                                        recipient_email=to_email,
-                                        subject=email_subject,
-                                        html_content=template_content,
-                                    )
-                                    # send_mail(
-                                    #     email_subject,
-                                    #     template_content,
-                                    #     from_email,
-                                    #     to_email,
-                                    #     fail_silently=False,
-                                    #     html_message=template_content,
-                                    # )
-                                except Exception as e:
-                                    settings.LOGGER.error(
-                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                    )
-                                    return Response(
-                                        {"error": str(e)},
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
-                            else:
-                                project_tag = project.get_project_tag()
-                                print(f"TEST: Sending email to {recipient["name"]}")
-                                if recipient["pk"] == 101073:
-                                    email_subject = f"SPMS: {document_kind_as_title} {'Reopened' if (u_document.kind == 'projectclosure' and stage == 3) else 'Recalled'} ({project_tag})"
-                                    to_email = [recipient["email"]]
-
-                                    template_props = {
-                                        "user_kind": (
-                                            "Project Lead"
-                                            if stage == 2
-                                            else "Business Area Lead"
-                                        ),
-                                        "email_subject": email_subject,
-                                        "actioning_user_email": actioning_user_email,
-                                        "actioning_user_name": actioning_user_name,
-                                        "recipient_name": recipient["name"],
-                                        "project_id": project.pk,
-                                        "plain_project_name": plain_project_name,
-                                        "document_type": determine_doc_kind_url_string(
-                                            document.kind
-                                        ),
-                                        "document_type_title": document_kind_as_title,
-                                        "site_url": settings.SITE_URL,
-                                        "dbca_image_path": get_encoded_image(),
-                                    }
-
-                                    template_content = render_to_string(
-                                        templ, template_props
-                                    )
-
-                                    try:
-                                        # send_email_with_embedded_image(
-                                        #     recipient_email=to_email,
-                                        #     subject=email_subject,
-                                        #     html_content=template_content
-                                        # )
-                                        # send_mail(
-                                        #     email_subject,
-                                        #     template_content,
-                                        #     from_email,
-                                        #     to_email,
-                                        #     fail_silently=False,
-                                        #     html_message=template_content,
-                                        # )
-                                        send_email_with_embedded_image(
-                                            recipient_email=to_email,
-                                            subject=email_subject,
-                                            html_content=template_content,
-                                        )
-                                    except Exception as e:
-                                        settings.LOGGER.error(
-                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                        )
-                                        return Response(
-                                            {"error": str(e)},
-                                            status=HTTP_400_BAD_REQUEST,
-                                        )
-                            processed.append(recipient["pk"])
-                    return Response(
-                        "Emails Sent!",
-                        status=HTTP_202_ACCEPTED,
-                    )
-                else:
-                    return Response(
-                        {"error": "No matchin project"},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
-
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DocSendBack(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        user = req.user
-        stage = req.data["stage"]
-        if stage:
-            stage = int(stage)
-        document_pk = req.data["documentPk"]
-        settings.LOGGER.info(msg=f"{req.user} is sending back a doc {document_pk}")
-        if not stage and not document_pk:
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        settings.LOGGER.info(msg=f"{req.user} is sending back {document}")
-        data = "test"
-        if int(stage) == 2:
-            if document.directorate_approval_granted == False:
-                data = {
-                    "business_area_lead_approval_granted": False,
-                    "project_lead_approval_granted": False,
-                    "modifier": req.user.pk,
-                    "status": "revising",
-                }
-        elif int(stage) == 3:
-            data = {
-                "business_area_lead_approval_granted": False,
-                "directorate_approval_granted": False,
-                "modifier": req.user.pk,
-                "status": "revising",
-            }
-
-        ser = ProjectDocumentSerializer(
-            document,
-            data=data,
-            partial=True,
-        )
-        if ser.is_valid():
-            u_document = ser.save()
-
-            # Send Emails
-            should_send_email = ""
-            division = u_document.project.business_area.division
-            directorate_list = division.directorate_email_list.all()
-            if len(directorate_list) < 1:
-                should_send_email = "false"
-            else:
-                should_send_email = req.data["shouldSendEmail"]
-
-            print(should_send_email)
-
-            if should_send_email == "true":
-                print("SENDING DOC SENT BACK EMAIL")
-                # Preset info
-                from_email = settings.DEFAULT_FROM_EMAIL
-                templ = "./email_templates/document_sent_back_email.html"
-
-                # Get project information
-                project = Project.objects.filter(pk=document.project.pk).first()
-
-                if project:
-                    html_project_title = project.title
-                    plain_project_name = html_project_title
-                    # Get document kind information
-                    document_kind_dict = {
-                        "concept": "Science Concept Plan",
-                        "projectplan": "Science Project Plan",
-                        "progressreport": "Progress Report",
-                        "studentreport": "Student Report",
-                        "projectclosure": "Project Closure",
-                    }
-                    document_kind_as_title = document_kind_dict[u_document.kind]
-
-                    actioning_user = User.objects.get(pk=req.user.pk)
-                    actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                    actioning_user_email = f"{actioning_user.email}"
-
-                    # Get recipient list
-                    recipients_list = []
-                    if stage == 1:
-                        pass  # no one to send bacl to
-
-                    if stage == 2:
-                        # get pl as the ba lead is the actioning user
-                        p_leader = ProjectMember.objects.get(
-                            project=project, is_leader=True
-                        )
-                        pl_user = p_leader.user.pk
-                        pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                        pl_user_email = f"{p_leader.user.email}"
-                        p_leader_data_obj = {
-                            "pk": pl_user,
-                            "name": pl_user_name,
-                            "email": pl_user_email,
-                        }
-                        recipients_list.append(p_leader_data_obj)
-
-                    if stage == 3:
-                        # get ba lead user as the directorate is the actioning user
-                        ba_lead = User.objects.get(pk=project.business_area.leader.pk)
-                        user = ba_lead.pk
-                        user_name = (
-                            f"{ba_lead.display_first_name} {ba_lead.display_last_name}"
-                        )
-                        user_email = f"{ba_lead.email}"
-                        data_obj = {"pk": user, "name": user_name, "email": user_email}
-                        recipients_list.append(data_obj)
-
-                    processed = []
-                    project_tag = project.get_project_tag()
-                    for recipient in recipients_list:
-                        if recipient["pk"] not in processed:
-                            if (
-                                settings.ON_TEST_NETWORK != True
-                                and settings.DEBUG != True
-                            ):
-                                print(
-                                    f"PRODUCTION: Sending email to {recipient["name"]}"
-                                )
-
-                                email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
-                                to_email = [recipient["email"]]
-
-                                template_props = {
-                                    "user_kind": (
-                                        "Project Lead"
-                                        if stage == 2
-                                        else "Business Area Lead"
-                                    ),
-                                    "email_subject": email_subject,
-                                    "actioning_user_email": actioning_user_email,
-                                    "actioning_user_name": actioning_user_name,
-                                    "recipient_name": recipient["name"],
-                                    "project_id": project.pk,
-                                    "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(
-                                        document.kind
-                                    ),
-                                    "document_type_title": document_kind_as_title,
-                                    "site_url": settings.SITE_URL,
-                                    "dbca_image_path": get_encoded_image(),
-                                }
-
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
-
-                                try:
-                                    send_email_with_embedded_image(
-                                        recipient_email=to_email,
-                                        subject=email_subject,
-                                        html_content=template_content,
-                                    )
-                                    # send_mail(
-                                    #     email_subject,
-                                    #     template_content,
-                                    #     from_email,
-                                    #     to_email,
-                                    #     fail_silently=False,
-                                    #     html_message=template_content,
-                                    # )
-                                except Exception as e:
-                                    settings.LOGGER.error(
-                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                    )
-                                    return Response(
-                                        {"error": str(e)},
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
-                            else:
-                                # test
-                                print(f"TEST: Sending email to {recipient["name"]}")
-                                if recipient["pk"] == 101073:
-                                    email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
-                                    to_email = [recipient["email"]]
-
-                                    template_props = {
-                                        "user_kind": (
-                                            "Project Lead"
-                                            if stage == 2
-                                            else "Business Area Lead"
-                                        ),
-                                        "email_subject": email_subject,
-                                        "actioning_user_email": actioning_user_email,
-                                        "actioning_user_name": actioning_user_name,
-                                        "recipient_name": recipient["name"],
-                                        "project_id": project.pk,
-                                        "plain_project_name": plain_project_name,
-                                        "document_type": determine_doc_kind_url_string(
-                                            document.kind
-                                        ),
-                                        "document_type_title": document_kind_as_title,
-                                        "site_url": settings.SITE_URL,
-                                        "dbca_image_path": get_encoded_image(),
-                                    }
-
-                                    template_content = render_to_string(
-                                        templ, template_props
-                                    )
-
-                                    try:
-                                        # send_mail(
-                                        #     email_subject,
-                                        #     template_content,
-                                        #     from_email,
-                                        #     to_email,
-                                        #     fail_silently=False,
-                                        #     html_message=template_content,
-                                        # )
-                                        send_email_with_embedded_image(
-                                            recipient_email=to_email,
-                                            subject=email_subject,
-                                            html_content=template_content,
-                                        )
-                                    except Exception as e:
-                                        settings.LOGGER.error(
-                                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                        )
-                                        return Response(
-                                            {"error": str(e)},
-                                            status=HTTP_400_BAD_REQUEST,
-                                        )
-                            processed.append(recipient["pk"])
-
-                    return Response(
-                        "Emails Sent!",
-                        status=HTTP_202_ACCEPTED,
-                    )
-                else:
-                    return Response(
-                        {"error": "No matchin project"},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
-
-            return Response(
-                TinyProjectDocumentSerializer(u_document).data,
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            settings.LOGGER.error(msg=f"{ser.errors}")
-            return Response(
-                ser.errors,
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class DocReopenProject(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_document(self, pk):
-        try:
-            obj = ProjectDocument.objects.get(pk=pk)
-        except ProjectDocument.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def post(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is reopening project by deleting closure")
-        settings.LOGGER.info(
-            msg=f"{req.user} is reopening project {req.data['documentPk']}"
-        )
-        stage = req.data["stage"]
-        if stage:
-            stage = int(stage)
-        document_pk = req.data["documentPk"]
-        if not stage and not document_pk:
-            settings.LOGGER.error(msg=f"Error reopening - no stage/doc pk")
-            return Response(status=HTTP_400_BAD_REQUEST)
-
-        document = self.get_document(pk=document_pk)
-        project = document.project
-        project.status = "updating"
-        project.save()
-        closure = ProjectClosure.objects.get(document=document)
-        closure.delete()
-        document.delete()
-        # Send Emails
-        should_send_email = ""
-        division = project.business_area.division
-        directorate_list = division.directorate_email_list.all()
-        if len(directorate_list) < 1:
-            should_send_email = "false"
-        else:
-            should_send_email = req.data["shouldSendEmail"]
-
-        if should_send_email == "true":
-
-            print("SENDING PROJECT REOPENED EMAIL")
-            # Preset info
-            from_email = settings.DEFAULT_FROM_EMAIL
-            templ = "./email_templates/project_reopened_email.html"
-
-            # Get project information
-            project = Project.objects.filter(pk=document.project.pk).first()
-
-            if project:
-                html_project_title = project.title
-                plain_project_name = html_project_title
-
-                # Get document kind information
-                document_kind_dict = {
-                    "concept": "Science Concept Plan",
-                    "projectplan": "Science Project Plan",
-                    "progressreport": "Progress Report",
-                    "studentreport": "Student Report",
-                    "projectclosure": "Project Closure",
-                }
-                document_kind_as_title = document_kind_dict[document.kind]
-
-                actioning_user = User.objects.get(pk=req.user.pk)
-                actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-                actioning_user_email = f"{actioning_user.email}"
-
-                # Get recipient list
-                recipients_list = []
-                # get pl as the ba lead is the actioning user
-                p_leader = ProjectMember.objects.get(project=project, is_leader=True)
-                pl_user = p_leader.user.pk
-                pl_user_name = f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}"
-                pl_user_email = f"{p_leader.user.email}"
-                p_leader_data_obj = {
-                    "pk": pl_user,
-                    "name": pl_user_name,
-                    "email": pl_user_email,
-                }
-                recipients_list.append(p_leader_data_obj)
-
-                processed = []
-                project_tag = project.get_project_tag()
-                for recipient in recipients_list:
-                    if recipient["pk"] not in processed:
-                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
-
-                            email_subject = f"SPMS: {project_tag} Re-Opened"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "user_kind": (
-                                    "Project Lead"
-                                    if stage == 2
-                                    else "Business Area Lead"
-                                ),
-                                "email_subject": email_subject,
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "recipient_name": recipient["name"],
-                                "project_id": project.pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": "closure",
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                        else:
-                            # test
-                            print(f"TEST: Sending email to {recipient["name"]}")
-                            if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {project_tag} Re-Opened"
-                                to_email = [recipient["email"]]
-
-                                template_props = {
-                                    "user_kind": (
-                                        "Project Lead"
-                                        if stage == 2
-                                        else "Business Area Lead"
-                                    ),
-                                    "email_subject": email_subject,
-                                    "actioning_user_email": actioning_user_email,
-                                    "actioning_user_name": actioning_user_name,
-                                    "recipient_name": recipient["name"],
-                                    "project_id": project.pk,
-                                    "plain_project_name": plain_project_name,
-                                    "document_type": "closure",
-                                    "document_type_title": document_kind_as_title,
-                                    "site_url": settings.SITE_URL,
-                                    "dbca_image_path": get_encoded_image(),
-                                }
-
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
-
-                                try:
-                                    send_email_with_embedded_image(
-                                        recipient_email=to_email,
-                                        subject=email_subject,
-                                        html_content=template_content,
-                                    )
-                                    # send_mail(
-                                    #     email_subject,
-                                    #     template_content,
-                                    #     from_email,
-                                    #     to_email,
-                                    #     fail_silently=False,
-                                    #     html_message=template_content,
-                                    # )
-                                except Exception as e:
-                                    settings.LOGGER.error(
-                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                    )
-                                    return Response(
-                                        {"error": str(e)},
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
-                        processed.append(recipient["pk"])
-
-                return Response(
-                    "Emails Sent!",
-                    status=HTTP_202_ACCEPTED,
-                )
-            else:
-                return Response(
-                    {"error": "No matchin project"},
-                    status=HTTP_400_BAD_REQUEST,
-                )
-
-        return Response(status=HTTP_204_NO_CONTENT)
-
-
 class NewCycleOpen(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -9463,3 +8090,962 @@ class UserPublications(APIView):
         except Exception as e:
             settings.LOGGER.error(f"Error processing request: {str(e)}")
             return self._error_response("Failed to process request")
+
+
+# region Document Approvals and Emails ==================================
+
+
+class BaseDocumentAction(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # Validation
+    def get_document(self, pk):
+        settings.LOGGER.info("DOC ACTION: Getting document")
+        try:
+            return ProjectDocument.objects.get(pk=pk)
+        except ProjectDocument.DoesNotExist:
+            raise NotFound
+
+    def validate_request_data(self, req):
+        """Validate basic params in req data"""
+        settings.LOGGER.info("DOC ACTION: Validating req data")
+
+        stage = req.data.get("stage")
+        document_pk = req.data.get("documentPk")
+        if not stage or not document_pk:
+            settings.LOGGER.info(
+                f"{req.user} failed in doc action: no stage/document pk"
+            )
+            return None, None
+
+        stage = int(stage) if stage else None
+        return stage, document_pk
+
+    # Document and Project Update Methods
+    def update_document(self, document, data, user):
+        """Update document with provided data"""
+        settings.LOGGER.info("DOC ACTION: Updating doc data")
+
+        ser = ProjectDocumentSerializer(
+            document,
+            data=data,
+            partial=True,
+        )
+
+        if not ser.is_valid():
+            settings.LOGGER.error(f"Validation error: {ser.errors}")
+            return None, ser.errors
+
+        return ser.save(), None
+
+    def handle_project_status_update(self, document, stage):
+        """Update project status based on document kind and stage"""
+        settings.LOGGER.info("DOC ACTION: Updating Project Status")
+
+        if stage != 3:
+            return
+
+        kind = document.kind
+        project = document.project
+
+        status_mapping = {
+            "projectplan": Project.StatusChoices.UPDATING,
+            "progressreport": Project.StatusChoices.ACTIVE,
+            "studentreport": Project.StatusChoices.ACTIVE,
+        }
+
+        if kind in status_mapping:
+            project.status = status_mapping[kind]
+            project.save()
+        elif kind == "projectclosure":
+            settings.LOGGER.info(f"Closing Project via {kind} document")
+            closure_doc = ProjectClosure.objects.get(document=document)
+            project.status = closure_doc.intended_outcome
+            project.save()
+
+    # Template Population
+    def get_default_budget_template(self):
+        """Return the default budget template HTML"""
+        settings.LOGGER.info("DOC ACTION: Getting default budget template")
+
+        return """
+        <table class="table-light">
+            <colgroup>
+                <col>
+                <col>
+                <col>
+                <col>
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Source</span>
+                        </p>
+                    </th>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 1</span>
+                        </p>
+                    </th>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 2</span>
+                        </p>
+                    </th>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 3</span>
+                        </p>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">FTE Scientist</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">FTE Technical</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Equipment</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Vehicle</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Travel</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Other</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Total</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+            </tbody>
+        </table>
+        """
+
+    def get_default_external_budget_template(self):
+        """Return the default external budget template HTML"""
+        settings.LOGGER.info("DOC ACTION: Getting default external budget template")
+        return """
+        <table class="table-light">
+            <colgroup>
+                <col>
+                <col>
+                <col>
+                <col>
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Source</span>
+                        </p>
+                    </th>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 1</span>
+                        </p>
+                    </th>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 2</span>
+                        </p>
+                    </th>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Year 3</span>
+                        </p>
+                    </th>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Overheads</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Equipment</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Vehicle</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Travel</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Other</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+                <tr>
+                    <th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">
+                        <p class="editor-p-light" dir="ltr">
+                            <span style="white-space: pre-wrap;">Total</span>
+                        </p>
+                    </th>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                    <td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>
+                </tr>
+            </tbody>
+        </table>
+        """
+
+    def get_default_project_plan_data(self, project_pk, document_pk):
+        """Return default data for a new project plan"""
+        settings.LOGGER.info("DOC ACTION: Getting default project plan data")
+        return {
+            "document": document_pk,
+            "project": project_pk,
+            "background": "<p></p>",
+            "methodology": "<p></p>",
+            "aims": "<p></p>",
+            "outcome": "<p></p>",
+            "knowledge_transfer": "<p></p>",
+            "listed_references": "<p></p>",
+            "operating_budget": self.get_default_budget_template(),
+            "operating_budget_external": self.get_default_external_budget_template(),
+            "related_projects": "<p></p>",
+        }
+
+    # Email methods
+    def should_send_emails(self, document, req):
+        """Determine if emails should be sent"""
+        settings.LOGGER.info("DOC ACTION: Determining if should send email")
+        division = document.project.business_area.division
+        directorate_list = division.directorate_email_list.all()
+
+        if not directorate_list.exists():
+            return False
+
+        return req.data.get("shouldSendEmail") == True
+
+    def get_email_recipients(self, document, stage, action_type):
+        """Get list of email recipients based on document, stage and action type"""
+        settings.LOGGER.info("DOC ACTION: Getting email recipients")
+
+        project = document.project
+        recipients_list = []
+
+        if stage == 1:  # Project Lead Action: stage one always sends emails to ba lead
+            # BA Lead
+            ba_lead = User.objects.get(pk=project.business_area.leader.pk)
+            recipients_list.append(
+                {
+                    "pk": ba_lead.pk,
+                    "name": f"{ba_lead.display_first_name} {ba_lead.display_last_name}",
+                    "email": ba_lead.email,
+                }
+            )
+
+        elif stage == 2:  # BA Lead Action
+            if (
+                action_type == "approve"
+            ):  # if approving on stage 2, sends to divisional directorate
+                # Directorate email list
+                division = project.business_area.division
+                for member in division.directorate_email_list.all():
+                    if member.is_active and member.is_staff:
+                        recipients_list.append(
+                            {
+                                "pk": member.pk,
+                                "name": f"{member.display_first_name} {member.display_last_name}",
+                                "email": member.email,
+                            }
+                        )
+            elif action_type in [
+                "recall",
+                "send_back",
+            ]:  # if recalling or sending back, sends to project lead
+                # Project Leader
+                p_leader = ProjectMember.objects.get(project=project, is_leader=True)
+                recipients_list.append(
+                    {
+                        "pk": p_leader.user.pk,
+                        "name": f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}",
+                        "email": p_leader.user.email,
+                    }
+                )
+
+        elif stage == 3:  # Divisional Directorate Action
+            if action_type == "approve":  # Alert project lead and ba lead
+                # Project Leader and BA Lead
+                p_leader = ProjectMember.objects.get(project=project, is_leader=True)
+                recipients_list.append(
+                    {
+                        "pk": p_leader.user.pk,
+                        "name": f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}",
+                        "email": p_leader.user.email,
+                    }
+                )
+
+                ba_lead = User.objects.get(pk=project.business_area.leader.pk)
+                recipients_list.append(
+                    {
+                        "pk": ba_lead.pk,
+                        "name": f"{ba_lead.display_first_name} {ba_lead.display_last_name}",
+                        "email": ba_lead.email,
+                    }
+                )
+            elif action_type in ["recall", "send_back"]:  # alert ba lead
+                # BA Lead
+                ba_lead = User.objects.get(pk=project.business_area.leader.pk)
+                recipients_list.append(
+                    {
+                        "pk": ba_lead.pk,
+                        "name": f"{ba_lead.display_first_name} {ba_lead.display_last_name}",
+                        "email": ba_lead.email,
+                    }
+                )
+
+        # Deduplication step
+        seen_pks = set()
+        deduplicated_list = []
+
+        for recipient in recipients_list:
+            if recipient["pk"] not in seen_pks:
+                seen_pks.add(recipient["pk"])
+                deduplicated_list.append(recipient)
+
+        # Return deduplicated list
+        return deduplicated_list
+
+    def get_email_template_and_subject(self, document, stage, action_type):
+        """Get email template path and subject based on document, stage and action type"""
+        settings.LOGGER.info("DOC ACTION: Getting email template and subject")
+        kind = document.kind
+        project = document.project
+        project_tag = project.get_project_tag()
+
+        document_kind_dict = {
+            "concept": "Science Concept Plan",
+            "projectplan": "Science Project Plan",
+            "progressreport": "Progress Report",
+            "studentreport": "Student Report",
+            "projectclosure": "Project Closure",
+        }
+        document_kind_as_title = document_kind_dict.get(kind, "Document")
+
+        template_path = None
+        subject = None
+
+        if action_type == "approve":
+            if stage == 3 and kind == "projectclosure":
+                template_path = "./email_templates/project_closed_email.html"
+            elif stage == 3:
+                template_path = (
+                    "./email_templates/document_approved_directorate_email.html"
+                )
+            else:
+                template_path = "./email_templates/document_approved_email.html"
+
+            subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
+
+        elif action_type == "recall":
+            if stage == 3 and kind == "projectclosure":
+                template_path = "./email_templates/project_reopened_email.html"
+                subject = f"SPMS: {project_tag} Re-Opened"
+            else:
+                template_path = "./email_templates/document_recalled_email.html"
+                subject = f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
+
+        elif action_type == "send_back":
+            template_path = "./email_templates/document_sent_back_email.html"
+            subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
+
+        elif action_type == "reopen":
+            template_path = "./email_templates/project_reopened_email.html"
+            subject = f"SPMS: {project_tag} Re-Opened"
+
+        return template_path, subject
+
+    def send_emails(
+        self, document, stage, user, recipients_list, action_type, feedback_html=None
+    ):
+        """Send emails to recipients"""
+        settings.LOGGER.info("DOC ACTION: Sending email to recipients")
+        if not recipients_list:
+            return "No recipients found", HTTP_202_ACCEPTED
+
+        project = document.project
+        template_path, email_subject = self.get_email_template_and_subject(
+            document, stage, action_type
+        )
+
+        if not template_path or not email_subject:
+            return "Email template not found", HTTP_400_BAD_REQUEST
+
+        # User info
+        actioning_user_name = f"{user.display_first_name} {user.display_last_name}"
+        actioning_user_email = user.email
+
+        document_kind_dict = {
+            "concept": "Science Concept Plan",
+            "projectplan": "Science Project Plan",
+            "progressreport": "Progress Report",
+            "studentreport": "Student Report",
+            "projectclosure": "Project Closure",
+        }
+        document_kind_as_title = document_kind_dict.get(document.kind, "Document")
+
+        processed = []
+        for recipient in recipients_list:
+            if recipient["pk"] in processed:
+                continue
+
+            processed.append(recipient["pk"])
+
+            # Skip if not in production and not specific test user (maintainer - adjust)
+            # TODO: Adjust to user set as maintainer isntead of hardcode
+            if (settings.ON_TEST_NETWORK or settings.DEBUG) and recipient[
+                "pk"
+            ] != 101073:
+                print(f"TEST: Skipping email to {recipient['name']}")
+                continue
+
+            to_email = [recipient["email"]]
+
+            template_props = {
+                "stage": stage,
+                "actioning_user_email": actioning_user_email,
+                "actioning_user_name": actioning_user_name,
+                "email_subject": email_subject,
+                "recipient_name": recipient["name"],
+                "project_id": project.pk,
+                "plain_project_name": project.title,
+                "document_type": determine_doc_kind_url_string(document.kind),
+                "document_type_title": document_kind_as_title,
+                "site_url": settings.SITE_URL,
+                "dbca_image_path": get_encoded_image(),
+            }
+
+            # Add feedback HTML if provided
+            if feedback_html:
+                template_props["feedback_html"] = feedback_html
+
+            # Add action-specific template variables
+            if action_type in ["recall", "send_back"]:
+                template_props["user_kind"] = (
+                    "Project Lead" if stage == 2 else "Business Area Lead"
+                )
+
+            try:
+                template_content = render_to_string(template_path, template_props)
+                send_email_with_embedded_image(
+                    recipient_email=to_email,
+                    subject=email_subject,
+                    html_content=template_content,
+                )
+                print(
+                    f"{'PRODUCTION' if not settings.DEBUG else 'TEST'}: Sent email to {recipient['name']}"
+                )
+            except Exception as e:
+                error_msg = f"Email Error: {e}"
+                if "getaddrinfo" in str(e):
+                    error_msg += "\nIf this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters."
+                settings.LOGGER.error(error_msg)
+                return str(e), HTTP_400_BAD_REQUEST
+
+        return "Emails Sent!", HTTP_202_ACCEPTED
+
+
+class DocApproval(BaseDocumentAction):
+    def get_approval_data(self, stage, user_pk):
+        """Return appropriate data dict based on approval stage"""
+        settings.LOGGER.info("DOC ACTION: Getting approval data")
+        stage = int(stage)
+
+        if stage == 1:
+            return {
+                "project_lead_approval_granted": True,
+                "modifier": user_pk,
+                "status": "inapproval",
+            }
+        elif stage == 2:
+            return {
+                "business_area_lead_approval_granted": True,
+                "modifier": user_pk,
+                "status": "inapproval",
+            }
+        elif stage == 3:
+            return {
+                "directorate_approval_granted": True,
+                "modifier": user_pk,
+                "status": "approved",
+            }
+        else:
+            settings.LOGGER.error(f"Invalid approval stage: {stage}")
+            raise ValidationError(f"Invalid approval stage: {stage}")
+
+    def create_project_plan_if_needed(self, concept_document, user):
+        """Create a project plan if one doesn't already exist"""
+        project_pk = concept_document.project.pk
+
+        # Check if project plan already exists
+        if ProjectPlan.objects.filter(project=project_pk).exists():
+            return True
+
+        # Create new project plan document
+        with transaction.atomic():
+            try:
+                document_data = {
+                    "old_id": 1,
+                    "kind": "projectplan",
+                    "status": "new",
+                    "project": project_pk,
+                    "creator": user.pk,
+                    "modifier": user.pk,
+                }
+
+                document_serializer = ProjectDocumentCreateSerializer(
+                    data=document_data
+                )
+                if not document_serializer.is_valid():
+                    settings.LOGGER.error(
+                        f"Project plan document creation error: {document_serializer.errors}"
+                    )
+                    return False
+
+                projplanmaindoc = document_serializer.save()
+
+                # Create project plan with default content
+                plan_data = self.get_default_project_plan_data(
+                    project_pk, projplanmaindoc.pk
+                )
+                project_plan_serializer = ProjectPlanCreateSerializer(data=plan_data)
+
+                if not project_plan_serializer.is_valid():
+                    settings.LOGGER.error(
+                        f"Project plan creation error: {project_plan_serializer.errors}"
+                    )
+                    return False
+
+                projplan = project_plan_serializer.save()
+
+                # Create endorsements
+                endorsement_data = {
+                    "project_plan": projplan.pk,
+                    "ae_endorsement_required": False,
+                    "ae_endorsement_provided": False,
+                    "data_management": "<p></p>",
+                    "no_specimens": "<p></p>",
+                }
+
+                endorsements = EndorsementCreationSerializer(data=endorsement_data)
+                if not endorsements.is_valid():
+                    settings.LOGGER.error(
+                        f"Endorsement creation error: {endorsements.errors}"
+                    )
+                    return False
+
+                endorsements.save()
+
+                # Update project status
+                concept_document.project.status = Project.StatusChoices.PENDING
+                concept_document.project.save()
+
+                return True
+
+            except Exception as e:
+                settings.LOGGER.error(f"Error creating project plan: {e}")
+                return False
+
+    def post(self, req):
+        """Handle document approval"""
+        try:
+            # Validate basic parameters
+            stage, document_pk = self.validate_request_data(req)
+            if not stage or not document_pk:
+                return Response(status=HTTP_400_BAD_REQUEST)
+
+            document = self.get_document(pk=document_pk)
+            settings.LOGGER.info(f"{req.user} is approving {document}")
+
+            # Get approval data based on stage
+            approval_data = self.get_approval_data(stage, req.user.pk)
+
+            # Update document with approval data
+            updated_document, errors = self.update_document(
+                document, approval_data, req.user
+            )
+            if errors:
+                return Response(errors, status=HTTP_400_BAD_REQUEST)
+
+            # Special handling for stage 3 concept documents - create project plan
+            if updated_document.kind == "concept" and stage == 3:
+                if not self.create_project_plan_if_needed(updated_document, req.user):
+                    return Response(
+                        "Failed to create project plan", status=HTTP_400_BAD_REQUEST
+                    )
+
+            # Handle project status updates
+            self.handle_project_status_update(updated_document, stage)
+
+            # Check if emails should be sent
+            if self.should_send_emails(updated_document, req):
+                # Get feedback HTML if provided
+                feedback_html = req.data.get("feedbackHTML")
+
+                recipients = self.get_email_recipients(
+                    updated_document, stage, "approve"
+                )
+                message, status = self.send_emails(
+                    updated_document,
+                    stage,
+                    req.user,
+                    recipients,
+                    "approve",
+                    feedback_html,
+                )
+
+                if status != HTTP_202_ACCEPTED:
+                    return Response({"error": message}, status=status)
+
+                return Response(message, status=status)
+
+            # Return updated document
+            return Response(
+                TinyProjectDocumentSerializer(updated_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+
+        except ValidationError as e:
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            settings.LOGGER.error(f"Unexpected error in DocApproval: {e}")
+            return Response({"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DocRecall(BaseDocumentAction):
+    def get_recall_data(self, stage, user_pk, document):
+        """Return appropriate data dict based on recall stage"""
+        settings.LOGGER.info("DOC ACTION: Getting recall data")
+        stage = int(stage)
+
+        if stage == 1:
+            if document.business_area_lead_approval_granted == False:
+                return {
+                    "project_lead_approval_granted": False,
+                    "modifier": user_pk,
+                    "status": "revising",
+                }
+        elif stage == 2:
+            if document.directorate_approval_granted == False:
+                return {
+                    "business_area_lead_approval_granted": False,
+                    "modifier": user_pk,
+                    "status": "inapproval",
+                }
+        elif stage == 3:
+            return {
+                "directorate_approval_granted": False,
+                "modifier": user_pk,
+                "status": "inapproval",
+            }
+
+        return None
+
+    def post(self, req):
+        """Handle document recall"""
+        try:
+            # Validate basic parameters
+            stage, document_pk = self.validate_request_data(req)
+            if not stage or not document_pk:
+                return Response(status=HTTP_400_BAD_REQUEST)
+
+            document = self.get_document(pk=document_pk)
+            settings.LOGGER.info(f"{req.user} is recalling {document}")
+
+            # Get recall data based on stage
+            recall_data = self.get_recall_data(stage, req.user.pk, document)
+            if not recall_data:
+                return Response(
+                    "Invalid recall stage or document state",
+                    status=HTTP_400_BAD_REQUEST,
+                )
+
+            # Update document with recall data
+            updated_document, errors = self.update_document(
+                document, recall_data, req.user
+            )
+            if errors:
+                return Response(errors, status=HTTP_400_BAD_REQUEST)
+
+            # Handle project status updates based on document kind
+            if updated_document.kind == "projectplan" and stage == 3:
+                updated_document.project.status = Project.StatusChoices.PENDING
+                updated_document.project.save()
+            elif updated_document.kind == "projectclosure" and stage == 3:
+                updated_document.project.status = Project.StatusChoices.CLOSUREREQ
+                updated_document.project.save()
+            elif (
+                updated_document.kind in ["progressreport", "studentreport"]
+                and stage == 3
+            ):
+                updated_document.project.status = Project.StatusChoices.UPDATING
+                updated_document.project.save()
+
+            # Check if emails should be sent
+            if self.should_send_emails(updated_document, req):
+                # Get feedback HTML if provided
+                feedback_html = req.data.get("feedbackHTML")
+
+                recipients = self.get_email_recipients(
+                    updated_document, stage, "recall"
+                )
+                message, status = self.send_emails(
+                    updated_document,
+                    stage,
+                    req.user,
+                    recipients,
+                    "recall",
+                    feedback_html,
+                )
+
+                if status != HTTP_202_ACCEPTED:
+                    return Response({"error": message}, status=status)
+
+                return Response(message, status=status)
+
+            # Return updated document
+            return Response(
+                TinyProjectDocumentSerializer(updated_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(f"Unexpected error in DocRecall: {e}")
+            return Response({"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DocSendBack(BaseDocumentAction):
+    def get_send_back_data(self, stage, user_pk):
+        """Return appropriate data dict based on send back stage"""
+        settings.LOGGER.info("DOC ACTION: Getting send back data")
+        stage = int(stage)
+
+        if stage == 2:
+            return {
+                "business_area_lead_approval_granted": False,
+                "project_lead_approval_granted": False,
+                "modifier": user_pk,
+                "status": "revising",
+            }
+        elif stage == 3:
+            return {
+                "business_area_lead_approval_granted": False,
+                "directorate_approval_granted": False,
+                "modifier": user_pk,
+                "status": "revising",
+            }
+
+        return None
+
+    def post(self, req):
+        """Handle document send back"""
+        try:
+            # Validate basic parameters
+            stage, document_pk = self.validate_request_data(req)
+            if not stage or not document_pk:
+                return Response(status=HTTP_400_BAD_REQUEST)
+
+            document = self.get_document(pk=document_pk)
+            settings.LOGGER.info(f"{req.user} is sending back {document}")
+
+            # Get send back data based on stage
+            send_back_data = self.get_send_back_data(stage, req.user.pk)
+            if not send_back_data:
+                return Response("Invalid send back stage", status=HTTP_400_BAD_REQUEST)
+
+            # Update document with send back data
+            updated_document, errors = self.update_document(
+                document, send_back_data, req.user
+            )
+            if errors:
+                return Response(errors, status=HTTP_400_BAD_REQUEST)
+
+            # Check if emails should be sent
+            if self.should_send_emails(updated_document, req):
+                # Get feedback HTML if provided
+                feedback_html = req.data.get("feedbackHTML")
+
+                recipients = self.get_email_recipients(
+                    updated_document, stage, "send_back"
+                )
+                message, status = self.send_emails(
+                    updated_document,
+                    stage,
+                    req.user,
+                    recipients,
+                    "send_back",
+                    feedback_html,
+                )
+
+                if status != HTTP_202_ACCEPTED:
+                    return Response({"error": message}, status=status)
+
+                return Response(message, status=status)
+
+            # Return updated document
+            return Response(
+                TinyProjectDocumentSerializer(updated_document).data,
+                status=HTTP_202_ACCEPTED,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(f"Unexpected error in DocSendBack: {e}")
+            return Response({"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DocReopenProject(BaseDocumentAction):
+    def post(self, req):
+        """Handle project reopening by deleting closure document"""
+        try:
+            # Validate basic parameters
+            stage, document_pk = self.validate_request_data(req)
+            if not stage or not document_pk:
+                settings.LOGGER.error("Error reopening - no stage/doc pk")
+                return Response(status=HTTP_400_BAD_REQUEST)
+
+            document = self.get_document(pk=document_pk)
+            settings.LOGGER.info(
+                f"{req.user} is reopening project by deleting closure for {document.project}"
+            )
+
+            # Update project status
+            project = document.project
+            project.status = "updating"
+            project.save()
+
+            # Delete the closure document
+            closure = ProjectClosure.objects.get(document=document)
+            closure.delete()
+            document.delete()
+
+            # Check if emails should be sent
+            if self.should_send_emails(document, req):
+                # Get feedback HTML if provided
+                feedback_html = req.data.get("feedbackHTML")
+
+                # For reopen, recipients are different - just the project leader
+                p_leader = ProjectMember.objects.get(project=project, is_leader=True)
+                recipients = [
+                    {
+                        "pk": p_leader.user.pk,
+                        "name": f"{p_leader.user.display_first_name} {p_leader.user.display_last_name}",
+                        "email": p_leader.user.email,
+                    }
+                ]
+
+                message, status = self.send_emails(
+                    document,
+                    stage,
+                    req.user,
+                    recipients,
+                    "reopen",
+                    feedback_html,
+                )
+
+                if status != HTTP_202_ACCEPTED:
+                    return Response({"error": message}, status=status)
+
+                return Response(message, status=status)
+
+            return Response(status=HTTP_204_NO_CONTENT)
+
+        except Exception as e:
+            settings.LOGGER.error(f"Unexpected error in DocReopenProject: {e}")
+            return Response({"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# endregion =============================================================

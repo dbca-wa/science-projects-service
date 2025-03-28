@@ -123,10 +123,10 @@ urlpatterns = [
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
     # Actions (Project Docs - Sends emails) ========================================================
-    path("actions/approve", views.DocApproval.as_view()),
-    path("actions/reopen", views.DocReopenProject.as_view()),
-    path("actions/recall", views.DocRecall.as_view()),
-    path("actions/send_back", views.DocSendBack.as_view()),
+    path("actions/approve", views.DocApproval.as_view(), name="document-approve"),
+    path("actions/recall", views.DocRecall.as_view(), name="document-recall"),
+    path("actions/send_back", views.DocSendBack.as_view(), name="document-send-back"),
+    path("actions/reopen", views.DocReopenProject.as_view(), name="document-reopen"),
     # Helper ========================================================
     path("downloadProjectDocument/<int:pk>", views.DownloadProjectDocument.as_view()),
     # Publications ========================================================
