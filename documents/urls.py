@@ -107,15 +107,8 @@ urlpatterns = [
     ),
     path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
     # EMAILS (Testing) ========================================================
-    path("concept_plan_email", views.ConceptPlanEmail.as_view()),
-    path("review_document_email", views.ReviewDocumentEmail.as_view()),
-    path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
-    path("project_closure_email", views.ProjectClosureEmail.as_view()),
-    path("document_ready_email", views.DocumentReadyEmail.as_view()),
-    path("document_sent_back_email", views.DocumentSentBackEmail.as_view()),
-    path("document_approved_email", views.DocumentApprovedEmail.as_view()),
-    path("document_recalled_email", views.DocumentRecalledEmail.as_view()),
     path("spms_link_email", views.SPMSInviteEmail.as_view()),
+    path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
     path("get_project_lead_emails", views.GetProjectLeadEmail.as_view()),
     # ACTIONS (Sends emails) ========================================================
     path("opennewcycle", views.NewCycleOpen.as_view()),

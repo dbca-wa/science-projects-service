@@ -116,1393 +116,6 @@ from .serializers import (
 # endregion ==================================================
 
 
-# region Emails ==========================================================
-
-
-class ReviewDocumentEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Review Document) for users {req.data['recipients_list']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/review_document_email.html"
-
-        # Get actioning user details (User causing email to be sent)
-        actioning_user = User.objects.get(pk=req.user.pk)
-        actioning_user_name = (
-            f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-        )
-        actioning_user_email = f"{actioning_user.email}"
-
-        # Get recipient list
-        recipients_list_data = req.data["recipients_list"]  # list of user pks
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get project information
-        project_pk = req.data["project_pk"]
-        project = Project.objects.filter(pk=project_pk).first()
-        if project:
-            html_project_title = project.title
-            plain_project_name = html_project_title
-            # Get document kind information
-            document_kind = req.data["document_kind"]
-            document_kind_dict = {
-                "concept": "Science Concept Plan",
-                "projectplan": "Science Project Plan",
-                "progressreport": "Progress Report",
-                "studentreport": "Student Report",
-                "projectclosure": "Project Closure",
-            }
-            document_kind_as_title = document_kind_dict[document_kind]
-            project_tag = project.get_project_tag()
-            email_subject = f"SPMS: Review {document_kind_as_title} ({project_tag})"
-
-            processed = []
-            for recipient in recipients_list:
-                if recipient["pk"] not in processed:
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "actioning_user_email": actioning_user_email,
-                            "actioning_user_name": actioning_user_name,
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(
-                                document_kind
-                            ),
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-                        print(
-                            {
-                                "to_email": to_email,
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "project_id": project_pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(
-                                    document_kind
-                                ),
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-                        )
-
-                        try:
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:  # test
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == 101073:
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "project_id": project_pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(
-                                    document_kind
-                                ),
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-                            print(
-                                {
-                                    "to_email": to_email,
-                                    "email_subject": email_subject,
-                                    "recipient_name": recipient["name"],
-                                    "actioning_user_email": actioning_user_email,
-                                    "actioning_user_name": actioning_user_name,
-                                    "project_id": project_pk,
-                                    "plain_project_name": plain_project_name,
-                                    "document_type": determine_doc_kind_url_string(
-                                        document_kind
-                                    ),
-                                    "document_type_title": document_kind_as_title,
-                                    "site_url": settings.SITE_URL,
-                                    "dbca_image_path": get_encoded_image(),
-                                }
-                            )
-
-                            try:
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                    processed.append(recipient["pk"])
-
-            return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            return Response(
-                {"error": "No matching project"},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class ProjectClosureEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Project Closure) to the project lead of project with id {req.data['project_pk']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/project_closed_email.html"
-
-        # Get recipient list (ba leads)
-        project_pk = req.data["project_pk"]
-        project_leader = ProjectMember.objects.filter(
-            project=project_pk, is_leader=True
-        ).first()
-        if project_leader:
-            recipients_list = []
-            user = User.objects.get(pk=project_leader.user.pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-            # Get Project information
-            project = Project.objects.filter(pk=project_pk).first()
-            if project:
-                html_project_title = project.title
-                plain_project_name = html_project_title
-
-                processed = []
-                project_tag = project.get_project_tag()
-                for recipient in recipients_list:
-                    if recipient["pk"] not in processed:
-                        if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                            print(f"PRODUCTION: Sending email to {recipient["name"]}")
-
-                            email_subject = f"SPMS: {project_tag} Closed"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                                "plain_project_name": plain_project_name,
-                                "project_id": project_pk,
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                        else:  # test
-                            print(f"TEST: Sending email to {recipient["name"]}")
-                            project_tag = project.get_project_tag()
-                            if recipient["pk"] == 101073:
-                                email_subject = f"SPMS: {project_tag} Closed"
-                                to_email = [recipient["email"]]
-
-                                template_props = {
-                                    "email_subject": email_subject,
-                                    "recipient_name": recipient["name"],
-                                    "site_url": settings.SITE_URL,
-                                    "dbca_image_path": get_encoded_image(),
-                                    "plain_project_name": plain_project_name,
-                                    "project_id": project_pk,
-                                }
-
-                                template_content = render_to_string(
-                                    templ, template_props
-                                )
-
-                                try:
-                                    # send_mail(
-                                    #     email_subject,
-                                    #     template_content,
-                                    #     from_email,
-                                    #     to_email,
-                                    #     fail_silently=False,
-                                    #     html_message=template_content,
-                                    # )
-                                    send_email_with_embedded_image(
-                                        recipient_email=to_email,
-                                        subject=email_subject,
-                                        html_content=template_content,
-                                    )
-                                except Exception as e:
-                                    settings.LOGGER.error(
-                                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                    )
-                                    return Response(
-                                        {"error": str(e)},
-                                        status=HTTP_400_BAD_REQUEST,
-                                    )
-                        processed.append(recipient["pk"])
-
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
-
-
-class DocumentReadyEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Document Ready) for users {req.data['recipients_list']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/document_ready_email.html"
-
-        # Get recipient list
-        recipients_list_data = req.data["recipients_list"]  # list of user pks
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get project information
-        project_pk = req.data["project_pk"]
-        project = Project.objects.filter(pk=project_pk).first()
-        if project:
-            html_project_title = project.title
-            plain_project_name = html_project_title
-
-            # Get document kind information
-            document_kind = req.data["document_kind"]
-            document_kind_dict = {
-                "concept": "Science Concept Plan",
-                "projectplan": "Science Project Plan",
-                "progressreport": "Progress Report",
-                "studentreport": "Student Report",
-                "projectclosure": "Project Closure",
-            }
-            document_kind_as_title = document_kind_dict[document_kind]
-            project_tag = project.get_project_tag()
-            processed = []
-            for recipient in recipients_list:
-                if recipient["pk"] not in processed:
-
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = (
-                            f"SPMS: New {document_kind_as_title} Ready ({project_tag})"
-                        )
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(
-                                document_kind
-                            ),
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        # test
-                        if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: New {document_kind_as_title} Ready ({project_tag})"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "project_id": project_pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(
-                                    document_kind
-                                ),
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                    processed.append(recipient["pk"])
-
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
-
-
-class DocumentSentBackEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Document Sent Back) for users {req.data['recipients_list']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/document_sent_back_email.html"
-        stage = req.data["stage"]
-        if stage:
-            stage = int(stage)
-
-        # Get recipient list
-        recipients_list_data = req.data["recipients_list"]  # list of user pks
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get project information
-        project_pk = req.data["project_pk"]
-        project = Project.objects.filter(pk=project_pk).first()
-        if project:
-            html_project_title = project.title
-            plain_project_name = html_project_title
-
-            # Get document kind information
-            document_kind = req.data["document_kind"]
-            document_kind_dict = {
-                "concept": "Science Concept Plan",
-                "projectplan": "Science Project Plan",
-                "progressreport": "Progress Report",
-                "studentreport": "Student Report",
-                "projectclosure": "Project Closure",
-            }
-            document_kind_as_title = document_kind_dict[document_kind]
-            project_tag = project.get_project_tag()
-
-            processed = []
-            for recipient in recipients_list:
-                if recipient["pk"] not in processed:
-
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = (
-                            f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
-                        )
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "actioning_user_role": (
-                                "directorate" if stage == 3 else "business area lead"
-                            ),
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(
-                                document_kind
-                            ),
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        # test
-                        project_tag = project.get_project_tag()
-                        if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Sent Back ({project_tag})"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "actioning_user_role": (
-                                    "directorate"
-                                    if stage == 3
-                                    else "business area lead"
-                                ),
-                                "project_id": project_pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(
-                                    document_kind
-                                ),
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                    processed.append(recipient["pk"])
-
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
-
-
-class ConceptPlanEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Concept Plan) for users {req.data['recipients_list']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./pdf_templates/conceptplan_web.html"
-
-        # Get recipient list
-        recipients_list_data = req.data["recipients_list"]  # list of user pks
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get project information
-        project_pk = req.data["project_pk"]
-        project = Project.objects.filter(pk=project_pk).first()
-        if project:
-            html_project_title = project.title
-            plain_project_name = html_project_title
-
-            # Get document kind information
-            document_kind = req.data["document_kind"]
-            document_kind_dict = {
-                "concept": "Science Concept Plan",
-                "projectplan": "Science Project Plan",
-                "progressreport": "Progress Report",
-                "studentreport": "Student Report",
-                "projectclosure": "Project Closure",
-            }
-            document_kind_as_title = document_kind_dict[document_kind]
-            project_tag = project.get_project_tag()
-
-            processed = []
-            for recipient in recipients_list:
-                if recipient["pk"] not in processed:
-                    if (
-                        recipient["pk"] == 101073
-                    ):  # Change to if settings.DEBUG == True mass replace
-                        email_subject = (
-                            f"SPMS: Review {document_kind_as_title} ({project_tag})"
-                        )
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(
-                                document_kind
-                            ),
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    processed.append(recipient["pk"])
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
-
-
-class DocumentApprovedEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Document Approved) for users {req.data['recipients_list']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/document_approved_email.html"
-
-        # Get recipient list
-        recipients_list_data = req.data["recipients_list"]  # list of user pks
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get project information
-        project_pk = req.data["project_pk"]
-        project = Project.objects.filter(pk=project_pk).first()
-        if project:
-            html_project_title = project.title
-            plain_project_name = html_project_title
-
-            # Get document kind information
-            document_kind = req.data["document_kind"]
-            document_kind_dict = {
-                "concept": "Science Concept Plan",
-                "projectplan": "Science Project Plan",
-                "progressreport": "Progress Report",
-                "studentreport": "Student Report",
-                "projectclosure": "Project Closure",
-            }
-            document_kind_as_title = document_kind_dict[document_kind]
-            project_tag = project.get_project_tag()
-
-            processed = []
-            for recipient in recipients_list:
-                if recipient["pk"] not in processed:
-
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-                        email_subject = (
-                            f"SPMS: {document_kind_as_title} Approved ({project_tag})"
-                        )
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(
-                                document_kind
-                            ),
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:
-                        # test
-                        project_tag = project.get_project_tag()
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Approved ({project_tag})"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "email_subject": email_subject,
-                                "recipient_name": recipient["name"],
-                                "project_id": project_pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(
-                                    document_kind
-                                ),
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                    processed.append(recipient["pk"])
-
-            return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            return Response(
-                {"error": "No matchin project"},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-class GetProjectLeadEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is requesting active project lead emails to send a message to"
-        )
-        states = [
-            Project.StatusChoices.ACTIVE,
-            Project.StatusChoices.UPDATING,
-            Project.StatusChoices.SUSPENDED,
-        ]
-        activeproj_leaders = ProjectMember.objects.filter(
-            is_leader=True, project__status__in=states
-        ).all()
-        unique_active_project_leads = list(
-            set(
-                lead_member_object.user
-                for lead_member_object in activeproj_leaders
-                if lead_member_object.user.is_active
-                and lead_member_object.user.is_staff
-            )
-        )
-        unique_inactive_leads = list(
-            set(
-                lead_member_object.user
-                for lead_member_object in activeproj_leaders
-                if not lead_member_object.user.is_active
-                or not lead_member_object.user.is_staff
-            )
-        )
-
-        file_content = []
-
-        dbca_users = []
-        dbca_emails = []
-        other_users = []
-        other_emails = []
-
-        inactive_leaders = []
-
-        file_content.append(
-            "-------------------------------------------------------------------------------------\nUnique Project Leads marked as staff and active (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
-        )
-
-        for leader in unique_active_project_leads:
-            if leader.email.endswith("dbca.wa.gov.au"):
-                dbca_users.append(leader)
-
-            else:
-                other_users.append(leader)
-
-        file_content.append(
-            "------\nWith DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
-        )
-
-        for user in dbca_users:
-            file_content.append(f"{user.email}\n")
-            image = user.get_image()
-            dbca_emails.append(
-                {
-                    "pk": user.pk,
-                    "name": f"{user.display_first_name} {user.display_last_name}",
-                    "email": f"{user.email}",
-                    "is_staff": user.is_staff,
-                    "is_active": user.is_active,
-                    "image": image["file"] if image is not None else None,
-                }
-            )
-
-        file_content.append(
-            "\n------\nWith NON-DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
-        )
-
-        for user in other_users:
-            file_content.append(f"{user.email}\n")
-            other_emails.append({user.email})
-
-        file_content.append(
-            "\n\n-------------------------------------------------------------------------------------\nUnique Project Leads marked as NOT staff or INACTIVE (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
-        )
-        for leader in unique_inactive_leads:
-            inactive_leaders.append(leader)
-
-        inactive_email_list = []
-        for leader in inactive_leaders:
-            image = leader.get_image()
-            inactive_email_list.append(
-                {
-                    "pk": leader.pk,
-                    "name": f"{leader.display_first_name} {leader.display_last_name}",
-                    "email": f"{leader.email}",
-                    "is_staff": leader.is_staff,
-                    "is_active": leader.is_active,
-                    "image": image["file"] if image is not None else None,
-                }
-            )
-            projects_belonging_to = activeproj_leaders.filter(user=leader).all()
-            file_content.append(
-                f"\nUser: {leader.email} | {leader.display_first_name} {leader.display_last_name}\nProjects Led:\n"
-            )
-            for p in projects_belonging_to:
-                file_content.append(
-                    f"\t-Link: {settings.SITE_URL}/projects/{p.project.pk}\n"
-                )
-                file_content.append(f"\t-Project: {p.project.title}\n\n")
-
-            file_content.append("\n")
-
-        return_data = {
-            "file_content": file_content,
-            "unique_dbca_emails_list": dbca_emails,
-            "unique_non_dbca_emails_list": inactive_email_list,
-        }
-        settings.LOGGER.warning(msg=f"{req.user} has been sent the email list")
-        return Response(
-            data=return_data,
-            status=HTTP_200_OK,
-        )
-
-
-class SPMSInviteEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (SPMS Invite Link) for users {req.data['invitee']}"
-        )
-        from_email = settings.DEFAULT_FROM_EMAIL
-        inviting_email = req.data["invitor"]
-        templ = "./email_templates/spms_link_email.html"
-        invitee = req.data["invitee"]
-
-        recipients_list = []
-        # Validate
-        if invitee.endswith("@dbca.wa.gov.au"):
-            recipients_list.append(invitee)
-
-        processed = []
-        for recipient in recipients_list:
-            if recipient not in processed:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient}")
-                    email_subject = f"SPMS Invite"
-                    to_email = [recipient]
-
-                    template_props = {
-                        "inviting_email": inviting_email,
-                        "email_subject": email_subject,
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_email_with_embedded_image(
-                            recipient_email=to_email,
-                            subject=email_subject,
-                            html_content=template_content,
-                        )
-                        # send_mail(
-                        #     email_subject,
-                        #     template_content,
-                        #     from_email,
-                        #     to_email,
-                        #     fail_silently=False,
-                        #     html_message=template_content,
-                        # )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    # test
-                    print(f"TEST: Sending email to {recipient}")
-                    if recipient == "jarid.prince@dbca.wa.gov.au":
-                        email_subject = f"SPMS Invite"
-                        to_email = [recipient]
-
-                        template_props = {
-                            "inviting_email": inviting_email,
-                            "email_subject": email_subject,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                processed.append(recipient)
-                print(f"Sent invite to {recipient}")
-
-        return Response(
-            "Email Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
-
-
-class DocumentRecalledEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (Document Approved) for users {req.data['recipients_list']}"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/document_recalled_email.html"
-
-        # Get recipient list
-        recipients_list_data = req.data["recipients_list"]  # list of user pks
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get project information
-        project_pk = req.data["project_pk"]
-        project = Project.objects.filter(pk=project_pk).first()
-        if project:
-            html_project_title = project.title
-            plain_project_name = html_project_title
-            # Get document kind information
-            document_kind = req.data["document_kind"]
-            document_kind_dict = {
-                "concept": "Science Concept Plan",
-                "projectplan": "Science Project Plan",
-                "progressreport": "Progress Report",
-                "studentreport": "Student Report",
-                "projectclosure": "Project Closure",
-            }
-            document_kind_as_title = document_kind_dict[document_kind]
-
-            actioning_user = User.objects.get(pk=req.user.pk)
-            actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
-            actioning_user_email = f"{actioning_user.email}"
-            stage = req.data["stage"]
-            if stage:
-                stage = int(stage)
-
-            processed = []
-            project_tag = project.get_project_tag()
-            for recipient in recipients_list:
-                if recipient["pk"] not in processed:
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                        print(f"PRODUCTION: Sending email to {recipient["name"]}")
-
-                        email_subject = (
-                            f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
-                        )
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "user_kind": (
-                                "Project Lead" if stage == 2 else "Business Area Lead"
-                            ),
-                            "email_subject": email_subject,
-                            "actioning_user_email": actioning_user_email,
-                            "actioning_user_name": actioning_user_name,
-                            "recipient_name": recipient["name"],
-                            "project_id": project_pk,
-                            "plain_project_name": plain_project_name,
-                            "document_type": determine_doc_kind_url_string(
-                                document_kind
-                            ),
-                            "document_type_title": document_kind_as_title,
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                    else:
-                        # test
-                        project_tag = project.get_project_tag()
-                        print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == 101073:
-                            email_subject = f"SPMS: {document_kind_as_title} Recalled ({project_tag})"
-                            to_email = [recipient["email"]]
-
-                            template_props = {
-                                "user_kind": (
-                                    "Project Lead"
-                                    if stage == 2
-                                    else "Business Area Lead"
-                                ),
-                                "email_subject": email_subject,
-                                "actioning_user_email": actioning_user_email,
-                                "actioning_user_name": actioning_user_name,
-                                "recipient_name": recipient["name"],
-                                "project_id": project_pk,
-                                "plain_project_name": plain_project_name,
-                                "document_type": determine_doc_kind_url_string(
-                                    document_kind
-                                ),
-                                "document_type_title": document_kind_as_title,
-                                "site_url": settings.SITE_URL,
-                                "dbca_image_path": get_encoded_image(),
-                            }
-
-                            template_content = render_to_string(templ, template_props)
-
-                            try:
-                                send_email_with_embedded_image(
-                                    recipient_email=to_email,
-                                    subject=email_subject,
-                                    html_content=template_content,
-                                )
-                                # send_mail(
-                                #     email_subject,
-                                #     template_content,
-                                #     from_email,
-                                #     to_email,
-                                #     fail_silently=False,
-                                #     html_message=template_content,
-                                # )
-                            except Exception as e:
-                                settings.LOGGER.error(
-                                    msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                                )
-                                return Response(
-                                    {"error": str(e)},
-                                    status=HTTP_400_BAD_REQUEST,
-                                )
-                    processed.append(recipient["pk"])
-
-            return Response(
-                "Emails Sent!",
-                status=HTTP_202_ACCEPTED,
-            )
-        else:
-            return Response(
-                {"error": str(e)},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-
-# Emails admin part
-class NewCycleOpenEmail(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, req):
-        settings.LOGGER.info(
-            msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
-        )
-        # Preset info
-        from_email = settings.DEFAULT_FROM_EMAIL
-        templ = "./email_templates/new_cycle_open_email.html"
-
-        # Get recipient list (ba leads)
-        ba_leads = {ba.leader.pk for ba in BusinessArea.objects.all() if ba.leader}
-        # Get recipient list (active project leads)
-        also_updating = req.data["include_projects_with_status_updating"]
-        if also_updating == True or also_updating == "True":
-            active_project_leads = (
-                ProjectMember.objects.filter(
-                    project__status__in=[
-                        Project.StatusChoices.ACTIVE,
-                        Project.StatusChoices.UPDATING,
-                    ],
-                    is_leader=True,
-                )
-                .values_list("user__pk", flat=True)
-                .distinct()
-            )
-        else:
-            active_project_leads = (
-                ProjectMember.objects.filter(
-                    project__status__in=[Project.StatusChoices.ACTIVE], is_leader=True
-                )
-                .values_list("user__pk", flat=True)
-                .distinct()
-            )
-
-        # Get combined recipient list, without duplicates
-        recipients_list_data = list(ba_leads.union(active_project_leads))
-
-        print(recipients_list_data)
-
-        recipients_list = []
-
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
-            user_name = f"{user.display_first_name} {user.display_last_name}"
-            user_email = f"{user.email}"
-            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
-            recipients_list.append(data_obj)
-
-        # Get FY information
-        financial_year = req.data["financial_year"]
-        financial_year_string = f"{int(financial_year-1)}-{int(financial_year)}"
-
-        processed = []
-        for recipient in recipients_list:
-            if recipient["pk"] not in processed:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
-                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
-
-                    email_subject = (
-                        f"SPMS: {financial_year_string} Reporting Cycle Open"
-                    )
-                    to_email = [recipient["email"]]
-
-                    template_props = {
-                        "email_subject": email_subject,
-                        "recipient_name": recipient["name"],
-                        "site_url": settings.SITE_URL,
-                        "dbca_image_path": get_encoded_image(),
-                        "financial_year_string": financial_year_string,
-                    }
-
-                    template_content = render_to_string(templ, template_props)
-
-                    try:
-                        send_email_with_embedded_image(
-                            recipient_email=to_email,
-                            subject=email_subject,
-                            html_content=template_content,
-                        )
-                        # send_mail(
-                        #     email_subject,
-                        #     template_content,
-                        #     from_email,
-                        #     to_email,
-                        #     fail_silently=False,
-                        #     html_message=template_content,
-                        # )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    # test
-                    print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == 101073:
-                        email_subject = (
-                            f"SPMS: {financial_year_string} Reporting Cycle Open"
-                        )
-                        to_email = [recipient["email"]]
-
-                        template_props = {
-                            "email_subject": email_subject,
-                            "recipient_name": recipient["name"],
-                            "site_url": settings.SITE_URL,
-                            "dbca_image_path": get_encoded_image(),
-                            "financial_year_string": financial_year_string,
-                        }
-
-                        template_content = render_to_string(templ, template_props)
-
-                        try:
-                            send_email_with_embedded_image(
-                                recipient_email=to_email,
-                                subject=email_subject,
-                                html_content=template_content,
-                            )
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
-                        except Exception as e:
-                            settings.LOGGER.error(
-                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                            )
-                            return Response(
-                                {"error": str(e)},
-                                status=HTTP_400_BAD_REQUEST,
-                            )
-                processed.append(recipient["pk"])
-
-        return Response(
-            "Emails Sent!",
-            status=HTTP_202_ACCEPTED,
-        )
-
-
-# endregion EMAILS ==========================================================
-
-
 # region REPORTS ==========================================================
 
 
@@ -2118,7 +731,6 @@ class FullLatestReport(APIView):
 
 
 # endregion ==================================================
-
 
 # region PROJECT DOCUMENTS ==============================================
 
@@ -3500,6 +2112,8 @@ class GetPreviousReportsData(APIView):
         return Response(data=section_data, status=HTTP_200_OK)
 
 
+# endregion ==========================================
+
 # region Concept Plans ====================================================================================================
 
 
@@ -3766,7 +2380,6 @@ class GetConceptPlanData(APIView):
 
 # endregion Concept Plans ====================================================================================================
 
-
 # region Project Plans ====================================================================================================
 
 
@@ -3898,7 +2511,6 @@ class ProjectPlanDetail(APIView):
 
 
 # endregion Project Plans ====================================================================================================
-
 
 # region Progress Reports ====================================================================================================
 
@@ -4054,7 +2666,6 @@ class ProgressReportByYear(APIView):
 
 # endregion Progress Reports ====================================================================================================
 
-
 # region Student Reports ====================================================================================================
 
 
@@ -4201,7 +2812,6 @@ class UpdateStudentReport(APIView):
 
 # endregion Student Reports ====================================================================================================
 
-
 # region Project Closures ====================================================================================================
 
 
@@ -4296,9 +2906,6 @@ class ProjectClosureDetail(APIView):
 
 
 # endregion Project Closures ====================================================================================================
-
-# endregion Project Documents ====================================================================================================
-
 
 # region ENDORSEMENTS & APPROVALS ==========================================================
 
@@ -4556,7 +3163,6 @@ class DeleteAECEndorsement(APIView):
 
 # endregion =========================================================================
 
-
 # region Actions ====================================================================================================
 
 
@@ -4753,6 +3359,11 @@ class DownloadAnnualReport(APIView):
     def get(self, req):
         settings.LOGGER.error(msg=f"{req.user} is downloading annual report")
         pass
+
+
+# endregion =========================================================================
+
+# region Admin Actions ==================================================
 
 
 class BatchApprove(APIView):
@@ -5390,6 +4001,8 @@ class NewCycleOpen(APIView):
             HTTP_202_ACCEPTED,
         )
 
+
+# endregion ==================================================
 
 # region PDF GENERATION ===================================================
 
@@ -7880,9 +6493,7 @@ class CancelProjectDocGeneration(APIView):
 # endregion ==================================================
 
 
-# endregion  ====================================================================================================
-
-
+# region Publications ==================================================
 class CustomPublications(APIView):
     # permission_classes = [IsAuthenticated]
 
@@ -8091,6 +6702,8 @@ class UserPublications(APIView):
             settings.LOGGER.error(f"Error processing request: {str(e)}")
             return self._error_response("Failed to process request")
 
+
+# endregion ==================================================
 
 # region Document Approvals and Emails ==================================
 
@@ -9095,3 +7708,380 @@ class DocReopenProject(BaseDocumentAction):
 
 
 # endregion =============================================================
+
+
+# region Emails (NOTE: Separate email logic in Document Approvals and email region )==========================================================
+
+
+class GetProjectLeadEmail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is requesting active project lead emails to send a message to"
+        )
+        states = [
+            Project.StatusChoices.ACTIVE,
+            Project.StatusChoices.UPDATING,
+            Project.StatusChoices.SUSPENDED,
+        ]
+        activeproj_leaders = ProjectMember.objects.filter(
+            is_leader=True, project__status__in=states
+        ).all()
+        unique_active_project_leads = list(
+            set(
+                lead_member_object.user
+                for lead_member_object in activeproj_leaders
+                if lead_member_object.user.is_active
+                and lead_member_object.user.is_staff
+            )
+        )
+        unique_inactive_leads = list(
+            set(
+                lead_member_object.user
+                for lead_member_object in activeproj_leaders
+                if not lead_member_object.user.is_active
+                or not lead_member_object.user.is_staff
+            )
+        )
+
+        file_content = []
+
+        dbca_users = []
+        dbca_emails = []
+        other_users = []
+        other_emails = []
+
+        inactive_leaders = []
+
+        file_content.append(
+            "-------------------------------------------------------------------------------------\nUnique Project Leads marked as staff and active (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+        )
+
+        for leader in unique_active_project_leads:
+            if leader.email.endswith("dbca.wa.gov.au"):
+                dbca_users.append(leader)
+
+            else:
+                other_users.append(leader)
+
+        file_content.append(
+            "------\nWith DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
+        )
+
+        for user in dbca_users:
+            file_content.append(f"{user.email}\n")
+            image = user.get_image()
+            dbca_emails.append(
+                {
+                    "pk": user.pk,
+                    "name": f"{user.display_first_name} {user.display_last_name}",
+                    "email": f"{user.email}",
+                    "is_staff": user.is_staff,
+                    "is_active": user.is_active,
+                    "image": image["file"] if image is not None else None,
+                }
+            )
+
+        file_content.append(
+            "\n------\nWith NON-DBCA EMAIL (For Active, Suspended, Update Requested Projects)\n------\n"
+        )
+
+        for user in other_users:
+            file_content.append(f"{user.email}\n")
+            other_emails.append({user.email})
+
+        file_content.append(
+            "\n\n-------------------------------------------------------------------------------------\nUnique Project Leads marked as NOT staff or INACTIVE (For Active, Suspended, Update Requested Projects)\n-------------------------------------------------------------------------------------\n"
+        )
+        for leader in unique_inactive_leads:
+            inactive_leaders.append(leader)
+
+        inactive_email_list = []
+        for leader in inactive_leaders:
+            image = leader.get_image()
+            inactive_email_list.append(
+                {
+                    "pk": leader.pk,
+                    "name": f"{leader.display_first_name} {leader.display_last_name}",
+                    "email": f"{leader.email}",
+                    "is_staff": leader.is_staff,
+                    "is_active": leader.is_active,
+                    "image": image["file"] if image is not None else None,
+                }
+            )
+            projects_belonging_to = activeproj_leaders.filter(user=leader).all()
+            file_content.append(
+                f"\nUser: {leader.email} | {leader.display_first_name} {leader.display_last_name}\nProjects Led:\n"
+            )
+            for p in projects_belonging_to:
+                file_content.append(
+                    f"\t-Link: {settings.SITE_URL}/projects/{p.project.pk}\n"
+                )
+                file_content.append(f"\t-Project: {p.project.title}\n\n")
+
+            file_content.append("\n")
+
+        return_data = {
+            "file_content": file_content,
+            "unique_dbca_emails_list": dbca_emails,
+            "unique_non_dbca_emails_list": inactive_email_list,
+        }
+        settings.LOGGER.warning(msg=f"{req.user} has been sent the email list")
+        return Response(
+            data=return_data,
+            status=HTTP_200_OK,
+        )
+
+
+class SPMSInviteEmail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (SPMS Invite Link) for users {req.data['invitee']}"
+        )
+        from_email = settings.DEFAULT_FROM_EMAIL
+        inviting_email = req.data["invitor"]
+        templ = "./email_templates/spms_link_email.html"
+        invitee = req.data["invitee"]
+
+        recipients_list = []
+        # Validate
+        if invitee.endswith("@dbca.wa.gov.au"):
+            recipients_list.append(invitee)
+
+        processed = []
+        for recipient in recipients_list:
+            if recipient not in processed:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient}")
+                    email_subject = f"SPMS Invite"
+                    to_email = [recipient]
+
+                    template_props = {
+                        "inviting_email": inviting_email,
+                        "email_subject": email_subject,
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                    }
+
+                    template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_email_with_embedded_image(
+                            recipient_email=to_email,
+                            subject=email_subject,
+                            html_content=template_content,
+                        )
+                        # send_mail(
+                        #     email_subject,
+                        #     template_content,
+                        #     from_email,
+                        #     to_email,
+                        #     fail_silently=False,
+                        #     html_message=template_content,
+                        # )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    # test
+                    print(f"TEST: Sending email to {recipient}")
+                    if recipient == "jarid.prince@dbca.wa.gov.au":
+                        email_subject = f"SPMS Invite"
+                        to_email = [recipient]
+
+                        template_props = {
+                            "inviting_email": inviting_email,
+                            "email_subject": email_subject,
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
+                            )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                processed.append(recipient)
+                print(f"Sent invite to {recipient}")
+
+        return Response(
+            "Email Sent!",
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+# Emails admin part
+class NewCycleOpenEmail(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
+        )
+        # Preset info
+        from_email = settings.DEFAULT_FROM_EMAIL
+        templ = "./email_templates/new_cycle_open_email.html"
+
+        # Get recipient list (ba leads)
+        ba_leads = {ba.leader.pk for ba in BusinessArea.objects.all() if ba.leader}
+        # Get recipient list (active project leads)
+        also_updating = req.data["include_projects_with_status_updating"]
+        if also_updating == True or also_updating == "True":
+            active_project_leads = (
+                ProjectMember.objects.filter(
+                    project__status__in=[
+                        Project.StatusChoices.ACTIVE,
+                        Project.StatusChoices.UPDATING,
+                    ],
+                    is_leader=True,
+                )
+                .values_list("user__pk", flat=True)
+                .distinct()
+            )
+        else:
+            active_project_leads = (
+                ProjectMember.objects.filter(
+                    project__status__in=[Project.StatusChoices.ACTIVE], is_leader=True
+                )
+                .values_list("user__pk", flat=True)
+                .distinct()
+            )
+
+        # Get combined recipient list, without duplicates
+        recipients_list_data = list(ba_leads.union(active_project_leads))
+
+        print(recipients_list_data)
+
+        recipients_list = []
+
+        for recipient_pk in recipients_list_data:
+            user = User.objects.get(pk=recipient_pk)
+            user_name = f"{user.display_first_name} {user.display_last_name}"
+            user_email = f"{user.email}"
+            data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
+            recipients_list.append(data_obj)
+
+        # Get FY information
+        financial_year = req.data["financial_year"]
+        financial_year_string = f"{int(financial_year-1)}-{int(financial_year)}"
+
+        processed = []
+        for recipient in recipients_list:
+            if recipient["pk"] not in processed:
+                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    print(f"PRODUCTION: Sending email to {recipient["name"]}")
+
+                    email_subject = (
+                        f"SPMS: {financial_year_string} Reporting Cycle Open"
+                    )
+                    to_email = [recipient["email"]]
+
+                    template_props = {
+                        "email_subject": email_subject,
+                        "recipient_name": recipient["name"],
+                        "site_url": settings.SITE_URL,
+                        "dbca_image_path": get_encoded_image(),
+                        "financial_year_string": financial_year_string,
+                    }
+
+                    template_content = render_to_string(templ, template_props)
+
+                    try:
+                        send_email_with_embedded_image(
+                            recipient_email=to_email,
+                            subject=email_subject,
+                            html_content=template_content,
+                        )
+                        # send_mail(
+                        #     email_subject,
+                        #     template_content,
+                        #     from_email,
+                        #     to_email,
+                        #     fail_silently=False,
+                        #     html_message=template_content,
+                        # )
+                    except Exception as e:
+                        settings.LOGGER.error(
+                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                        )
+                        return Response(
+                            {"error": str(e)},
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                else:
+                    # test
+                    print(f"TEST: Sending email to {recipient["name"]}")
+                    if recipient["pk"] == 101073:
+                        email_subject = (
+                            f"SPMS: {financial_year_string} Reporting Cycle Open"
+                        )
+                        to_email = [recipient["email"]]
+
+                        template_props = {
+                            "email_subject": email_subject,
+                            "recipient_name": recipient["name"],
+                            "site_url": settings.SITE_URL,
+                            "dbca_image_path": get_encoded_image(),
+                            "financial_year_string": financial_year_string,
+                        }
+
+                        template_content = render_to_string(templ, template_props)
+
+                        try:
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
+                            )
+                            # send_mail(
+                            #     email_subject,
+                            #     template_content,
+                            #     from_email,
+                            #     to_email,
+                            #     fail_silently=False,
+                            #     html_message=template_content,
+                            # )
+                        except Exception as e:
+                            settings.LOGGER.error(
+                                msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                            )
+                            return Response(
+                                {"error": str(e)},
+                                status=HTTP_400_BAD_REQUEST,
+                            )
+                processed.append(recipient["pk"])
+
+        return Response(
+            "Emails Sent!",
+            status=HTTP_202_ACCEPTED,
+        )
+
+
+# endregion EMAILS ==========================================================
