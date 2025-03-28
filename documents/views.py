@@ -116,6 +116,21 @@ from .serializers import (
 # endregion ==================================================
 
 
+def get_current_maintainer_pk():
+    """
+    Retrieves the primary key of the current maintainer set in AdminOptions.
+    Returns None if no maintainer is set.
+    """
+    from adminoptions.models import AdminOptions
+
+    admin_options = AdminOptions.objects.first()
+    return (
+        admin_options.maintainer.pk
+        if admin_options and admin_options.maintainer
+        else None
+    )
+
+
 # region REPORTS ==========================================================
 
 
@@ -3200,6 +3215,9 @@ class RepoenProject(APIView):
         settings.LOGGER.info(
             msg=f"{req.user} is reopening project belonging to doc ({pk})"
         )
+
+        maintainer_pk = get_current_maintainer_pk()
+
         with transaction.atomic():
             try:
                 settings.LOGGER.info(msg=f"{req.user} is reopening project {pk}")
@@ -3300,7 +3318,7 @@ class RepoenProject(APIView):
                             else:
                                 # test
                                 print(f"TEST: Sending email to {recipient["name"]}")
-                                if recipient["pk"] == 101073:
+                                if recipient["pk"] == maintainer_pk:
                                     email_subject = f"SPMS: {project_tag} Re-Opened"
                                     to_email = [recipient["email"]]
 
@@ -3881,6 +3899,7 @@ class NewCycleOpen(APIView):
 
         if should_email == True:
             print("SENDING CYCLE OPENED EMAILS")
+            maintainer_pk = get_current_maintainer_pk()
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
             templ = "./email_templates/new_cycle_open_email.html"
@@ -3952,7 +3971,7 @@ class NewCycleOpen(APIView):
                     else:
                         # test
                         print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == 101073:
+                        if recipient["pk"] == maintainer_pk:
                             email_subject = f"SPMS: New Reporting Cycle Open"
                             to_email = [recipient["email"]]
 
@@ -7216,6 +7235,8 @@ class BaseDocumentAction(APIView):
         if not recipients_list:
             return "No recipients found", HTTP_202_ACCEPTED
 
+        maintainer_pk = get_current_maintainer_pk()
+
         project = document.project
         template_path, email_subject = self.get_email_template_and_subject(
             document, stage, action_type
@@ -7248,7 +7269,7 @@ class BaseDocumentAction(APIView):
             # TODO: Adjust to user set as maintainer isntead of hardcode
             if (settings.ON_TEST_NETWORK or settings.DEBUG) and recipient[
                 "pk"
-            ] != 101073:
+            ] != maintainer_pk:
                 print(f"TEST: Skipping email to {recipient['name']}")
                 continue
 
@@ -7945,6 +7966,9 @@ class NewCycleOpenEmail(APIView):
         settings.LOGGER.info(
             msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
         )
+
+        maintainer_pk = get_current_maintainer_pk()
+
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
         templ = "./email_templates/new_cycle_open_email.html"
@@ -8019,14 +8043,6 @@ class NewCycleOpenEmail(APIView):
                             subject=email_subject,
                             html_content=template_content,
                         )
-                        # send_mail(
-                        #     email_subject,
-                        #     template_content,
-                        #     from_email,
-                        #     to_email,
-                        #     fail_silently=False,
-                        #     html_message=template_content,
-                        # )
                     except Exception as e:
                         settings.LOGGER.error(
                             msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
@@ -8038,7 +8054,7 @@ class NewCycleOpenEmail(APIView):
                 else:
                     # test
                     print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == 101073:
+                    if recipient["pk"] == maintainer_pk:
                         email_subject = (
                             f"SPMS: {financial_year_string} Reporting Cycle Open"
                         )
@@ -8060,14 +8076,6 @@ class NewCycleOpenEmail(APIView):
                                 subject=email_subject,
                                 html_content=template_content,
                             )
-                            # send_mail(
-                            #     email_subject,
-                            #     template_content,
-                            #     from_email,
-                            #     to_email,
-                            #     fail_silently=False,
-                            #     html_message=template_content,
-                            # )
                         except Exception as e:
                             settings.LOGGER.error(
                                 msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
