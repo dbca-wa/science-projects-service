@@ -116,6 +116,7 @@ urlpatterns = [
     path("batchapproveold", views.BatchApproveOld.as_view()),
     path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
     # Actions (Project Docs - Sends emails) ========================================================
+    path("notifications/mentions", views.SendMentionNotification.as_view()),
     path("actions/approve", views.DocApproval.as_view(), name="document-approve"),
     path("actions/recall", views.DocRecall.as_view(), name="document-recall"),
     path("actions/send_back", views.DocSendBack.as_view(), name="document-send-back"),

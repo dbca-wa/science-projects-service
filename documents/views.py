@@ -3,6 +3,7 @@
 import datetime, json, os, re, subprocess, time, tempfile
 from bs4 import BeautifulSoup
 from operator import attrgetter
+import bleach
 
 from django.forms import ValidationError
 from django.template.loader import render_to_string
@@ -17,6 +18,8 @@ from django.template.loader import get_template
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.cache import cache
+from django.utils.html import strip_tags
+
 from datetime import timedelta
 
 import requests
@@ -2035,14 +2038,79 @@ class ProjectDocumentComments(APIView):
             status=HTTP_200_OK,
         )
 
+    def sanitize_html(self, html_content):
+        """
+        Sanitize HTML content while preserving mention data attributes
+        """
+        if not html_content:
+            return ""
+
+        # Define allowed tags and attributes
+        allowed_tags = [
+            "a",
+            "abbr",
+            "acronym",
+            "b",
+            "blockquote",
+            "code",
+            "em",
+            "i",
+            "li",
+            "ol",
+            "p",
+            "strong",
+            "ul",
+            "br",
+            "div",
+            "span",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+        ]
+
+        allowed_attributes = {
+            "*": ["class", "style"],
+            "a": ["href", "title", "target"],
+            "span": [
+                "data-user-id",
+                "data-user-email",
+                "data-user-name",
+                "data-lexical-mention",
+                "class",
+                "style",  # Important for keeping your mention styling
+            ],
+            "th": ["colspan", "rowspan"],
+            "td": ["colspan", "rowspan"],
+        }
+
+        # Clean the HTML while preserving the allowed tags and attributes
+        clean_html = bleach.clean(
+            html_content, tags=allowed_tags, attributes=allowed_attributes, strip=True
+        )
+
+        return clean_html
+
     def post(self, req, pk):
         settings.LOGGER.info(
             msg=f"{req.user} is trying to post a comment to doc {pk}:\n{extract_text_content(req.data['payload'])}"
         )
+
+        sanitized_payload = self.sanitize_html(req.data["payload"])
+
         ser = TinyCommentCreateSerializer(
             data={
                 "document": pk,
-                "text": req.data["payload"],
+                "text": sanitized_payload,
+                # "text": req.data["payload"],
                 "user": req.data["user"],
             },
             context={"request": req},
@@ -6725,6 +6793,131 @@ class UserPublications(APIView):
 # endregion ==================================================
 
 # region Document Approvals and Emails ==================================
+
+
+class SendMentionNotification(APIView):
+    """
+    API endpoint for sending email notifications to mentioned users.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        Send email notifications to all mentioned users.
+
+        Expected payload:
+        {
+            "documentId": 456,
+            "projectId": 123,
+            "commenter": {"id": 2, "name":"John Doe", "email":"john.doe@dbca.wa.gov.au"},
+            "mentionedUsers": [{"id": 1, "name": "Test User","email": "user@dbca.wa.gov.au"}, ...],
+            "documentKind": "concept"
+        }
+        """
+        try:
+            # Extract data from request
+            document_id = request.data.get("documentId")
+            project_id = request.data.get("projectId")
+            commenter = request.data.get("commenter")
+            mentioned_users = request.data.get("mentionedUsers", [])
+
+            # Fetch document and project information
+            try:
+                document = ProjectDocument.objects.get(pk=document_id)
+                project = Project.objects.get(pk=project_id)
+                project_tag = project.get_project_tag()
+            except (ProjectDocument.DoesNotExist, Project.DoesNotExist) as e:
+                settings.LOGGER.error(f"Document or Project not found: {e}")
+                return Response(
+                    {"error": "Document or Project not found"},
+                    status=HTTP_404_NOT_FOUND,
+                )
+
+            # Generate the document URL
+            url_safe_kind_dict = {
+                "concept": "concept",
+                "projectplan": "project",
+                "progressreport": "progress",
+                "studentreport": "student",
+                "projectclosure": "closure",
+            }
+
+            document_url = f"{settings.SITE_URL}/projects/{project.pk}/{url_safe_kind_dict[document.kind]}"
+            print(
+                {
+                    "dockind": document.kind,
+                    "url_safe": url_safe_kind_dict[document.kind],
+                    "url": document_url,
+                }
+            )
+            # Send email to each mentioned user
+            processed_users = set()
+
+            for user_data in mentioned_users:
+                user_id = user_data.get("id")
+                user_name = user_data.get("name")
+                user_email = user_data.get("email")
+
+                # Skip if no email or already processed
+                if not user_email or user_id in processed_users:
+                    continue
+
+                processed_users.add(user_id)
+
+                # Skip if not in production and not specific test user
+                maintainer_pk = get_current_maintainer_pk()
+                if (
+                    settings.ON_TEST_NETWORK or settings.DEBUG
+                ) and user_id != maintainer_pk:
+                    print(f"TEST: Skipping mention notification to {user_name}")
+                    continue
+
+                to_email = [user_email]
+                document_kind_string_readable = ProjectDocument.CategoryKindChoices(
+                    document.kind
+                ).label
+                email_subject = f"SPMS: You were mentioned in a comment on {document_kind_string_readable} ({project_tag})"
+
+                template_props = {
+                    "recipient_name": user_name,
+                    "commenter_name": commenter.get("name"),
+                    "document_type_title": document_kind_string_readable,
+                    "project_tag": project_tag,
+                    "project_name": project.title,
+                    "document_url": document_url,
+                    "site_url": settings.SITE_URL,
+                    "dbca_image_path": get_encoded_image(),
+                }
+
+                try:
+                    template_content = render_to_string(
+                        "./email_templates/document_comment_mention.html",
+                        template_props,
+                    )
+                    send_email_with_embedded_image(
+                        recipient_email=to_email,
+                        subject=email_subject,
+                        html_content=template_content,
+                    )
+                    print(
+                        f"{'PRODUCTION' if not settings.DEBUG else 'TEST'}: Sent mention notification to {user_name}"
+                    )
+                except Exception as e:
+                    error_msg = f"Mention Notification Email Error: {e}"
+                    settings.LOGGER.error(error_msg)
+                    # Continue with other emails even if one fails
+
+            return Response(
+                {
+                    "message": f"Mention notifications sent to {len(processed_users)} users"
+                },
+                status=HTTP_200_OK,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(f"Error sending mention notifications: {str(e)}")
+            return Response({"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class BaseDocumentAction(APIView):
