@@ -2040,10 +2040,13 @@ class ProjectDocumentComments(APIView):
 
     def sanitize_html(self, html_content):
         """
-        Sanitize HTML content while preserving mention data attributes
+        Sanitize HTML content while preserving mention data attributes and safely handling CSS
         """
         if not html_content:
             return ""
+
+        # Import CSS sanitizer
+        from bleach.css_sanitizer import CSSSanitizer
 
         # Define allowed tags and attributes
         allowed_tags = [
@@ -2078,7 +2081,7 @@ class ProjectDocumentComments(APIView):
         ]
 
         allowed_attributes = {
-            "*": ["class", "style"],
+            "*": ["class"],
             "a": ["href", "title", "target"],
             "span": [
                 "data-user-id",
@@ -2086,15 +2089,38 @@ class ProjectDocumentComments(APIView):
                 "data-user-name",
                 "data-lexical-mention",
                 "class",
-                "style",  # Important for keeping your mention styling
+                "style",  # We'll sanitize this with the CSS sanitizer
             ],
             "th": ["colspan", "rowspan"],
             "td": ["colspan", "rowspan"],
+            # Add style to any element that might need it for mentions
+            "div": ["style"],
+            "p": ["style"],
         }
+
+        # Define allowed CSS properties (specifically for mentions)
+        allowed_css_properties = [
+            "background-color",
+            "color",
+            "padding-left",
+            "padding-right",
+            "border-radius",
+            "font-weight",
+        ]
+
+        # Create a CSS sanitizer with our allowed properties
+        css_sanitizer = CSSSanitizer(
+            allowed_css_properties=allowed_css_properties,
+            allowed_svg_properties=[],
+        )
 
         # Clean the HTML while preserving the allowed tags and attributes
         clean_html = bleach.clean(
-            html_content, tags=allowed_tags, attributes=allowed_attributes, strip=True
+            html_content,
+            tags=allowed_tags,
+            attributes=allowed_attributes,
+            css_sanitizer=css_sanitizer,
+            strip=True,
         )
 
         return clean_html
@@ -6844,13 +6870,13 @@ class SendMentionNotification(APIView):
             }
 
             document_url = f"{settings.SITE_URL}/projects/{project.pk}/{url_safe_kind_dict[document.kind]}"
-            print(
-                {
-                    "dockind": document.kind,
-                    "url_safe": url_safe_kind_dict[document.kind],
-                    "url": document_url,
-                }
-            )
+            # print(
+            #     {
+            #         "dockind": document.kind,
+            #         "url_safe": url_safe_kind_dict[document.kind],
+            #         "url": document_url,
+            #     }
+            # )
             # Send email to each mentioned user
             processed_users = set()
 
@@ -6866,12 +6892,12 @@ class SendMentionNotification(APIView):
                 processed_users.add(user_id)
 
                 # Skip if not in production and not specific test user
-                maintainer_pk = get_current_maintainer_pk()
-                if (
-                    settings.ON_TEST_NETWORK or settings.DEBUG
-                ) and user_id != maintainer_pk:
-                    print(f"TEST: Skipping mention notification to {user_name}")
-                    continue
+                # maintainer_pk = get_current_maintainer_pk()
+                # if (
+                #     settings.ON_TEST_NETWORK or settings.DEBUG
+                # ) and user_id != maintainer_pk:
+                #     print(f"TEST: Skipping mention notification to {user_name}")
+                #     continue
 
                 to_email = [user_email]
                 document_kind_string_readable = ProjectDocument.CategoryKindChoices(
