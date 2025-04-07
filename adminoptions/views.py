@@ -136,20 +136,57 @@ class AdminControlsDetail(APIView):
             status=HTTP_204_NO_CONTENT,
         )
 
+    # def put(self, req, pk):
+    #     AdminControl = self.go(pk)
+    #     settings.LOGGER.info(msg=f"{req.user} is updating {AdminControl}")
+    #     ser = AdminOptionsSerializer(
+    #         AdminControl,
+    #         data=req.data,
+    #         partial=True,
+    #     )
+    #     if ser.is_valid():
+    #         udpated_admin_options = ser.save()
+    #         print(req.data)
+    #         print(udpated_admin_options)
+    #         return Response(
+    #             AdminOptionsSerializer(udpated_admin_options).data,
+    #             status=HTTP_202_ACCEPTED,
+    #         )
+    #     else:
+    #         settings.LOGGER.error(msg=f"{ser.errors}")
+    #         return Response(
+    #             ser.errors,
+    #             status=HTTP_400_BAD_REQUEST,
+    #         )
+
     def put(self, req, pk):
         AdminControl = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating {AdminControl}")
+
+        # Get the current guide_content
+        current_guide_content = AdminControl.guide_content or {}
+
+        # If guide_content is being updated, merge with existing content
+        if "guide_content" in req.data:
+            # Merge existing content with new content
+            updated_guide_content = {
+                **current_guide_content,
+                **req.data["guide_content"],
+            }
+            req.data["guide_content"] = updated_guide_content
+
         ser = AdminOptionsSerializer(
             AdminControl,
             data=req.data,
             partial=True,
         )
+
         if ser.is_valid():
-            udpated_admin_options = ser.save()
+            updated_admin_options = ser.save()
             print(req.data)
-            print(udpated_admin_options)
+            print(updated_admin_options)
             return Response(
-                AdminOptionsSerializer(udpated_admin_options).data,
+                AdminOptionsSerializer(updated_admin_options).data,
                 status=HTTP_202_ACCEPTED,
             )
         else:
