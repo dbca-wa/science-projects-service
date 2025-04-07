@@ -4479,16 +4479,6 @@ class BeginUnapprovedReportDocGeneration(APIView):
         dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
         print(f"\nDBCA IMAGE PATH: {dbca_image_path}\n")
 
-        # dbca_cropped_image_path = os.path.join(
-        #     settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
-        # )
-        dbca_cropped_image_path = (
-            f"{settings.BASE_DIR}/staticfiles/images/BCSTransparentCropped.png"
-        )
-
-        # no_image_path = os.path.join(
-        #     settings.BASE_DIR, "documents", "image_not_available.png"
-        # )
         no_image_path = (
             f"{settings.BASE_DIR}/staticfiles/images/image_not_available.png"
         )
@@ -4513,7 +4503,18 @@ class BeginUnapprovedReportDocGeneration(APIView):
         dbca_banner = (
             f"{settings.BASE_DIR}{dbca_banner.file.url}" if dbca_banner else None
         )
+
+        dbca_banner_cropped = self.get_ar_media(
+            pk=report.pk, kind="dbca_banner_cropped"
+        )
+        dbca_banner_cropped = (
+            f"{settings.BASE_DIR}{dbca_banner_cropped.file.url}"
+            if dbca_banner_cropped
+            else None
+        )
+
         print(f"DBCA Banner: ", dbca_banner)
+        print(f"DBCA Banner Cropped: ", dbca_banner_cropped)
 
         try:
             html_content = get_template("annual_report.html").render(
@@ -4523,7 +4524,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     "time_generated": get_formatted_datetime(datetime.datetime.now()),
                     "prince_css_path": prince_css_path,
                     "dbca_image_path": dbca_banner,
-                    "dbca_cropped_image_path": dbca_cropped_image_path,
+                    "dbca_cropped_image_path": dbca_banner_cropped,
                     "no_image_path": no_image_path,
                     "server_url": (
                         "http://127.0.0.1:8000"
