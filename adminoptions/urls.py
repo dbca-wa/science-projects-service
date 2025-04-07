@@ -1,9 +1,21 @@
 from . import views
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
+# Create a router for ViewSet-based views
+router = DefaultRouter()
+router.register(r"guide-sections", views.GuideSectionViewSet, basename="guide-sections")
+router.register(r"content-fields", views.ContentFieldViewSet, basename="content-fields")
 
 urlpatterns = [
+    # Include the router URLs
+    path("", include(router.urls)),
+    # Your existing URLs
     path("", views.AdminControls.as_view()),
     path("<int:pk>", views.AdminControlsDetail.as_view()),
+    path(
+        "<int:pk>/update_guide_content", views.AdminControlsDetail.update_guide_content
+    ),
     path("maintainer", views.GetMaintainer.as_view()),
     # Admin Tasks ========================================================
     path("tasks", views.AdminTasks.as_view()),

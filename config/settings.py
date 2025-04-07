@@ -11,7 +11,7 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=True)  # Add overwrite=True
-
+# APPEND_SLASH=False
 DEBUG = True if os.environ.get("DJANGO_DEBUG") != "False" else False
 DATABASE_URL = os.environ.get("DATABASE_URL")
 ON_TEST_NETWORK = True if os.environ.get("ON_TEST_NETWORK") != "False" else False

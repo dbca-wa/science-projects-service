@@ -4473,14 +4473,23 @@ class BeginUnapprovedReportDocGeneration(APIView):
         )
 
         # dbca_image_path = get_encoded_ar_dbca_image()
-        dbca_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "BCSTransparent.png"
+        # dbca_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "BCSTransparent.png"
+        # )
+        dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
+
+        # dbca_cropped_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
+        # )
+        dbca_cropped_image_path = (
+            f"{settings.BASE_DIR}/staticfiles/images/BCSTransparentCropped.png"
         )
-        dbca_cropped_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
-        )
-        no_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "image_not_available.png"
+
+        # no_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "image_not_available.png"
+        # )
+        no_image_path = (
+            f"{settings.BASE_DIR}/staticfiles/images/image_not_available.png"
         )
 
         # HTML content for the PDF
@@ -4988,14 +4997,23 @@ class BeginReportDocGeneration(APIView):
             settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
         )
         # dbca_image_path = get_encoded_ar_dbca_image()
-        dbca_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "BCSTransparent.png"
+        # dbca_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "BCSTransparent.png"
+        # )
+        dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
+
+        # dbca_cropped_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
+        # )
+        dbca_cropped_image_path = (
+            f"{settings.BASE_DIR}/staticfiles/images/BCSTransparentCropped.png"
         )
-        dbca_cropped_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
-        )
-        no_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "image_not_available.png"
+
+        # no_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "image_not_available.png"
+        # )
+        no_image_path = (
+            f"{settings.BASE_DIR}/staticfiles/images/image_not_available.png"
         )
 
         # HTML content for the PDF
@@ -6059,14 +6077,23 @@ class BeginProjectDocGeneration(APIView):
         )
         # dbca_image_path = get_encoded_ar_dbca_image()
 
-        dbca_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "BCSTransparent.png"
+        # dbca_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "BCSTransparent.png"
+        # )
+        dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
+
+        # dbca_cropped_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
+        # )
+        dbca_cropped_image_path = (
+            f"{settings.BASE_DIR}/staticfiles/images/BCSTransparentCropped.png"
         )
-        dbca_cropped_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
-        )
-        no_image_path = os.path.join(
-            settings.BASE_DIR, "documents", "image_not_available.png"
+
+        # no_image_path = os.path.join(
+        #     settings.BASE_DIR, "documents", "image_not_available.png"
+        # )
+        no_image_path = (
+            f"{settings.BASE_DIR}/staticfiles/images/image_not_available.png"
         )
 
         # Get innerhtml of element

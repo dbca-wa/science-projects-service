@@ -3,10 +3,54 @@ from django.db import models
 from django.forms import ValidationError
 from common.models import CommonModel
 from django.core.cache import cache
+import uuid
+
 
 # endregion  =================================================================================================
 
 # region Models ====================================================================================================
+
+
+# FOR THE GUIDES (making it extensible/not hardcoded fields)
+class ContentField(CommonModel):
+    """Model used to store content field configs for guide sections (dev)"""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255, blank=True, null=True)
+    field_key = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    section = models.ForeignKey(
+        "adminoptions.GuideSection",
+        related_name="content_fields",
+        on_delete=models.CASCADE,
+    )
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ["order"]
+        unique_together = [["section", "field_key"]]
+
+    def __str__(self):
+        return f"{self.section.title} - {self.field_key}"
+
+
+class GuideSection(models.Model):
+    """Model to store guide section configs"""
+
+    id = models.CharField(max_length=100, primary_key=True)
+    title = models.CharField(max_length=255)
+    order = models.IntegerField(default=0)
+    show_divider_after = models.BooleanField(default=False)
+    category = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["order"]
+
+    def __str__(self):
+        return self.title
 
 
 class AdminOptions(CommonModel):
@@ -28,6 +72,12 @@ class AdminOptions(CommonModel):
         null=True,
         blank=True,
         related_name="admin",
+    )
+
+    guide_content = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Stores all guide content with field keys as dictionary keys",
     )
 
     # ADMIN
@@ -104,6 +154,18 @@ class AdminOptions(CommonModel):
         null=True,
         help_text="Provide RTE data to be displayed on the guide for annual report",
     )
+
+    # Helper methods for working with the new guide_content field
+    def get_guide_content(self, field_key):
+        """Get content for a specific field key"""
+        return self.guide_content.get(field_key, "")
+
+    def set_guide_content(self, field_key, content):
+        """Set content for a specific field key"""
+        if not self.guide_content:
+            self.guide_content = {}
+        self.guide_content[field_key] = content
+        self.save(update_fields=["guide_content"])
 
     def clean(self):
         # Ensure only one instance of AdminOptions exists

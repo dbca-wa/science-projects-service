@@ -20,13 +20,22 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.db import transaction
 
-from adminoptions.models import AdminOptions, AdminTask, Caretaker
+from adminoptions.models import (
+    AdminOptions,
+    AdminTask,
+    Caretaker,
+    ContentField,
+    GuideSection,
+)
 from adminoptions.serializers import (
     AdminOptionsMaintainerSerializer,
     AdminOptionsSerializer,
     AdminTaskRequestCreationSerializer,
     AdminTaskSerializer,
     CaretakerSerializer,
+    ContentFieldSerializer,
+    GuideSectionCreateUpdateSerializer,
+    GuideSectionSerializer,
 )
 from agencies.models import BusinessArea
 from documents.models import ProjectDocument
@@ -38,6 +47,8 @@ from projects.models import Project, ProjectMember
 from communications.models import Comment
 import users
 from users.models import User
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 # endregion  =================================================================================================
 
@@ -135,6 +146,8 @@ class AdminControlsDetail(APIView):
         )
         if ser.is_valid():
             udpated_admin_options = ser.save()
+            print(req.data)
+            print(udpated_admin_options)
             return Response(
                 AdminOptionsSerializer(udpated_admin_options).data,
                 status=HTTP_202_ACCEPTED,
@@ -145,6 +158,148 @@ class AdminControlsDetail(APIView):
                 ser.errors,
                 status=HTTP_400_BAD_REQUEST,
             )
+
+    @action(detail=True, methods=["post"])
+    def update_guide_content(self, req, pk):
+        """Update a specific guide content field"""
+        AdminControl = self.go(pk)
+        field_key = req.data.get("field_key")
+        content = req.data.get("content")
+
+        print(f"Received update request for field_key: {field_key}")
+        print(f"Content length: {len(content) if content else 'None'}")
+
+        if field_key and content is not None:
+            # Initialize guide_content if it doesn't exist or is None
+            if (
+                not hasattr(AdminControl, "guide_content")
+                or AdminControl.guide_content is None
+            ):
+                AdminControl.guide_content = {}
+
+            # Make sure guide_content is a dict
+            if not isinstance(AdminControl.guide_content, dict):
+                AdminControl.guide_content = {}
+
+            # Update the specific field
+            AdminControl.guide_content[field_key] = content
+
+            # Save with the full object, not just the field
+            AdminControl.save()
+
+            # Double-check the save worked
+            refreshed = AdminOptions.objects.get(pk=AdminControl.pk)
+            saved_content = (
+                refreshed.guide_content.get(field_key)
+                if refreshed.guide_content
+                else None
+            )
+            print(
+                f"Saved content length for {field_key}: {len(saved_content) if saved_content else 'None'}"
+            )
+
+            settings.LOGGER.info(
+                msg=f"{req.user} updated guide content field {field_key}"
+            )
+            return Response({"status": "content updated"}, status=HTTP_200_OK)
+
+        print(
+            f"Missing data: field_key={field_key}, content={'Present' if content else 'Missing'}"
+        )
+        return Response(
+            {"error": "field_key and content are required"}, status=HTTP_400_BAD_REQUEST
+        )
+
+
+# Add new viewsets for GuideSection and ContentField
+class GuideSectionViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing guide sections"""
+
+    queryset = GuideSection.objects.all().order_by("order")
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def get_serializer_class(self):
+        if self.action in ["create", "update", "partial_update"]:
+            return GuideSectionCreateUpdateSerializer
+        return GuideSectionSerializer
+
+    def perform_create(self, serializer):
+        section = serializer.save()
+        settings.LOGGER.info(
+            msg=f"{self.request.user} created guide section {section.id}"
+        )
+
+    def perform_update(self, serializer):
+        section = serializer.save()
+        settings.LOGGER.info(
+            msg=f"{self.request.user} updated guide section {section.id}"
+        )
+
+    def perform_destroy(self, instance):
+        settings.LOGGER.info(
+            msg=f"{self.request.user} deleted guide section {instance.id}"
+        )
+        instance.delete()
+
+    @action(detail=False, methods=["post"])
+    def reorder(self, request):
+        """Endpoint to reorder sections"""
+        section_ids = request.data.get("section_ids", [])
+
+        for index, section_id in enumerate(section_ids):
+            try:
+                section = GuideSection.objects.get(id=section_id)
+                section.order = index
+                section.save(update_fields=["order"])
+            except GuideSection.DoesNotExist:
+                pass
+
+        settings.LOGGER.info(msg=f"{request.user} reordered guide sections")
+        return Response({"status": "sections reordered"}, status=HTTP_200_OK)
+
+    @action(detail=True, methods=["post"])
+    def reorder_fields(self, request, pk=None):
+        """Endpoint to reorder content fields within a section"""
+        field_ids = request.data.get("field_ids", [])
+
+        for index, field_id in enumerate(field_ids):
+            try:
+                field = ContentField.objects.get(id=field_id, section_id=pk)
+                field.order = index
+                field.save(update_fields=["order"])
+            except ContentField.DoesNotExist:
+                pass
+
+        settings.LOGGER.info(
+            msg=f"{request.user} reordered content fields in section {pk}"
+        )
+        return Response({"status": "content fields reordered"}, status=HTTP_200_OK)
+
+
+class ContentFieldViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing content fields within guide sections"""
+
+    queryset = ContentField.objects.all()
+    serializer_class = ContentFieldSerializer
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def perform_create(self, serializer):
+        field = serializer.save()
+        settings.LOGGER.info(
+            msg=f"{self.request.user} created content field {field.id}"
+        )
+
+    def perform_update(self, serializer):
+        field = serializer.save()
+        settings.LOGGER.info(
+            msg=f"{self.request.user} updated content field {field.id}"
+        )
+
+    def perform_destroy(self, instance):
+        settings.LOGGER.info(
+            msg=f"{self.request.user} deleted content field {instance.id}"
+        )
+        instance.delete()
 
 
 class AdminTasks(APIView):
