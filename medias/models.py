@@ -54,6 +54,8 @@ class AnnualReportMedia(CommonModel):
         COLLABORATIONSCHAPTER = "collaborations", "Collaborations"
         STUDENTPROJECTSCHAPTER = "student_projects", "Student Projects"
         PUBLICATIONSCHAPTER = "publications", "Publications"
+        DBCAIMAGE = "dbca_image", "DBCA Image"
+        DBCABANNER = "dbca_banner", "DBCA Banner"
 
     file = models.ImageField(upload_to="annual_reports/images/", null=True, blank=True)
     size = models.PositiveIntegerField(default=0)  # New size field

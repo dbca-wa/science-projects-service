@@ -4477,6 +4477,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
         #     settings.BASE_DIR, "documents", "BCSTransparent.png"
         # )
         dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
+        print(f"\nDBCA IMAGE PATH: {dbca_image_path}\n")
 
         # dbca_cropped_image_path = os.path.join(
         #     settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
@@ -4506,6 +4507,14 @@ class BeginUnapprovedReportDocGeneration(APIView):
             return formatted_datetime
 
         settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
+
+        # TODO: Get DBCA Banner from AR Medias ()
+        dbca_banner = self.get_ar_media(pk=report.pk, kind="dbca_banner")
+        dbca_banner = (
+            f"{settings.BASE_DIR}{dbca_banner.file.url}" if dbca_banner else None
+        )
+        print(f"DBCA Banner: ", dbca_banner)
+
         try:
             html_content = get_template("annual_report.html").render(
                 {
@@ -4513,7 +4522,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     # "rte_css_path": rte_css_path,
                     "time_generated": get_formatted_datetime(datetime.datetime.now()),
                     "prince_css_path": prince_css_path,
-                    "dbca_image_path": dbca_image_path,
+                    "dbca_image_path": dbca_banner,
                     "dbca_cropped_image_path": dbca_cropped_image_path,
                     "no_image_path": no_image_path,
                     "server_url": (
