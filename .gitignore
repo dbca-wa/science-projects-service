@@ -8,7 +8,6 @@ legacy_data
 SMB_Mosaic_2023.tif
 
 # *.csv
-.DS_Store
 *.DS_Store
 *.dump
 *.sql
