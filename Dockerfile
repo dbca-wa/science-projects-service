@@ -41,30 +41,42 @@ RUN echo "Downloading and Installing Prince Package based on architecture" \
     && DEB_FILE=prince.deb \
     && ARCH=$(dpkg --print-architecture) \
     && if [ "$ARCH" = "arm64" ]; then \
-    PRINCE_URL="https://www.princexml.com/download/prince_20250207-1_debian12_arm64.deb"; \
-    #  https://www.princexml.com/download/prince_15.4.1-1_debian12_arm64.deb"; \
+    PRINCE_URL="https://www.princexml.com/download/prince_16-1_debian12_arm64.deb"; \
     else \
-    PRINCE_URL="https://www.princexml.com/download/prince_20250207-1_debian12_amd64.deb"; \
-    #  https://www.princexml.com/download/prince_15.4.1-1_debian12_amd64.deb"; \
+    PRINCE_URL="https://www.princexml.com/download/prince_16-1_debian12_amd64.deb"; \
     fi \
+    # && if [ "$ARCH" = "arm64" ]; then \
+    # PRINCE_URL="https://www.princexml.com/download/prince_20250207-1_debian12_arm64.deb"; \
+    # #  https://www.princexml.com/download/prince_15.4.1-1_debian12_arm64.deb"; \
+    # else \
+    # PRINCE_URL="https://www.princexml.com/download/prince_20250207-1_debian12_amd64.deb"; \
+    # #  https://www.princexml.com/download/prince_15.4.1-1_debian12_amd64.deb"; \
+    # fi \
     && echo "Detected architecture: $ARCH, downloading from $PRINCE_URL" \
-    && wget -O ${DEB_FILE} $PRINCE_URL 
-
-# Prince installer
-RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
-    gdebi
-
-# Install Prince
-RUN echo "Installing Prince stuff" \
-    && DEB_FILE=prince.deb \
-    && yes | gdebi ${DEB_FILE}  \
-    && echo "Cleaning up" \
+    && wget -O ${DEB_FILE} $PRINCE_URL \
+    && apt-get update \
+    # continue trying to install if deps issue
+    && dpkg -i ${DEB_FILE} || true \ 
+    && apt-get install -f -y \
     && rm -f ${DEB_FILE} \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Set Prince location
-ENV PATH="${PATH}:/usr/lib/prince/bin"
+# # Prince installer
+# RUN apt-get update && apt-get install -y -o Acquire::Retries=4 --no-install-recommends \
+#     gdebi
+
+# # Install Prince
+# RUN echo "Installing Prince stuff" \
+#     && DEB_FILE=prince.deb \
+#     && yes | gdebi ${DEB_FILE}  \
+#     && echo "Cleaning up" \
+#     && rm -f ${DEB_FILE} \
+#     && apt-get clean \
+#     && rm -rf /var/lib/apt/lists/*
+
+# # Set Prince location
+# ENV PATH="${PATH}:/usr/lib/prince/bin"
 
 # Delete non-commercial license of Prince
 RUN rm -f /usr/lib/prince/license/license.dat
