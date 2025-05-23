@@ -3,7 +3,7 @@
 
 # Use the local version that works with poetry config when testing in dev (3.12.3)
 # FROM python:3.12.6
-FROM python:3.13.2
+FROM python:slim
 LABEL org.opencontainers.image.source=https://github.com/dbca-wa/science-project-service
 # Ensures Python output sent to terminal for logging
 ENV PYTHONUNBUFFERED=1
@@ -14,11 +14,13 @@ ENV TZ="Australia/Perth"
 
 # ====================== OS LEVEL DEPENDENCIES & POSTGRES ======================
 
-# RUN wget -qO- https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo tee /etc/apt/trusted.gpg.d/pgdg.asc &>/dev/null
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
-    # postgresql postgresql-client \
-    vim wget ncdu systemctl 
+    vim wget ncdu systemctl \
+    #Slim build required tools 
+    curl wget ca-certificates \
+    # Poetry
+    build-essential gcc g++ dpkg-dev
 RUN apt-get upgrade -y
 
 # Set working dir of project
