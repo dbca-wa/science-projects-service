@@ -967,7 +967,11 @@ class StaffProfiles(APIView):
                 user.position = user_data.get("title")
 
                 # Filter users based on BCS division
-                if user.division == "Biodiversity and Conservation Science":
+                if (
+                    user.division == "Biodiversity and Conservation Science"
+                    or user.division
+                    == "Dept Biodiversity, Conservation and Attractions"
+                ):
                     updated_users.append(user)
 
         total_users = len(updated_users)

@@ -125,7 +125,7 @@ class DBCAMiddleware(MiddlewareMixin):
                 # Create PublicStaffProfile with whatever data we have (even if none)
                 PublicStaffProfile.objects.create(
                     user=user,
-                    is_hidden=False,
+                    is_hidden=True,
                     it_asset_id=it_asset_id,
                     employee_id=employee_id,
                 )
