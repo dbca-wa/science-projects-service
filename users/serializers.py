@@ -584,8 +584,10 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
         return obj.staff_profile.is_hidden
 
     def get_business_area_led(self, obj):
-        if obj.business_areas_led.exists():
-            return obj.business_areas_led.first().name
+        # This should now be efficient due to prefetch_related (N+1 optimisation in api view)
+        business_areas = obj.business_areas_led.all()
+        if business_areas:
+            return business_areas[0].name
         return None
 
     def get_caretakers(self, obj):

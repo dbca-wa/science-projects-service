@@ -864,6 +864,22 @@ class StaffProfiles(APIView):
         end = start + page_size
 
         search_term = req.GET.get("searchTerm")
+        # New parameter to control showing hidden profiles (admin only)
+        show_hidden = req.GET.get("showHidden", "false").lower() == "true"
+
+        # Build optimized base queryset with all necessary relations
+        base_queryset = (
+            User.objects.filter(is_staff=True)
+            .select_related(
+                "staff_profile",  # Prevents N+1 queries for staff_profile access
+                "work",  # For work.role access in serializer
+                "work__branch",  # For work.branch access in serializer
+                "work__business_area",  # For potential business_area access
+            )
+            .prefetch_related(
+                "business_areas_led",  # For business_areas_led.exists() and .first()
+            )
+        )
 
         if search_term:
             # Check if there is a space in the search term (fn + ln)
@@ -874,43 +890,38 @@ class StaffProfiles(APIView):
                 first_name = search_parts[0]
                 # Join remaining parts as last name (for instances more than 2 words)
                 last_name = " ".join(search_parts[1:])
-                users = User.objects.filter(is_staff=True).filter(
+                users = base_queryset.filter(
                     Q(first_name__icontains=first_name)
                     & Q(last_name__icontains=last_name)
                 )
             else:
                 # Single word search
-                users = User.objects.filter(is_staff=True).filter(
+                users = base_queryset.filter(
                     Q(first_name__icontains=search_term)
-                    | Q(
-                        last_name__icontains=search_term
-                    )  # Fixed: using search_term instead of undefined last_name
+                    | Q(last_name__icontains=search_term)
                 )
         else:
-            users = User.objects.filter(is_staff=True).all()
+            users = base_queryset.all()
 
-        # Exclude hidden staff profiles (if user is not staff)
-        # If they are staff and are admin, get all staff profiles
-        # If they are staff and are not admin, get all staff profiles from their business area
-
-        # If anonymous user, exclude hidden profiles
+        # Handle hidden profile filtering based on user permissions
         if not req.user.is_authenticated:
+            # Anonymous users: exclude hidden profiles
             users = users.exclude(staff_profile__is_hidden=True)
-        # If authenticated user
+        elif req.user.is_staff and req.user.is_superuser:
+            # Admin users: show/hide based on showHidden parameter
+            if not show_hidden:
+                users = users.exclude(staff_profile__is_hidden=True)
+            # If show_hidden=true, don't exclude any profiles
+        elif req.user.is_staff and req.user.business_areas_led.exists():
+            # Staff user without admin privileges, show profiles from their business area
+            users = users.filter(work__business_area=req.user.work.business_area)
+            # Also exclude hidden profiles for non-admin staff
+            users = users.exclude(staff_profile__is_hidden=True)
         else:
-            # If staff user with admin privileges, show all profiles
-            if req.user.is_staff and req.user.is_superuser:
-                pass  # Don't exclude any profiles
-            # If staff user without admin privileges, show profiles from their business area (if )
-            elif req.user.is_staff and req.user.business_areas_led.exists():
-                users = users.filter(work__business_area=req.user.work.business_area)
-            # In all other cases (bot ba or admin, but staff), exclude hidden profiles except their own
-            else:
-                users = users.exclude(
-                    ~Q(id=req.user.id) & Q(staff_profile__is_hidden=True)
-                )
+            # All other authenticated users: exclude hidden profiles except their own
+            users = users.exclude(~Q(id=req.user.id) & Q(staff_profile__is_hidden=True))
 
-        # Sort users alphabetically based on email
+        # Sort users alphabetically based on display name
         users = users.annotate(
             display_name=Case(
                 When(
@@ -947,18 +958,22 @@ class StaffProfiles(APIView):
                 f"Failed to fetch Staff Profile data (IT ASSETS issue): {response.status_code} {response.text}"
             )
             it_asset_data_by_email = {}  # Empty dict if API call fails
+
         # Process each user and update their it_asset_id if needed
         updated_users = []
+        profiles_to_update = []  # Batch updates for better performance
+
         for user in users:
             user_data = it_asset_data_by_email.get(user.email)
             if user_data:
+                # Check if profile needs updating and batch them
                 if (
                     user.staff_profile.it_asset_id is None
                     or user.staff_profile.employee_id is None
                 ):
                     user.staff_profile.it_asset_id = user_data.get("id")
                     user.staff_profile.employee_id = user_data.get("employee_id")
-                    user.staff_profile.save()
+                    profiles_to_update.append(user.staff_profile)
 
                 # Dynamically add API response fields to the user object (without saving)
                 user.division = user_data.get("division")
@@ -974,6 +989,11 @@ class StaffProfiles(APIView):
                 ):
                     updated_users.append(user)
 
+        # Batch save profiles that need updating
+        if profiles_to_update:
+            for profile in profiles_to_update:
+                profile.save()
+
         total_users = len(updated_users)
         total_pages = ceil(total_users / page_size)
 
@@ -986,6 +1006,10 @@ class StaffProfiles(APIView):
             "total_results": total_users,
             "page": page,
             "total_pages": total_pages,
+            # Add flag to indicate if hidden profiles are being shown
+            "showing_hidden": req.user.is_authenticated
+            and req.user.is_superuser
+            and show_hidden,
         }
 
         return Response(response_data, status=HTTP_200_OK)
