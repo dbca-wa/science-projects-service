@@ -1855,7 +1855,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         ba_input_required = []
         directorate_input_required = []
 
-        # Optimized query with select_related
+        # Optimize this query with select_related
         small_user_object = (
             User.objects.filter(pk=req.user.pk)
             .select_related("work", "work__business_area")
@@ -1900,11 +1900,11 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                     .select_related(
                         "project",
                         "project__business_area",
-                        "project__business_area__image",  # Fix N+1 for business area photos
-                        "project__business_area__division",  # Fix N+1 for division data
-                        "project__image",  # Fix N+1 for project photos
-                        "project__image__uploader",  # Fix N+1 for photo uploader
-                        "pdf",  # Fix N+1 for document PDF
+                        "project__business_area__image",  # OneToOne
+                        "project__business_area__division",  # For division data
+                        "project__image",  # OneToOne project image
+                        "project__image__uploader",  # Image uploader
+                        "pdf",  # Document PDF
                     )
                     .all()
                 )
@@ -1944,7 +1944,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 documents.extend(docs_requiring_directorate_attention)
                 directorate_input_required.extend(docs_requiring_directorate_attention)
 
-            # Lead Filtering - optimize the membership query
+            # Lead Filtering - optimized the membership query
             all_leader_memberships = ProjectMember.objects.filter(
                 project__in=active_projects, user=small_user_object, is_leader=True
             ).select_related("project")
@@ -1981,7 +1981,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 if doc.project_id in lead_project_ids:
                     pl_input_required.append(doc)
 
-            # Project membership attention required - optimize this query too
+            # optimized this query too (N+1)
             my_non_leader_memberships = (
                 ProjectMember.objects.filter(user=req.user, is_leader=False)
                 .select_related("project")
