@@ -1728,9 +1728,18 @@ class MyProjects(APIView):
                 {"detail": "You are not logged in."}, status=HTTP_401_UNAUTHORIZED
             )
 
-        # Get project memberships with prefetched projects
-        user_memberships = ProjectMember.objects.filter(user=req.user).select_related(
-            "project", "project__business_area", "project__image"
+        # Get project memberships with comprehensive prefetching to prevent N+1
+        user_memberships = (
+            ProjectMember.objects.filter(user=req.user)
+            .select_related(
+                "project",
+                "project__business_area",
+                "project__business_area__division",  # For TinyDivisionSerializer
+                "project__image",
+            )
+            .prefetch_related(
+                "project__business_area__businessareaphoto_set",
+            )
         )
 
         projects_with_roles = [

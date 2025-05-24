@@ -445,7 +445,18 @@ class BusinessAreas(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, req):
-        all = BusinessArea.objects.all()
+        # Added select_related and prefetch_related to prevent N+1 queries
+        all = (
+            BusinessArea.objects.select_related(
+                "division",  # For TinyDivisionSerializer
+                "image",  # For BusinessAreaImageSerializer (OneToOne)
+            )
+            .prefetch_related(
+                "division__directorate_email_list",  # For division email list queries
+            )
+            .all()
+        )
+
         ser = TinyBusinessAreaSerializer(
             all,
             many=True,
@@ -562,8 +573,13 @@ class BusinessAreas(APIView):
                         response_data, status=HTTP_500_INTERNAL_SERVER_ERROR
                     )
 
+                # Return optimized response - fetch the new business area with relations
+                optimized_ba = BusinessArea.objects.select_related(
+                    "division", "image"
+                ).get(pk=new_business_area.pk)
+
                 return Response(
-                    TinyBusinessAreaSerializer(new_business_area).data,
+                    TinyBusinessAreaSerializer(optimized_ba).data,
                     status=HTTP_201_CREATED,
                 )
         else:

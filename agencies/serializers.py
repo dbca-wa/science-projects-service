@@ -204,8 +204,21 @@ class BusinessAreaNameViewSerializer(serializers.ModelSerializer):
         ordering = ["name"]
 
 
+class BusinessAreaImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BusinessAreaPhoto
+        fields = ["pk", "file"]
+
+    def to_representation(self, instance):
+        return {
+            "pk": instance.pk,
+            "file": instance.file.url if instance.file else None,
+        }
+
+
 class TinyBusinessAreaSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
+    # Use the direct OneToOne relationship with medias app
+    image = BusinessAreaImageSerializer(read_only=True)
     division = TinyDivisionSerializer(read_only=True)
 
     class Meta:
@@ -217,7 +230,7 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             "focus",
             "division",
             "introduction",
-            "image",
+            "image",  # OneToOne relation (prevent N+1)
             "leader",
             "caretaker",
             "finance_admin",
@@ -225,25 +238,6 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
             "is_active",
         )
         ordering = ["name"]
-
-    def get_image(self, obj):
-        try:
-            # Retrieve the related BusinessAreaPhoto object
-            business_area_photo = BusinessAreaPhoto.objects.get(business_area=obj)
-
-            # Get the image URL (choose old_file or file based on your requirement)
-            pk = business_area_photo.pk
-            if business_area_photo.file:
-                file = business_area_photo.file.url
-            else:
-                file = None
-            return {
-                "pk": pk,
-                "file": file,
-            }
-        except BusinessAreaPhoto.DoesNotExist:
-            # Return None if the image is not available
-            return None
 
 
 # endregion  =================================================================================================

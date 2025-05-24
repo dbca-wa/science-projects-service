@@ -1854,7 +1854,14 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         pl_input_required = []
         ba_input_required = []
         directorate_input_required = []
-        small_user_object = User.objects.filter(pk=req.user.pk).first()
+
+        # Optimized query with select_related
+        small_user_object = (
+            User.objects.filter(pk=req.user.pk)
+            .select_related("work", "work__business_area")
+            .prefetch_related("business_areas_led")
+            .first()
+        )
 
         if small_user_object:
             ba = small_user_object.work.business_area
@@ -1880,7 +1887,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 # Extract project IDs for Business Area
                 ba_project_ids = ba_projects.values_list("id", flat=True)
 
-                # Fetch all documents requiring BA attention in a single query
+                # Fetch all documents requiring BA attention with optimized relationships
                 docs_requiring_ba_attention = (
                     ProjectDocument.objects.exclude(
                         status=ProjectDocument.StatusChoices.APPROVED
@@ -1889,6 +1896,15 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                         project__in=ba_project_ids,
                         project_lead_approval_granted=True,
                         business_area_lead_approval_granted=False,
+                    )
+                    .select_related(
+                        "project",
+                        "project__business_area",
+                        "project__business_area__image",  # Fix N+1 for business area photos
+                        "project__business_area__division",  # Fix N+1 for division data
+                        "project__image",  # Fix N+1 for project photos
+                        "project__image__uploader",  # Fix N+1 for photo uploader
+                        "pdf",  # Fix N+1 for document PDF
                     )
                     .all()
                 )
@@ -1902,7 +1918,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 # Extract project IDs for Directorate
                 directorate_project_ids = active_projects.values_list("id", flat=True)
 
-                # Fetch all documents requiring Directorate attention in a single query
+                # Fetch all documents requiring Directorate attention with optimized relationships
                 docs_requiring_directorate_attention = (
                     ProjectDocument.objects.exclude(
                         status=ProjectDocument.StatusChoices.APPROVED
@@ -1912,6 +1928,15 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                         business_area_lead_approval_granted=True,
                         directorate_approval_granted=False,
                     )
+                    .select_related(
+                        "project",
+                        "project__business_area",
+                        "project__business_area__image",  # Fix N+1 for business area photos
+                        "project__business_area__division",  # Fix N+1 for division data
+                        "project__image",  # Fix N+1 for project photos
+                        "project__image__uploader",  # Fix N+1 for photo uploader
+                        "pdf",  # Fix N+1 for document PDF
+                    )
                     .all()
                 )
 
@@ -1919,7 +1944,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 documents.extend(docs_requiring_directorate_attention)
                 directorate_input_required.extend(docs_requiring_directorate_attention)
 
-            # Lead Filtering
+            # Lead Filtering - optimize the membership query
             all_leader_memberships = ProjectMember.objects.filter(
                 project__in=active_projects, user=small_user_object, is_leader=True
             ).select_related("project")
@@ -1929,7 +1954,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 membership.project_id for membership in all_leader_memberships
             ]
 
-            # Fetch all documents requiring lead attention in a single query
+            # Fetch all documents requiring lead attention with optimized relationships
             docs_requiring_lead_attention = (
                 ProjectDocument.objects.exclude(
                     status=ProjectDocument.StatusChoices.APPROVED
@@ -1937,6 +1962,15 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 .filter(
                     project__in=lead_project_ids,
                     project_lead_approval_granted=False,
+                )
+                .select_related(
+                    "project",
+                    "project__business_area",
+                    "project__business_area__image",  # Fix N+1 for business area photos
+                    "project__business_area__division",  # Fix N+1 for division data
+                    "project__image",  # Fix N+1 for project photos
+                    "project__image__uploader",  # Fix N+1 for photo uploader
+                    "pdf",  # Fix N+1 for document PDF
                 )
                 .all()
             )
@@ -1947,20 +1981,34 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 if doc.project_id in lead_project_ids:
                     pl_input_required.append(doc)
 
-            # Project membership attention required
-            my_non_leader_memberships = ProjectMember.objects.filter(
-                user=req.user, is_leader=False
-            ).all()
-            my_projects = []
-            for membership in my_non_leader_memberships:
-                my_projects.append(membership.project)
+            # Project membership attention required - optimize this query too
+            my_non_leader_memberships = (
+                ProjectMember.objects.filter(user=req.user, is_leader=False)
+                .select_related("project")
+                .all()
+            )
+
+            my_projects = [
+                membership.project for membership in my_non_leader_memberships
+            ]
+
             docs_requiring_team_attention = (
                 ProjectDocument.objects.exclude(
                     status=ProjectDocument.StatusChoices.APPROVED
                 )
                 .filter(project_lead_approval_granted=False, project__in=my_projects)
+                .select_related(
+                    "project",
+                    "project__business_area",
+                    "project__business_area__image",  # Fix N+1 for business area photos
+                    "project__business_area__division",  # Fix N+1 for division data
+                    "project__image",  # Fix N+1 for project photos
+                    "project__image__uploader",  # Fix N+1 for photo uploader
+                    "pdf",  # Fix N+1 for document PDF
+                )
                 .all()
             )
+
             for doc in docs_requiring_team_attention:
                 documents.append(doc)
                 member_input_required.append(doc)

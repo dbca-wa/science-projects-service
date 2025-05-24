@@ -347,6 +347,7 @@ class TinyProjectPhotoSerializer(ModelSerializer):
                 "id": project.id,
                 "title": project.title,
             }
+        return None  # Add explicit return for None case
 
     def get_uploader(self, obj):
         uploader = obj.uploader
@@ -355,6 +356,7 @@ class TinyProjectPhotoSerializer(ModelSerializer):
                 "id": uploader.id,
                 "username": uploader.username,
             }
+        return None  # Add explicit return for None case
 
 
 class ProjectPhotoSerializer(ModelSerializer):
