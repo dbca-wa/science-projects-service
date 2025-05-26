@@ -4230,10 +4230,10 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     )
                     & (
                         Q(
-                            project__business_area__division__name="Biodiversity and Conservation Science"
+                            business_area__division__name="Biodiversity and Conservation Science"
                         )
                         | Q(
-                            project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                            business_area__division__name="Dept Biodiversity, Conservation and Attractions"
                         )
                     )
                 )
@@ -4812,15 +4812,15 @@ class BeginReportDocGeneration(APIView):
                 & Q(status="active")
                 & (  # Group the OR conditions within parentheses
                     Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
+                        business_area__division__name="Biodiversity and Conservation Science"
                     )
                     | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        business_area__division__name="Dept Biodiversity, Conservation and Attractions"
                     )
                 )
             ).exclude(
                 # Only exclude if division name is null
-                Q(project__business_area__division__name__isnull=True)
+                Q(business_area__division__name__isnull=True)
             )
 
             # REPLACE WITH AR EXT PROJECT SERIALIAZER
