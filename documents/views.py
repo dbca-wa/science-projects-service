@@ -4250,7 +4250,6 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 .order_by("title")
             )
 
-            # REPLACE WITH AR EXT PROJECT SERIALIAZER
             proj_ser = ARExternalProjectSerializer(
                 active_external_projects,
                 many=True,
