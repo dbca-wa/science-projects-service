@@ -4253,12 +4253,18 @@ class BeginUnapprovedReportDocGeneration(APIView):
                 )
             )
 
-            active_pr_docs = ProgressReport.objects.filter(Q(report=report)).exclude(
-                Q(project__business_area__division__name__isnull=True)
-                | ~Q(
-                    project__business_area__division__name="Biodiversity and Conservation Science"
+            active_pr_docs = ProgressReport.objects.filter(
+                Q(report=report)
+                & (
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(project__id=1127)  # dieback dogs 1127
+                    # | Q(
+                    #     project__id=1067
+                    # )  # dieback dogs ID 1067 # dev test dieback detector dogs
                 )
-            )
+            ).exclude(Q(project__business_area__division__name__isnull=True))
 
             def removeempty_p(html_content):
                 html_content = re.sub(r"<p>(&nbsp;|\s)*</p>", "", html_content)
@@ -4266,12 +4272,31 @@ class BeginUnapprovedReportDocGeneration(APIView):
 
                 return html_content
 
+            # plant_science_ba = BusinessArea.objects.get(
+            #     name="Plant Science and Herbarium"
+            # )
+
+            # Create a an in-memory ba mod to retain original ba
+            class MockBusinessArea:
+                def __init__(self, name):
+                    self.name = name
+
             for report in active_pr_docs:
                 report.context = removeempty_p(report.context)
                 report.aims = removeempty_p(report.aims)
                 report.progress = removeempty_p(report.progress)
                 report.implications = removeempty_p(report.implications)
                 report.future = removeempty_p(report.future)
+                if (
+                    report.document.project.pk
+                    == 1127
+                    # or report.document.project.pk == 1067 # dev
+                ):
+                    # Temporarily set the business_area to a mock object
+                    # This only affects the instance in memory, not the database (no save required)
+                    report.document.project.business_area = MockBusinessArea(
+                        "Plant Science and Herbarium"
+                    )
 
             for sreport in active_sr_docs:
                 sreport.progress_report = removeempty_p(sreport.progress_report)
@@ -4790,13 +4815,17 @@ class BeginReportDocGeneration(APIView):
             )
 
             active_pr_docs = ProgressReport.objects.filter(
-                report=report, document__status="approved"
-            ).exclude(
-                Q(project__business_area__division__name__isnull=True)
-                | ~Q(
-                    project__business_area__division__name="Biodiversity and Conservation Science"
+                Q(report=report)
+                & (
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(project__id=1127)  # dieback dogs 1127
+                    # | Q(
+                    #     project__id=1067
+                    # )  # dieback dogs ID 1067 # dev test dieback detector dogs
                 )
-            )
+            ).exclude(Q(project__business_area__division__name__isnull=True))
 
             def removeempty_p(html_content):
                 html_content = re.sub(r"<p>(&nbsp;|\s)*</p>", "", html_content)
@@ -4804,12 +4833,27 @@ class BeginReportDocGeneration(APIView):
 
                 return html_content
 
+            # Create a an in-memory ba mod to retain original ba
+            class MockBusinessArea:
+                def __init__(self, name):
+                    self.name = name
+
             for report in active_pr_docs:
                 report.context = removeempty_p(report.context)
                 report.aims = removeempty_p(report.aims)
                 report.progress = removeempty_p(report.progress)
                 report.implications = removeempty_p(report.implications)
                 report.future = removeempty_p(report.future)
+                if (
+                    report.document.project.pk
+                    == 1127
+                    # or report.document.project.pk == 1067 # dev
+                ):
+                    # Temporarily set the business_area to a mock object
+                    # This only affects the instance in memory, not the database (no save required)
+                    report.document.project.business_area = MockBusinessArea(
+                        "Plant Science and Herbarium"
+                    )
 
             for sreport in active_sr_docs:
                 sreport.progress_report = removeempty_p(sreport.progress_report)
