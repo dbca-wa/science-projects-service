@@ -4320,8 +4320,7 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     == 1127
                     # or report.document.project.pk == 1067 # dev
                 ):
-                    # Temporarily set the business_area to a mock object
-                    # This only affects the instance in memory, not the database (no save required)
+                    # Temporarily set the business_area to a mock object not the database (no save required)
                     report.document.project.business_area = MockBusinessArea(
                         "Plant Science and Herbarium"
                     )
