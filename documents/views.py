@@ -619,13 +619,17 @@ class LatestYearsProgressReports(APIView):
             # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = ProgressReport.objects.filter(
-                report=latest_report, document__status="approved"
-            ).exclude(
-                Q(project__business_area__division__name__isnull=True)
-                | ~Q(
-                    project__business_area__division__name="Biodiversity and Conservation Science"
+                Q(report=latest_report)
+                & Q(document__status="approved")
+                & (
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    )
                 )
-            )
+            ).exclude(Q(project__business_area__division__name__isnull=True))
             ser = ProgressReportSerializer(
                 active_docs, many=True, context={"request": req}
             )
@@ -653,13 +657,17 @@ class LatestYearsStudentReports(APIView):
             # print(latest_report)
             # Get progress report documents which belong to it and belong to active and approved projects
             active_docs = StudentReport.objects.filter(
-                report=latest_report, document__status="approved"
-            ).exclude(
-                Q(project__business_area__division__name__isnull=True)
-                | ~Q(
-                    project__business_area__division__name="Biodiversity and Conservation Science"
+                Q(report=latest_report)
+                & Q(document__status="approved")
+                & (
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    )
                 )
-            )
+            ).exclude(Q(project__business_area__division__name__isnull=True))
             ser = StudentReportSerializer(
                 active_docs, many=True, context={"request": req}
             )
@@ -683,25 +691,35 @@ class LatestYearsInactiveReports(APIView):
         if latest_report:
             # Get progress report documents which belong to it and belong to active and approved projects
             inactive_srs = (
-                StudentReport.objects.filter(report=latest_report)
-                .exclude(document__status__in=["approved"])
-                .exclude(
-                    Q(project__business_area__division__name__isnull=True)
-                    | ~Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
+                StudentReport.objects.filter(
+                    Q(report=latest_report)
+                    & (
+                        Q(
+                            project__business_area__division__name="Biodiversity and Conservation Science"
+                        )
+                        | Q(
+                            project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        )
                     )
                 )
+                .exclude(document__status__in=["approved"])
+                .exclude(Q(project__business_area__division__name__isnull=True))
                 .all()
             )
             inactive_prs = (
-                ProgressReport.objects.filter(report=latest_report)
-                .exclude(document__status__in=["approved"])
-                .exclude(
-                    Q(project__business_area__division__name__isnull=True)
-                    | ~Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
+                ProgressReport.objects.filter(
+                    Q(report=latest_report)
+                    & (
+                        Q(
+                            project__business_area__division__name="Biodiversity and Conservation Science"
+                        )
+                        | Q(
+                            project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        )
                     )
                 )
+                .exclude(document__status__in=["approved"])
+                .exclude(Q(project__business_area__division__name__isnull=True))
                 .all()
             )
 
@@ -4210,13 +4228,16 @@ class BeginUnapprovedReportDocGeneration(APIView):
                             Project.CategoryKindChoices.EXTERNAL,
                         ]
                     )
-                )
-                .exclude(
-                    Q(business_area__division__name__isnull=True)
-                    | ~Q(
-                        business_area__division__name="Biodiversity and Conservation Science"
+                    & (
+                        Q(
+                            project__business_area__division__name="Biodiversity and Conservation Science"
+                        )
+                        | Q(
+                            project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        )
                     )
                 )
+                .exclude(Q(business_area__division__name__isnull=True))
                 .exclude(
                     Q(
                         status__in=[
@@ -4246,12 +4267,17 @@ class BeginUnapprovedReportDocGeneration(APIView):
             msg=f"Getting All Student & Progress Reports for current year"
         )
         if report:
-            active_sr_docs = StudentReport.objects.filter(Q(report=report)).exclude(
-                Q(project__business_area__division__name__isnull=True)
-                | ~Q(
-                    project__business_area__division__name="Biodiversity and Conservation Science"
+            active_sr_docs = StudentReport.objects.filter(
+                Q(report=report)
+                & (
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    )
                 )
-            )
+            ).exclude(Q(project__business_area__division__name__isnull=True))
 
             active_pr_docs = ProgressReport.objects.filter(
                 Q(report=report)
@@ -4259,11 +4285,14 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(project__id=1127)  # dieback dogs 1127
-                    # | Q(
-                    #     project__id=1067
-                    # )  # dieback dogs ID 1067 # dev test dieback detector dogs
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    )
                 )
+                # | Q(
+                #     project__id=1067
+                # )  # dieback dogs ID 1067 # dev test dieback detector dogs
+                | Q(project__id=1127)  # dieback dogs 1127
             ).exclude(Q(project__business_area__division__name__isnull=True))
 
             def removeempty_p(html_content):
@@ -4779,12 +4808,19 @@ class BeginReportDocGeneration(APIView):
         if report:
             # Get progress report documents which belong to it and belong to active and approved projects
             active_external_projects = Project.objects.filter(
-                kind="external", status="active"
-            ).exclude(
-                Q(business_area__division__name__isnull=True)
-                | ~Q(
-                    business_area__division__name="Biodiversity and Conservation Science"
+                Q(kind="external")
+                & Q(status="active")
+                & (  # Group the OR conditions within parentheses
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    )
                 )
+            ).exclude(
+                # Only exclude if division name is null
+                Q(project__business_area__division__name__isnull=True)
             )
 
             # REPLACE WITH AR EXT PROJECT SERIALIAZER
@@ -4806,12 +4842,19 @@ class BeginReportDocGeneration(APIView):
         if report:
             # Get progress report documents which belong to it and belong to active and approved projects
             active_sr_docs = StudentReport.objects.filter(
-                report=report, document__status="approved"
-            ).exclude(
-                Q(project__business_area__division__name__isnull=True)
-                | ~Q(
-                    project__business_area__division__name="Biodiversity and Conservation Science"
+                Q(report=report)
+                & Q(document__status="approved")
+                & (  # Group the OR conditions within parentheses
+                    Q(
+                        project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    )
                 )
+            ).exclude(
+                # Only exclude if division name is null
+                Q(project__business_area__division__name__isnull=True)
             )
 
             active_pr_docs = ProgressReport.objects.filter(
@@ -4819,6 +4862,9 @@ class BeginReportDocGeneration(APIView):
                 & (
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
+                    )
+                    | Q(
+                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
                     )
                     | Q(project__id=1127)  # dieback dogs 1127
                     # | Q(

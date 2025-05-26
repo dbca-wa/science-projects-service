@@ -720,6 +720,7 @@ class ActiveStaffProfileEmails(APIView):
                 item
                 for item in api_data
                 if item["division"] == "Biodiversity and Conservation Science"
+                or item["division"] == "Dept Biodiversity, Conservation and Attractions"
             ]
             # Search active staff emails in SPMS db
             spms_users = User.objects.filter(is_staff=True, is_active=True)

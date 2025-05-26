@@ -234,7 +234,11 @@ def generate_active_staff_csv(model_admin, request, selected):
                 user_data = it_asset_data_by_email.get(user.email, {})
 
                 # Only include BCS division staff
-                if user_data.get("division") == "Biodiversity and Conservation Science":
+                if (
+                    user_data.get("division") == "Biodiversity and Conservation Science"
+                    or user_data.get("division")
+                    == "Dept Biodiversity, Conservation and Attractions"
+                ):
                     writer.writerow(
                         [
                             user_data.get("id", ""),
