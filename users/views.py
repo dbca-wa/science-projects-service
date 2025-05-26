@@ -808,6 +808,8 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
                 and (
                     it_asset_data_by_email[email.lower()]["division"]
                     == "Biodiversity and Conservation Science"
+                    or it_asset_data_by_email[email.lower()]["division"]
+                    == "Dept Biodiversity, Conservation and Attractions"
                 )
             ):
                 staff_profile.it_asset_id = it_asset_data_by_email[email.lower()].get(
