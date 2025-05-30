@@ -414,6 +414,10 @@ class ProjectDataTableSerializer(ModelSerializer):
 
 
 class ProjectMemberSerializer(ModelSerializer):
+    def validate_role(self, value):
+        if not value or value == "":
+            raise serializers.ValidationError("Role is required.")
+        return value
 
     class Meta:
         model = ProjectMember
