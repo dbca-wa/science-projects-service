@@ -26,6 +26,8 @@ from .models import (
     StudentProjectDetails,
 )
 
+from common.utils import ProjectTeamMemberMixin
+
 # endregion ==============================================
 
 
@@ -68,23 +70,10 @@ class ARProjectSerializer(ModelSerializer):
         return representation
 
 
-class ARExternalProjectSerializer(ModelSerializer):
+class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
     team_members = serializers.SerializerMethodField()
     partners = serializers.SerializerMethodField()
     funding = serializers.SerializerMethodField()
-
-    def get_team_members(self, project):
-        try:
-            members = ProjectMember.objects.filter(project=project.pk).all()
-            serialized_members = []
-            for member in members:
-                ser = MiniProjectMemberSerializer(member)
-                serialized_members.append(ser.data)
-        except ProjectMember.DoesNotExist:
-            print("error on team")
-            raise NotFound
-        else:
-            return serialized_members
 
     def get_partners(self, project):
         try:
@@ -256,24 +245,24 @@ class TinyStudentProjectARSerializer(ModelSerializer):
 
 
 class ProjectAreaSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = ProjectArea
         fields = "__all__"
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        areas = instance.areas  # Access the list of area IDs directly
+        areas = instance.areas  # List of area IDs
 
-        # Fetch the related Area objects using the area IDs
-        try:
-            area_objects = Area.objects.filter(pk__in=areas)
-        except Area.DoesNotExist:
-            area_objects = []
-
-        # Serialize the Area objects using the TinyAreaSerializer
-        area_serializer = TinyAreaSerializer(area_objects, many=True)
-        representation["areas"] = area_serializer.data
+        # Fetch all areas in one query instead of individual lookups
+        if areas:
+            try:
+                area_objects = Area.objects.filter(pk__in=areas)
+                area_serializer = TinyAreaSerializer(area_objects, many=True)
+                representation["areas"] = area_serializer.data
+            except Area.DoesNotExist:
+                representation["areas"] = []
+        else:
+            representation["areas"] = []
 
         return representation
 

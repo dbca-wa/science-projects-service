@@ -1220,25 +1220,93 @@ class ProjectMap(APIView):
 class ProjectDetails(APIView):
     def go(self, pk):
         try:
-            obj = Project.objects.get(pk=pk)
+            # Optimise the main project query with all related data
+            obj = (
+                Project.objects.select_related(
+                    "business_area",
+                    "business_area__division",
+                    "business_area__division__director",
+                    "business_area__division__approver",
+                    "business_area__leader",
+                    "business_area__caretaker",
+                    "business_area__finance_admin",
+                    "business_area__data_custodian",
+                    "business_area__image",
+                    "image",  # ProjectPhoto
+                    "image__uploader",
+                    "area",  # ProjectArea
+                )
+                .prefetch_related(
+                    "business_area__division__directorate_email_list",
+                )
+                .get(pk=pk)
+            )
         except Project.DoesNotExist:
             raise NotFound
         return obj
 
     def get_full_object(self, pk):
         try:
-            obj = Project.objects.get(pk=pk)
+            obj = (
+                Project.objects.select_related(
+                    "business_area",
+                    "business_area__division",
+                    "business_area__division__director",
+                    "business_area__division__approver",
+                    "business_area__leader",
+                    "business_area__caretaker",
+                    "business_area__finance_admin",
+                    "business_area__data_custodian",
+                    "business_area__image",
+                    "image",  # ProjectPhoto
+                    "image__uploader",
+                    "area",  # ProjectArea
+                )
+                .prefetch_related(
+                    "business_area__division__directorate_email_list",
+                )
+                .get(pk=pk)
+            )
         except Project.DoesNotExist:
             raise NotFound
         else:
-            base_details = ProjectDetail.objects.get(project=obj)
+            # Optimise ProjectDetail query
+            base_details = ProjectDetail.objects.select_related(
+                "project",
+                "creator",
+                "creator__profile",  # For TinyUserSerializer
+                "creator__work",  # For TinyUserSerializer
+                "creator__work__business_area",
+                "modifier",
+                "modifier__profile",
+                "modifier__work",
+                "modifier__work__business_area",
+                "owner",
+                "owner__profile",
+                "owner__work",
+                "owner__work__business_area",
+                "data_custodian",
+                "data_custodian__profile",
+                "data_custodian__work",
+                "data_custodian__work__business_area",
+                "site_custodian",
+                "site_custodian__profile",
+                "site_custodian__work",
+                "site_custodian__work__business_area",
+                "service",
+            ).get(project=obj)
 
         try:
-            student_details = StudentProjectDetails.objects.get(project=obj)
+            student_details = StudentProjectDetails.objects.select_related(
+                "project"
+            ).get(project=obj)
         except StudentProjectDetails.DoesNotExist:
             student_details = []
+
         try:
-            external_details = ExternalProjectDetails.objects.get(project=obj)
+            external_details = ExternalProjectDetails.objects.select_related(
+                "project"
+            ).get(project=obj)
         except ExternalProjectDetails.DoesNotExist:
             external_details = []
 
@@ -1263,25 +1331,148 @@ class ProjectDetails(APIView):
         }
 
         try:
-            concept_plan = ConceptPlan.objects.get(document__project=obj)
+            concept_plan = (
+                ConceptPlan.objects.select_related(
+                    "document",
+                    "document__project",
+                    "document__project__business_area",
+                    "document__project__business_area__division",
+                    "document__project__business_area__division__director",
+                    "document__project__business_area__division__approver",
+                    "document__project__business_area__leader",
+                    "document__project__business_area__caretaker",
+                    "document__project__business_area__finance_admin",
+                    "document__project__business_area__data_custodian",
+                    "document__project__business_area__image",
+                    "document__project__image",
+                    "document__project__image__uploader",
+                    "document__pdf",
+                    "document__creator",
+                    "document__modifier",
+                )
+                .prefetch_related(
+                    "document__project__business_area__division__directorate_email_list",
+                )
+                .get(document__project=obj)
+            )
         except ConceptPlan.DoesNotExist:
             concept_plan = None
+
         try:
-            project_plan = ProjectPlan.objects.get(document__project=obj)
+            project_plan = (
+                ProjectPlan.objects.select_related(
+                    "document",
+                    "document__project",
+                    "document__project__business_area",
+                    "document__project__business_area__division",
+                    "document__project__business_area__division__director",
+                    "document__project__business_area__division__approver",
+                    "document__project__business_area__leader",
+                    "document__project__business_area__caretaker",
+                    "document__project__business_area__finance_admin",
+                    "document__project__business_area__data_custodian",
+                    "document__project__business_area__image",
+                    "document__project__image",
+                    "document__project__image__uploader",
+                    "document__pdf",
+                    "document__creator",
+                    "document__modifier",
+                )
+                .prefetch_related(
+                    "document__project__business_area__division__directorate_email_list",
+                )
+                .get(document__project=obj)
+            )
         except ProjectPlan.DoesNotExist:
             project_plan = None
+
         try:
-            progress_reports = ProgressReport.objects.filter(
-                document__project=obj
-            ).all()
+            progress_reports = (
+                ProgressReport.objects.select_related(
+                    "document",
+                    "document__project",
+                    "document__project__business_area",
+                    "document__project__business_area__division",
+                    "document__project__business_area__division__director",
+                    "document__project__business_area__division__approver",
+                    "document__project__business_area__leader",
+                    "document__project__business_area__caretaker",
+                    "document__project__business_area__finance_admin",
+                    "document__project__business_area__data_custodian",
+                    "document__project__business_area__image",
+                    "document__project__image",
+                    "document__project__image__uploader",
+                    "document__pdf",
+                    "document__creator",
+                    "document__modifier",
+                    "report",  # TinyAnnualReportSerializer
+                )
+                .prefetch_related(
+                    "document__project__business_area__division__directorate_email_list",
+                )
+                .filter(document__project=obj)
+                .all()
+            )
         except ProgressReport.DoesNotExist:
             progress_reports = None
+
         try:
-            student_reports = StudentReport.objects.filter(document__project=obj).all()
+            student_reports = (
+                StudentReport.objects.select_related(
+                    "document",
+                    "document__project",
+                    "document__project__business_area",
+                    "document__project__business_area__division",
+                    "document__project__business_area__division__director",
+                    "document__project__business_area__division__approver",
+                    "document__project__business_area__leader",
+                    "document__project__business_area__caretaker",
+                    "document__project__business_area__finance_admin",
+                    "document__project__business_area__data_custodian",
+                    "document__project__business_area__image",
+                    "document__project__image",
+                    "document__project__image__uploader",
+                    "document__pdf",
+                    "document__creator",
+                    "document__modifier",
+                    "report",  # AnnualReport
+                    "report__creator",
+                    "report__modifier",
+                )
+                .prefetch_related(
+                    "document__project__business_area__division__directorate_email_list",
+                )
+                .filter(document__project=obj)
+                .all()
+            )
         except StudentReport.DoesNotExist:
             student_reports = None
+
         try:
-            project_closure = ProjectClosure.objects.get(document__project=obj)
+            project_closure = (
+                ProjectClosure.objects.select_related(
+                    "document",
+                    "document__project",
+                    "document__project__business_area",
+                    "document__project__business_area__division",
+                    "document__project__business_area__division__director",
+                    "document__project__business_area__division__approver",
+                    "document__project__business_area__leader",
+                    "document__project__business_area__caretaker",
+                    "document__project__business_area__finance_admin",
+                    "document__project__business_area__data_custodian",
+                    "document__project__business_area__image",
+                    "document__project__image",
+                    "document__project__image__uploader",
+                    "document__pdf",
+                    "document__creator",
+                    "document__modifier",
+                )
+                .prefetch_related(
+                    "document__project__business_area__division__directorate_email_list",
+                )
+                .get(document__project=obj)
+            )
         except ProjectClosure.DoesNotExist:
             project_closure = None
 
@@ -1314,7 +1505,33 @@ class ProjectDetails(APIView):
         }
 
         try:
-            project_members = ProjectMember.objects.filter(project=obj)
+            # CRITICAL: Optimize project members query
+            project_members = (
+                ProjectMember.objects.select_related(
+                    "user",
+                    "user__profile",
+                    "user__work",
+                    "user__work__business_area",
+                    "user__work__business_area__division",
+                    "user__work__business_area__division__director",
+                    "user__work__business_area__division__approver",
+                    "user__work__business_area__leader",
+                    "user__work__business_area__caretaker",
+                    "user__work__business_area__finance_admin",
+                    "user__work__business_area__data_custodian",
+                    "user__work__business_area__image",
+                    "project",
+                    "project__business_area",
+                    "project__business_area__division",
+                    "project__business_area__image",
+                    "project__image",
+                )
+                .prefetch_related(
+                    "user__work__business_area__division__directorate_email_list",
+                    "project__business_area__division__directorate_email_list",
+                )
+                .filter(project=obj)
+            )
         except ProjectMember.DoesNotExist:
             project_members = None
 
@@ -1325,7 +1542,9 @@ class ProjectDetails(APIView):
         )
 
         try:
-            project_areas = ProjectArea.objects.get(project=obj)
+            project_areas = ProjectArea.objects.select_related("project").get(
+                project=obj
+            )
         except ProjectArea.DoesNotExist:
             project_areas = None
 
