@@ -2874,7 +2874,41 @@ class ProgressReportByYear(APIView):
 
     def go(self, project, year):
         try:
-            obj = ProgressReport.objects.get(year=year, document__project=project)
+            obj = (
+                ProgressReport.objects.select_related(
+                    "document",
+                    "document__project",
+                    "document__project__business_area",
+                    "document__project__business_area__division",
+                    "document__project__business_area__division__director",
+                    "document__project__business_area__division__approver",
+                    "document__project__business_area__leader",
+                    "document__project__business_area__caretaker",
+                    "document__project__business_area__finance_admin",
+                    "document__project__business_area__data_custodian",
+                    "document__project__business_area__image",
+                    "document__project__image",
+                    "document__project__image__uploader",
+                    "document__pdf",
+                    "document__creator",
+                    "document__modifier",
+                    "report",  # AnnualReport
+                    "report__creator",
+                    "report__modifier",
+                )
+                .prefetch_related(
+                    "document__project__business_area__division__directorate_email_list",
+                    # Avoid N+1: Prefetch the project members so TeamMemberMixin can use them
+                    "document__project__members",
+                    "document__project__members__user",
+                    "document__project__members__user__profile",
+                    "document__project__members__user__work",
+                    "document__project__members__user__work__business_area",
+                    "document__project__members__user__caretaker",
+                    "document__project__members__user__caretaker_for",
+                )
+                .get(year=year, document__project=project)
+            )
         except ProgressReport.DoesNotExist:
             raise NotFound
         return obj
