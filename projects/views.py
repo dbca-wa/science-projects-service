@@ -175,6 +175,32 @@ class Projects(APIView):
         # Case: just the prefix (e.g., "CF")
         # We've already filtered by kind above, so no additional filtering needed
 
+        # Additional N+1 Query optomisation
+        projects = projects.select_related(
+            "business_area",
+            "business_area__division",
+            "business_area__division__director",
+            "business_area__division__approver",
+            "business_area__leader",
+            "business_area__caretaker",
+            "business_area__finance_admin",
+            "business_area__data_custodian",
+            "business_area__image",
+            "image",
+            "image__uploader",
+            "area",
+        ).prefetch_related(
+            "members",
+            "members__user",
+            "members__user__profile",
+            "members__user__work",
+            "members__user__work__business_area",
+            "members__user__caretaker",
+            "members__user__caretaker_for",
+            "business_area__division__directorate_email_list",
+            "admintasks",
+        )
+
         return projects
 
     def get(self, request):
@@ -262,11 +288,26 @@ class Projects(APIView):
         projects = projects.select_related(
             "business_area",
             "business_area__division",
-            "business_area__image",  # Select related for the business area image
+            "business_area__division__director",
+            "business_area__division__approver",
+            "business_area__leader",
+            "business_area__caretaker",
+            "business_area__finance_admin",
+            "business_area__data_custodian",
+            "business_area__image",
             "image",
-            "area",  # Based on serializer
+            "image__uploader",
+            "area",
         ).prefetch_related(
             "members",
+            "members__user",
+            "members__user__profile",
+            "members__user__work",
+            "members__user__work__business_area",
+            "members__user__caretaker",
+            "members__user__caretaker_for",
+            "business_area__division__directorate_email_list",
+            "admintasks",  # For deletion request functionality
         )
 
         projects = projects.annotate(
