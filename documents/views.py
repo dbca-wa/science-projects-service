@@ -1918,11 +1918,24 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                     .select_related(
                         "project",
                         "project__business_area",
-                        "project__business_area__image",  # OneToOne
-                        "project__business_area__division",  # For division data
-                        "project__image",  # OneToOne project image
-                        "project__image__uploader",  # Image uploader
-                        "pdf",  # Document PDF
+                        "project__business_area__image",
+                        "project__business_area__division",
+                        "project__business_area__division__director",
+                        "project__business_area__division__approver",
+                        "project__business_area__leader",
+                        "project__business_area__caretaker",
+                        "project__business_area__finance_admin",
+                        "project__business_area__data_custodian",
+                        "project__image",
+                        "project__image__uploader",
+                        "pdf",
+                        "pdf__document",
+                        "pdf__project",
+                        "creator",
+                        "modifier",
+                    )
+                    .prefetch_related(
+                        "project__business_area__division__directorate_email_list",
                     )
                     .all()
                 )
@@ -1949,11 +1962,24 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                     .select_related(
                         "project",
                         "project__business_area",
-                        "project__business_area__image",  # Fix N+1 for business area photos
-                        "project__business_area__division",  # Fix N+1 for division data
-                        "project__image",  # Fix N+1 for project photos
-                        "project__image__uploader",  # Fix N+1 for photo uploader
-                        "pdf",  # Fix N+1 for document PDF
+                        "project__business_area__image",
+                        "project__business_area__division",
+                        "project__business_area__division__director",
+                        "project__business_area__division__approver",
+                        "project__business_area__leader",
+                        "project__business_area__caretaker",
+                        "project__business_area__finance_admin",
+                        "project__business_area__data_custodian",
+                        "project__image",
+                        "project__image__uploader",
+                        "pdf",
+                        "pdf__document",
+                        "pdf__project",
+                        "creator",
+                        "modifier",
+                    )
+                    .prefetch_related(
+                        "project__business_area__division__directorate_email_list",
                     )
                     .all()
                 )
@@ -1984,11 +2010,24 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 .select_related(
                     "project",
                     "project__business_area",
-                    "project__business_area__image",  # Fix N+1 for business area photos
-                    "project__business_area__division",  # Fix N+1 for division data
-                    "project__image",  # Fix N+1 for project photos
-                    "project__image__uploader",  # Fix N+1 for photo uploader
-                    "pdf",  # Fix N+1 for document PDF
+                    "project__business_area__image",
+                    "project__business_area__division",
+                    "project__business_area__division__director",
+                    "project__business_area__division__approver",
+                    "project__business_area__leader",
+                    "project__business_area__caretaker",
+                    "project__business_area__finance_admin",
+                    "project__business_area__data_custodian",
+                    "project__image",
+                    "project__image__uploader",
+                    "pdf",
+                    "pdf__document",
+                    "pdf__project",
+                    "creator",
+                    "modifier",
+                )
+                .prefetch_related(
+                    "project__business_area__division__directorate_email_list",
                 )
                 .all()
             )
@@ -2018,11 +2057,24 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 .select_related(
                     "project",
                     "project__business_area",
-                    "project__business_area__image",  # Fix N+1 for business area photos
-                    "project__business_area__division",  # Fix N+1 for division data
-                    "project__image",  # Fix N+1 for project photos
-                    "project__image__uploader",  # Fix N+1 for photo uploader
-                    "pdf",  # Fix N+1 for document PDF
+                    "project__business_area__image",
+                    "project__business_area__division",
+                    "project__business_area__division__director",
+                    "project__business_area__division__approver",
+                    "project__business_area__leader",
+                    "project__business_area__caretaker",
+                    "project__business_area__finance_admin",
+                    "project__business_area__data_custodian",
+                    "project__image",
+                    "project__image__uploader",
+                    "pdf",
+                    "pdf__document",
+                    "pdf__project",
+                    "creator",
+                    "modifier",
+                )
+                .prefetch_related(
+                    "project__business_area__division__directorate_email_list",
                 )
                 .all()
             )
