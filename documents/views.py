@@ -6979,7 +6979,7 @@ class UserPublications(APIView):
         )
 
         # Initial validation checks
-        if not employee_id:
+        if not employee_id or employee_id == "null":
             return self._error_response("No employee ID provided")
 
         if not settings.LIBRARY_API_URL:
