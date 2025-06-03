@@ -720,7 +720,7 @@ class ActiveStaffProfileEmails(APIView):
                 item
                 for item in api_data
                 if item["division"] == "Biodiversity and Conservation Science"
-                or item["division"] == "Dept Biodiversity, Conservation and Attractions"
+                # or item["division"] == "Dept Biodiversity, Conservation and Attractions"
             ]
             # Search active staff emails in SPMS db
             spms_users = User.objects.filter(is_staff=True, is_active=True)
@@ -809,8 +809,8 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
                 and (
                     it_asset_data_by_email[email.lower()]["division"]
                     == "Biodiversity and Conservation Science"
-                    or it_asset_data_by_email[email.lower()]["division"]
-                    == "Dept Biodiversity, Conservation and Attractions"
+                    # or it_asset_data_by_email[email.lower()]["division"]
+                    # == "Dept Biodiversity, Conservation and Attractions"
                 )
             ):
                 staff_profile.it_asset_id = it_asset_data_by_email[email.lower()].get(
@@ -986,9 +986,10 @@ class StaffProfiles(APIView):
 
                 # Filter users based on BCS division
                 if (
-                    user.division == "Biodiversity and Conservation Science"
-                    or user.division
-                    == "Dept Biodiversity, Conservation and Attractions"
+                    user.division
+                    == "Biodiversity and Conservation Science"
+                    # or user.division
+                    # == "Dept Biodiversity, Conservation and Attractions"
                 ):
                     updated_users.append(user)
 

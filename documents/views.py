@@ -625,9 +625,9 @@ class LatestYearsProgressReports(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                 )
             ).exclude(Q(project__business_area__division__name__isnull=True))
             ser = ProgressReportSerializer(
@@ -663,9 +663,9 @@ class LatestYearsStudentReports(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                 )
             ).exclude(Q(project__business_area__division__name__isnull=True))
             ser = StudentReportSerializer(
@@ -697,9 +697,9 @@ class LatestYearsInactiveReports(APIView):
                         Q(
                             project__business_area__division__name="Biodiversity and Conservation Science"
                         )
-                        | Q(
-                            project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                        )
+                        # | Q(
+                        #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        # )
                     )
                 )
                 .exclude(document__status__in=["approved"])
@@ -713,9 +713,9 @@ class LatestYearsInactiveReports(APIView):
                         Q(
                             project__business_area__division__name="Biodiversity and Conservation Science"
                         )
-                        | Q(
-                            project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                        )
+                        # | Q(
+                        #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        # )
                     )
                 )
                 .exclude(document__status__in=["approved"])
@@ -4318,9 +4318,9 @@ class BeginUnapprovedReportDocGeneration(APIView):
                         Q(
                             business_area__division__name="Biodiversity and Conservation Science"
                         )
-                        | Q(
-                            business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                        )
+                        # | Q(
+                        #     business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                        # )
                     )
                 )
                 .exclude(Q(business_area__division__name__isnull=True))
@@ -4358,9 +4358,9 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                 )
             ).exclude(Q(project__business_area__division__name__isnull=True))
 
@@ -4370,9 +4370,9 @@ class BeginUnapprovedReportDocGeneration(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                 )
                 # | Q(
                 #     project__id=1067
@@ -4898,9 +4898,9 @@ class BeginReportDocGeneration(APIView):
                     Q(
                         business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                 )
             ).exclude(
                 # Only exclude if division name is null
@@ -4932,9 +4932,9 @@ class BeginReportDocGeneration(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                 )
             ).exclude(
                 # Only exclude if division name is null
@@ -4947,9 +4947,9 @@ class BeginReportDocGeneration(APIView):
                     Q(
                         project__business_area__division__name="Biodiversity and Conservation Science"
                     )
-                    | Q(
-                        project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    )
+                    # | Q(
+                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
+                    # )
                     | Q(project__id=1127)  # dieback dogs 1127
                     # | Q(
                     #     project__id=1067
