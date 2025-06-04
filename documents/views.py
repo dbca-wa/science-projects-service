@@ -1,5 +1,6 @@
 # region IMPORTS ==================================================
 
+from collections import defaultdict
 import datetime, json, os, re, subprocess, time, tempfile
 from bs4 import BeautifulSoup
 from operator import attrgetter
@@ -8,12 +9,10 @@ import bleach
 from django.forms import ValidationError
 from django.template.loader import render_to_string
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q
-from django.db.models import Max
+from django.db.models import Q, Prefetch, Max
 from django.db import transaction
 from django.conf import settings
 from django.core.mail import send_mail
-from django.template.loader import get_template
 from django.template.loader import get_template
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -93,6 +92,8 @@ from .serializers import (
     # LibraryResponseSerializer,
     MiniAnnualReportSerializer,
     MiniEndorsementSerializer,
+    OptimisedProgressReportAnnualReportSerializer,
+    OptimisedStudentReportAnnualReportSerializer,
     ProgressReportAnnualReportSerializer,
     ProgressReportCreateSerializer,
     ProgressReportSerializer,
@@ -1873,7 +1874,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         ba_input_required = []
         directorate_input_required = []
 
-        # Optimize this query with select_related
+        # Optimise this query with select_related
         small_user_object = (
             User.objects.filter(pk=req.user.pk)
             .select_related("work", "work__business_area")
@@ -1905,7 +1906,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 # Extract project IDs for Business Area
                 ba_project_ids = ba_projects.values_list("id", flat=True)
 
-                # Fetch all documents requiring BA attention with optimized relationships
+                # Fetch all documents requiring BA attention with optimised relationships
                 docs_requiring_ba_attention = (
                     ProjectDocument.objects.exclude(
                         status=ProjectDocument.StatusChoices.APPROVED
@@ -1949,7 +1950,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 # Extract project IDs for Directorate
                 directorate_project_ids = active_projects.values_list("id", flat=True)
 
-                # Fetch all documents requiring Directorate attention with optimized relationships
+                # Fetch all documents requiring Directorate attention with optimised relationships
                 docs_requiring_directorate_attention = (
                     ProjectDocument.objects.exclude(
                         status=ProjectDocument.StatusChoices.APPROVED
@@ -1988,7 +1989,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 documents.extend(docs_requiring_directorate_attention)
                 directorate_input_required.extend(docs_requiring_directorate_attention)
 
-            # Lead Filtering - optimized the membership query
+            # Lead Filtering - optimised the membership query
             all_leader_memberships = ProjectMember.objects.filter(
                 project__in=active_projects, user=small_user_object, is_leader=True
             ).select_related("project")
@@ -1998,7 +1999,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 membership.project_id for membership in all_leader_memberships
             ]
 
-            # Fetch all documents requiring lead attention with optimized relationships
+            # Fetch all documents requiring lead attention with optimised relationships
             docs_requiring_lead_attention = (
                 ProjectDocument.objects.exclude(
                     status=ProjectDocument.StatusChoices.APPROVED
@@ -2038,7 +2039,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 if doc.project_id in lead_project_ids:
                     pl_input_required.append(doc)
 
-            # optimized this query too (N+1)
+            # Optimised this query too (N+1)
             my_non_leader_memberships = (
                 ProjectMember.objects.filter(user=req.user, is_leader=False)
                 .select_related("project")
@@ -3668,6 +3669,11 @@ class BatchApprove(APIView):
                     "closure_requested",
                 ],
             )
+            .select_related("project")  # Optimise project access
+            .prefetch_related(
+                "student_report_details",
+                "progress_report_details",
+            )
             .all()
         )
 
@@ -3717,7 +3723,7 @@ class BatchApproveOld(APIView):
         settings.LOGGER.warning(
             msg=f"{req.user} is attempting to batch approve older reports..."
         )
-        if req.user.is_superuser == False:
+        if not req.user.is_superuser:
             return Response(
                 {"error": "You don't have permission to do that!"},
                 HTTP_401_UNAUTHORIZED,
@@ -3733,7 +3739,8 @@ class BatchApproveOld(APIView):
                 status=HTTP_404_NOT_FOUND,
             )
 
-        relevant_docs_belonging_to_reports_other_than_last_report = (
+        # Get relevant documents with optimised queries using select_related and prefetch_related
+        relevant_docs = (
             ProjectDocument.objects.filter(
                 Q(kind="studentreport") | Q(kind="progressreport"),
                 project_lead_approval_granted=True,
@@ -3742,42 +3749,81 @@ class BatchApproveOld(APIView):
             .exclude(
                 project__status__in=["suspended", "terminated", "completed"],
             )
-            .all()
+            .select_related("project")  # Optimise project access
+            .prefetch_related(
+                "project__members",  # Optimise members access
+                "student_report_details",  # Optimise student report access
+                "progress_report_details",  # Optimise progress report access
+            )
         )
 
         try:
-            for doc in relevant_docs_belonging_to_reports_other_than_last_report:
-                # FIRST ENSURE THEY BELONG TO THE ANNUAL REPORT BY FINDING THE YEAR ON EACH MODEL
+            # Collect documents and projects that need updating
+            docs_to_update = []
+            projects_to_update = []
+
+            for doc in relevant_docs:
+                should_process = False
+
                 if doc.kind == "studentreport":
-                    sr_obj = StudentReport.objects.filter(document=doc.id).first()
-                    # Skip projects with no members
-                    if sr_obj and sr_obj.project.members.length == 0:
+                    # Use prefetched data instead of separate query
+                    sr_obj = (
+                        doc.student_report_details.first()
+                        if doc.student_report_details.exists()
+                        else None
+                    )
+
+                    # Fix: Use .count() instead of .length ... js habit
+                    if sr_obj and doc.project.members.count() == 0:
                         continue
+
                     if sr_obj and sr_obj.report != last_report:
-                        thedoc = sr_obj.document
-                    else:
-                        # Go to next iteration if belongs to current report
-                        continue
+                        should_process = True
 
                 elif doc.kind == "progressreport":
-                    pr_obj = ProgressReport.objects.filter(document=doc.id).first()
-                    # Skip projects with no members
-                    if pr_obj and pr_obj.project.members.length == 0:
-                        continue
-                    if pr_obj and pr_obj.report != last_report:
-                        thedoc = pr_obj.document
-                    else:
-                        # Go to next iteration if belongs to current report
+                    # Use prefetched data instead of separate query
+                    pr_obj = (
+                        doc.progress_report_details.first()
+                        if doc.progress_report_details.exists()
+                        else None
+                    )
+
+                    # using .count() instead of .length
+                    if pr_obj and doc.project.members.count() == 0:
                         continue
 
-                thedoc.project_lead_approval_granted = True
-                thedoc.business_area_lead_approval_granted = True
-                thedoc.directorate_approval_granted = True
-                thedoc.status = "approved"
-                thedoc.save()
-                project = Project.objects.filter(pk=thedoc.project.pk).first()
-                project.status = Project.StatusChoices.ACTIVE
-                project.save()
+                    if pr_obj and pr_obj.report != last_report:
+                        should_process = True
+
+                if should_process:
+                    # Prepare document for bulk update
+                    doc.project_lead_approval_granted = True
+                    doc.business_area_lead_approval_granted = True
+                    doc.directorate_approval_granted = True
+                    doc.status = "approved"
+                    docs_to_update.append(doc)
+
+                    # Prepare project for bulk update (avoid duplicate projects)
+                    project = doc.project
+                    if project not in projects_to_update:
+                        project.status = Project.StatusChoices.ACTIVE
+                        projects_to_update.append(project)
+
+            # Bulk update documents
+            if docs_to_update:
+                ProjectDocument.objects.bulk_update(
+                    docs_to_update,
+                    [
+                        "project_lead_approval_granted",
+                        "business_area_lead_approval_granted",
+                        "directorate_approval_granted",
+                        "status",
+                    ],
+                )
+
+            # Bulk update projects
+            if projects_to_update:
+                Project.objects.bulk_update(projects_to_update, ["status"])
 
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
@@ -4285,1150 +4331,580 @@ def determine_doc_kind_url_string(dockind: str):
         return "closure"
 
 
-class BeginUnapprovedReportDocGeneration(APIView):
+class UnifiedReportDocGeneration(APIView):
     permission_classes = [IsAuthenticated]
 
-    def go(self, pk):
-        try:
-            obj = AnnualReport.objects.get(pk=pk)
-        except AnnualReport.DoesNotExist:
-            raise NotFound
-        return obj
+    def get_ar_media_batch(self, pk):
+        """Get all AR media in a single query with minimal data"""
+        media_queryset = AnnualReportMedia.objects.filter(report=pk).only(
+            "kind", "file", "report_id"
+        )
 
-    def get_ar_media(self, pk, kind):
-        try:
-            obj = AnnualReportMedia.objects.get(report=pk, kind=kind)
-        except AnnualReportMedia.DoesNotExist:
-            print(f"AR MEDIA OF TYPE {kind} DOES NOT EXIST FOR AR {pk}")
-            return None
-        return obj
+        return {media.kind: media for media in media_queryset}
 
-    def get_external_projects_for_ar(self, report):
-        settings.LOGGER.info(msg=f"Getting All Valid External Project...")
-        if report:
-            # Get progress report documents which belong to it and belong to active and approved projects
-            active_external_projects = (
-                Project.objects.filter(
-                    Q(
-                        kind__in=[
-                            Project.CategoryKindChoices.EXTERNAL,
-                        ]
-                    )
-                    & (
-                        Q(
-                            business_area__division__name="Biodiversity and Conservation Science"
+    def get_external_projects_optimised(self, report, genkind):
+        """optimised external projects with conditional filtering"""
+        settings.LOGGER.info(f"Getting External Projects for {genkind} generation...")
+
+        # Build base query
+        base_query = Q(kind__in=[Project.CategoryKindChoices.EXTERNAL]) & Q(
+            business_area__division__name="Biodiversity and Conservation Science"
+        )
+
+        # Add status filter for approved only
+        if genkind == "approved":
+            base_query &= Q(status="active")
+
+        # Apply exclusions for both cases
+        active_external_projects = (
+            Project.objects.filter(base_query)
+            .exclude(business_area__division__name__isnull=True)
+            .exclude(
+                status__in=(
+                    [
+                        Project.StatusChoices.COMPLETED,
+                        Project.StatusChoices.SUSPENDED,
+                        Project.StatusChoices.TERMINATED,
+                    ]
+                    if genkind == "all"
+                    else []
+                )  # Additional exclusions for "all"
+            )
+            .select_related("external_project_info")
+            .prefetch_related(
+                Prefetch(
+                    "members",
+                    queryset=ProjectMember.objects.select_related("user").filter(
+                        role__in=ProjectMember.STAFF_ROLES
+                    ),
+                )
+            )
+            .only(
+                "pk",
+                "title",
+                "external_project_info__collaboration_with",
+                "external_project_info__budget",
+            )
+            .order_by("title")
+        )
+
+        # Manual serialization for maximum performance
+        result = []
+        for project in active_external_projects:
+            # Get team members efficiently
+            team_members = []
+            if (
+                hasattr(project, "_prefetched_objects_cache")
+                and "members" in project._prefetched_objects_cache
+            ):
+                for member in project._prefetched_objects_cache["members"]:
+                    if member.user.is_staff:
+                        team_members.append(
+                            {
+                                "role": member.role,
+                                "user": {
+                                    "pk": member.user.pk,
+                                    "display_first_name": member.user.display_first_name,
+                                    "display_last_name": member.user.display_last_name,
+                                    "is_staff": member.user.is_staff,
+                                },
+                            }
                         )
-                        # | Q(
-                        #     business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                        # )
-                    )
-                )
-                .exclude(Q(business_area__division__name__isnull=True))
-                .exclude(
-                    Q(
-                        status__in=[
-                            Project.StatusChoices.COMPLETED,
-                            Project.StatusChoices.SUSPENDED,
-                            Project.StatusChoices.TERMINATED,
-                        ]
-                    )
-                )
-                .order_by("title")
+
+            result.append(
+                {
+                    "pk": project.pk,
+                    "title": project.title,
+                    "partners": (
+                        project.external_project_info.collaboration_with
+                        if hasattr(project, "external_project_info")
+                        and project.external_project_info
+                        else ""
+                    ),
+                    "funding": (
+                        project.external_project_info.budget
+                        if hasattr(project, "external_project_info")
+                        and project.external_project_info
+                        else ""
+                    ),
+                    "team_members": team_members,
+                }
             )
 
-            proj_ser = ARExternalProjectSerializer(
-                active_external_projects,
-                many=True,
-            )
+        return result
 
-            return proj_ser.data
-        else:
-            return Response(
-                HTTP_404_NOT_FOUND,
-            )
-
-    def get_reports_for_ar(self, report):
+    def get_reports_optimised(self, report, genkind):
+        """optimised reports query with conditional approval filtering"""
         settings.LOGGER.info(
-            msg=f"Getting All Student & Progress Reports for current year"
+            f"Getting Student & Progress Reports for {genkind} generation"
         )
-        if report:
-            active_sr_docs = StudentReport.objects.filter(
-                Q(report=report)
-                & (
-                    Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
-                    )
-                    # | Q(
-                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    # )
-                )
-            ).exclude(Q(project__business_area__division__name__isnull=True))
 
-            active_pr_docs = ProgressReport.objects.filter(
-                Q(report=report)
-                & (
-                    Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
-                    )
-                    # | Q(
-                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    # )
-                )
-                # | Q(
-                #     project__id=1067
-                # )  # dieback dogs ID 1067 # dev test dieback detector dogs
-                | Q(project__id=1127)  # dieback dogs 1127
-            ).exclude(Q(project__business_area__division__name__isnull=True))
+        base_filter = Q(report=report) & Q(
+            project__business_area__division__name="Biodiversity and Conservation Science"
+        )
 
-            def removeempty_p(html_content):
-                html_content = re.sub(r"<p>(&nbsp;|\s)*</p>", "", html_content)
-                html_content = re.sub(r"&nbsp;", " ", html_content)
+        # Add approval filter for student reports only when needed
+        student_filter = base_filter
+        if genkind == "approved":
+            student_filter &= Q(document__status="approved")
 
+        # optimised Student Reports query
+        active_sr_docs = (
+            StudentReport.objects.filter(student_filter)
+            .exclude(project__business_area__division__name__isnull=True)
+            .select_related(
+                "document",
+                "project",
+                "project__business_area",
+                "project__image",
+                "project__student_project_info",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "project__members",
+                    queryset=ProjectMember.objects.select_related(
+                        "user", "user__profile"
+                    ),
+                ),
+                "project__area",
+                "project__business_area__image",
+            )
+        )
+
+        # optimised Progress Reports query (same for both)
+        active_pr_docs = (
+            ProgressReport.objects.filter(base_filter | Q(project__id=1127))
+            .exclude(project__business_area__division__name__isnull=True)
+            .select_related(
+                "document",
+                "project",
+                "project__business_area",
+                "project__image",
+                "project__student_project_info",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "project__members",
+                    queryset=ProjectMember.objects.select_related(
+                        "user", "user__profile"
+                    ),
+                ),
+                "project__area",
+                "project__business_area__image",
+            )
+        )
+
+        # Optimised HTML cleaning with regex compilation
+        empty_p_pattern = re.compile(r"<p>(&nbsp;|\s)*</p>")
+        nbsp_pattern = re.compile(r"&nbsp;")
+
+        def removeempty_p_optimised(html_content):
+            if not html_content:
                 return html_content
+            html_content = empty_p_pattern.sub("", html_content)
+            html_content = nbsp_pattern.sub(" ", html_content)
+            return html_content
 
-            # plant_science_ba = BusinessArea.objects.get(
-            #     name="Plant Science and Herbarium"
-            # )
+        # Mock business area (create once)
+        class MockBusinessArea:
+            def __init__(self, name):
+                self.name = name
+                self.pk = None
+                self.leader_id = None
+                self.introduction = ""
 
-            # Create a an in-memory ba mod to retain original ba
-            class MockBusinessArea:
-                def __init__(self, name):
-                    self.name = name
+        mock_plant_science_ba = MockBusinessArea("Plant Science and Herbarium")
 
-            for report in active_pr_docs:
-                report.context = removeempty_p(report.context)
-                report.aims = removeempty_p(report.aims)
-                report.progress = removeempty_p(report.progress)
-                report.implications = removeempty_p(report.implications)
-                report.future = removeempty_p(report.future)
-                if (
-                    report.document.project.pk
-                    == 1127
-                    # or report.document.project.pk == 1067 # dev
-                ):
-                    # Temporarily set the business_area to a mock object not the database (no save required)
-                    report.document.project.business_area = MockBusinessArea(
-                        "Plant Science and Herbarium"
-                    )
+        # Process reports efficiently
+        for report_obj in active_pr_docs:
+            # Clean HTML fields
+            report_obj.context = removeempty_p_optimised(report_obj.context)
+            report_obj.aims = removeempty_p_optimised(report_obj.aims)
+            report_obj.progress = removeempty_p_optimised(report_obj.progress)
+            report_obj.implications = removeempty_p_optimised(report_obj.implications)
+            report_obj.future = removeempty_p_optimised(report_obj.future)
 
-            for sreport in active_sr_docs:
-                sreport.progress_report = removeempty_p(sreport.progress_report)
+            # Handle special project
+            if report_obj.document.project.pk == 1127:
+                report_obj.document.project.business_area = mock_plant_science_ba
 
-            sr_ser = StudentReportAnnualReportSerializer(
-                active_sr_docs,
-                many=True,
-            )
-            pr_ser = ProgressReportAnnualReportSerializer(
-                active_pr_docs,
-                many=True,
-            )
+        for sreport in active_sr_docs:
+            sreport.progress_report = removeempty_p_optimised(sreport.progress_report)
 
-            data_object = {
-                "student_reports": sr_ser.data,
-                "progress_reports": pr_ser.data,
-            }
-
-            return data_object
-        else:
-            return Response(
-                HTTP_404_NOT_FOUND,
-            )
-
-    def post(self, req, pk):
-        settings.LOGGER.info(
-            msg=f"{req.user} is generating a pdf for report with id {pk}"
+        # Use optimised serializers
+        sr_ser = OptimisedStudentReportAnnualReportSerializer(active_sr_docs, many=True)
+        pr_ser = OptimisedProgressReportAnnualReportSerializer(
+            active_pr_docs, many=True
         )
 
-        def set_report_generation_status(report, is_generating: bool):
-            report.pdf_generation_in_progress = is_generating
-            report.save()
-
-        # Fetch Data for the templates
-        report = self.go(pk=pk)
-        # Return if already generating for report
-        if report.pdf_generation_in_progress == True:
-            return Response(
-                {"error": "PDF Generation already in progress"},
-                HTTP_400_BAD_REQUEST,
-            )
-        set_report_generation_status(report=report, is_generating=True)
-        start_time = time.time()
-
-        # Director's Message
-        directors_message_data = report.dm
-        directors_message_sign_off = report.dm_sign
-
-        # Publications
-        publications_data = report.publications
-
-        # Service Delivery Structure, ch img and chart
-
-        generic_chapter_image = (
-            os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.jpg")
-            if os.path.exists(
-                os.path.join(
-                    settings.BASE_DIR, "documents", "generic_chapter_image.jpg"
-                )
-            )
-            else ""
-        )
-        chart_image_obj = self.get_ar_media(pk=report.pk, kind="sdchart")
-        sds_chapter_image_obj = self.get_ar_media(pk=report.pk, kind="service_delivery")
-        sds_data = {
-            "intro": report.service_delivery_intro,
-            "chart": chart_image_obj.file.url if chart_image_obj else "",
-            "chapter_image": (
-                sds_chapter_image_obj.file.url
-                if sds_chapter_image_obj
-                else generic_chapter_image
-            ),
+        return {
+            "student_reports": sr_ser.data,
+            "progress_reports": pr_ser.data,
         }
 
-        # Other Chapter Images & Covers
-        settings.LOGGER.info(msg=f"Fetching Annual Report Media...")
-        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
-        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
+    def get_business_areas_optimised(self, participating_reports):
+        """optimised business area processing with caching"""
+        # Use defaultdict for efficient grouping
+        ba_dict = {}
+        progress_reports_by_ba = defaultdict(list)
 
-        research_chapter_image = self.get_ar_media(pk=report.pk, kind="research")
-        partnerships_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="partnerships"
-        )
-        collaborations_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="collaborations"
-        )
-        student_projects_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="student_projects"
-        )
-        publications_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="publications"
-        )
-
-        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
-        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
-
-        research_chapter_image = (
-            research_chapter_image.file.url
-            if research_chapter_image
-            else generic_chapter_image
-        )
-        partnerships_chapter_image = (
-            partnerships_chapter_image.file.url
-            if partnerships_chapter_image
-            else generic_chapter_image
-        )
-        collaborations_chapter_image = (
-            collaborations_chapter_image.file.url
-            if collaborations_chapter_image
-            else generic_chapter_image
-        )
-        student_projects_chapter_image = (
-            student_projects_chapter_image.file.url
-            if student_projects_chapter_image
-            else generic_chapter_image
-        )
-        publications_chapter_image = (
-            publications_chapter_image.file.url
-            if publications_chapter_image
-            else generic_chapter_image
-        )
-
-        cover_chapter_image = (
-            cover_chapter_image.file.url
-            if cover_chapter_image
-            else generic_chapter_image
-        )
-        rear_cover_chapter_image = (
-            rear_cover_chapter_image.file.url
-            if rear_cover_chapter_image
-            else generic_chapter_image
-        )
-
-        participating_external_projects = self.get_external_projects_for_ar(
-            report=report
-        )
-
-        # Participating Reports (Dict in format of student_reports, progress_reports)
-        try:
-            participating_reports = self.get_reports_for_ar(report=report)
-        except Exception as e:
-            print(f"\n\n{e}\n\n")
-            set_report_generation_status(report, False)
-
-        # Business Areas with Participating Projects
-        bas = []
+        # Single pass through progress reports
         for pr in participating_reports["progress_reports"]:
             document = pr["document"]
             project = document["project"]
             ba = project["business_area"]
-            bas.append(ba)
 
-        # order alphabetically
-        sorted_bas = sorted(bas, key=lambda x: x["name"])
+            if ba:  # Check if ba exists
+                ba_pk = ba["pk"]
 
-        def get_user_full_name(pk):
-            try:
-                u = User.objects.get(pk=pk)
-            except User.DoesNotExist:
-                return ""
-            return f"{u.display_first_name} {u.display_last_name}"
+                # Add to BA dictionary
+                if ba_pk not in ba_dict:
+                    ba_dict[ba_pk] = ba
 
-        def get_distilled_title(html_string):
-            # Parse the HTML using BeautifulSoup
-            soup = BeautifulSoup(html_string, "html.parser")
+                # Group progress reports by BA
+                progress_reports_by_ba[ba_pk].append(pr)
 
-            # Extract the text content
-            inner_text = soup.get_text(separator=" ", strip=True).strip()
-
-            return inner_text
-
-        # Create a dictionary to group progress reports by business area pk
-        progress_reports_by_ba = {}
-
-        # Group progress reports based on business area pk
-        for item in participating_reports["progress_reports"]:
-            ba_pk = item["document"]["project"]["business_area"]["pk"]
-
-            if ba_pk not in progress_reports_by_ba:
-                progress_reports_by_ba[ba_pk] = []
-
-            progress_reports_by_ba[ba_pk].append(item)
-
-        sorted_external_project_data = sorted(
-            [project for project in participating_external_projects],
-            key=lambda x: get_distilled_title(x["title"]).lower(),
-        )
-
-        sorted_ba_data = []
-        existing_ba_names = set()  # To keep track of existing ba_names
-
-        # For each business area
-        for ba in sorted_bas:
-            ba_name = ba["name"]
-
-            # Check if an object with the same ba_name already exists
-            if ba_name not in existing_ba_names:
-                # Prepare progress reports that match the business area's pk
-                progress_reports = progress_reports_by_ba.get(ba["pk"], [])
-
-                # Sort progress reports first by year (descending) and then alphabetically by title
-                sorted_progress_reports = sorted(
-                    progress_reports,
-                    key=lambda x: (
-                        -int(
-                            x["document"]["project"]["year"]
-                        ),  # Negative for descending order
-                        get_distilled_title(x["document"]["project"]["title"]).lower(),
-                    ),
+        # Get user names in batch (only for leaders we actually need)
+        user_pks = [ba["leader"] for ba in ba_dict.values() if ba and ba.get("leader")]
+        users_dict = {}
+        if user_pks:
+            users_dict = {
+                user.pk: f"{user.display_first_name} {user.display_last_name}"
+                for user in User.objects.filter(pk__in=user_pks).only(
+                    "pk", "display_first_name", "display_last_name"
                 )
-
-                # Create an object
-                ba_object = {
-                    "ba_name": ba_name,
-                    "ba_image": ba.get("image", ""),
-                    "ba_leader": get_user_full_name(ba["leader"]),
-                    "ba_introduction": ba["introduction"],
-                    "progress_reports": sorted_progress_reports,
-                }
-
-                # Append the new ba_object
-                sorted_ba_data.append(ba_object)
-
-                # Add the ba_name to the set of existing ba_names
-                existing_ba_names.add(ba_name)
-
-        sorted_srs = sorted(
-            [
-                report
-                for report in participating_reports["student_reports"]
-                if report["document"]["project"]
-            ],
-            key=lambda x: (
-                -int(
-                    x["document"]["project"]["year"]
-                ),  # Negative for descending order by year
-                get_distilled_title(
-                    x["document"]["project"]["title"]
-                ).lower(),  # Alphabetical order by title
-            ),
-        )
-
-        # Handle Generation
-        rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
-        prince_css_path = os.path.join(
-            settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
-        )
-
-        # dbca_image_path = get_encoded_ar_dbca_image()
-        # dbca_image_path = os.path.join(
-        #     settings.BASE_DIR, "documents", "BCSTransparent.png"
-        # )
-        dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
-        print(f"\nDBCA IMAGE PATH: {dbca_image_path}\n")
-
-        no_image_path = (
-            f"{settings.BASE_DIR}/staticfiles/images/image_not_available.png"
-        )
-
-        # HTML content for the PDF
-        def get_formatted_datetime(now):
-            # Format the date and time
-            day_with_suffix = "{}".format(now.day) + (
-                "th"
-                if 10 <= now.day % 100 <= 20
-                else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
-            )
-
-            formatted_datetime = now.strftime(f"{day_with_suffix} %B, %Y @ %I:%M%p")
-
-            return formatted_datetime
-
-        settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
-
-        # TODO: Get DBCA Banner from AR Medias ()
-        dbca_banner = self.get_ar_media(pk=report.pk, kind="dbca_banner")
-        dbca_banner = (
-            f"{settings.BASE_DIR}{dbca_banner.file.url}" if dbca_banner else None
-        )
-
-        dbca_banner_cropped = self.get_ar_media(
-            pk=report.pk, kind="dbca_banner_cropped"
-        )
-        dbca_banner_cropped = (
-            f"{settings.BASE_DIR}{dbca_banner_cropped.file.url}"
-            if dbca_banner_cropped
-            else None
-        )
-
-        print(f"DBCA Banner: ", dbca_banner)
-        print(f"DBCA Banner Cropped: ", dbca_banner_cropped)
-
-        try:
-            html_content = get_template("annual_report.html").render(
-                {
-                    # Styles & url
-                    # "rte_css_path": rte_css_path,
-                    "time_generated": get_formatted_datetime(datetime.datetime.now()),
-                    "prince_css_path": prince_css_path,
-                    "dbca_image_path": dbca_banner,
-                    "dbca_cropped_image_path": dbca_banner_cropped,
-                    "no_image_path": no_image_path,
-                    "server_url": (
-                        "http://127.0.0.1:8000"
-                        if settings.DEBUG == True
-                        # else settings.SITE_URL
-                        else settings.PRINCE_SERVER_URL
-                    ),
-                    "frontend_url": (
-                        "http://127.0.0.1:3000"
-                        if settings.DEBUG == True
-                        else settings.SITE_URL
-                    ),
-                    "base_url": settings.BASE_DIR,
-                    # Chapter Images
-                    "cover_chapter_image": cover_chapter_image,
-                    "rear_cover_chapter_image": rear_cover_chapter_image,
-                    "research_chapter_image": research_chapter_image,
-                    "partnerships_chapter_image": partnerships_chapter_image,
-                    "collaborations_chapter_image": collaborations_chapter_image,
-                    "student_projects_chapter_image": student_projects_chapter_image,
-                    "publications_chapter_image": publications_chapter_image,
-                    "generic_chapter_image_path": generic_chapter_image,
-                    # Cover page
-                    "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
-                    # ED Message
-                    "directors_message_data": directors_message_data,
-                    "directors_message_sign_off": directors_message_sign_off,
-                    # TABLE CONTENTS
-                    # SDS
-                    "sds_data": sds_data,
-                    # BA & Progress Reports
-                    "sorted_ba_data_and_pr_dict": sorted_ba_data,
-                    # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
-                    "sorted_external_project_data": sorted_external_project_data,
-                    # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
-                    # Student Reports
-                    "sorted_student_report_array": sorted_srs,
-                    # Publications and Reports
-                    "publications_data": publications_data,
-                    # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
-                    "population_time": f"{float(time.time() - start_time):.3f}",
-                }
-            )
-        except Exception as e:
-            settings.LOGGER.error(f"There was an error generating report: {e}")
-            set_report_generation_status(report=report, is_generating=False)
-            return Response(
-                {"error": True},
-                status=HTTP_400_BAD_REQUEST,
-            )
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
-
-        temp_dir = tempfile.gettempdir()
-        html_file_path = os.path.join(temp_dir, f"_Annual_Report_{report.pk}.html")
-
-        # Write to the temporary file
-        with open(html_file_path, "w", encoding="utf-8") as html_file:
-            html_file.write(html_content)
-
-        # Combine all stylesheet paths into a single string separated by commas
-        all_css_paths = ",".join([rte_css_path, prince_css_path])
-
-        p = subprocess.Popen(
-            ["prince", "-", f"--style={all_css_paths}", f"--javascript"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        outs, errs = p.communicate(f"{html_content}".encode("utf-8"))
-
-        if p.returncode:
-            # Handle `errs`.
-            print(p.returncode)
-            set_report_generation_status(report=report, is_generating=False)
-            return Response(
-                {"error": True},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-        else:
-            pdf = outs
-            pdf_filename = f"_Annual_Report_{report.pk}.pdf"
-            file_content = ContentFile(pdf, name=pdf_filename)
-
-            set_report_generation_status(report=report, is_generating=False)
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            megabytes_size = len(pdf) / (1024**2)
-            formatted_size = "{:.2f}".format(megabytes_size)
-            settings.LOGGER.info(msg=f"PDF is " + str(formatted_size) + " MB in size")
-            settings.LOGGER.info(
-                msg=f"Annual Report PDF generated in {elapsed_time:.6f} seconds."
-            )
-
-            try:
-                # Update item if it exists
-                doc_pdf = AnnualReportPDF.objects.get(
-                    report=report,
-                )
-                if doc_pdf:
-                    ser = AnnualReportPDFSerializer(
-                        doc_pdf,
-                        data={
-                            "file": file_content,
-                        },
-                        partial=True,
-                    )
-                    if ser.is_valid():
-                        # Delete the previous file
-                        pdfs_file_path = doc_pdf.file.path
-                        default_storage.delete(pdfs_file_path)
-                        # os.remove(html_file_path)
-                        doc_pdf = ser.save()
-                        set_report_generation_status(report, False)
-                        return Response(
-                            AnnualReportPDFSerializer(doc_pdf).data,
-                            status=HTTP_202_ACCEPTED,
-                        )
-
-                    else:
-                        print("\n\nERROR HERE 1\n\n")
-                        print(ser.errors)
-                        set_report_generation_status(report, False)
-                        return Response(
-                            {"error": True},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-
-            except AnnualReportPDF.DoesNotExist:
-                # If the item doesn't exist, create a new one
-                ser = AnnualReportPDFCreateSerializer(
-                    data={
-                        "file": file_content,
-                        "report": report.pk,
-                        "creator": req.user.pk,
-                    }
-                )
-                if ser.is_valid():
-                    doc_pdf = ser.save()
-                    return Response(
-                        AnnualReportPDFSerializer(doc_pdf).data,
-                        status=HTTP_201_CREATED,
-                    )
-                else:
-                    print("nERROR HERE 2")
-                    print(ser.errors)
-                    set_report_generation_status(report, False)
-                    return Response(
-                        {"error": True},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
-
-
-class BeginReportDocGeneration(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def go(self, pk):
-        try:
-            obj = AnnualReport.objects.get(pk=pk)
-        except AnnualReport.DoesNotExist:
-            raise NotFound
-        return obj
-
-    def get_ar_media(self, pk, kind):
-        try:
-            obj = AnnualReportMedia.objects.get(report=pk, kind=kind)
-        except AnnualReportMedia.DoesNotExist:
-            print(f"AR MEDIA OF TYPE {kind} DOES NOT EXIST FOR AR {pk}")
-            return None
-        return obj
-
-    def get_approved_external_projects_for_ar(self, report):
-        settings.LOGGER.info(
-            msg=f"Getting Approved External Projects for current year..."
-        )
-        if report:
-            # Get progress report documents which belong to it and belong to active and approved projects
-            active_external_projects = Project.objects.filter(
-                Q(kind="external")
-                & Q(status="active")
-                & (  # Group the OR conditions within parentheses
-                    Q(
-                        business_area__division__name="Biodiversity and Conservation Science"
-                    )
-                    # | Q(
-                    #     business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    # )
-                )
-            ).exclude(
-                # Only exclude if division name is null
-                Q(business_area__division__name__isnull=True)
-            )
-
-            # REPLACE WITH AR EXT PROJECT SERIALIAZER
-            proj_ser = ARExternalProjectSerializer(
-                active_external_projects,
-                many=True,
-            )
-
-            return proj_ser.data
-        else:
-            return Response(
-                HTTP_404_NOT_FOUND,
-            )
-
-    def get_approved_reports_for_ar(self, report):
-        settings.LOGGER.info(
-            msg=f"Getting Approved Student & Progress Reports for current year"
-        )
-        if report:
-            # Get progress report documents which belong to it and belong to active and approved projects
-            active_sr_docs = StudentReport.objects.filter(
-                Q(report=report)
-                & Q(document__status="approved")
-                & (  # Group the OR conditions within parentheses
-                    Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
-                    )
-                    # | Q(
-                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    # )
-                )
-            ).exclude(
-                # Only exclude if division name is null
-                Q(project__business_area__division__name__isnull=True)
-            )
-
-            active_pr_docs = ProgressReport.objects.filter(
-                Q(report=report)
-                & (
-                    Q(
-                        project__business_area__division__name="Biodiversity and Conservation Science"
-                    )
-                    # | Q(
-                    #     project__business_area__division__name="Dept Biodiversity, Conservation and Attractions"
-                    # )
-                    | Q(project__id=1127)  # dieback dogs 1127
-                    # | Q(
-                    #     project__id=1067
-                    # )  # dieback dogs ID 1067 # dev test dieback detector dogs
-                )
-            ).exclude(Q(project__business_area__division__name__isnull=True))
-
-            def removeempty_p(html_content):
-                html_content = re.sub(r"<p>(&nbsp;|\s)*</p>", "", html_content)
-                html_content = re.sub(r"&nbsp;", " ", html_content)
-
-                return html_content
-
-            # Create a an in-memory ba mod to retain original ba
-            class MockBusinessArea:
-                def __init__(self, name):
-                    self.name = name
-
-            for report in active_pr_docs:
-                report.context = removeempty_p(report.context)
-                report.aims = removeempty_p(report.aims)
-                report.progress = removeempty_p(report.progress)
-                report.implications = removeempty_p(report.implications)
-                report.future = removeempty_p(report.future)
-                if (
-                    report.document.project.pk
-                    == 1127
-                    # or report.document.project.pk == 1067 # dev
-                ):
-                    # Temporarily set the business_area to a mock object
-                    # This only affects the instance in memory, not the database (no save required)
-                    report.document.project.business_area = MockBusinessArea(
-                        "Plant Science and Herbarium"
-                    )
-
-            for sreport in active_sr_docs:
-                sreport.progress_report = removeempty_p(sreport.progress_report)
-
-            sr_ser = StudentReportAnnualReportSerializer(
-                active_sr_docs,
-                many=True,
-            )
-            pr_ser = ProgressReportAnnualReportSerializer(
-                active_pr_docs,
-                many=True,
-            )
-
-            # print(active_pr_docs)
-            data_object = {
-                "student_reports": sr_ser.data,
-                "progress_reports": pr_ser.data,
             }
-            return data_object
-        else:
-            return Response(
-                HTTP_404_NOT_FOUND,
+
+        # Compile regex once for text extraction
+        html_tag_pattern = re.compile(r"<[^>]+>")
+
+        def get_distilled_title_optimised(html_string):
+            """Optimised text extraction"""
+            if not html_string:
+                return ""
+            # Remove HTML tags and clean up whitespace
+            clean_text = html_tag_pattern.sub(" ", html_string)
+            return " ".join(clean_text.split()).strip()
+
+        # Build sorted BA data efficiently
+        sorted_ba_data = []
+        for ba_pk, ba in ba_dict.items():
+            progress_reports = progress_reports_by_ba[ba_pk]
+
+            # Sort progress reports efficiently
+            sorted_progress_reports = sorted(
+                progress_reports,
+                key=lambda x: (
+                    -int(x["document"]["project"]["year"]),
+                    get_distilled_title_optimised(
+                        x["document"]["project"]["title"]
+                    ).lower(),
+                ),
             )
 
+            ba_object = {
+                "ba_name": ba["name"],
+                "ba_image": ba.get("image", ""),
+                "ba_leader": users_dict.get(ba.get("leader"), ""),
+                "ba_introduction": ba.get("introduction", ""),
+                "progress_reports": sorted_progress_reports,
+            }
+            sorted_ba_data.append(ba_object)
+
+        # Sort by BA name
+        return sorted(sorted_ba_data, key=lambda x: x["ba_name"])
+
+    @transaction.atomic
     def post(self, req, pk):
+        """Unified optimised POST method with genkind parameter"""
+        total_start_time = time.time()
+
+        # Get genkind from request data
+        genkind = req.data.get("genkind", "all")  # Default to 'all' if not specified
+
+        # Validate genkind parameter
+        if genkind not in ["all", "approved"]:
+            return Response(
+                {"error": "Invalid genkind parameter. Must be 'all' or 'approved'"},
+                HTTP_400_BAD_REQUEST,
+            )
+
         settings.LOGGER.info(
-            msg=f"{req.user} is generating a pdf for report with id {pk}"
+            f"{req.user} is generating a {genkind} pdf for report with id {pk}"
         )
 
         def set_report_generation_status(report, is_generating: bool):
-            report.pdf_generation_in_progress = is_generating
-            report.save()
+            AnnualReport.objects.filter(pk=report.pk).update(
+                pdf_generation_in_progress=is_generating
+            )
 
-        # Fetch Data for the templates
-        report = self.go(pk=pk)
-        # Return if already generating for report
-        if report.pdf_generation_in_progress == True:
+        # Fetch report with minimal data
+        try:
+            report = AnnualReport.objects.only(
+                "pk",
+                "year",
+                "pdf_generation_in_progress",
+                "dm",
+                "dm_sign",
+                "service_delivery_intro",
+                "publications",
+            ).get(pk=pk)
+        except AnnualReport.DoesNotExist:
+            raise NotFound
+
+        # Return if already generating
+        if report.pdf_generation_in_progress:
             return Response(
                 {"error": "PDF Generation already in progress"},
                 HTTP_400_BAD_REQUEST,
             )
+
         set_report_generation_status(report=report, is_generating=True)
-        start_time = time.time()
 
-        # Director's Message
-        directors_message_data = report.dm
-        directors_message_sign_off = report.dm_sign
-        # Publications
-        publications_data = report.publications
-
-        # Service Delivery Structure, ch img and chart
-
-        generic_chapter_image = (
-            os.path.join(settings.BASE_DIR, "documents", "generic_chapter_image.jpg")
-            if os.path.exists(
-                os.path.join(
-                    settings.BASE_DIR, "documents", "generic_chapter_image.jpg"
-                )
-            )
-            else ""
-        )
-        chart_image_obj = self.get_ar_media(pk=report.pk, kind="sdchart")
-        sds_chapter_image_obj = self.get_ar_media(pk=report.pk, kind="service_delivery")
-        sds_data = {
-            "intro": report.service_delivery_intro,
-            "chart": chart_image_obj.file.url if chart_image_obj else "",
-            "chapter_image": (
-                sds_chapter_image_obj.file.url
-                if sds_chapter_image_obj
-                else generic_chapter_image
-            ),
-        }
-
-        # Other Chapter Images & Covers
-        settings.LOGGER.info(msg=f"Fetching Annual Report Media...")
-        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
-        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
-
-        research_chapter_image = self.get_ar_media(pk=report.pk, kind="research")
-        partnerships_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="partnerships"
-        )
-        collaborations_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="collaborations"
-        )
-        student_projects_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="student_projects"
-        )
-        publications_chapter_image = self.get_ar_media(
-            pk=report.pk, kind="publications"
-        )
-
-        cover_chapter_image = self.get_ar_media(pk=report.pk, kind="cover")
-        rear_cover_chapter_image = self.get_ar_media(pk=report.pk, kind="rear_cover")
-
-        research_chapter_image = (
-            research_chapter_image.file.url
-            if research_chapter_image
-            else generic_chapter_image
-        )
-        partnerships_chapter_image = (
-            partnerships_chapter_image.file.url
-            if partnerships_chapter_image
-            else generic_chapter_image
-        )
-        collaborations_chapter_image = (
-            collaborations_chapter_image.file.url
-            if collaborations_chapter_image
-            else generic_chapter_image
-        )
-        student_projects_chapter_image = (
-            student_projects_chapter_image.file.url
-            if student_projects_chapter_image
-            else generic_chapter_image
-        )
-        publications_chapter_image = (
-            publications_chapter_image.file.url
-            if publications_chapter_image
-            else generic_chapter_image
-        )
-
-        cover_chapter_image = (
-            cover_chapter_image.file.url
-            if cover_chapter_image
-            else generic_chapter_image
-        )
-        rear_cover_chapter_image = (
-            rear_cover_chapter_image.file.url
-            if rear_cover_chapter_image
-            else generic_chapter_image
-        )
-
-        participating_external_projects = self.get_approved_external_projects_for_ar(
-            report=report
-        )
-
-        # Participating Reports (Dict in format of student_reports, progress_reports)
         try:
-            participating_reports = self.get_approved_reports_for_ar(report=report)
-        except Exception as e:
-            print(e)
-            set_report_generation_status(report, False)
+            # Phase 1: Media fetching
+            media_start = time.time()
+            media_dict = self.get_ar_media_batch(pk=report.pk)
+            media_time = time.time() - media_start
+            settings.LOGGER.info(f"Media fetching: {media_time:.3f}s")
 
-        # Business Areas with Participating Projects
-        bas = []
-        for pr in participating_reports["progress_reports"]:
-            document = pr["document"]
-            project = document["project"]
-            ba = project["business_area"]
-            bas.append(ba)
-        # order alphabetically
-        sorted_bas = sorted(bas, key=lambda x: x["name"])
+            # Helper function to get media URL
+            def get_media_url(kind, default=""):
+                media = media_dict.get(kind)
+                return media.file.url if media else default
 
-        def get_user_full_name(pk):
-            try:
-                u = User.objects.get(pk=pk)
-            except User.DoesNotExist:
-                return ""
-            return f"{u.display_first_name} {u.display_last_name}"
+            # Set up paths efficiently
+            base_dir = settings.BASE_DIR
+            generic_chapter_image = os.path.join(
+                base_dir, "documents", "generic_chapter_image.jpg"
+            )
+            if not os.path.exists(generic_chapter_image):
+                generic_chapter_image = ""
 
-        def get_distilled_title(html_string):
-            # Parse the HTML using BeautifulSoup
-            soup = BeautifulSoup(html_string, "html.parser")
+            # Service delivery structure data
+            sds_data = {
+                "intro": report.service_delivery_intro,
+                "chart": get_media_url("sdchart"),
+                "chapter_image": get_media_url(
+                    "service_delivery", generic_chapter_image
+                ),
+            }
 
-            # Extract the text content
-            inner_text = soup.get_text(separator=" ", strip=True).strip()
+            # Get chapter images efficiently
+            chapter_images = {
+                "cover_chapter_image": get_media_url("cover", generic_chapter_image),
+                "rear_cover_chapter_image": get_media_url(
+                    "rear_cover", generic_chapter_image
+                ),
+                "research_chapter_image": get_media_url(
+                    "research", generic_chapter_image
+                ),
+                "partnerships_chapter_image": get_media_url(
+                    "partnerships", generic_chapter_image
+                ),
+                "collaborations_chapter_image": get_media_url(
+                    "collaborations", generic_chapter_image
+                ),
+                "student_projects_chapter_image": get_media_url(
+                    "student_projects", generic_chapter_image
+                ),
+                "publications_chapter_image": get_media_url(
+                    "publications", generic_chapter_image
+                ),
+            }
 
-            return inner_text
+            # Phase 2: Data fetching
+            data_fetch_start = time.time()
 
-        # Create a dictionary to group progress reports by business area pk
-        progress_reports_by_ba = {}
+            # Use optimised methods with genkind parameter
+            participating_external_projects = self.get_external_projects_optimised(
+                report=report, genkind=genkind
+            )
+            participating_reports = self.get_reports_optimised(
+                report=report, genkind=genkind
+            )
+            sorted_ba_data = self.get_business_areas_optimised(participating_reports)
 
-        # Group progress reports based on business area pk
-        for item in participating_reports["progress_reports"]:
-            ba_pk = item["document"]["project"]["business_area"]["pk"]
+            data_fetch_time = time.time() - data_fetch_start
+            settings.LOGGER.info(f"Data fetching: {data_fetch_time:.3f}s")
 
-            if ba_pk not in progress_reports_by_ba:
-                progress_reports_by_ba[ba_pk] = []
+            # Phase 3: Sorting optimization
+            sorting_start = time.time()
 
-            progress_reports_by_ba[ba_pk].append(item)
+            # Compile regex once for all title processing
+            html_tag_pattern = re.compile(r"<[^>]+>")
 
-        sorted_external_project_data = sorted(
-            [project for project in participating_external_projects],
-            key=lambda x: get_distilled_title(x["title"]).lower(),
-        )
-        sorted_ba_data = []
-        existing_ba_names = set()  # To keep track of existing ba_names
+            def get_distilled_title_cached(html_string):
+                if not html_string:
+                    return ""
+                clean_text = html_tag_pattern.sub(" ", html_string)
+                return " ".join(clean_text.split()).strip()
 
-        # For each business area
-        for ba in sorted_bas:
-            ba_name = ba["name"]
+            # Sort external projects efficiently
+            sorted_external_project_data = sorted(
+                participating_external_projects,
+                key=lambda x: get_distilled_title_cached(x["title"]).lower(),
+            )
 
-            # Check if an object with the same ba_name already exists
-            if ba_name not in existing_ba_names:
-                # Prepare progress reports that match the business area's pk
-                progress_reports = progress_reports_by_ba.get(ba["pk"], [])
+            # Sort student reports efficiently
+            sorted_srs = sorted(
+                participating_reports["student_reports"],
+                key=lambda x: (
+                    -int(x["document"]["project"]["year"]),
+                    get_distilled_title_cached(
+                        x["document"]["project"]["title"]
+                    ).lower(),
+                ),
+            )
 
-                # Sort progress reports first by year (descending) and then alphabetically by title
-                sorted_progress_reports = sorted(
-                    progress_reports,
-                    key=lambda x: (
-                        -int(
-                            x["document"]["project"]["year"]
-                        ),  # Negative for descending order
-                        get_distilled_title(x["document"]["project"]["title"]).lower(),
-                    ),
-                )
+            sorting_time = time.time() - sorting_start
+            settings.LOGGER.info(f"Sorting: {sorting_time:.3f}s")
 
-                # Create an object
-                ba_object = {
-                    "ba_name": ba_name,
-                    "ba_image": ba.get("image", ""),
-                    "ba_leader": get_user_full_name(ba["leader"]),
-                    "ba_introduction": ba["introduction"],
-                    "progress_reports": sorted_progress_reports,
-                }
+            # Phase 4: Template rendering
+            render_start = time.time()
 
-                # Append the new ba_object
-                sorted_ba_data.append(ba_object)
+            # CSS and image paths
+            rte_css_path = os.path.join(base_dir, "documents", "rte_styles.css")
+            prince_css_path = os.path.join(
+                base_dir, "documents", "prince_ar_document_styles.css"
+            )
+            dbca_image_path = f"{base_dir}/staticfiles/images/BCSTransparent.png"
+            no_image_path = f"{base_dir}/staticfiles/images/image_not_available.png"
 
-                # Add the ba_name to the set of existing ba_names
-                existing_ba_names.add(ba_name)
-
-        sorted_srs = sorted(
-            [
-                report
-                for report in participating_reports["student_reports"]
-                if report["document"]["project"]
-            ],
-            key=lambda x: (
-                -int(
-                    x["document"]["project"]["year"]
-                ),  # Negative for descending order by year
-                get_distilled_title(
-                    x["document"]["project"]["title"]
-                ).lower(),  # Alphabetical order by title
-            ),
-        )
-
-        # Handle Generation
-        rte_css_path = os.path.join(settings.BASE_DIR, "documents", "rte_styles.css")
-        prince_css_path = os.path.join(
-            settings.BASE_DIR, "documents", "prince_ar_document_styles.css"
-        )
-        # dbca_image_path = get_encoded_ar_dbca_image()
-        # dbca_image_path = os.path.join(
-        #     settings.BASE_DIR, "documents", "BCSTransparent.png"
-        # )
-        dbca_image_path = f"{settings.BASE_DIR}/staticfiles/images/BCSTransparent.png"
-
-        # dbca_cropped_image_path = os.path.join(
-        #     settings.BASE_DIR, "documents", "BCSTransparentCropped.png"
-        # )
-        dbca_cropped_image_path = (
-            f"{settings.BASE_DIR}/staticfiles/images/BCSTransparentCropped.png"
-        )
-
-        # no_image_path = os.path.join(
-        #     settings.BASE_DIR, "documents", "image_not_available.png"
-        # )
-        no_image_path = (
-            f"{settings.BASE_DIR}/staticfiles/images/image_not_available.png"
-        )
-
-        # HTML content for the PDF
-        def get_formatted_datetime(now):
-            # Format the date and time
-            day_with_suffix = "{}".format(now.day) + (
+            # Optimised datetime formatting
+            now = datetime.datetime.now()
+            day_suffix = (
                 "th"
                 if 10 <= now.day % 100 <= 20
                 else {1: "st", 2: "nd", 3: "rd"}.get(now.day % 10, "th")
             )
+            formatted_datetime = now.strftime(f"{now.day}{day_suffix} %B, %Y @ %I:%M%p")
 
-            formatted_datetime = now.strftime(f"{day_with_suffix} %B, %Y @ %I:%M%p")
+            # DBCA banners
+            dbca_banner = media_dict.get("dbca_banner")
+            dbca_banner_cropped = media_dict.get("dbca_banner_cropped")
 
-            return formatted_datetime
+            dbca_banner_path = (
+                f"{base_dir}{dbca_banner.file.url}" if dbca_banner else None
+            )
+            dbca_banner_cropped_path = (
+                f"{base_dir}{dbca_banner_cropped.file.url}"
+                if dbca_banner_cropped
+                else None
+            )
 
-        # "current_date_time_string": get_formatted_datetime(datetime.datetime.now()),
+            # Template context preparation
+            template_context = {
+                "time_generated": formatted_datetime,
+                "prince_css_path": prince_css_path,
+                "dbca_image_path": dbca_banner_path,
+                "dbca_cropped_image_path": dbca_banner_cropped_path,
+                "no_image_path": no_image_path,
+                "server_url": (
+                    "http://127.0.0.1:8000"
+                    if settings.DEBUG
+                    else settings.PRINCE_SERVER_URL
+                ),
+                "frontend_url": (
+                    "http://127.0.0.1:3000" if settings.DEBUG else settings.SITE_URL
+                ),
+                "base_url": base_dir,
+                "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
+                "directors_message_data": report.dm,
+                "directors_message_sign_off": report.dm_sign,
+                "sds_data": sds_data,
+                "sorted_ba_data_and_pr_dict": sorted_ba_data,
+                "sorted_external_project_data": sorted_external_project_data,
+                "sorted_student_report_array": sorted_srs,
+                "publications_data": report.publications,
+                "population_time": f"{float(time.time() - total_start_time):.3f}",
+                "generic_chapter_image_path": generic_chapter_image,
+                **chapter_images,
+            }
 
-        settings.LOGGER.warning(msg=f"Annual Report Data Rendering to Template...")
-        try:
-            html_content = get_template("annual_report.html").render(
-                {
-                    # Styles & url
-                    # "rte_css_path": rte_css_path,
-                    "time_generated": get_formatted_datetime(datetime.datetime.now()),
-                    "prince_css_path": prince_css_path,
-                    "dbca_image_path": dbca_image_path,
-                    "dbca_cropped_image_path": dbca_cropped_image_path,
-                    "no_image_path": no_image_path,
-                    "server_url": (
-                        "http://127.0.0.1:8000"
-                        if settings.DEBUG == True
-                        # else settings.SITE_URL
-                        else settings.PRINCE_SERVER_URL
-                    ),
-                    "frontend_url": (
-                        "http://127.0.0.1:3000"
-                        if settings.DEBUG == True
-                        else settings.SITE_URL
-                    ),
-                    "base_url": settings.BASE_DIR,
-                    # Chapter Images
-                    "cover_chapter_image": cover_chapter_image,
-                    "rear_cover_chapter_image": rear_cover_chapter_image,
-                    "research_chapter_image": research_chapter_image,
-                    "partnerships_chapter_image": partnerships_chapter_image,
-                    "collaborations_chapter_image": collaborations_chapter_image,
-                    "student_projects_chapter_image": student_projects_chapter_image,
-                    "publications_chapter_image": publications_chapter_image,
-                    "generic_chapter_image_path": generic_chapter_image,
-                    # Cover page
-                    "financial_year_string": f"{int(report.year-1)}-{int(report.year)}",
-                    # ED Message
-                    "directors_message_data": directors_message_data,
-                    "directors_message_sign_off": directors_message_sign_off,
-                    # TABLE CONTENTS
-                    # SDS
-                    "sds_data": sds_data,
-                    # BA & Progress Reports
-                    "sorted_ba_data_and_pr_dict": sorted_ba_data,
-                    # External Partnerships Table (OMMITTED - CALCULATED IN PRINCE)
-                    "sorted_external_project_data": sorted_external_project_data,
-                    # Student Report Table (OMMITTED - CALCULATED IN PRINCE)
-                    # Student Reports
-                    "sorted_student_report_array": sorted_srs,
-                    # Publications and Reports
-                    "publications_data": publications_data,
-                    # Summary of Research Projects (OMMITTED - CALCULATED IN PRINCE)
-                    "population_time": f"{float(time.time() - start_time):.3f}",
-                }
+            # Render template
+            html_content = get_template("annual_report.html").render(template_context)
+
+            render_time = time.time() - render_start
+            settings.LOGGER.info(f"Template rendering: {render_time:.3f}s")
+
+            # Phase 5: PDF generation
+            pdf_start = time.time()
+
+            temp_dir = tempfile.gettempdir()
+            html_file_path = os.path.join(
+                temp_dir, f"_Annual_Report_{genkind}_{report.pk}.html"
+            )
+
+            with open(html_file_path, "w", encoding="utf-8") as html_file:
+                html_file.write(html_content)
+
+            all_css_paths = ",".join([rte_css_path, prince_css_path])
+
+            p = subprocess.Popen(
+                ["prince", "-", f"--style={all_css_paths}", "--javascript"],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+            outs, errs = p.communicate(html_content.encode("utf-8"))
+
+            if p.returncode:
+                settings.LOGGER.error(f"Prince XML error: {errs}")
+                set_report_generation_status(report=report, is_generating=False)
+                return Response({"error": True}, status=HTTP_400_BAD_REQUEST)
+
+            pdf = outs
+            pdf_filename = f"_Annual_Report_{genkind}_{report.pk}.pdf"
+            file_content = ContentFile(pdf, name=pdf_filename)
+
+            pdf_time = time.time() - pdf_start
+            settings.LOGGER.info(f"PDF generation: {pdf_time:.3f}s")
+
+            # Phase 6: Save PDF
+            save_start = time.time()
+
+            doc_pdf, created = AnnualReportPDF.objects.get_or_create(
+                report=report, defaults={"file": file_content, "creator": req.user}
+            )
+
+            if not created:
+                # Update existing
+                if doc_pdf.file:
+                    default_storage.delete(doc_pdf.file.path)
+                doc_pdf.file = file_content
+                doc_pdf.save()
+
+            # Clean up temp file
+            try:
+                os.remove(html_file_path)
+            except:
+                pass
+
+            save_time = time.time() - save_start
+            settings.LOGGER.info(f"PDF saving: {save_time:.3f}s")
+
+            set_report_generation_status(report, False)
+
+            total_time = time.time() - total_start_time
+            megabytes_size = len(pdf) / (1024**2)
+
+            settings.LOGGER.info(
+                f"\n==============Performance breakdown==============\nMedia: {media_time:.3f}s,\nFetch Data: {data_fetch_time:.3f}s,\nSort: {sorting_time:.3f}s,\nRender Template: {render_time:.3f}s,\nPDF Gen: {pdf_time:.3f}s,\nSave: {save_time:.3f}s"
+            )
+            settings.LOGGER.info(f"TOTAL TIME ({genkind}): {total_time:.3f}s")
+            settings.LOGGER.info(f"PDF size: {megabytes_size:.2f} MB")
+
+            return Response(
+                AnnualReportPDFSerializer(doc_pdf).data,
+                status=HTTP_201_CREATED if created else HTTP_202_ACCEPTED,
             )
 
         except Exception as e:
-            settings.LOGGER.error(f"There was an error generating report: {e}")
+            settings.LOGGER.error(f"Error generating {genkind} report: {e}")
             set_report_generation_status(report=report, is_generating=False)
-            return Response(
-                {"error": True},
-                status=HTTP_400_BAD_REQUEST,
-            )
-
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        settings.LOGGER.info(msg=f"Rendered to template in {elapsed_time:.6f} seconds.")
-
-        temp_dir = tempfile.gettempdir()
-        html_file_path = os.path.join(temp_dir, f"_Annual_Report_{report.pk}.html")
-
-        # Write to the temporary file
-        with open(html_file_path, "w", encoding="utf-8") as html_file:
-            html_file.write(html_content)
-
-        # Combine all stylesheet paths into a single string separated by commas
-        all_css_paths = ",".join([rte_css_path, prince_css_path])
-
-        p = subprocess.Popen(
-            ["prince", "-", f"--style={all_css_paths}", f"--javascript"],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-
-        outs, errs = p.communicate(f"{html_content}".encode("utf-8"))
-
-        if p.returncode:
-            # Handle `errs`.
-            print(p.returncode)
-            set_report_generation_status(report, False)
-            return Response(
-                {"error": True},
-                status=HTTP_400_BAD_REQUEST,
-            )
-        else:
-            pdf = outs
-            pdf_filename = f"_Annual_Report_{report.pk}.pdf"
-            file_content = ContentFile(pdf, name=pdf_filename)
-
-            set_report_generation_status(report=report, is_generating=False)
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            megabytes_size = len(pdf) / (1024**2)
-            formatted_size = "{:.2f}".format(megabytes_size)
-            settings.LOGGER.info(msg=f"PDF is " + str(formatted_size) + " MB in size")
-            settings.LOGGER.info(
-                msg=f"Annual Report PDF generated in {elapsed_time:.6f} seconds."
-            )
-
-            try:
-                # Update item if it exists
-                doc_pdf = AnnualReportPDF.objects.get(
-                    report=report,
-                )
-                if doc_pdf:
-                    ser = AnnualReportPDFSerializer(
-                        doc_pdf,
-                        data={
-                            "file": file_content,
-                        },
-                        partial=True,
-                    )
-                    if ser.is_valid():
-                        # Delete the previous file
-                        pdfs_file_path = doc_pdf.file.path
-                        default_storage.delete(pdfs_file_path)
-                        os.remove(html_file_path)
-                        doc_pdf = ser.save()
-                        set_report_generation_status(report=report, is_generating=False)
-                        return Response(
-                            AnnualReportPDFSerializer(doc_pdf).data,
-                            status=HTTP_202_ACCEPTED,
-                        )
-
-                    else:
-                        print("\n\nERROR HERE 1\n\n")
-                        print("error on try ser")
-                        print(ser.errors)
-                        set_report_generation_status(report=report, is_generating=False)
-                        return Response(
-                            {"error": True},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-
-            except AnnualReportPDF.DoesNotExist:
-                # If the item doesn't exist, create a new one
-                ser = AnnualReportPDFCreateSerializer(
-                    data={
-                        "file": file_content,
-                        "report": report.pk,
-                        "creator": req.user.pk,
-                    }
-                )
-                if ser.is_valid():
-                    doc_pdf = ser.save()
-                    return Response(
-                        AnnualReportPDFSerializer(doc_pdf).data,
-                        status=HTTP_201_CREATED,
-                    )
-                else:
-                    print("error on except ser")
-                    print(ser.errors)
-                    set_report_generation_status(report=report, is_generating=False)
-                    return Response(
-                        {"error": True},
-                        status=HTTP_400_BAD_REQUEST,
-                    )
+            return Response({"error": True}, status=HTTP_400_BAD_REQUEST)
 
 
 class CancelReportDocGeneration(APIView):

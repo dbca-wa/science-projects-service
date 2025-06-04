@@ -1968,7 +1968,7 @@ class SmallProjectSearch(APIView):
         if search_term:
             projects = projects.filter(title__icontains=search_term)
 
-        # Optimize based on TinyProjectSerializer needs
+        # Optimise based on TinyProjectSerializer needs
         projects = projects.select_related("business_area", "image")
 
         serialized_projects = TinyProjectSerializer(
@@ -2683,7 +2683,7 @@ class MembersForProject(APIView):
 class ProblematicProjects(APIView):
     def get_projects(self):
         try:
-            # Optimize for the ProblematicProjectSerializer needs
+            # Optimise for the ProblematicProjectSerializer needs
             projects = (
                 Project.objects.all()
                 .select_related("business_area", "image")

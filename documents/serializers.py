@@ -4,6 +4,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import NotFound
 from common.utils import TeamMemberMixin
 
+from locations.models import Area
+from locations.serializers import TinyAreaSerializer
 from medias.models import ProjectDocumentPDF, ProjectPlanMethodologyPhoto
 from projects.models import Project, ProjectArea, ProjectMember
 from projects.serializers import (
@@ -12,6 +14,7 @@ from projects.serializers import (
     TinyProjectSerializer,
     TinyStudentProjectARSerializer,
 )
+from users.models import User
 from .models import (
     ConceptPlan,
     CustomPublication,
@@ -772,3 +775,296 @@ class PublicationResponseSerializer(serializers.Serializer):
 
 
 # endregion  ===================================
+
+
+# OPTIMISED SERIALIZERS FOR PDF GENERATION (saves 2-3 seconds)
+class OptimisedTeamMemberMixin:
+    def get_team_members(self, obj):
+        """Optimized team member fetching using prefetched data"""
+        if hasattr(obj, "document") and hasattr(obj.document, "project"):
+            project = obj.document.project
+        else:
+            project = obj.project if hasattr(obj, "project") else obj
+
+        # Use prefetched data if available
+        if (
+            hasattr(project, "_prefetched_objects_cache")
+            and "members" in project._prefetched_objects_cache
+        ):
+            members = project._prefetched_objects_cache["members"]
+        else:
+            # Fallback with optimized query
+            members = ProjectMember.objects.select_related(
+                "user", "user__profile", "user__work", "user__work__business_area"
+            ).filter(project=project.pk)
+
+        # Return data in the format expected by template filters
+        return [
+            {
+                "pk": member.pk,
+                "role": member.role,
+                "position": member.position,
+                "is_leader": member.is_leader,
+                "user": {
+                    "pk": member.user.pk,
+                    "display_first_name": member.user.display_first_name,
+                    "display_last_name": member.user.display_last_name,
+                    "is_staff": member.user.is_staff,
+                    "title": (
+                        getattr(member.user.profile, "title", "")
+                        if hasattr(member.user, "profile")
+                        else ""
+                    ),
+                    "affiliation": (
+                        {
+                            "name": (
+                                getattr(member.user.profile, "affiliation_name", "")
+                                if hasattr(member.user, "profile")
+                                else ""
+                            )
+                        }
+                        if hasattr(member.user, "profile")
+                        and hasattr(member.user.profile, "affiliation_name")
+                        else None
+                    ),
+                },
+            }
+            for member in members
+        ]
+
+
+class OptimisedProjectTeamMemberMixin:
+    def get_team_members(self, project):
+        """Optimized project team member fetching"""
+        if (
+            hasattr(project, "_prefetched_objects_cache")
+            and "members" in project._prefetched_objects_cache
+        ):
+            members = project._prefetched_objects_cache["members"]
+        else:
+            members = ProjectMember.objects.select_related(
+                "user", "user__profile", "user__work", "user__work__business_area"
+            ).filter(project=project.pk)
+
+        return [
+            {
+                "pk": member.pk,
+                "role": member.role,
+                "position": member.position,
+                "is_leader": member.is_leader,
+                "user": {
+                    "pk": member.user.pk,
+                    "display_first_name": member.user.display_first_name,
+                    "display_last_name": member.user.display_last_name,
+                    "is_staff": member.user.is_staff,
+                    "title": (
+                        getattr(member.user.profile, "title", "")
+                        if hasattr(member.user, "profile")
+                        else ""
+                    ),
+                    "affiliation": (
+                        {
+                            "name": (
+                                getattr(member.user.profile, "affiliation_name", "")
+                                if hasattr(member.user, "profile")
+                                else ""
+                            )
+                        }
+                        if hasattr(member.user, "profile")
+                        else None
+                    ),
+                },
+            }
+            for member in members
+        ]
+
+
+class OptimisedARExternalProjectSerializer(
+    OptimisedProjectTeamMemberMixin, serializers.ModelSerializer
+):
+    team_members = serializers.SerializerMethodField()
+    partners = serializers.CharField(
+        source="external_project_info.collaboration_with", default=""
+    )
+    funding = serializers.CharField(source="external_project_info.budget", default="")
+
+    class Meta:
+        model = Project
+        fields = ["pk", "title", "partners", "funding", "team_members"]
+
+
+class OptimisedStudentReportAnnualReportSerializer(
+    OptimisedTeamMemberMixin, serializers.ModelSerializer
+):
+    # Keep original structure for template compatibility
+    document = serializers.SerializerMethodField()
+    team_members = serializers.SerializerMethodField()
+    project_areas = serializers.SerializerMethodField()
+
+    def get_document(self, obj):
+        doc = obj.document
+        project = doc.project
+        business_area = project.business_area
+
+        # Get student level from student_project_info if it exists
+        student_level = ""
+        if hasattr(project, "student_project_info") and project.student_project_info:
+            student_level = project.student_project_info.level
+
+        return {
+            "pk": doc.pk,
+            "project": {
+                "pk": project.pk,
+                "title": project.title,
+                "year": project.year,
+                "kind": getattr(project, "kind", ""),  # Add missing kind field
+                "number": getattr(project, "number", ""),  # Add missing number field
+                "student_level": student_level,  # Get from student_project_info
+                "start_date": project.start_date,
+                "end_date": project.end_date,
+                "image": {
+                    "file": (
+                        project.image.file.url
+                        if hasattr(project, "image")
+                        and project.image
+                        and project.image.file
+                        else None
+                    )
+                },
+                "business_area": (
+                    {
+                        "pk": business_area.pk,
+                        "name": business_area.name,
+                        "leader": business_area.leader_id,
+                        "introduction": business_area.introduction,
+                        "image": getattr(business_area, "image", ""),
+                    }
+                    if business_area
+                    else None
+                ),
+            },
+        }
+
+    def get_project_areas(self, obj):
+        if hasattr(obj.project, "area") and obj.project.area:
+            # Need to fetch the actual area data for the template
+            # imported here to avoid circular imports
+            try:
+                from locations.models import Area
+
+                area_pks = (
+                    obj.project.area.areas if hasattr(obj.project.area, "areas") else []
+                )
+                areas = (
+                    Area.objects.filter(pk__in=area_pks).values(
+                        "pk", "name", "area_type"
+                    )
+                    if area_pks
+                    else []
+                )
+                return {"data": {"areas": list(areas)}}
+            except ImportError:
+                # Fallback if Area model doesn't exist or can't be imported
+                return {"data": {"areas": []}}
+        return {"data": {"areas": []}}
+
+    class Meta:
+        model = StudentReport
+        fields = [
+            "pk",
+            "document",
+            "year",
+            "progress_report",
+            "team_members",
+            "project_areas",
+        ]
+
+
+class OptimisedProgressReportAnnualReportSerializer(
+    OptimisedTeamMemberMixin, serializers.ModelSerializer
+):
+    # Keep original structure for template compatibility
+    document = serializers.SerializerMethodField()
+    team_members = serializers.SerializerMethodField()
+    project_areas = serializers.SerializerMethodField()
+
+    def get_document(self, obj):
+        doc = obj.document
+        project = doc.project
+        business_area = project.business_area
+
+        return {
+            "pk": doc.pk,
+            "project": {
+                "pk": project.pk,
+                "title": project.title,
+                "year": project.year,
+                "kind": getattr(project, "kind", ""),
+                "number": getattr(project, "number", ""),
+                "student_level": getattr(project, "student_level", ""),
+                "image": {
+                    "file": (
+                        project.image.file.url
+                        if hasattr(project, "image")
+                        and project.image
+                        and project.image.file
+                        else None
+                    )
+                },
+                "business_area": (
+                    {
+                        "pk": business_area.pk,
+                        "name": business_area.name,
+                        "leader": business_area.leader_id,
+                        "introduction": business_area.introduction,
+                        "image": (
+                            {
+                                "file": (
+                                    business_area.image.file.url
+                                    if hasattr(business_area, "image")
+                                    and business_area.image
+                                    and business_area.image.file
+                                    else None
+                                )
+                            }
+                            if hasattr(business_area, "image")
+                            else None
+                        ),
+                    }
+                    if business_area
+                    else None
+                ),
+            },
+        }
+
+    def get_project_areas(self, obj):
+        if hasattr(obj.project, "area") and obj.project.area:
+            # Also fetch the actual area data for the template
+            from locations.models import Area
+
+            area_pks = (
+                obj.project.area.areas if hasattr(obj.project.area, "areas") else []
+            )
+            areas = (
+                Area.objects.filter(pk__in=area_pks).values("pk", "name", "area_type")
+                if area_pks
+                else []
+            )
+            return {"data": {"areas": list(areas)}}
+        return {"data": {"areas": []}}
+
+    class Meta:
+        model = ProgressReport
+        fields = [
+            "pk",
+            "document",
+            "year",
+            "is_final_report",
+            "context",
+            "aims",
+            "progress",
+            "implications",
+            "future",
+            "team_members",
+            "project_areas",
+        ]
