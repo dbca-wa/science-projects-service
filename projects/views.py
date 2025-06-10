@@ -1990,7 +1990,8 @@ class MyProjects(APIView):
 
         # Get project memberships with optimized select_related to prevent N+1
         user_memberships = (
-            ProjectMember.objects.filter(user=req.user).select_related(
+            ProjectMember.objects.filter(user=req.user)
+            .select_related(
                 "project",
                 "project__business_area",
                 "project__business_area__division",  # For TinyDivisionSerializer
@@ -1998,7 +1999,9 @@ class MyProjects(APIView):
                 "project__image",  # Project image
                 "project__image__uploader",  # Project image uploader (if needed)
             )
-            # Removed prefetch_related - not needed for OneToOne relationships (BA image)
+            .prefetch_related(
+                "project__business_area__division__directorate_email_list"
+            )
         )
 
         projects_with_roles = [

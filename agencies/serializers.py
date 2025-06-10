@@ -36,7 +36,14 @@ class DirectorateEmailListSerializer(serializers.Serializer):
     """
 
     def to_representation(self, users):
-        # Convert the users queryset to the desired format
+        # Handle case where users might be a ManyRelatedManager or a prefetched queryset
+        if hasattr(users, "all"):
+            # It's a ManyRelatedManager, we need to call .all()
+            user_list = users.all()
+        else:
+            # It's already a queryset/list from prefetch_related
+            user_list = users
+
         return [
             {
                 "pk": user.pk,
@@ -47,13 +54,13 @@ class DirectorateEmailListSerializer(serializers.Serializer):
                     else user.get_full_name() or user.username
                 ),
             }
-            for user in users.all()
+            for user in user_list
         ]
 
 
 class TinyDivisionSerializer(serializers.ModelSerializer):
 
-    directorate_email_list = DirectorateEmailListSerializer()
+    directorate_email_list = serializers.SerializerMethodField()
 
     class Meta:
         model = Division
@@ -65,6 +72,9 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
             "approver",
             "directorate_email_list",
         )
+
+    def get_directorate_email_list(self, obj):
+        return obj.get_directorate_email_list()
 
 
 class DivisionSerializer(serializers.ModelSerializer):
