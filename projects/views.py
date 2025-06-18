@@ -6,7 +6,7 @@ from math import ceil
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
-from django.db.models import Q, Case, When, Value, F, IntegerField, CharField
+from django.db.models import Q, Case, When, Value, F, IntegerField, CharField, Prefetch
 from django.core.files.base import ContentFile
 from django.http import HttpResponse
 from django.core.files.base import ContentFile
@@ -57,6 +57,7 @@ from documents.serializers import (
 )
 from medias.models import ProjectPhoto
 from medias.serializers import TinyProjectPhotoSerializer
+from users.models import User
 
 from .serializers import (
     CreateProjectSerializer,
@@ -2000,7 +2001,13 @@ class MyProjects(APIView):
                 "project__image__uploader",  # Project image uploader (if needed)
             )
             .prefetch_related(
-                "project__business_area__division__directorate_email_list"
+                # "project__business_area__division__directorate_email_list"
+                Prefetch(
+                    "project__business_area__division__directorate_email_list",
+                    queryset=User.objects.only(
+                        "pk", "email", "display_first_name", "display_last_name"
+                    ),
+                )
             )
         )
 

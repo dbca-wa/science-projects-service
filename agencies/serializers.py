@@ -74,7 +74,14 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
         )
 
     def get_directorate_email_list(self, obj):
-        return obj.get_directorate_email_list()
+        return [
+            {
+                "pk": user.pk,
+                "email": user.email,
+                "name": f"{user.display_first_name} {user.display_last_name}",
+            }
+            for user in obj.directorate_email_list.all()
+        ]
 
 
 class DivisionSerializer(serializers.ModelSerializer):

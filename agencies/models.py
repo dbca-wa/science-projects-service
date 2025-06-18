@@ -204,19 +204,6 @@ class Division(CommonModel):
         help_text="Users who should receive email communications for this division",
     )
 
-    def get_directorate_email_list(self):
-        """
-        Returns a list of email addresses for all users in the email list
-        """
-        return [
-            {
-                "pk": user.pk,
-                "email": user.email,
-                "name": f"{user.display_first_name} {user.display_last_name}",
-            }
-            for user in self.directorate_email_list.all()
-        ]
-
     def __str__(self) -> str:
         return f"{self.name}"
 

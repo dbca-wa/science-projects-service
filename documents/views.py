@@ -1,5 +1,6 @@
 # region IMPORTS ==================================================
 
+import ast
 from collections import defaultdict
 import datetime, json, os, re, subprocess, time, tempfile
 from bs4 import BeautifulSoup
@@ -5135,8 +5136,11 @@ class BeginProjectDocGeneration(APIView):
                 and table_data.startswith("[[")
                 and table_data.endswith("]]")
             ):
-                # Convert the string to a list using eval (Note: use eval cautiously)
-                table_data = eval(table_data)
+                # Convert the string to a list using ast.literal_eval (safer than eval)
+                try:
+                    table_data = ast.literal_eval(table_data)
+                except (ValueError, SyntaxError):
+                    return table_data  # If it's not valid, return as-is
             elif (
                 isinstance(table_data, str)
                 and table_data.startswith("<table")
@@ -5149,13 +5153,20 @@ class BeginProjectDocGeneration(APIView):
                 extracted_table_data = extract_html_table_data(table_data)
                 if extracted_table_data:
                     table_data = extracted_table_data
+                else:
+                    # No table found in the HTML, return the original content as-is
+                    return table_data
             elif not all(isinstance(row, list) for row in table_data):
                 # If neither JSON-like nor HTML-like data is received, raise an error
                 raise ValueError(
                     f"Input must be a list of lists or a valid string representation of a list of lists or HTML table.\nProvided Input: {table_data}"
                 )
 
-            html = iterate_rows_in_json_table(eval(f"{table_data}"))
+            # Safer final conversion
+            try:
+                html = iterate_rows_in_json_table(ast.literal_eval(f"{table_data}"))
+            except (ValueError, SyntaxError):
+                html = iterate_rows_in_json_table(table_data)  # Trying without eval
 
             return html
 
