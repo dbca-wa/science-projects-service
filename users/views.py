@@ -1426,7 +1426,8 @@ class StaffProfileEmploymentEntryDetail(APIView):
     def delete(self, req, pk):
 
         entry = self.go(pk)
-        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+        # print(entry)
+        if not req.user.is_superuser and req.user != entry.public_profile.user:
             return Response(
                 data={"error": True},
                 status=HTTP_401_UNAUTHORIZED,
@@ -1440,7 +1441,11 @@ class StaffProfileEmploymentEntryDetail(APIView):
     def put(self, req, pk):
 
         entry = self.go(pk)
-        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+        # print(entry)
+        # print(entry.public_profile)
+        # print(req.user)
+        # print(entry.public_profile.user)
+        if not req.user.is_superuser and req.user != entry.public_profile.user:
             return Response(
                 data={"error": True},
                 status=HTTP_401_UNAUTHORIZED,
@@ -1487,7 +1492,7 @@ class StaffProfileEducationEntryDetail(APIView):
 
     def delete(self, req, pk):
         entry = self.go(pk)
-        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+        if not req.user.is_superuser and req.user != entry.public_profile.user:
             return Response(
                 data={"error": True},
                 status=HTTP_401_UNAUTHORIZED,
@@ -1500,7 +1505,7 @@ class StaffProfileEducationEntryDetail(APIView):
 
     def put(self, req, pk):
         entry = self.go(pk)
-        if req.user.is_superuser == False and req.user is not entry.public_profile.user:
+        if not req.user.is_superuser and req.user != entry.public_profile.user:
             return Response(
                 data={"error": True},
                 status=HTTP_401_UNAUTHORIZED,
