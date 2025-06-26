@@ -1570,45 +1570,44 @@ class PublicEmailStaffMember(APIView):
             # Render the email template
             template_content = render_to_string(templ, template_props)
 
-            if settings.DEBUG == False:
-                if settings.ON_TEST_NETWORK != True:
-                    print(f"PRODUCTION: Sending email to {recipient_name}")
-                    try:
-                        send_mail(
-                            "Staff Profile Message",
-                            template_content,  # plain text version
-                            from_email,
-                            to_email,
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
-                else:
-                    print(f"LIVE TEST: Sending email to {recipient_name}")
-                    try:
-                        send_mail(
-                            "Staff Profile Message",
-                            template_content,  # plain text version
-                            from_email,
-                            ["jarid.prince@dbca.wa.gov.au"],
-                            fail_silently=False,  # Set this to False to see errors
-                            html_message=template_content,
-                        )
-                    except Exception as e:
-                        settings.LOGGER.error(
-                            msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
-                        )
-                        return Response(
-                            {"error": str(e)},
-                            status=HTTP_400_BAD_REQUEST,
-                        )
+            if settings.ENVIRONMENT == "production":
+                print(f"PRODUCTION: Sending email to {recipient_name}")
+                try:
+                    send_mail(
+                        "Staff Profile Message",
+                        template_content,  # plain text version
+                        from_email,
+                        to_email,
+                        fail_silently=False,  # Set this to False to see errors
+                        html_message=template_content,
+                    )
+                except Exception as e:
+                    settings.LOGGER.error(
+                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                    )
+                    return Response(
+                        {"error": str(e)},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
+            elif settings.ENVIRONMENT == "staging":
+                print(f"LIVE TEST: Sending email to {recipient_name}")
+                try:
+                    send_mail(
+                        "Staff Profile Message",
+                        template_content,  # plain text version
+                        from_email,
+                        [f"{settings.SPMS_MAINTAINER_EMAIL}"],
+                        fail_silently=False,  # Set this to False to see errors
+                        html_message=template_content,
+                    )
+                except Exception as e:
+                    settings.LOGGER.error(
+                        msg=f"Email Error: {e}\n If this is a 'getaddrinfo' error, you are likely running outside of OIM's datacenters (the device you are running this from isn't on OIM's network).\nThis will work in production."
+                    )
+                    return Response(
+                        {"error": str(e)},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
             else:  # Test environment
                 # Simulate sending the email
                 print("THIS IS A SIMULATION")
@@ -1652,7 +1651,13 @@ class UsersProjects(APIView):
 
     def go(self, pk):
         try:
-            data = ProjectMember.objects.filter(user=pk)
+            # Optimise the query with select_related and prefetch_related
+            data = ProjectMember.objects.filter(user=pk).select_related(
+                "project",
+                "project__business_area",  # For TinyBusinessAreaSerializer
+                "project__image",  # For ProjectPhotoSerializer
+                "user",  # For accessing user data
+            )
         except ProjectMember.DoesNotExist:
             raise NotFound
         return data
@@ -1668,6 +1673,8 @@ class UsersProjects(APIView):
             settings.LOGGER.info(
                 msg=f"{req.user} is viewing user with pk {pk} and their projects (none)"
             )
+
+        # updated to use prefetched data instead of triggering new queries
         projects_with_roles = [
             (membership.project, membership.role) for membership in users_memberships
         ]
@@ -1684,9 +1691,31 @@ class UsersProjects(APIView):
 class StaffProfileProjects(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
+    # def go(self, pk):
+    #     try:
+    #         data = ProjectMember.objects.filter(user=pk)
+    #     except ProjectMember.DoesNotExist:
+    #         raise NotFound
+    #     return data
+
+    # # v2
     def go(self, pk):
         try:
-            data = ProjectMember.objects.filter(user=pk)
+            # Optimised query that filters out hidden projects at the database level
+            # and prefetches all related data needed by the serializer
+            data = (
+                ProjectMember.objects.filter(user=pk)
+                .exclude(
+                    # Exclude projects where the user ID is in the hidden_from_staff_profiles array
+                    project__hidden_from_staff_profiles__contains=[pk]
+                )
+                .select_related(
+                    "project",
+                    "project__business_area",  # For TinyBusinessAreaSerializer
+                    "project__image",  # For ProjectPhotoSerializer
+                    "user",  # For accessing user data
+                )
+            )
         except ProjectMember.DoesNotExist:
             raise NotFound
         return data
@@ -1703,11 +1732,8 @@ class StaffProfileProjects(APIView):
                 msg=f"{req.user} is viewing user with pk {pk} and their projects (none)"
             )
 
-        # Only return projects where the user is not in the project.hidden_from_staff_profiles list
         projects_with_roles = [
-            (membership.project, membership.role)
-            for membership in users_memberships
-            if pk not in membership.project.hidden_from_staff_profiles
+            (membership.project, membership.role) for membership in users_memberships
         ]
 
         serialized_projects = ProjectDataTableSerializer(

@@ -9,30 +9,73 @@ from pathlib import Path
 env = environ.Env()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
-env.read_env(os.path.join(BASE_DIR, ".env"), overwrite=True)  # Add overwrite=True
-# APPEND_SLASH=False
-DEBUG = True if os.environ.get("DJANGO_DEBUG") != "False" else False
-DATABASE_URL = os.environ.get("DATABASE_URL")
-ON_TEST_NETWORK = True if os.environ.get("ON_TEST_NETWORK") != "False" else False
-SITE_URL_HTTP = f'https://{env("SITE_URL")}'
+env.read_env(
+    os.path.join(BASE_DIR, ".env"), overwrite=True
+)  # Env takes precedence over shell / pc configured vars
+
+# Environ detection
+ENVIRONMENT = env("ENVIRONMENT", default="development")
+DEBUG = ENVIRONMENT == "development"
+
+# Core settings
 SECRET_KEY = env("SECRET_KEY")
+DATABASE_URL = env("DATABASE_URL")
+
+# API configurations
 EXTERNAL_PASS = env("EXTERNAL_PASS")
 LIBRARY_API_URL = env("LIBRARY_API_URL")
 LIBRARY_BEARER_TOKEN = env("LIBRARY_BEARER_TOKEN")
 IT_ASSETS_ACCESS_TOKEN = env("IT_ASSETS_ACCESS_TOKEN")
 IT_ASSETS_USER = env("IT_ASSETS_USER")
-IT_ASSETS_URL = "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/"
-if DEBUG or ON_TEST_NETWORK:
-    IT_ASSETS_URL = "https://itassets-uat.dbca.wa.gov.au/api/v3/departmentuser/"
+IT_ASSETS_URLS = {
+    "production": "https://itassets.dbca.wa.gov.au/api/v3/departmentuser/",
+    "staging": "https://itassets-uat.dbca.wa.gov.au/api/v3/departmentuser/",
+    "development": "https://itassets-uat.dbca.wa.gov.au/api/v3/departmentuser/",
+}
+IT_ASSETS_URL = IT_ASSETS_URLS[ENVIRONMENT]
 
+# Domain configuration
+DOMAINS = {
+    "production": {
+        "main": "scienceprojects.dbca.wa.gov.au",
+        "profiles": "science-profiles.dbca.wa.gov.au",
+    },
+    "staging": {
+        "main": "scienceprojects-test.dbca.wa.gov.au",
+        "profiles": "science-profiles-test.dbca.wa.gov.au",
+    },
+    "development": {
+        "main": "127.0.0.1:3000",
+        "profiles": "127.0.0.1",
+    },
+}
+
+CURRENT_DOMAINS = DOMAINS[ENVIRONMENT]
+
+# Site URL configuration
+if DEBUG:
+    SITE_URL = CURRENT_DOMAINS["main"]
+    INSTANCE_URL = "http://127.0.0.1:8000/"
+else:
+    SITE_URL = f"https://{CURRENT_DOMAINS['main']}"
+    INSTANCE_URL = SITE_URL
+
+
+SITE_URL_HTTP = SITE_URL if DEBUG else f"https://{CURRENT_DOMAINS['main']}"
+
+# Prince server configuration
+PRINCE_SERVER_URL = env("PRINCE_SERVER_URL", default="")
+if not DEBUG and not PRINCE_SERVER_URL:
+    PRINCE_SERVER_URL = str(BASE_DIR)
+# /usr/src/app/backend (for getting images using PrinceXML in container)
+
+# App configuration
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500  # For admin mass gen
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500
 PAGE_SIZE = 10
 USER_LIST_PAGE_SIZE = 250
-
-# Use default operating system file permissions
-FILE_UPLOAD_PERMISSIONS = None
+FILE_UPLOAD_PERMISSIONS = None  # Use default operating system file permissions
+# APPEND_SLASH=False
 
 # endregion ========================================================================================
 
@@ -55,8 +98,8 @@ DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 # endregion ========================================================================================
 
 # region Email Config =========================================================
-EMAIL_HOST = os.environ.get("EMAIL_HOST", "mail-relay.lan.fyi")
-EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
+EMAIL_HOST = env("EMAIL_HOST", default="mail-relay.lan.fyi")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
 ENVELOPE_EMAIL_RECIPIENTS = [env("SPMS_MAINTAINER_EMAIL")]
 ENVELOPE_USE_HTML_EMAIL = True
@@ -65,6 +108,19 @@ ENVELOPE_USE_HTML_EMAIL = True
 
 # region Database =============================================================
 DATABASES = {"default": dj_database_url.config()}
+
+# Prod database optimisations
+if not DEBUG:
+    DATABASES["default"].update(
+        {
+            "CONN_MAX_AGE": 60,  # Connection pooling
+            "OPTIONS": {
+                "connect_timeout": 30,
+                "read_timeout": 60,
+                "write_timeout": 60,
+            },
+        }
+    )
 
 # endregion ========================================================================================
 
@@ -88,54 +144,23 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # endregion ========================================================================================
 
-# region CORS and Hosts =========================================================
+# region CORS, CSRF and Hosts =========================================================
 
-# /usr/src/app/backend (for getting images using PrinceXML)
-PRINCE_SERVER_URL = env("PRINCE_SERVER_URL")
-if not DEBUG and PRINCE_SERVER_URL == "":
-    PRINCE_SERVER_URL = BASE_DIR
+ALLOWED_HOSTS = list(CURRENT_DOMAINS.values())
+# Remove duplicates
+ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
 
-
+# CSRF trusted origins
 if DEBUG:
-    SITE_URL = "127.0.0.1:3000"
-    INSTANCE_URL = "http://127.0.0.1:8000/"
-else:
-    SITE_URL = SITE_URL_HTTP
-    INSTANCE_URL = SITE_URL_HTTP
-
-
-ALLOW_LIST = [
-    # prod
-    "scienceprojects-test.dbca.wa.gov.au",
-    "scienceprojects.dbca.wa.gov.au",
-    "science-profiles-test.dbca.wa.gov.au",
-    "science-profiles.dbca.wa.gov.au",
-    "127.0.0.1:3000",
-    "127.0.0.1",
-]
-
-if not DEBUG and not PRINCE_SERVER_URL.startswith("/usr"):
-    ALLOW_LIST.append(PRINCE_SERVER_URL)
-
-# Ensure ALLOW_LIST is unique
-ALLOW_LIST = list(set(ALLOW_LIST))
-ALLOWED_HOSTS = ALLOW_LIST
-
-CSRF_TRUSTED_ORIGINS = [
-    "https://scienceprojects-test.dbca.wa.gov.au",
-    "https://scienceprojects.dbca.wa.gov.au",
-    "https://science-profiles-test.dbca.wa.gov.au",
-    "https://science-profiles.dbca.wa.gov.au",
-    "http://127.0.0.1:3000",
-    "http://127.0.0.1",
-]
-
-if DEBUG:
-    # Ensure all dbca subroutes allowed and local dev
-    CORS_ALLOWED_ORIGIN_REGEXES = [
-        # r"^https://.*\.dbca\.wa\.gov\.au$", #duplicate policies
-        r"^http://127\.0\.0\.1:3000$",
+    CSRF_TRUSTED_ORIGINS = [
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+        "http://127.0.0.1",
     ]
+else:
+    CSRF_TRUSTED_ORIGINS = [f"https://{domain}" for domain in CURRENT_DOMAINS.values()]
+
+CSRF_COOKIE_NAME = "spmscsrf"  # Set custom CSRF cookie name
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = [
@@ -151,18 +176,36 @@ CORS_ALLOW_HEADERS = [
     "Authorization",
 ]
 
-CSRF_COOKIE_NAME = "spmscsrf"  # Set custom CSRF cookie name
+if DEBUG:
+    CORS_ALLOWED_ORIGIN_REGEXES = [
+        r"^http://127\.0\.0\.1:3000$",
+        r"^http://127\.0\.0\.1:8000$",
+    ]
+else:
+    CORS_ALLOWED_ORIGINS = [f"https://{domain}" for domain in CURRENT_DOMAINS.values()]
+
 
 if not DEBUG:
+    # Secure cookie configuration for production
     SESSION_COOKIE_DOMAIN = ".dbca.wa.gov.au"
     CSRF_COOKIE_DOMAIN = ".dbca.wa.gov.au"
 
-    # Ensure SameSite attribute allows cross-site requests if needed
+    # Cross-site settings for multi-domain setup
     CSRF_COOKIE_SAMESITE = "None"
     SESSION_COOKIE_SAMESITE = "None"
-    # Secure attribute is also recommended if using HTTPS
-    CSRF_COOKIE_SECURE = DEBUG == False
-    SESSION_COOKIE_SECURE = DEBUG == False
+
+    # Security settings
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+
+    # Additional security headers
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = "DENY"
 
 # endregion ========================================================================================
 
@@ -241,23 +284,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 # endregion ========================================================================================
 
 # region Logs and Tracking =======================================================================
-if not DEBUG:
-    env_type = (
-        "production"
-        if ON_TEST_NETWORK == False or ON_TEST_NETWORK == "False"
-        else "staging"
-    )
-
-    def before_send(event, hint):
-        # Filter out N+1 query errors by checking the message or tags
-        if event.get("logentry") and "N+1" in event["logentry"].get("message", ""):
-            return None
-        return event
-
+if ENVIRONMENT != "development":
     sentry_sdk.init(
-        environment=env_type,
+        environment=ENVIRONMENT,
         dsn=env("SENTRY_URL"),
-        before_send=before_send,
         traces_sample_rate=1.0,
         profiles_sample_rate=1.0,
     )

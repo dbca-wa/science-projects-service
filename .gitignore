@@ -12,6 +12,8 @@ SMB_Mosaic_2023.tif
 *.dump
 *.sql
 *.env
+*.production
+*.staging
 *.tex
 *.out
 *.toc

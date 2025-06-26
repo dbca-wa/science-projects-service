@@ -824,85 +824,153 @@ class BusinessAreasUnapprovedDocs(APIView):
 
 
 class BusinessAreasProblematicProjects(APIView):
-    def get_projects_in_ba(self, pk):
+    def get_projects_in_ba_array(self, ba_array):
         try:
-            projects = Project.objects.filter(business_area=pk).prefetch_related(
-                "members",  # Prefetch project members
-                "members__user",  # Prefetch the user for each member
+            projects = (
+                Project.objects.filter(business_area__in=ba_array)
+                .select_related("business_area", "image")
+                .prefetch_related(
+                    "members",  # Prefetch project members
+                    "members__user",  # Prefetch the user for each member
+                )
             )
         except Project.DoesNotExist:
             raise NotFound
         except Exception as e:
             print(e)
+            return Project.objects.none()
         return projects
 
+    def get(self, req):
+        try:
+            # Get business area ID from query parameters (for single BA requests)
+            business_area_id = req.query_params.get("business_area_id")
+            if not business_area_id:
+                return Response(
+                    {"error": "business_area_id parameter is required"},
+                    status=HTTP_400_BAD_REQUEST,
+                )
 
-def post(self, req):
-    try:
-        pksArray = req.data.get("baArray")
-        settings.LOGGER.info(
-            msg=f"{req.user} is Getting My BA Problem Projects: {pksArray}"
-        )
-        data = {}
-
-        for baPk in pksArray:
-            # ✅ Optimized query with prefetch
-            projects_in_ba = Project.objects.filter(
-                business_area=baPk
-            ).prefetch_related(
-                "members",
-                "members__user",
+            settings.LOGGER.info(
+                msg=f"{req.user} is Getting Problematic Projects for Business Area {business_area_id}"
             )
 
+            all_projects = self.get_projects_in_ba_array([business_area_id])
             memberless_projects = []
             no_leader_tag_projects = []
             multiple_leader_tag_projects = []
             externally_led_projects = []
 
-            for p in projects_in_ba:
-                members = p.members.all()  # Now uses prefetched data
+            for p in all_projects:
+                members = p.members.all()  # No DB hit thanks to prefetch_related
                 leader_tag_count = 0
                 external_leader = False
 
                 for mem in members:
                     if mem.role == ProjectMember.RoleChoices.SUPERVISING:
                         leader_tag_count += 1
-                    if mem.is_leader == True:
-                        if mem.user.is_staff == False:  # No additional query for user
-                            external_leader = True
+                    if mem.is_leader == True and mem.user.is_staff == False:
+                        external_leader = True
 
-                # Handle Memberless
                 if len(members) < 1:
                     memberless_projects.append(p)
                 else:
-                    # Handle external Leader tag
                     if external_leader:
                         externally_led_projects.append(p)
-                    # Handle No Leader Tags
                     if leader_tag_count == 0:
                         no_leader_tag_projects.append(p)
                     elif leader_tag_count > 1:
                         multiple_leader_tag_projects.append(p)
 
-            data[baPk] = {}
-            data[baPk]["no_members"] = ProblematicProjectSerializer(
-                memberless_projects, many=True
-            ).data
-            data[baPk]["no_leader"] = ProblematicProjectSerializer(
-                no_leader_tag_projects, many=True
-            ).data
-            data[baPk]["external_leader"] = ProblematicProjectSerializer(
-                externally_led_projects, many=True
-            ).data
-            data[baPk]["multiple_leads"] = ProblematicProjectSerializer(
-                multiple_leader_tag_projects, many=True
-            ).data
+            data = {
+                "no_members": ProblematicProjectSerializer(
+                    memberless_projects, many=True
+                ).data,
+                "no_leader": ProblematicProjectSerializer(
+                    no_leader_tag_projects, many=True
+                ).data,
+                "external_leader": ProblematicProjectSerializer(
+                    externally_led_projects, many=True
+                ).data,
+                "multiple_leads": ProblematicProjectSerializer(
+                    multiple_leader_tag_projects, many=True
+                ).data,
+            }
 
-        return Response(data=data, status=HTTP_200_OK)
+            return Response(data=data, status=HTTP_200_OK)
 
-    except Exception as e:
-        settings.LOGGER.error(msg=f"{e}")
-        return Response({"msg": e}, HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"msg": str(e)}, status=HTTP_400_BAD_REQUEST)
+
+    def post(self, req):
+        try:
+            pksArray = req.data.get("baArray")
+            settings.LOGGER.info(
+                msg=f"{req.user} is Getting My BA Problem Projects: {pksArray}"
+            )
+            data = {}
+
+            for baPk in pksArray:
+                # Optimized query with prefetch
+                projects_in_ba = Project.objects.filter(
+                    business_area=baPk
+                ).prefetch_related(
+                    "members",
+                    "members__user",
+                )
+
+                memberless_projects = []
+                no_leader_tag_projects = []
+                multiple_leader_tag_projects = []
+                externally_led_projects = []
+
+                for p in projects_in_ba:
+                    members = p.members.all()  # Now uses prefetched data
+                    leader_tag_count = 0
+                    external_leader = False
+
+                    for mem in members:
+                        if mem.role == ProjectMember.RoleChoices.SUPERVISING:
+                            leader_tag_count += 1
+                        if mem.is_leader == True:
+                            if (
+                                mem.user.is_staff == False
+                            ):  # No additional query for user
+                                external_leader = True
+
+                    # Handle Memberless
+                    if len(members) < 1:
+                        memberless_projects.append(p)
+                    else:
+                        # Handle external Leader tag
+                        if external_leader:
+                            externally_led_projects.append(p)
+                        # Handle No Leader Tags
+                        if leader_tag_count == 0:
+                            no_leader_tag_projects.append(p)
+                        elif leader_tag_count > 1:
+                            multiple_leader_tag_projects.append(p)
+
+                data[baPk] = {}
+                data[baPk]["no_members"] = ProblematicProjectSerializer(
+                    memberless_projects, many=True
+                ).data
+                data[baPk]["no_leader"] = ProblematicProjectSerializer(
+                    no_leader_tag_projects, many=True
+                ).data
+                data[baPk]["external_leader"] = ProblematicProjectSerializer(
+                    externally_led_projects, many=True
+                ).data
+                data[baPk]["multiple_leads"] = ProblematicProjectSerializer(
+                    multiple_leader_tag_projects, many=True
+                ).data
+
+            return Response(data=data, status=HTTP_200_OK)
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return Response({"msg": e}, HTTP_400_BAD_REQUEST)
 
 
 class SetBusinessAreaActive(APIView):

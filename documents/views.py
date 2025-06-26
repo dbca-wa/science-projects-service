@@ -3514,10 +3514,7 @@ class RepoenProject(APIView):
                     processed = []
                     for recipient in recipients_list:
                         if recipient["pk"] not in processed:
-                            if (
-                                settings.ON_TEST_NETWORK != True
-                                and settings.DEBUG != True
-                            ):
+                            if settings.ENVIRONMENT == "production":
                                 print(
                                     f"PRODUCTION: Sending email to {recipient["name"]}"
                                 )
@@ -4221,7 +4218,7 @@ class NewCycleOpen(APIView):
             processed = []
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
-                    if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                    if settings.ENVIRONMENT == "production":
                         print(f"PRODUCTION: Sending email to {recipient["name"]}")
 
                         email_subject = f"SPMS: New Reporting Cycle Open"
@@ -7232,9 +7229,10 @@ class BaseDocumentAction(APIView):
 
             # Skip if not in production and not specific test user (maintainer - adjust)
             # TODO: Adjust to user set as maintainer isntead of hardcode
-            if (settings.ON_TEST_NETWORK or settings.DEBUG) and recipient[
-                "pk"
-            ] != maintainer_pk:
+            if (
+                settings.ENVIRONMENT == "staging"
+                or settings.ENVIRONMENT == "development"
+            ) and recipient["pk"] != maintainer_pk:
                 print(f"TEST: Skipping email to {recipient['name']}")
                 continue
 
@@ -7840,7 +7838,7 @@ class SPMSInviteEmail(APIView):
         processed = []
         for recipient in recipients_list:
             if recipient not in processed:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                if settings.ENVIRONMENT == "production":
                     print(f"PRODUCTION: Sending email to {recipient}")
                     email_subject = f"SPMS Invite"
                     to_email = [recipient]
@@ -7879,7 +7877,7 @@ class SPMSInviteEmail(APIView):
                 else:
                     # test
                     print(f"TEST: Sending email to {recipient}")
-                    if recipient == "jarid.prince@dbca.wa.gov.au":
+                    if recipient == settings.SPMS_MAINTAINER_EMAIL:
                         email_subject = f"SPMS Invite"
                         to_email = [recipient]
 
@@ -7984,7 +7982,7 @@ class NewCycleOpenEmail(APIView):
         processed = []
         for recipient in recipients_list:
             if recipient["pk"] not in processed:
-                if settings.ON_TEST_NETWORK != True and settings.DEBUG != True:
+                if settings.ENVIRONMENT == "production":
                     print(f"PRODUCTION: Sending email to {recipient["name"]}")
 
                     email_subject = (

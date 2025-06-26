@@ -38,21 +38,16 @@ spec:
               secretKeyRef:
                 name: spms-env-test
                 key: DEFAULT_FROM_EMAIL
-          - name: DJANGO_DEBUG
+          - name: ENVIRONMENT
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
-                key: DJANGO_DEBUG
+                key: ENVIRONMENT
           - name: EXTERNAL_PASS
             valueFrom:
               secretKeyRef:
                 name: spms-env-test
                 key: EXTERNAL_PASS
-          - name: ON_TEST_NETWORK
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: ON_TEST_NETWORK
           - name: IT_ASSETS_ACCESS_TOKEN
             valueFrom:
               secretKeyRef:
@@ -88,11 +83,6 @@ spec:
               secretKeyRef:
                 name: spms-env-test
                 key: SENTRY_URL
-          - name: SITE_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-test
-                key: SITE_URL
           - name: SPMS_MAINTAINER_EMAIL
             valueFrom:
               secretKeyRef:
