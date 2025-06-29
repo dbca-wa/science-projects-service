@@ -88,7 +88,7 @@ class Project(CommonModel):
     CLOSED_ONLY = (
         StatusChoices.COMPLETED,
         StatusChoices.TERMINATED,
-        StatusChoices.SUSPENDED,
+        # StatusChoices.SUSPENDED,
     )
 
     old_id = models.BigIntegerField()

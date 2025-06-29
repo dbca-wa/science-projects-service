@@ -52,7 +52,9 @@ urlpatterns = [
     path("core_function", views.CoreFunctionProjects.as_view()),
     path("download", views.DownloadAllProjectsAsCSV.as_view()),
     # PROBLEMS
+    path("unapprovedFY", views.UnapprovedThisFY.as_view()),
     path("problematic", views.ProblematicProjects.as_view()),
+    path("remedy/open_closed", views.RemedyOpenClosed.as_view()),
     path("remedy/memberless", views.RemedyMemberlessProjects.as_view()),
     path("remedy/leaderless", views.RemedyNoLeaderProjects.as_view()),
     path("remedy/multiple_leaders", views.RemedyMultipleLeaderProjects.as_view()),

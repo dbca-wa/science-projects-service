@@ -34,6 +34,7 @@ from rest_framework.status import (
 # PROJECT SPECIFC IMPORTS -----------------------------------------------------------------------------------------
 
 from documents.models import (
+    AnnualReport,
     ConceptPlan,
     ProgressReport,
     ProjectClosure,
@@ -51,6 +52,7 @@ from documents.serializers import (
     ProgressReportSerializer,
     ProjectClosureSerializer,
     ProjectDocumentCreateSerializer,
+    ProjectDocumentSerializer,
     ProjectPlanCreateSerializer,
     ProjectPlanSerializer,
     StudentReportSerializer,
@@ -2690,14 +2692,135 @@ class MembersForProject(APIView):
 # region Problematic Projects =============================================================================================
 
 
+class UnapprovedThisFY(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is Getting Unapproved Projects for latest FY"
+        )
+
+        # Get the latest report year efficiently
+        latest_report = AnnualReport.objects.only("year").order_by("-year").first()
+
+        if not latest_report:
+            return Response({"error": "No annual reports found"}, status=404)
+
+        latest_year = latest_report.year
+
+        # Get all unapproved documents for the latest year with optimized prefetching
+        unapproved_documents = (
+            ProjectDocument.objects.filter(
+                # Include documents that belong to progress/student reports of the latest year
+                # OR documents created in the latest year (for concept plans, project plans, closures)
+                Q(progress_report_details__year=latest_year)
+                | Q(student_report_details__year=latest_year)
+                | Q(created_at__year=latest_year)
+            )
+            .filter(
+                # Filter for documents that don't have all three approvals
+                Q(project_lead_approval_granted=False)
+                | Q(business_area_lead_approval_granted=False)
+                | Q(directorate_approval_granted=False)
+            )
+            .select_related(
+                "project__business_area",  # Business area details
+                "creator",  # Document creator
+                "modifier",  # Document modifier
+            )
+            .prefetch_related(
+                # Prefetch project members to get project leader
+                Prefetch(
+                    "project__members",
+                    queryset=ProjectMember.objects.filter(
+                        is_leader=True
+                    ).select_related("user"),
+                    to_attr="project_leaders",
+                ),
+                # Prefetch business area leader
+                "project__business_area__leader",
+                # Prefetch the specific report details
+                "progress_report_details",
+                "student_report_details",
+                "concept_plan_details",
+                "project_plan_details",
+                "project_closure_details",
+            )
+            .distinct()
+        )
+
+        # Structure the response by document kind
+        response_data = {
+            "latest_year": latest_year,
+            "concept": [],
+            "project_plan": [],
+            "progress_report": [],
+            "student_report": [],
+            "project_closure": [],
+            "all": [],
+        }
+
+        for doc in unapproved_documents:
+            # Get project leader email
+            project_leader_email = None
+            if hasattr(doc.project, "project_leaders") and doc.project.project_leaders:
+                project_leader_email = doc.project.project_leaders[0].user.email
+
+            # Get business area leader email and name
+            business_area_leader_email = None
+            business_area_name = None
+            if doc.project.business_area:
+                business_area_name = doc.project.business_area.name
+                if doc.project.business_area.leader:
+                    business_area_leader_email = doc.project.business_area.leader.email
+
+            # Create the base document data
+            doc_data = {
+                "project_id": doc.project.id,
+                "document_id": doc.id,
+                "kind": doc.kind,
+                "project_title": doc.project.title,
+                "project_leader_email": project_leader_email,
+                "business_area_leader_email": business_area_leader_email,
+                "business_area_name": business_area_name,
+                "project_lead_approval_granted": doc.project_lead_approval_granted,
+                "business_area_lead_approval_granted": doc.business_area_lead_approval_granted,
+                "directorate_approval_granted": doc.directorate_approval_granted,
+                "status": doc.status,
+                "created_at": doc.created_at,
+                "updated_at": doc.updated_at,
+            }
+
+            # Add to appropriate category and to 'all'
+            if doc.kind == ProjectDocument.CategoryKindChoices.CONCEPTPLAN:
+                response_data["concept"].append(doc_data)
+            elif doc.kind == ProjectDocument.CategoryKindChoices.PROJECTPLAN:
+                response_data["project_plan"].append(doc_data)
+            elif doc.kind == ProjectDocument.CategoryKindChoices.PROGRESSREPORT:
+                response_data["progress_report"].append(doc_data)
+            elif doc.kind == ProjectDocument.CategoryKindChoices.STUDENTREPORT:
+                response_data["student_report"].append(doc_data)
+            elif doc.kind == ProjectDocument.CategoryKindChoices.PROJECTCLOSURE:
+                response_data["project_closure"].append(doc_data)
+
+            # Add to 'all' regardless of kind
+            response_data["all"].append(doc_data)
+
+        return Response(response_data)
+
+
 class ProblematicProjects(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get_projects(self):
         try:
             # Optimise for the ProblematicProjectSerializer needs
+            # Added prefetch for documents to avoid N+1 queries when checking for closure documents
             projects = (
                 Project.objects.all()
                 .select_related("business_area", "image")
-                .prefetch_related("members", "members__user")
+                .prefetch_related("members", "members__user", "documents")
             )
         except Project.DoesNotExist:
             raise NotFound
@@ -2714,11 +2837,23 @@ class ProblematicProjects(APIView):
             no_leader_tag_projects = []
             multiple_leader_tag_projects = []
             externally_led_projects = []
+            open_closed_projects = []
 
             for p in all_projects:
                 members = p.members.all()  # No DB hit thanks to prefetch_related
                 leader_tag_count = 0
                 external_leader = False
+
+                # Check if project has fully approved closure document but is not in closed state
+                has_approved_closure_document = p.documents.filter(
+                    kind=ProjectDocument.CategoryKindChoices.PROJECTCLOSURE,
+                    directorate_approval_granted=True,
+                ).exists()
+
+                is_closed = p.status in Project.CLOSED_ONLY
+
+                if has_approved_closure_document and not is_closed:
+                    open_closed_projects.append(p)
 
                 for mem in members:
                     if mem.role == ProjectMember.RoleChoices.SUPERVISING:
@@ -2737,6 +2872,10 @@ class ProblematicProjects(APIView):
                         multiple_leader_tag_projects.append(p)
 
             data = {
+                "open_closed": ProblematicProjectSerializer(
+                    open_closed_projects,
+                    many=True,
+                ).data,
                 "no_members": ProblematicProjectSerializer(
                     memberless_projects, many=True
                 ).data,
@@ -2758,8 +2897,135 @@ class ProblematicProjects(APIView):
             return Response({"msg": str(e)}, HTTP_400_BAD_REQUEST)
 
 
+# Where the project is open but it has an approved closure
+class RemedyOpenClosed(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # Get the project itself
+    def get_project(self, project_pk):
+        try:
+            project = Project.objects.get(pk=project_pk)
+        except Project.DoesNotExist:
+            raise NotFound
+        except Exception as e:
+            print(e)
+            return None
+        return project
+
+    def post(self, req):
+        try:
+            # get the array of pks
+            open_closed_projects = req.data.get("projects", [])
+            settings.LOGGER.warning(
+                msg=f"{req.user} is remedying open closed projects\nArray: {open_closed_projects}"
+            )
+
+            if not open_closed_projects:
+                return Response(
+                    {"error": "No projects provided"}, status=HTTP_400_BAD_REQUEST
+                )
+
+            # Bulk fetch all projects to avoid N+1 queries
+            projects = Project.objects.filter(pk__in=open_closed_projects).only(
+                "pk", "title"
+            )
+            projects_dict = {p.pk: p for p in projects}
+
+            # Find all approved closure documents for these projects in one query
+            approved_closure_docs = (
+                ProjectDocument.objects.filter(
+                    project_id__in=open_closed_projects,
+                    kind=ProjectDocument.CategoryKindChoices.PROJECTCLOSURE,
+                    directorate_approval_granted=True,
+                )
+                .select_related("project")
+                .only("pk", "project_id", "project__title")
+            )
+
+            # Group closure documents by project
+            closure_docs_by_project = {}
+            for doc in approved_closure_docs:
+                project_id = doc.project_id
+                if project_id not in closure_docs_by_project:
+                    closure_docs_by_project[project_id] = []
+                closure_docs_by_project[project_id].append(doc)
+
+            remedied_projects = []
+            failed_projects = []
+
+            # Process each requested project
+            for proj_pk in open_closed_projects:
+                try:
+                    # Check if project exists
+                    if proj_pk not in projects_dict:
+                        failed_projects.append(
+                            {"project_id": proj_pk, "error": "Project not found"}
+                        )
+                        continue
+
+                    project = projects_dict[proj_pk]
+
+                    # Check if project has approved closure documents
+                    if proj_pk in closure_docs_by_project:
+                        closure_docs = closure_docs_by_project[proj_pk]
+                        deleted_count = len(closure_docs)
+
+                        # Delete the closure documents (bulk delete for efficiency)
+                        doc_ids = [doc.pk for doc in closure_docs]
+                        ProjectDocument.objects.filter(pk__in=doc_ids).delete()
+
+                        remedied_projects.append(
+                            {
+                                "project_id": proj_pk,
+                                "project_title": project.title,
+                                "deleted_closure_docs": deleted_count,
+                            }
+                        )
+
+                        if project.status == Project.StatusChoices.SUSPENDED:
+                            project.status = Project.StatusChoices.ACTIVE
+                            project.save()
+
+                        settings.LOGGER.info(
+                            msg=f"Remedied project {proj_pk}: deleted {deleted_count} approved closure document(s)"
+                        )
+                    else:
+                        failed_projects.append(
+                            {
+                                "project_id": proj_pk,
+                                "error": "No approved closure documents found",
+                            }
+                        )
+
+                except Exception as e:
+                    failed_projects.append({"project_id": proj_pk, "error": str(e)})
+                    settings.LOGGER.error(
+                        msg=f"Failed to remedy project {proj_pk}: {e}"
+                    )
+
+            response_data = {
+                "remedied_projects": remedied_projects,
+                "failed_projects": failed_projects,
+                "total_processed": len(open_closed_projects),
+                "successful": len(remedied_projects),
+                "failed": len(failed_projects),
+            }
+
+            return Response(
+                data=response_data,
+                status=HTTP_200_OK,
+            )
+
+        except Exception as e:
+            settings.LOGGER.error(msg=f"RemedyOpenClosed error: {e}")
+            return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
+
+
 # Where the project has 0 members
 class RemedyMemberlessProjects(APIView):
+
+    permission_classes = [IsAuthenticated]
+
     # Get the project itself
     def get_project(self, project_pk):
         try:
