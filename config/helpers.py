@@ -26,23 +26,55 @@ from email.mime.image import MIMEImage
 def get_encoded_image():
     """
     Encodes the DBCA logo image as a base64 string for email embedding.
+    Tries multiple possible locations for the image file.
     """
-    try:
-        image_path = os.path.join(settings.BASE_DIR, "documents", "dbca.jpg")
-        with open(image_path, "rb") as img:
-            import base64
+    import base64
+    import os
 
-            encoded_image = base64.b64encode(img.read()).decode("utf-8")
+    # List of possible image paths to try
+    possible_paths = [
+        os.path.join(settings.BASE_DIR, "documents", "dbca.jpg"),
+        os.path.join(settings.BASE_DIR, "dbca.jpg"),
+        os.path.join(settings.BASE_DIR, "staticfiles", "images", "dbca.jpg"),
+    ]
 
-            # Validate the encoded image
-            if len(encoded_image) > 0:
-                return f"data:image/jpeg;base64,{encoded_image}"
+    for image_path in possible_paths:
+        try:
+            settings.LOGGER.info(f"Trying image path: {image_path}")
+
+            if os.path.exists(image_path):
+                settings.LOGGER.info(f"Found image at: {image_path}")
+
+                with open(image_path, "rb") as img:
+                    encoded_image = base64.b64encode(img.read()).decode("utf-8")
+
+                    # Validate the encoded image
+                    if len(encoded_image) > 0:
+                        data_url = f"data:image/jpeg;base64,{encoded_image}"
+                        settings.LOGGER.info(
+                            f"Successfully encoded image from {image_path} (size: {len(data_url)} chars)"
+                        )
+                        return data_url
+                    else:
+                        settings.LOGGER.warning(
+                            f"Encoded image from {image_path} is empty"
+                        )
+                        continue  # Try next path
             else:
-                settings.LOGGER.error("Encoded image is empty")
-                return ""
-    except Exception as e:
-        settings.LOGGER.error(f"Error encoding image: {e}")
-        return ""
+                settings.LOGGER.info(f"Image not found at: {image_path}")
+
+        except Exception as e:
+            settings.LOGGER.error(f"Error processing image at {image_path}: {e}")
+            continue  # Try next path
+
+    # If we get here, no image was found at any location
+    settings.LOGGER.error(
+        "Could not find DBCA logo image at any of the expected locations:"
+    )
+    for path in possible_paths:
+        settings.LOGGER.error(f"  - {path}")
+
+    return ""
 
 
 def send_email_with_embedded_image(
