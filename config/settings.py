@@ -116,8 +116,8 @@ if not DEBUG:
             "CONN_MAX_AGE": 60,  # Connection pooling
             "OPTIONS": {
                 "connect_timeout": 30,
-                "read_timeout": 60,
-                "write_timeout": 60,
+                # "read_timeout": 60, # Invalid in this version
+                # "write_timeout": 60, # Invalid in this version
             },
         }
     )
