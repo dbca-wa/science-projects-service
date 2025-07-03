@@ -294,6 +294,84 @@ class Me(APIView):
             )
 
 
+# class SmallInternalUserSearch(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         page = 1
+#         page_size = 5
+#         start = (page - 1) * page_size
+#         end = start + page_size
+
+#         search_term = request.GET.get("searchTerm")
+#         only_internal = request.GET.get("onlyInternal")
+#         project_pk = request.GET.get("fromProject")
+
+#         # Comma separated string of pks
+#         ignore_string = request.GET.get("ignoreArray")
+
+#         try:
+#             only_internal = ast.literal_eval(only_internal)
+#         except (ValueError, SyntaxError):
+#             only_internal = False
+
+#         if only_internal == True:
+#             if project_pk:
+#                 project = Project.objects.get(pk=project_pk)
+#                 users = User.objects.filter(member_of__project=project, is_staff=True)
+
+#             else:
+#                 users = User.objects.filter(is_staff=True)
+
+#         else:
+#             users = User.objects.all()
+
+#         # Initialize q_filter
+#         q_filter = Q()
+
+#         # Filter out users that are in the ignore list (ensure number)
+#         if ignore_string:
+#             ignore_list = ignore_string.split(",")
+#             ignore_list = [int(pk) for pk in ignore_list if pk.isdigit()]
+#             # print(f"IGNORE STRING: {ignore_string}")
+#             # print(f"IGNORE LIST: {ignore_list}")
+#             q_filter &= ~Q(pk__in=ignore_list)
+
+#         if search_term:
+#             # Create search filter
+#             search_filter = (
+#                 Q(first_name__icontains=search_term)
+#                 | Q(last_name__icontains=search_term)
+#                 | Q(email__icontains=search_term)
+#                 | Q(username__icontains=search_term)
+#             )
+
+#             # Check if the search term has a space
+#             if " " in search_term:
+#                 first_name, last_name = search_term.split(
+#                     " ", 1
+#                 )  # Ensure that there is only 1 split for 2 parts
+#                 search_filter |= Q(first_name__icontains=first_name) & Q(
+#                     last_name__icontains=last_name
+#                 )
+
+#             # Combine with existing q_filter
+#             q_filter &= search_filter
+
+#             users = users.filter(q_filter)
+
+#         # Sort users alphabetically based on email
+#         users = users.order_by("first_name")
+
+#         serialized_users = TinyUserSerializer(
+#             users[start:end], many=True, context={"request": request}
+#         ).data
+
+#         response_data = {"users": serialized_users}
+
+#         return Response(response_data, status=HTTP_200_OK)
+
+
 class SmallInternalUserSearch(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -317,12 +395,42 @@ class SmallInternalUserSearch(APIView):
 
         if only_internal == True:
             if project_pk:
-                project = Project.objects.get(pk=project_pk)
-                users = User.objects.filter(member_of__project=project, is_staff=True)
+                try:
+                    project = Project.objects.get(pk=project_pk)
 
+                    # Get all user IDs that should be mentionable
+                    user_ids = set()
+
+                    # 1. Project team members
+                    project_team_ids = User.objects.filter(
+                        member_of__project=project, is_staff=True
+                    ).values_list("id", flat=True)
+                    user_ids.update(project_team_ids)
+
+                    # 2. All superusers (admins)
+                    admin_ids = User.objects.filter(
+                        is_superuser=True, is_staff=True
+                    ).values_list("id", flat=True)
+                    user_ids.update(admin_ids)
+
+                    # 3. Business area leaders - using the correct relationship
+                    ba_leader_ids = (
+                        User.objects.filter(
+                            business_areas_led__isnull=False, is_staff=True
+                        )
+                        .values_list("id", flat=True)
+                        .distinct()
+                    )
+                    user_ids.update(ba_leader_ids)
+
+                    # Create the final queryset
+                    users = User.objects.filter(id__in=user_ids, is_staff=True)
+
+                except Project.DoesNotExist:
+                    # Fallback to just staff users if project doesn't exist
+                    users = User.objects.filter(is_staff=True)
             else:
                 users = User.objects.filter(is_staff=True)
-
         else:
             users = User.objects.all()
 
@@ -333,8 +441,6 @@ class SmallInternalUserSearch(APIView):
         if ignore_string:
             ignore_list = ignore_string.split(",")
             ignore_list = [int(pk) for pk in ignore_list if pk.isdigit()]
-            # print(f"IGNORE STRING: {ignore_string}")
-            # print(f"IGNORE LIST: {ignore_list}")
             q_filter &= ~Q(pk__in=ignore_list)
 
         if search_term:
@@ -358,10 +464,12 @@ class SmallInternalUserSearch(APIView):
             # Combine with existing q_filter
             q_filter &= search_filter
 
+        # Apply the filter
+        if q_filter:
             users = users.filter(q_filter)
 
-        # Sort users alphabetically based on email
-        users = users.order_by("first_name")
+        # Remove duplicates and sort users alphabetically based on first_name
+        users = users.distinct().order_by("first_name")
 
         serialized_users = TinyUserSerializer(
             users[start:end], many=True, context={"request": request}
