@@ -112,6 +112,7 @@ urlpatterns = [
     path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
     path("get_project_lead_emails", views.GetProjectLeadEmail.as_view()),
     # ACTIONS (Sends emails) ========================================================
+    path("sendbumpemails", views.SendBumpEmails.as_view()),
     path("opennewcycle", views.NewCycleOpen.as_view()),
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),

@@ -25,7 +25,7 @@ from datetime import timedelta
 import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.exceptions import (
     NotFound,
 )
@@ -4312,6 +4312,162 @@ class NewCycleOpen(APIView):
 
 
 # endregion ==================================================
+
+
+# region Bump Emails =======================================================
+
+
+class SendBumpEmails(APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        documents_requiring_action = request.data.get("documentsRequiringAction", [])
+
+        if not documents_requiring_action:
+            return Response(
+                {"error": "No documents provided"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        settings.LOGGER.warning(
+            msg=f"{request.user} is sending bump emails for {len(documents_requiring_action)} documents..."
+        )
+
+        # Email configuration
+        from_email = settings.DEFAULT_FROM_EMAIL
+        template_path = "./email_templates/bump_email.html"
+
+        actioning_user = User.objects.get(pk=request.user.pk)
+        actioning_user_name = (
+            f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
+        )
+        actioning_user_email = actioning_user.email
+
+        emails_sent = 0
+        errors = []
+
+        for doc_data in documents_requiring_action:
+            try:
+                # Get the user who needs to take action
+                user_to_action = User.objects.get(pk=doc_data.get("userToTakeAction"))
+
+                if (
+                    not user_to_action.is_active
+                    or not user_to_action.email
+                    or not user_to_action.is_staff
+                ):
+                    errors.append(
+                        f"User {user_to_action.display_first_name} {user_to_action.display_last_name} is inactive, external or has no email"
+                    )
+                    continue
+
+                # Get project details
+                project = Project.objects.get(pk=doc_data.get("projectId"))
+
+                # Prepare email content
+                email_subject = (
+                    f"SPMS: Action Required - {doc_data.get('projectTitle')}"
+                )
+                to_email = [user_to_action.email]
+
+                template_props = {
+                    "email_subject": email_subject,
+                    "actioning_user_email": actioning_user_email,
+                    "actioning_user_name": actioning_user_name,
+                    "recipient_name": f"{user_to_action.display_first_name} {user_to_action.display_last_name}",
+                    "project_title": doc_data.get("projectTitle"),
+                    "document_kind": doc_data.get("documentKind"),
+                    "action_capacity": doc_data.get("actionCapacity"),
+                    "site_url": settings.SITE_URL,
+                    "document_url": f"{settings.SITE_URL}/documents/{doc_data.get('documentId')}",
+                    "dbca_image_path": get_encoded_image(),
+                }
+
+                template_content = render_to_string(template_path, template_props)
+
+                if settings.ENVIRONMENT == "production":
+                    settings.LOGGER.info(
+                        f"PRODUCTION: Sending bump email to {user_to_action.email}"
+                    )
+
+                    try:
+                        send_email_with_embedded_image(
+                            recipient_email=to_email,
+                            subject=email_subject,
+                            html_content=template_content,
+                        )
+                        emails_sent += 1
+
+                    except Exception as email_error:
+                        settings.LOGGER.error(f"Email Error: {email_error}")
+                        errors.append(
+                            f"Failed to send email to {user_to_action.email}: {str(email_error)}"
+                        )
+
+                else:
+                    # In test environment, only send to maintainer
+                    maintainer_pk = get_current_maintainer_pk()
+                    if user_to_action.pk == maintainer_pk:
+                        settings.LOGGER.info(
+                            f"TEST: Sending bump email to {user_to_action.email}"
+                        )
+
+                        try:
+                            send_email_with_embedded_image(
+                                recipient_email=to_email,
+                                subject=email_subject,
+                                html_content=template_content,
+                            )
+                            emails_sent += 1
+
+                        except Exception as email_error:
+                            settings.LOGGER.error(f"Email Error: {email_error}")
+                            errors.append(
+                                f"Failed to send email to {user_to_action.email}: {str(email_error)}"
+                            )
+                    else:
+                        settings.LOGGER.info(
+                            f"TEST: Skipping email to {user_to_action.email} (not maintainer)"
+                        )
+
+            except User.DoesNotExist:
+                errors.append(
+                    f"User with ID {doc_data.get('userToTakeAction')} not found"
+                )
+            except Project.DoesNotExist:
+                errors.append(f"Project with ID {doc_data.get('projectId')} not found")
+            except Exception as e:
+                settings.LOGGER.error(
+                    f"Unexpected error processing document {doc_data.get('documentId')}: {str(e)}"
+                )
+                errors.append(
+                    f"Error processing document {doc_data.get('documentId')}: {str(e)}"
+                )
+
+        # Prepare response
+        response_data = {
+            "emails_sent": emails_sent,
+            "total_documents": len(documents_requiring_action),
+        }
+
+        if errors:
+            response_data["errors"] = errors
+            settings.LOGGER.warning(
+                f"Bump emails completed with {len(errors)} errors: {errors}"
+            )
+
+        if emails_sent > 0:
+            settings.LOGGER.info(f"Successfully sent {emails_sent} bump emails")
+            return Response(response_data, status=HTTP_200_OK)
+        else:
+            return Response(
+                {"error": "No emails were sent", "details": errors},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+# endregion ================================================================
+
 
 # region PDF GENERATION ===================================================
 

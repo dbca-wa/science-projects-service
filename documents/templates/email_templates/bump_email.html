@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ email_subject }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .email-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #007acc;
+        }
+        .logo {
+            max-width: 150px;
+            height: auto;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
+        .project-details {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .action-button {
+            display: inline-block;
+            background-color: #007acc;
+            color: white !important;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .action-button:hover {
+            background-color: #005fa3;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .urgent {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <img src="{{ dbca_image_path }}" alt="DBCA Logo" class="logo">
+            <h1>Action Required - SPMS</h1>
+        </div>
+        
+        <div class="content">
+            <p>Dear {{ recipient_name }},</p>
+            
+            <div class="highlight">
+                <p class="urgent">This is a reminder that action is required from you in the Science Project Management System (SPMS).</p>
+            </div>
+            
+            <div class="project-details">
+                <h3>Project Details:</h3>
+                <p><strong>Project:</strong> {{ project_title }}</p>
+                <p><strong>Document Type:</strong> {{ document_kind }}</p>
+                <p><strong>Your Role:</strong> {{ action_capacity }}</p>
+            </div>
+            
+            <p>Please log into SPMS to review and take the required action on this document. Your prompt attention to this matter is appreciated.</p>
+            
+            <p style="text-align: center;">
+                <a href="{{ document_url }}" class="action-button">View Document</a>
+            </p>
+            
+            <p>If you have any questions or concerns, please don't hesitate to contact the SPMS administrator.</p>
+            
+            <p>Thank you for your cooperation.</p>
+        </div>
+        
+        <div class="footer">
+            <p>This email was sent by {{ actioning_user_name }} ({{ actioning_user_email }}) via the Science Project Management System.</p>
+            <p>Please do not reply to this automated email. For support, visit: <a href="{{ site_url }}">{{ site_url }}</a></p>
+        </div>
+    </div>
+</body>
+</html>
