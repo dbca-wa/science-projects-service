@@ -26,7 +26,7 @@ from email.mime.image import MIMEImage
 def get_encoded_image():
     """
     Encodes the DBCA logo image as a base64 string for email embedding.
-    Tries multiple possible locations for the image file.
+    Tries multiple locations with logs incase not found.
     """
     import base64
     import os

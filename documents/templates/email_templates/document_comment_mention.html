@@ -42,33 +42,6 @@
       <tbody>
         <tr style="width: 100%">
           <td>
-            {% comment %} {% if dbca_image_path and 'data:image' in dbca_image_path %}
-            <table
-                align="center"
-                width="100%"
-                border="0"
-                cellpadding="0"
-                cellspacing="0"
-                role="presentation"
-                style="margin-top: 32px"
-            >
-                <tbody>
-                    <tr>
-                        <td>
-                            <div style="text-align: center">
-                                <img 
-                                    alt="DBCA" 
-                                    height="180" 
-                                    src="{{dbca_image_path}}" 
-                                    style="display: block; outline: none; border: none; text-decoration: none; margin-top: 0px; margin-bottom: 0px; margin-left: auto; margin-right: auto;" 
-                                    width="180"
-                                />
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            {% endif %} {% endcomment %}
             <h1
               class=""
               style="
@@ -83,7 +56,11 @@
                 margin-right: 0px;
               "
             >
-              You've Been Mentioned in a Comment
+              {% if is_mention %}
+                You've Been Mentioned in a Comment
+              {% else %}
+                New Comment on Document
+              {% endif %}
             </h1>
             <p
               style="
@@ -103,10 +80,41 @@
                 color: rgb(0, 0, 0);
               "
             >
-              <strong>{{commenter_name}}</strong> has mentioned you in a comment on the 
-              {{document_type_title}} for
-              <strong>&#x27;{% spaceless %}{{ project_name|extract_text_content}}{% endspaceless %}&#x27;</strong> ({{project_tag}})
+              {% if is_mention %}
+                <strong>{{commenter_name}}</strong> has mentioned you in a comment on the 
+                {{document_type_title}} for
+                <strong>&#x27;{% spaceless %}{{ project_name|extract_text_content}}{% endspaceless %}&#x27;</strong> ({{project_tag}})
+              {% else %}
+                <strong>{{commenter_name}}</strong> has posted a new comment on the 
+                {{document_type_title}} for
+                <strong>&#x27;{% spaceless %}{{ project_name|extract_text_content}}{% endspaceless %}&#x27;</strong> ({{project_tag}})
+              {% endif %}
             </p>
+            
+            {% if comment_content %}
+            <!-- Comment Content Section -->
+            <table
+              align="center"
+              width="100%"
+              border="0"
+              cellpadding="0"
+              cellspacing="0"
+              role="presentation"
+              style="margin-top:24px;margin-bottom:24px;border:1px solid #e5e7eb;border-radius:0.25rem;overflow:hidden"
+            >
+              <tbody>
+                <tr>
+                  <td style="padding:16px;background-color:#f9fafb">
+                    <h3 style="color:rgb(0,0,0);font-size:14px;font-weight:600;margin-top:0;margin-bottom:8px">Comment:</h3>
+                    <div style="font-size:14px;line-height:22px;color:rgb(0,0,0);font-style:italic;padding:8px;background-color:white;border-radius:4px;border-left:3px solid #007acc;">
+                      "{{ comment_content }}"
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            {% endif %}
+            
             <table
               align="center"
               width="100%"
@@ -183,7 +191,11 @@
                 color: rgb(0, 0, 0);
               "
             >
-              You can view the comment by clicking the button above.
+              {% if is_mention %}
+                You can view the comment and respond by clicking the button above.
+              {% else %}
+                You can view the comment and respond by clicking the button above.
+              {% endif %}
             </p>
             <hr
               style="
