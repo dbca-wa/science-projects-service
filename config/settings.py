@@ -46,7 +46,7 @@ DOMAINS = {
     },
     "development": {
         "main": "127.0.0.1:3000",
-        "profiles": "127.0.0.1",
+        "profiles": "127.0.0.1:3000/staff",
     },
 }
 
@@ -146,7 +146,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # region CORS, CSRF and Hosts =========================================================
 
-ALLOWED_HOSTS = list(CURRENT_DOMAINS.values())
+# Get unique domains
+unique_domains = list(set(CURRENT_DOMAINS.values()))
+
+ALLOWED_HOSTS = unique_domains
 # Remove duplicates
 ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
 
@@ -181,8 +184,11 @@ if DEBUG:
         r"^http://127\.0\.0\.1:3000$",
         r"^http://127\.0\.0\.1:8000$",
     ]
-else:
-    CORS_ALLOWED_ORIGINS = [f"https://{domain}" for domain in CURRENT_DOMAINS.values()]
+# else: # handled by nginx
+#     if not hasattr(globals(), "_CORS_CONFIGURED"):
+#         CORS_ALLOWED_ORIGINS = [f"https://{domain}" for domain in unique_domains]
+#         print(f"DEBUG: CORS_ALLOWED_ORIGINS = {CORS_ALLOWED_ORIGINS}")
+#         globals()["_CORS_CONFIGURED"] = True
 
 
 if not DEBUG:
