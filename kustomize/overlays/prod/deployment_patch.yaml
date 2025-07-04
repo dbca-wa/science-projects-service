@@ -19,7 +19,7 @@ spec:
           command:
             - /bin/chown
             - -R
-            - "10001:10001"
+            - '10001:10001'
             - /usr/src/app/backend/files
           volumeMounts:
             - mountPath: /usr/src/app/backend/files
@@ -28,76 +28,76 @@ spec:
         - name: spms-backend
           image: ghcr.io/dbca-wa/science-projects-service:3.4.0
           env:
-          - name: DATABASE_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: DATABASE_URL
-          - name: DEFAULT_FROM_EMAIL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: DEFAULT_FROM_EMAIL
-          - name: ENVIRONMENT
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: ENVIRONMENT
-          - name: EXTERNAL_PASS
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: EXTERNAL_PASS
-          - name: IT_ASSETS_ACCESS_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: IT_ASSETS_ACCESS_TOKEN
-          - name: IT_ASSETS_USER
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: IT_ASSETS_USER
-          - name: PRINCE_LICENSE_ID
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: PRINCE_LICENSE_ID
-          - name: PRINCE_LICENSE_SIGNATURE
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: PRINCE_LICENSE_SIGNATURE
-          - name: PRINCE_SERVER_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: PRINCE_SERVER_URL
-          - name: SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: SECRET_KEY
-          - name: SENTRY_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: SENTRY_URL
-          - name: SPMS_MAINTAINER_EMAIL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: SPMS_MAINTAINER_EMAIL
-          - name: LIBRARY_API_URL
-            valueFrom:
-              secretKeyRef:
-                name: spms-env-prod
-                key: LIBRARY_API_URL
-          - name: LIBRARY_BEARER_TOKEN
-            valueFrom:
+            - name: DATABASE_URL
+              valueFrom:
                 secretKeyRef:
-                name: spms-env-prod
-                key: LIBRARY_BEARER_TOKEN
+                  name: spms-env-prod
+                  key: DATABASE_URL
+            - name: DEFAULT_FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: DEFAULT_FROM_EMAIL
+            - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: ENVIRONMENT
+            - name: EXTERNAL_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: EXTERNAL_PASS
+            - name: IT_ASSETS_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: IT_ASSETS_ACCESS_TOKEN
+            - name: IT_ASSETS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: IT_ASSETS_USER
+            - name: LIBRARY_API_URL
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: LIBRARY_API_URL
+            - name: LIBRARY_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: LIBRARY_BEARER_TOKEN
+            - name: PRINCE_LICENSE_ID
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: PRINCE_LICENSE_ID
+            - name: PRINCE_LICENSE_SIGNATURE
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: PRINCE_LICENSE_SIGNATURE
+            - name: PRINCE_SERVER_URL
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: PRINCE_SERVER_URL
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: SECRET_KEY
+            - name: SENTRY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: SENTRY_URL
+            - name: SPMS_MAINTAINER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: spms-env-prod
+                  key: SPMS_MAINTAINER_EMAIL
           volumeMounts:
             - mountPath: /usr/src/app/backend/files
               name: spms-media-prod
