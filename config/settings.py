@@ -147,9 +147,11 @@ AUTH_PASSWORD_VALIDATORS = [
 # region CORS, CSRF and Hosts =========================================================
 
 # Get unique domains
-unique_domains = list(set(CURRENT_DOMAINS.values()))
+if DEBUG:
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost", "127.0.0.1:3000", "127.0.0.1:8000"]
+else:
+    ALLOWED_HOSTS = list(set(CURRENT_DOMAINS.values()))
 
-ALLOWED_HOSTS = unique_domains
 # Remove duplicates
 ALLOWED_HOSTS = list(set(ALLOWED_HOSTS))
 
@@ -182,11 +184,10 @@ CORS_ALLOW_HEADERS = [
 if DEBUG:
     CORS_ALLOWED_ORIGIN_REGEXES = [
         r"^http://127\.0\.0\.1:3000$",
-        r"^http://127\.0\.0\.1:8000$",
     ]
 # else: # handled by nginx
 #     if not hasattr(globals(), "_CORS_CONFIGURED"):
-#         CORS_ALLOWED_ORIGINS = [f"https://{domain}" for domain in unique_domains]
+#         CORS_ALLOWED_ORIGINS = [f"https://{domain}" for domain in ALLOWED_HOSTS]
 #         print(f"DEBUG: CORS_ALLOWED_ORIGINS = {CORS_ALLOWED_ORIGINS}")
 #         globals()["_CORS_CONFIGURED"] = True
 
