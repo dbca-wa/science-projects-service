@@ -944,7 +944,7 @@ class ProjectClosure(models.Model):
     # renamed from goal_coices
     class OutcomeChoices(models.TextChoices):
         COMPLETED = "completed", "Completed with final update"
-        SUSPENDED = "suspended", "Suspended"
+        # SUSPENDED = "suspended", "Suspended"
         TERMINATED = "terminated", "Terminated"
 
     # renamed from goal
