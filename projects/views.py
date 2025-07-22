@@ -3014,34 +3014,115 @@ class ProblematicProjects(APIView):
 
     def get_projects(self):
         try:
+            # Get the latest annual report
+            latest_report = AnnualReport.objects.order_by("-year").first()
+
+            if not latest_report:
+                # If no annual report exists, return empty queryset
+                return Project.objects.none()
+
             # Optimise for the ProblematicProjectSerializer needs
             # Added prefetch for documents to avoid N+1 queries when checking for closure documents
             projects = (
                 Project.objects.all()
                 .select_related("business_area", "image")
-                .prefetch_related("members", "members__user", "documents")
+                .prefetch_related(
+                    "members",
+                    "members__user",  # This will include the user's is_active status
+                    "documents",
+                    Prefetch(
+                        "progress_reports",
+                        queryset=ProgressReport.objects.filter(
+                            report=latest_report
+                        ).select_related("document"),
+                        to_attr="latest_progress_reports",
+                    ),
+                    Prefetch(
+                        "student_reports",
+                        queryset=StudentReport.objects.filter(
+                            report=latest_report
+                        ).select_related("document"),
+                        to_attr="latest_student_reports",
+                    ),
+                )
             )
         except Project.DoesNotExist:
             raise NotFound
         except Exception as e:
             print(e)
-        return projects
+            return Project.objects.none()
+        return projects, latest_report
+
+    def get_no_progress_projects(self, latest_report):
+        """
+        Get projects that have progress/student reports for the latest annual report
+        but haven't been updated since creation (indicating no real progress updates)
+        """
+        from django.db.models import F, Q
+        from datetime import timedelta
+
+        # Find documents that are progress or student reports for the latest annual report
+        # and haven't been meaningfully updated (updated_at is very close to created_at)
+        stale_documents = (
+            ProjectDocument.objects.filter(
+                Q(kind=ProjectDocument.CategoryKindChoices.PROGRESSREPORT)
+                | Q(kind=ProjectDocument.CategoryKindChoices.STUDENTREPORT)
+            )
+            .filter(
+                Q(progress_report_details__report=latest_report)
+                | Q(student_report_details__report=latest_report)
+            )
+            .annotate(time_diff=F("updated_at") - F("created_at"))
+            .filter(time_diff__lt=timedelta(minutes=1))  # Less than 1 minute difference
+            .values_list("project_id", flat=True)
+            .distinct()
+        )
+
+        # Get the projects that have these stale documents
+        no_progress_projects = (
+            Project.objects.filter(id__in=stale_documents)
+            .select_related("business_area", "image")
+            .prefetch_related("members", "members__user")
+        )
+
+        return no_progress_projects
 
     def get(self, req):
         try:
             settings.LOGGER.info(msg=f"{req.user} is Getting All Problematic Projects")
 
-            all_projects = self.get_projects()
+            result = self.get_projects()
+            if isinstance(result, tuple):
+                all_projects, latest_report = result
+            else:
+                # No annual report exists
+                return Response(
+                    data={
+                        "no_progress": [],
+                        "inactive_lead_active_project": [],
+                        "open_closed": [],
+                        "no_members": [],
+                        "no_leader": [],
+                        "external_leader": [],
+                        "multiple_leads": [],
+                    },
+                    status=HTTP_200_OK,
+                )
+
             memberless_projects = []
             no_leader_tag_projects = []
             multiple_leader_tag_projects = []
             externally_led_projects = []
             open_closed_projects = []
+            inactive_lead_active_projects = []
+
+            no_progress_projects = list(self.get_no_progress_projects(latest_report))
 
             for p in all_projects:
                 members = p.members.all()  # No DB hit thanks to prefetch_related
                 leader_tag_count = 0
                 external_leader = False
+                has_inactive_leader = False
 
                 # Check if project has fully approved closure document but is not in closed state
                 has_approved_closure_document = p.documents.filter(
@@ -3050,6 +3131,7 @@ class ProblematicProjects(APIView):
                 ).exists()
 
                 is_closed = p.status in Project.CLOSED_ONLY
+                is_active_project = p.status in Project.ACTIVE_ONLY
 
                 if has_approved_closure_document and not is_closed:
                     open_closed_projects.append(p)
@@ -3057,8 +3139,16 @@ class ProblematicProjects(APIView):
                 for mem in members:
                     if mem.role == ProjectMember.RoleChoices.SUPERVISING:
                         leader_tag_count += 1
+                        # Check if this leader is inactive
+                        if not mem.user.is_active:
+                            has_inactive_leader = True
+
                     if mem.is_leader == True and mem.user.is_staff == False:
                         external_leader = True
+
+                # Check for active projects with inactive leaders
+                if is_active_project and has_inactive_leader:
+                    inactive_lead_active_projects.append(p)
 
                 if len(members) < 1:
                     memberless_projects.append(p)
@@ -3071,6 +3161,10 @@ class ProblematicProjects(APIView):
                         multiple_leader_tag_projects.append(p)
 
             data = {
+                "no_progress": ProblematicProjectSerializer(
+                    no_progress_projects,
+                    many=True,
+                ).data,
                 "open_closed": ProblematicProjectSerializer(
                     open_closed_projects,
                     many=True,
@@ -3080,6 +3174,10 @@ class ProblematicProjects(APIView):
                 ).data,
                 "no_leader": ProblematicProjectSerializer(
                     no_leader_tag_projects, many=True
+                ).data,
+                "inactive_lead_active_project": ProblematicProjectSerializer(
+                    inactive_lead_active_projects,
+                    many=True,
                 ).data,
                 "external_leader": ProblematicProjectSerializer(
                     externally_led_projects, many=True
