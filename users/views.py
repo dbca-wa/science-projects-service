@@ -1,4 +1,6 @@
 # region IMPORTS ==========================================
+import csv
+from django.http import HttpResponse
 import ast, os, requests
 from math import ceil
 
@@ -1747,6 +1749,195 @@ class PublicEmailStaffMember(APIView):
                 {"error": str(e)},
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class DownloadBCSStaffCSV(APIView):
+    """
+    1) Scrapes IT assets for staff that are a part of bcs
+    2) Collects the following:
+        - name
+        - email
+        - phone number
+        - location
+    3) returns in csv format
+    """
+
+    def post(self, req):
+        settings.LOGGER.info(msg=f"{req.user} is generating csv of BCS staff")
+
+        # Get in_spms parameter from request body
+        in_spms = req.data.get("in_spms", False)
+
+        # Call the API and get the data
+        try:
+            api_url = settings.IT_ASSETS_URL
+            response = requests.get(
+                api_url,
+                auth=(
+                    settings.IT_ASSETS_USER,
+                    settings.IT_ASSETS_ACCESS_TOKEN,
+                ),
+            )
+            if response.status_code == 200:
+                print("Data successfully fetched!")
+            else:
+                if settings.IT_ASSETS_USER == None:
+                    settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
+                if settings.IT_ASSETS_ACCESS_TOKEN == None:
+                    settings.LOGGER.warning(
+                        "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
+                    )
+                raise Exception(
+                    f"Failed to fetch user data: {response.reason} ({response.text}). Status code: {response.status_code}"
+                )
+        except Exception as e:
+            settings.LOGGER.error(f"API Error: {str(e)}")
+            return Response(
+                {"detail": "An error occurred while fetching the data."},
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        # Filter the API data by BCS division
+        api_data = response.json()
+        matching_records = [
+            item
+            for item in api_data
+            if item["unit"] == "Biodiversity and Conservation Science Division"
+        ]
+
+        # Create list of users based on in_spms parameter
+        list_of_users = []
+
+        if in_spms:
+            # Search active staff emails in SPMS db
+            spms_users = User.objects.filter(is_staff=True, is_active=True)
+
+            # Use the emails of BCS filtered users to filter the SPMS users
+            bcs_emails = [record["email"] for record in matching_records]
+            spms_users = spms_users.filter(email__in=bcs_emails)
+
+            # Create combined data with SPMS user info and IT assets data
+            for spms_user in spms_users:
+                # Find matching IT assets record
+                it_record = next(
+                    (
+                        record
+                        for record in matching_records
+                        if record["email"] == spms_user.email
+                    ),
+                    None,
+                )
+
+                if it_record:
+                    user_data = {
+                        "name": it_record.get("name", ""),
+                        "given_name": it_record.get("given_name", ""),
+                        "surname": it_record.get("surname", ""),
+                        "preferred_name": it_record.get("preferred_name", ""),
+                        "email": it_record.get("email", ""),
+                        "title": it_record.get("title", ""),
+                        "telephone": it_record.get("telephone", ""),
+                        "extension": it_record.get("extension", ""),
+                        "mobile_phone": it_record.get("mobile_phone", ""),
+                        "location": (
+                            it_record.get("location", {}).get("name", "")
+                            if it_record.get("location")
+                            else ""
+                        ),
+                        "cost_centre": it_record.get("cost_centre", ""),
+                        "employee_id": it_record.get("employee_id", ""),
+                        "division": it_record.get("division", ""),
+                        "unit": it_record.get("unit", ""),
+                        "spms_user": True,  # Flag to indicate this user is in SPMS
+                    }
+                    list_of_users.append(user_data)
+        else:
+            # Use all BCS staff from IT assets
+            for record in matching_records:
+                user_data = {
+                    "name": record.get("name", ""),
+                    "given_name": record.get("given_name", ""),
+                    "surname": record.get("surname", ""),
+                    "preferred_name": record.get("preferred_name", ""),
+                    "email": record.get("email", ""),
+                    "title": record.get("title", ""),
+                    "telephone": record.get("telephone", ""),
+                    "extension": record.get("extension", ""),
+                    "mobile_phone": record.get("mobile_phone", ""),
+                    "location": (
+                        record.get("location", {}).get("name", "")
+                        if record.get("location")
+                        else ""
+                    ),
+                    "cost_centre": record.get("cost_centre", ""),
+                    "employee_id": record.get("employee_id", ""),
+                    "division": record.get("division", ""),
+                    "unit": record.get("unit", ""),
+                    "spms_user": False,  # Flag to indicate this user is not necessarily in SPMS
+                }
+                list_of_users.append(user_data)
+
+        # Create CSV response
+        response = HttpResponse(content_type="text/csv")
+        filename_suffix = "_spms_only" if in_spms else "_all"
+        response["Content-Disposition"] = (
+            f'attachment; filename="bcs_staff{filename_suffix}.csv"'
+        )
+
+        writer = csv.writer(response)
+
+        # Write CSV headers
+        headers = [
+            "Name",
+            "Given Name",
+            "Surname",
+            "Preferred Name",
+            "Email",
+            "Title",
+            "Telephone",
+            "Extension",
+            "Mobile Phone",
+            "Location",
+            "Cost Centre",
+            "Employee ID",
+            "Division",
+            "Unit",
+        ]
+
+        if in_spms:
+            headers.append("In SPMS")
+
+        writer.writerow(headers)
+
+        # Write data rows
+        for user in list_of_users:
+            row = [
+                user.get("name", ""),
+                user.get("given_name", ""),
+                user.get("surname", ""),
+                user.get("preferred_name", ""),
+                user.get("email", ""),
+                user.get("title", ""),
+                user.get("telephone", ""),
+                user.get("extension", ""),
+                user.get("mobile_phone", ""),
+                user.get("location", ""),
+                user.get("cost_centre", ""),
+                user.get("employee_id", ""),
+                user.get("division", ""),
+                user.get("unit", ""),
+            ]
+
+            if in_spms:
+                row.append("Yes" if user.get("spms_user") else "No")
+
+            writer.writerow(row)
+
+        settings.LOGGER.info(
+            f"{req.user} successfully generated CSV with {len(list_of_users)} BCS staff records"
+        )
+
+        return response
 
 
 # endregion

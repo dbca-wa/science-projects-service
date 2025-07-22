@@ -54,4 +54,5 @@ urlpatterns = [
         "education_entries/<int:pk>", views.StaffProfileEducationEntryDetail.as_view()
     ),
     path("<int:pk>/public_email_staff_member", views.PublicEmailStaffMember.as_view()),
+    path("download_bcs_csv", views.DownloadBCSStaffCSV.as_view()),
 ]
