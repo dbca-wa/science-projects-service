@@ -1767,6 +1767,7 @@ class DownloadBCSStaffCSV(APIView):
 
         # Get in_spms parameter from request body
         in_spms = req.data.get("in_spms", False)
+        is_active = req.data.get("is_active", True)  # Default to active users
 
         # Call the API and get the data
         try:
@@ -1810,7 +1811,7 @@ class DownloadBCSStaffCSV(APIView):
 
         if in_spms:
             # Search active staff emails in SPMS db
-            spms_users = User.objects.filter(is_staff=True, is_active=True)
+            spms_users = User.objects.filter(is_staff=True, is_active=is_active)
 
             # Use the emails of BCS filtered users to filter the SPMS users
             bcs_emails = [record["email"] for record in matching_records]
@@ -1879,10 +1880,13 @@ class DownloadBCSStaffCSV(APIView):
 
         # Create CSV response
         response = HttpResponse(content_type="text/csv")
-        filename_suffix = "_spms_only" if in_spms else "_all"
-        response["Content-Disposition"] = (
-            f'attachment; filename="bcs_staff{filename_suffix}.csv"'
-        )
+        if in_spms:
+            active_status = "active" if is_active else "inactive"
+            filename = f"bcs_staff_spms_{active_status}.csv"
+        else:
+            filename = "bcs_staff_all.csv"
+
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
 
         writer = csv.writer(response)
 
@@ -1934,7 +1938,8 @@ class DownloadBCSStaffCSV(APIView):
             writer.writerow(row)
 
         settings.LOGGER.info(
-            f"{req.user} successfully generated CSV with {len(list_of_users)} BCS staff records"
+            f"{req.user} successfully generated CSV with {len(list_of_users)} BCS staff records "
+            f"(in_spms: {in_spms}, is_active: {is_active if in_spms else 'N/A'})"
         )
 
         return response
