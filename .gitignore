@@ -18,6 +18,8 @@ SMB_Mosaic_2023.tif
 *.out
 *.toc
 *.aux
+*.pgdump
+spms_media_data
 *django_session.csv
 *reversion_version.csv
 *requestsMeta.txt

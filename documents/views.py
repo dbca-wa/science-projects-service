@@ -4807,9 +4807,10 @@ class UnifiedReportDocGeneration(APIView):
             )
         )
 
-        # optimised Progress Reports query (same for both)
-        active_pr_docs = (
-            ProgressReport.objects.filter(base_filter | Q(project__id=1127))
+        # handle project 1127 separately
+        # First get the regular progress reports
+        regular_pr_docs = (
+            ProgressReport.objects.filter(base_filter)
             .exclude(project__business_area__division__name__isnull=True)
             .select_related(
                 "document",
@@ -4830,6 +4831,29 @@ class UnifiedReportDocGeneration(APIView):
             )
         )
 
+        # Get project 1127 reports separately (without business_area requirements)
+        project_1127_pr_docs = (
+            ProgressReport.objects.filter(Q(report=report) & Q(project__id=1127))
+            .select_related(
+                "document",
+                "project",
+                "project__image",
+                "project__student_project_info",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "project__members",
+                    queryset=ProjectMember.objects.select_related(
+                        "user", "user__profile"
+                    ),
+                ),
+                "project__area",
+            )
+        )
+
+        # Combine the querysets
+        active_pr_docs = list(regular_pr_docs) + list(project_1127_pr_docs)
+
         # Optimised HTML cleaning with regex compilation
         empty_p_pattern = re.compile(r"<p>(&nbsp;|\s)*</p>")
         nbsp_pattern = re.compile(r"&nbsp;")
@@ -4841,16 +4865,6 @@ class UnifiedReportDocGeneration(APIView):
             html_content = nbsp_pattern.sub(" ", html_content)
             return html_content
 
-        # Mock business area (create once)
-        class MockBusinessArea:
-            def __init__(self, name):
-                self.name = name
-                self.pk = None
-                self.leader_id = None
-                self.introduction = ""
-
-        mock_plant_science_ba = MockBusinessArea("Plant Science and Herbarium")
-
         # Process reports efficiently
         for report_obj in active_pr_docs:
             # Clean HTML fields
@@ -4860,18 +4874,41 @@ class UnifiedReportDocGeneration(APIView):
             report_obj.implications = removeempty_p_optimised(report_obj.implications)
             report_obj.future = removeempty_p_optimised(report_obj.future)
 
-            # Handle special project
-            if report_obj.document.project.pk == 1127:
-                report_obj.document.project.business_area = mock_plant_science_ba
-
         for sreport in active_sr_docs:
             sreport.progress_report = removeempty_p_optimised(sreport.progress_report)
+
+        # Get the real Plant Science and Herbarium business area
+        try:
+            plant_science_ba = BusinessArea.objects.only(
+                "pk", "name", "leader_id", "introduction"
+            ).get(name="Plant Science and Herbarium")
+            plant_science_ba_data = {
+                "name": plant_science_ba.name,
+                "pk": plant_science_ba.pk,
+                "leader": plant_science_ba.leader_id,
+                "introduction": plant_science_ba.introduction or "",
+            }
+        except BusinessArea.DoesNotExist:
+            # Fallback to mock data
+            plant_science_ba_data = {
+                "name": "Plant Science and Herbarium",
+                "pk": None,
+                "leader": None,
+                "introduction": "",
+            }
 
         # Use optimised serializers
         sr_ser = OptimisedStudentReportAnnualReportSerializer(active_sr_docs, many=True)
         pr_ser = OptimisedProgressReportAnnualReportSerializer(
             active_pr_docs, many=True
         )
+
+        # Fix the business area for project 1127 in the serialised data
+        for report_data in pr_ser.data:
+            if report_data["document"]["project"]["pk"] == 1127:
+                report_data["document"]["project"][
+                    "business_area"
+                ] = plant_science_ba_data
 
         return {
             "student_reports": sr_ser.data,
