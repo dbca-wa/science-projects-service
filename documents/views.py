@@ -5038,6 +5038,7 @@ class UnifiedReportDocGeneration(APIView):
             # Phase 1: Media fetching
             media_start = time.time()
             media_dict = self.get_ar_media_batch(pk=report.pk)
+            print(f"\n\n{media_dict}\n\n")
             media_time = time.time() - media_start
             settings.LOGGER.info(f"Media fetching: {media_time:.3f}s")
 
@@ -5045,6 +5046,14 @@ class UnifiedReportDocGeneration(APIView):
             def get_media_url(kind, default=""):
                 media = media_dict.get(kind)
                 return media.file.url if media else default
+
+            # Helper function to get media file path (for Prince XML)
+            def get_media_file_path(kind, default=""):
+                media = media_dict.get(kind)
+                if media and media.file:
+                    # Construct the full file path
+                    return os.path.join(base_dir, media.file.url.lstrip("/"))
+                return default
 
             # Set up paths efficiently
             base_dir = settings.BASE_DIR
@@ -5154,23 +5163,33 @@ class UnifiedReportDocGeneration(APIView):
             formatted_datetime = now.strftime(f"{now.day}{day_suffix} %B, %Y @ %I:%M%p")
 
             # DBCA banners
+
+            # For the main cover image (used in template as dbca_image_path)
             dbca_banner = media_dict.get("dbca_banner")
             dbca_banner_cropped = media_dict.get("dbca_banner_cropped")
 
-            dbca_banner_path = (
-                f"{base_dir}{dbca_banner.file.url}" if dbca_banner else None
-            )
-            dbca_banner_cropped_path = (
-                f"{base_dir}{dbca_banner_cropped.file.url}"
-                if dbca_banner_cropped
-                else None
-            )
+            dbca_image_path = ""
+            if dbca_banner and dbca_banner.file:
+                dbca_image_path = os.path.join(
+                    base_dir, dbca_banner.file.url.lstrip("/")
+                )
+
+            # For the cropped banner used in headers
+            dbca_banner_cropped_path = ""
+            if dbca_banner_cropped and dbca_banner_cropped.file:
+                dbca_banner_cropped_path = os.path.join(
+                    base_dir, dbca_banner_cropped.file.url.lstrip("/")
+                )
+            print(f"DBCA: {dbca_banner}\n")
+            print(f"DBCA IMAGE Path: {dbca_image_path}\n")
+            print(f"DBCA Crop: {dbca_banner_cropped}\n")
+            print(f"DBCA Crop IMAGE Path: {dbca_banner_cropped_path}\n")
 
             # Template context preparation
             template_context = {
                 "time_generated": formatted_datetime,
                 "prince_css_path": prince_css_path,
-                "dbca_image_path": dbca_banner_path,
+                "dbca_image_path": dbca_image_path,
                 "dbca_cropped_image_path": dbca_banner_cropped_path,
                 "no_image_path": no_image_path,
                 "server_url": (

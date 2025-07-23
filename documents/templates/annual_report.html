@@ -7,6 +7,28 @@
     {% comment %} <link rel="stylesheet" href="{{rte_css_path}}"> {% endcomment %}
     <link rel="stylesheet" href="{{prince_css_path}}">
     <style>
+        /* LEFT PAGE LOGO - floats left */
+        .header-logo-left {
+            flow: static(header-logo-left);
+            width: 200px;
+            height: auto;
+            display: block;
+            padding-left: 4px;
+            padding-right: 4px;
+            float: left; /* Floats left for left pages */
+        }
+
+        /* RIGHT PAGE LOGO - floats right */
+        .header-logo-right {
+            flow: static(header-logo-right);
+            width: 200px;
+            height: auto;
+            display: block;
+            padding-left: 4px;
+            padding-right: 4px;
+            float: right; /* Floats right for right pages */
+        }
+
         @page {
             {% comment %} orphans: 3; {% endcomment %}
             {% comment %} widows: 3; {% endcomment %}
@@ -301,24 +323,13 @@
                 font-size: 14px;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
-                margin-top: max(0cm, 1.4cm);
-                margin-bottom: 0cm !important;
-                padding-top: 0cm !important;
+                padding-top: 0.2cm !important;
                 padding-bottom: 0cm !important;      
             }
             @top-left {
-                z-index: 2;
-                content: ""; 
-                background-image: url("{{dbca_cropped_image_path}}"); 
-                background-size: contain; 
-                background-repeat: no-repeat; 
-                background-position: center; 
-                height: 100%;
-                width: 30%;
-                margin-top: max(0cm, 1.4cm);
-                margin-bottom: 0cm !important;
+                content: flow(header-logo-left);
                 padding-top: 0cm !important;
-                padding-bottom: 0cm !important;             
+                padding-bottom: 0cm !important;            
             }
         }
 
@@ -348,33 +359,22 @@
                 font-size: 14px;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
-                margin-top: max(0cm, 1.4cm);
-                margin-bottom: 0cm !important;
-                padding-top: 0cm !important;
+                padding-top: 0.2cm !important;
                 padding-bottom: 0cm !important;      
             }         
             @top-right {
-                z-index: 2;
-                content: ""; 
-                background-image: url("{{dbca_cropped_image_path}}"); 
-                background-size: contain; 
-                background-repeat: no-repeat; 
-                background-position: center; 
-                height: 100%;
-                width: 30%;
-                margin-top: max(0cm, 1.4cm);
-                margin-bottom: 0cm !important;
+                content: flow(header-logo-right);
                 padding-top: 0cm !important;
-                padding-bottom: 0cm !important;            
+                padding-bottom: 0cm !important;         
             }  
         }
 
-        @page ba_pages:first,
-        external_partnerships:first,
-        student_projects_summary:first,
-        sr_pages:first,
-        publications:first,
-        research_projects_summary:first
+        @page ba_pages:first-of-group,
+        external_partnerships:first-of-group,
+        student_projects_summary:first-of-group,
+        sr_pages:first-of-group,
+        publications:first-of-group,
+        research_projects_summary:first-of-group 
         {
             @top-right {
                 font-weight: bold;
@@ -683,16 +683,19 @@
 
 
 <body class="page_body" onload="runLoad()"> 
+    <img class="header-logo-left" src="{{dbca_image_path}}" alt="Header Logo Left" />
+    <img class="header-logo-right" src="{{dbca_image_path}}" alt="Header Logo Right" />
 
     {% comment %} PRINCE BLOCK {% endcomment %}
-    {% comment %} <div class="prince_page">
+    <div class="prince_page">
         <div class="prince_blocker">
             <p>Generated {{time_generated}}</p>
             <p>Template populated in {{population_time}} seconds</p>
             <p>Site URL: {{site_url}}</p>
             <p>Image URL: {{dbca_image_path}}</p>
+            <p>Image URL 2: {{dbca_cropped_image_path}}</p>
         </div>
-    </div> {% endcomment %}
+    </div>
 
     {% comment %} COVER {% endcomment %}
     <div class="coverpage_page">
