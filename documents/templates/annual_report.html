@@ -687,7 +687,7 @@
     <img class="header-logo-right" src="{{dbca_image_path}}" alt="Header Logo Right" />
 
     {% comment %} PRINCE BLOCK {% endcomment %}
-    <div class="prince_page">
+    {% comment %} <div class="prince_page">
         <div class="prince_blocker">
             <p>Generated {{time_generated}}</p>
             <p>Template populated in {{population_time}} seconds</p>
@@ -695,7 +695,7 @@
             <p>Image URL: {{dbca_image_path}}</p>
             <p>Image URL 2: {{dbca_cropped_image_path}}</p>
         </div>
-    </div>
+    </div> {% endcomment %}
 
     {% comment %} COVER {% endcomment %}
     <div class="coverpage_page">
