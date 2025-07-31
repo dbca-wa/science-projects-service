@@ -136,29 +136,6 @@ class AdminControlsDetail(APIView):
             status=HTTP_204_NO_CONTENT,
         )
 
-    # def put(self, req, pk):
-    #     AdminControl = self.go(pk)
-    #     settings.LOGGER.info(msg=f"{req.user} is updating {AdminControl}")
-    #     ser = AdminOptionsSerializer(
-    #         AdminControl,
-    #         data=req.data,
-    #         partial=True,
-    #     )
-    #     if ser.is_valid():
-    #         udpated_admin_options = ser.save()
-    #         print(req.data)
-    #         print(udpated_admin_options)
-    #         return Response(
-    #             AdminOptionsSerializer(udpated_admin_options).data,
-    #             status=HTTP_202_ACCEPTED,
-    #         )
-    #     else:
-    #         settings.LOGGER.error(msg=f"{ser.errors}")
-    #         return Response(
-    #             ser.errors,
-    #             status=HTTP_400_BAD_REQUEST,
-    #         )
-
     def put(self, req, pk):
         AdminControl = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is updating {AdminControl}")
@@ -196,8 +173,20 @@ class AdminControlsDetail(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
-    @action(detail=True, methods=["post"])
-    def update_guide_content(self, req, pk):
+
+class AdminControlsGuideContentUpdate(APIView):
+    """Separate view for updating guide content"""
+
+    permission_classes = [IsAdminUser]
+
+    def go(self, pk):
+        try:
+            obj = AdminOptions.objects.get(pk=pk)
+        except AdminOptions.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
         """Update a specific guide content field"""
         AdminControl = self.go(pk)
         field_key = req.data.get("field_key")
@@ -207,7 +196,7 @@ class AdminControlsDetail(APIView):
         print(f"Content length: {len(content) if content else 'None'}")
 
         if field_key and content is not None:
-            # Initialize guide_content if it doesn't exist or is None
+            # Initialise guide_content if it doesn't exist or is None
             if (
                 not hasattr(AdminControl, "guide_content")
                 or AdminControl.guide_content is None

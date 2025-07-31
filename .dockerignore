@@ -13,6 +13,9 @@ README.md
 Dockerfile
 docker-compose.yaml
 docker-compose.yml
+*.pgdump
+spms_media_data
+
 *.env
 *.production
 *.staging
