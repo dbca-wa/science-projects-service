@@ -4,6 +4,7 @@ import json, os, csv
 from datetime import datetime as dt
 from math import ceil
 
+from bs4 import BeautifulSoup
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Case, When, Value, F, IntegerField, CharField, Prefetch
@@ -17,7 +18,7 @@ from django.db.models.functions import Cast
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.exceptions import (
     NotFound,
 )
@@ -4027,16 +4028,26 @@ class ExternalProjects(APIView):
         )
 
 
+def strip_html_tags(html_string):
+    """Helper function to strip HTML tags and return plain text"""
+    if not html_string:
+        return ""
+    soup = BeautifulSoup(html_string, "html.parser")
+    return soup.get_text(separator=" ", strip=True)
+
+
 class DownloadAllProjectsAsCSV(APIView):
+    permission_classes = [IsAdminUser]
+
     def get(self, req):
-        settings.LOGGER.info(msg=f"{req.user} is generating a csv of projects...")
+        settings.LOGGER.info(msg=f"{req.user} is generating a csv of all projects...")
         try:
             # Retrieve projects data from the database
             projects = Project.objects.all()
 
             # Create a response object with CSV content type
             res = HttpResponse(content_type="text/csv")
-            res["Content-Disposition"] = 'attachment; filename="projects.csv"'
+            res["Content-Disposition"] = 'attachment; filename="projects-full.csv"'
 
             # Create a CSV writer
             writer = csv.writer(res)
@@ -4044,6 +4055,7 @@ class DownloadAllProjectsAsCSV(APIView):
             # Define custom field names in the desired order
             custom_field_names = [
                 "ID",
+                "Project Code",
                 "Status",
                 "Type",
                 "Year",
@@ -4063,20 +4075,19 @@ class DownloadAllProjectsAsCSV(APIView):
             for project in projects:
                 row = [
                     project.pk,
+                    project.get_project_tag(),
                     project.status,
                     project.kind,
                     project.year,
-                    project.title,
+                    strip_html_tags(project.title),  # Strip HTML from title
                     project.business_area,
-                    (
-                        project.business_area.leader if project.business_area else ""
-                    ),  # Assuming business_area has a leader attribute
+                    (project.business_area.leader if project.business_area else ""),
                     ", ".join(
                         [
                             f"{project_member.user.first_name} {project_member.user.last_name}"
                             for project_member in project.members.all()
                         ]
-                    ),  # Assuming team_names is a related field with ManyToMany relationship
+                    ),
                     project.business_area.cost_center if project.business_area else "",
                     project.start_date,
                     project.end_date,
@@ -4085,7 +4096,112 @@ class DownloadAllProjectsAsCSV(APIView):
 
             return res
 
-        # If server is down or otherwise error
+        except Exception as e:
+            settings.LOGGER.error(msg=f"{e}")
+            return HttpResponse(status=500, content="Error generating CSV")
+
+
+class DownloadARProjectsAsCSV(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, req):
+        settings.LOGGER.info(
+            msg=f"{req.user} is generating a csv of annual report projects..."
+        )
+        try:
+            # Get the latest annual report
+            latest_annual_report = AnnualReport.objects.order_by("-year").first()
+
+            if not latest_annual_report:
+                return HttpResponse(status=404, content="No annual reports found")
+
+            # Get projects that appear in progress reports for this annual report
+            progress_report_projects = Project.objects.filter(
+                progress_reports__report=latest_annual_report
+            ).distinct()
+
+            # Get projects that appear in student reports for this annual report
+            student_report_projects = Project.objects.filter(
+                student_reports__report=latest_annual_report
+            ).distinct()
+
+            # Combine both querysets and remove duplicates
+            annual_report_projects = (
+                progress_report_projects | student_report_projects
+            ).distinct()
+
+            # Create a response object with CSV content type
+            res = HttpResponse(content_type="text/csv")
+            res["Content-Disposition"] = (
+                f'attachment; filename="projects-annual-report-{latest_annual_report.year}.csv"'
+            )
+
+            # Create a CSV writer
+            writer = csv.writer(res)
+
+            # Define custom field names in the desired order
+            custom_field_names = [
+                "ID",
+                "Project Code",
+                "Status",
+                "Type",
+                "Year",
+                "Title",
+                "Business Area",
+                "Business Area Leader",
+                "Team Members",
+                "Cost Center ID",
+                "Start Date",
+                "End Date",
+                "Report Type",  # New field to indicate if it's in progress report, student report, or both
+            ]
+
+            # Write CSV headers
+            writer.writerow(custom_field_names)
+
+            # Write project data rows
+            for project in annual_report_projects:
+                # Determine report type
+                has_progress_report = project.progress_reports.filter(
+                    report=latest_annual_report
+                ).exists()
+                has_student_report = project.student_reports.filter(
+                    report=latest_annual_report
+                ).exists()
+
+                if has_progress_report and has_student_report:
+                    report_type = "Progress & Student"
+                elif has_progress_report:
+                    report_type = "Progress"
+                elif has_student_report:
+                    report_type = "Student"
+                else:
+                    report_type = "Unknown"
+
+                row = [
+                    project.pk,
+                    project.get_project_tag(),
+                    project.status,
+                    project.kind,
+                    project.year,
+                    strip_html_tags(project.title),  # Strip HTML from title
+                    project.business_area,
+                    (project.business_area.leader if project.business_area else ""),
+                    ", ".join(
+                        [
+                            f"{project_member.user.first_name} {project_member.user.last_name}"
+                            for project_member in project.members.all()
+                        ]
+                    ),
+                    project.business_area.cost_center if project.business_area else "",
+                    project.start_date,
+                    project.end_date,
+                    report_type,
+                ]
+                writer.writerow(row)
+
+            return res
+
         except Exception as e:
             settings.LOGGER.error(msg=f"{e}")
             return HttpResponse(status=500, content="Error generating CSV")

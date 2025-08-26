@@ -51,6 +51,7 @@ urlpatterns = [
     path("science", views.ScienceProjects.as_view()),
     path("core_function", views.CoreFunctionProjects.as_view()),
     path("download", views.DownloadAllProjectsAsCSV.as_view()),
+    path("download-ar", views.DownloadARProjectsAsCSV.as_view()),
     # PROBLEMS
     path("unapprovedFY", views.UnapprovedThisFY.as_view()),
     path("problematic", views.ProblematicProjects.as_view()),
