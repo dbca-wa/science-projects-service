@@ -6,12 +6,11 @@
 #     <name>Server License</name>
 #     <vendor>YesLogic</vendor>
 #     <product>Prince</product>
-#     <version>15</version>
-#     <end-user>Government of Western Australia</end-user>
-#     <date>2024-05-31</date>
+#     <version>16</version>
+#     <end-user>Department of Biodiversity, Conservation and Attractions</end-user>
+#     <date>2025-09-05</date>
 #     <signature>${PRINCE_LICENSE_SIGNATURE}</signature>
-#     <option id="upgrades">20250531</option>
-#     <option id="expires">20250531</option>
+#     <option id="upgrades">20260905</option>
 # </license>
 # EOF
 # )
