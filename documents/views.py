@@ -2,11 +2,10 @@
 
 import ast
 from collections import defaultdict
-import datetime, json, os, re, subprocess, time, tempfile
+import datetime, json, os, re, subprocess, time, tempfile, shutil
 from bs4 import BeautifulSoup
 from operator import attrgetter
 import bleach
-
 from django.forms import ValidationError
 from django.template.loader import render_to_string
 from django.core.serializers.json import DjangoJSONEncoder
@@ -6614,6 +6613,23 @@ class BeginProjectDocGeneration(APIView):
 
         # Combine all stylesheet paths into a single string separated by commas
         all_css_paths = ",".join([rte_css_path, prince_css_path])
+
+        # # DEBUG:
+
+        # # Check if prince is in PATH
+        # prince_path = shutil.which("prince")
+        # print(f"Prince path: {prince_path}")
+
+        # # Check current PATH
+        # print(f"Current PATH: {os.environ.get('PATH', 'Not found')}")
+
+        # # Try direct path
+        # direct_prince_path = "/usr/lib/prince/bin/prince"
+        # if os.path.exists(direct_prince_path):
+        #     print(f"Prince exists at: {direct_prince_path}")
+        #     print(f"Is executable: {os.access(direct_prince_path, os.X_OK)}")
+        # else:
+        #     print("Prince not found at expected location")
 
         p = subprocess.Popen(
             ["prince", "-", f"--style={all_css_paths}", f"--javascript"],

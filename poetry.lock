@@ -885,6 +885,7 @@ files = [
 ]
 
 [package.dependencies]
+typing-extensions = {version = ">=4.6", markers = "python_version < \"3.13\""}
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
 [package.extras]
@@ -1261,5 +1262,5 @@ brotli = ["brotli"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "<3.14,>=3.13.2"
-content-hash = "0e6934d1511f9c3a11c5a5b59223f9487552de715844f276a3f563673065817a"
+python-versions = "<3.14,>=3.12.11"
+content-hash = "b03a88ce45f1acfa21ca2b7d9666561cbd7e4bb472be999a0349d88c5c432ea4"
