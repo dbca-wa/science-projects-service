@@ -50,14 +50,6 @@ RUN apt-get update \
 # # Set Prince location
 ENV PATH="${PATH}:/usr/lib/prince/bin"
 
-# Delete non-commercial license of Prince
-RUN rm -f /usr/lib/prince/license/license.dat
-
-# Create a symlink to the commercial license file
-# Assumes that a valid Prince commercial license file is available in the backend/files directory
-# Current license is set to expire on 31.05.2025
-RUN ln -s /usr/src/app/backend/files/license.dat /usr/lib/prince/license/license.dat
-
 # ====================== DEV FILES AND DEPENDENCIES ======================
 
 # Move local files over
@@ -107,8 +99,9 @@ RUN chown ${UID}:${GID} /home/spmsuser/.bashrc
 RUN chown -R ${UID}:${GID} /usr/src/app
 RUN chown -R ${UID}:${GID} /usr/src/app/backend
 
-# Own the Prince license file to update it later
-RUN chown -R ${UID}:${GID} /usr/lib/prince/license
+# Delete non-commercial license of Prince
+RUN rm -f /usr/lib/prince/license/license.dat
+
 # Use Root Ensure entrypoint script can run for prince license and gunicorn
 RUN chmod +x /usr/src/app/backend/entrypoint.sh
 

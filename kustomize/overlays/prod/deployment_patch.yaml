@@ -68,16 +68,6 @@ spec:
                 secretKeyRef:
                   name: spms-env-prod
                   key: LIBRARY_BEARER_TOKEN
-            - name: PRINCE_LICENSE_ID
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-prod
-                  key: PRINCE_LICENSE_ID
-            - name: PRINCE_LICENSE_SIGNATURE
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-prod
-                  key: PRINCE_LICENSE_SIGNATURE
             - name: PRINCE_SERVER_URL
               valueFrom:
                 secretKeyRef:

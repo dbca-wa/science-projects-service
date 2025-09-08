@@ -1,29 +1,13 @@
 #!/usr/bin/env bash
 
-# Define the license template with placeholders for environment variables
-# LICENSE_TEMPLATE=$(cat <<EOF
-# <license id="${PRINCE_LICENSE_ID}">
-#     <name>Server License</name>
-#     <vendor>YesLogic</vendor>
-#     <product>Prince</product>
-#     <version>16</version>
-#     <end-user>Department of Biodiversity, Conservation and Attractions</end-user>
-#     <date>2025-09-05</date>
-#     <signature>${PRINCE_LICENSE_SIGNATURE}</signature>
-#     <option id="upgrades">20260905</option>
-# </license>
-# EOF
-# )
-
-# Output the license template to license.dat
-# echo "$LICENSE_TEMPLATE" > /usr/lib/prince/license/license.dat
-echo "Creating license.dat symlink..."
-ln -s /usr/src/app/backend/files/license.dat /usr/lib/prince/license/license.dat
 
 # Run Django migrations
 echo "Running Django migrations..."
+
 # DISABLED DUE TO READ ONLY FILE SYSTEM
 # python manage.py makemigrations
+
+# Migrate db
 python manage.py migrate
 
 # Launch backend (moved from Dockerfile to run after securely setting Prince license)
