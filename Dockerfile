@@ -102,8 +102,6 @@ RUN chown -R ${UID}:${GID} /usr/src/app/backend
 # Delete non-commercial license of Prince
 RUN rm -f /usr/lib/prince/license/license.dat
 
-# Use Root Ensure entrypoint script can run for prince license and gunicorn
-RUN chmod +x /usr/src/app/backend/entrypoint.sh
 
 # ====================== LAUNCH ======================
 
