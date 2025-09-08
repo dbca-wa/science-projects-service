@@ -111,5 +111,5 @@ RUN chmod +x /usr/src/app/backend/entrypoint.sh
 USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
-# Set entrypoint
-ENTRYPOINT ["/usr/src/app/backend/entrypoint.sh"]
+# Launch (entrypoint.sh with migration command removed)
+CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300", "--graceful-timeout", "90", "--max-requests", "2048", "--workers", "4", "--preload"]
