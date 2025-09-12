@@ -26,7 +26,6 @@ spec:
               name: spms-media-test
       containers:
         - name: spms-backend
-          image: ghcr.io/dbca-wa/science-projects-service
           env:
             - name: DATABASE_URL
               valueFrom:
@@ -89,11 +88,16 @@ spec:
                   name: spms-env-test
                   key: SPMS_MAINTAINER_EMAIL
           volumeMounts:
-            - mountPath: /usr/src/app/backend/files
-              name: spms-media-test
-        - name: spms-frontend
-          image: ghcr.io/dbca-wa/science-projects-client:test
+            - name: spms-media-test
+              mountPath: /usr/src/app/backend/files
+            - name: prince2-license-test
+              mountPath: /usr/lib/prince/license
+              readOnly: true
       volumes:
         - name: spms-media-test
           persistentVolumeClaim:
             claimName: spms-media-data-test
+        - name: prince2-license-test
+          configMap:
+            defaultMode: 420
+            name: prince2-license-test

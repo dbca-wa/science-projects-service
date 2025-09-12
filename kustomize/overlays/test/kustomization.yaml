@@ -6,6 +6,10 @@ secretGenerator:
     type: Opaque
     envs:
       - .env
+configMapGenerator:
+  - name: prince2-license
+    files:
+      - license.dat
 generatorOptions:
   disableNameSuffixHash: true
 resources:

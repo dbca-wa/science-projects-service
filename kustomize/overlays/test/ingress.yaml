@@ -5,51 +5,51 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-  - host: scienceprojects-test.dbca.wa.gov.au
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: spms-clusterip-test
-            port:
-              number: 3000
-      - path: /admin
-        pathType: Prefix
-        backend:
-          service:
-            name: spms-clusterip-test
-            port:
-              number: 8000
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: spms-clusterip-test
-            port:
-              number: 8000
-      - path: /files
-        pathType: Prefix
-        backend:
-          service:
-            name: spms-clusterip-test
-            port:
-              number: 8000
-      - path: /static
-        pathType: Prefix
-        backend:
-          service:
-            name: spms-clusterip-test
-            port:
-              number: 8000
-  - host: science-profiles-test.dbca.wa.gov.au
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: spms-clusterip-test
-            port:
-              number: 3000
+    - host: scienceprojects-test.dbca.wa.gov.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spms-clusterip-test
+                port:
+                  number: 3000
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: spms-clusterip-test
+                port:
+                  number: 8000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: spms-clusterip-test
+                port:
+                  number: 8000
+          - path: /files
+            pathType: Prefix
+            backend:
+              service:
+                name: spms-clusterip-test
+                port:
+                  number: 8000
+          - path: /static
+            pathType: Prefix
+            backend:
+              service:
+                name: spms-clusterip-test
+                port:
+                  number: 8000
+    - host: science-profiles-test.dbca.wa.gov.au
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: spms-clusterip-test
+                port:
+                  number: 3000

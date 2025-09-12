@@ -12,17 +12,15 @@ spec:
           image: ghcr.io/dbca-wa/science-projects-service
           imagePullPolicy: Always
           env:
-          - name: TZ
-            value: "Australia/Perth"
-          - name: TIME_ZONE
-            value: "Australia/Perth"
+            - name: TZ
+              value: 'Australia/Perth'
           resources:
             requests:
-              memory: "200Mi"
-              cpu: "5m"
+              memory: '200Mi'
+              cpu: '5m'
             limits:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: '2Gi'
+              cpu: '1000m'
           securityContext:
             runAsNonRoot: true
             privileged: false
@@ -38,17 +36,18 @@ spec:
           image: ghcr.io/dbca-wa/science-projects-client
           imagePullPolicy: Always
           env:
-          - name: TZ
-            value: "Australia/Perth"
+            - name: TZ
+              value: 'Australia/Perth'
           resources:
             requests:
-              memory: "64Mi"
-              cpu: "5m"
+              memory: '64Mi'
+              cpu: '5m'
             limits:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: '1Gi'
+              cpu: '1000m'
           securityContext:
             runAsNonRoot: false
+            runAsUser: 1000
             privileged: false
             allowPrivilegeEscalation: false
             capabilities:
@@ -61,9 +60,10 @@ spec:
       volumes:
         - name: tmpfs-ram-backend
           emptyDir:
-            medium: "Memory"
+            medium: 'Memory'
         - name: tmpfs-ram-frontend
           emptyDir:
-            medium: "Memory"
+            medium: 'Memory'
       restartPolicy: Always
       terminationGracePeriodSeconds: 180
+      automountServiceAccountToken: false
