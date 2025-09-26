@@ -2,7 +2,7 @@
 # ====================== IMAGE & CONFIG ======================
 
 # Use the local version that works with poetry config when testing in dev (3.12.3)
-FROM python:3.12-slim-bookworm
+FROM python:3.14.0rc3-slim-bookworm
 # FROM python:slim
 LABEL org.opencontainers.image.source=https://github.com/dbca-wa/science-project-service
 # Ensures Python output sent to terminal for logging
