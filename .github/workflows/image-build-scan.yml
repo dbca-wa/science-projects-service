@@ -39,7 +39,8 @@ jobs:
               with:
                   registry: ${{ env.REGISTRY }}
                   username: ${{ github.actor }}
-                  password: ${{ secrets.GH_PAT  }} # GitHub Personal Access Token
+                  password: ${{ secrets.GITHUB_TOKEN }} # built-in token
+                  #   password: ${{ secrets.GH_PAT  }} # GitHub Personal Access Token
             #----------------------------------------------
             # Extract Docker image metadata from GitHub events
             #----------------------------------------------
