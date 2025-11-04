@@ -372,14 +372,14 @@ test = ["cssselect", "importlib-resources ; python_version < \"3.9\"", "jaraco.t
 
 [[package]]
 name = "dbca-utils"
-version = "2.1.4"
+version = "2.1.5"
 description = "Utilities for DBCA Django apps"
 optional = false
 python-versions = "<4.0,>=3.10"
 groups = ["main"]
 files = [
-    {file = "dbca_utils-2.1.4-py3-none-any.whl", hash = "sha256:dd635c15a840d5dd73e90e3ea9a8d52e3839ac870984e54f3b376972c2a09c1f"},
-    {file = "dbca_utils-2.1.4.tar.gz", hash = "sha256:8aee220234a25536b6cd207c7cc89f759c20ae3f2b64c607596578a1d4b68c25"},
+    {file = "dbca_utils-2.1.5-py3-none-any.whl", hash = "sha256:aaf193310200d1e66853faa872088ff65552f430ae2007e537d53284fad113f8"},
+    {file = "dbca_utils-2.1.5.tar.gz", hash = "sha256:858451660d5ac1363db9ff32ab2ad4f227e36b1d438822d4a75368bfacab3fd1"},
 ]
 
 [package.dependencies]
@@ -1108,14 +1108,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "sentry-sdk"
-version = "2.42.1"
+version = "2.43.0"
 description = "Python client for Sentry (https://sentry.io)"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "sentry_sdk-2.42.1-py2.py3-none-any.whl", hash = "sha256:f8716b50c927d3beb41bc88439dc6bcd872237b596df5b14613e2ade104aee02"},
-    {file = "sentry_sdk-2.42.1.tar.gz", hash = "sha256:8598cc6edcfe74cb8074ba6a7c15338cdee93d63d3eb9b9943b4b568354ad5b6"},
+    {file = "sentry_sdk-2.43.0-py2.py3-none-any.whl", hash = "sha256:4aacafcf1756ef066d359ae35030881917160ba7f6fc3ae11e0e58b09edc2d5d"},
+    {file = "sentry_sdk-2.43.0.tar.gz", hash = "sha256:52ed6e251c5d2c084224d73efee56b007ef5c2d408a4a071270e82131d336e20"},
 ]
 
 [package.dependencies]
@@ -1149,11 +1149,13 @@ launchdarkly = ["launchdarkly-server-sdk (>=9.8.0)"]
 litellm = ["litellm (>=1.77.5)"]
 litestar = ["litestar (>=2.0.0)"]
 loguru = ["loguru (>=0.5)"]
+mcp = ["mcp (>=1.15.0)"]
 openai = ["openai (>=1.0.0)", "tiktoken (>=0.3.0)"]
 openfeature = ["openfeature-sdk (>=0.7.1)"]
 opentelemetry = ["opentelemetry-distro (>=0.35b0)"]
 opentelemetry-experimental = ["opentelemetry-distro"]
 pure-eval = ["asttokens", "executing", "pure_eval"]
+pydantic-ai = ["pydantic-ai (>=1.0.0)"]
 pymongo = ["pymongo (>=3.1)"]
 pyspark = ["pyspark (>=2.4.4)"]
 quart = ["blinker (>=1.1)", "quart (>=0.16.1)"]
