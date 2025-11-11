@@ -46,7 +46,7 @@ spec:
               memory: '1Gi'
               cpu: '1000m'
           securityContext:
-            runAsNonRoot: false
+            runAsNonRoot: true
             runAsUser: 1000
             privileged: false
             allowPrivilegeEscalation: false

@@ -26,67 +26,9 @@ spec:
               name: spms-media-test
       containers:
         - name: spms-backend
-          env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: DATABASE_URL
-            - name: DEFAULT_FROM_EMAIL
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: DEFAULT_FROM_EMAIL
-            - name: ENVIRONMENT
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: ENVIRONMENT
-            - name: EXTERNAL_PASS
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: EXTERNAL_PASS
-            - name: IT_ASSETS_ACCESS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: IT_ASSETS_ACCESS_TOKEN
-            - name: IT_ASSETS_USER
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: IT_ASSETS_USER
-            - name: LIBRARY_API_URL
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: LIBRARY_API_URL
-            - name: LIBRARY_BEARER_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: LIBRARY_BEARER_TOKEN
-            - name: PRINCE_SERVER_URL
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: PRINCE_SERVER_URL
-            - name: SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: SECRET_KEY
-            - name: SENTRY_URL
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: SENTRY_URL
-            - name: SPMS_MAINTAINER_EMAIL
-              valueFrom:
-                secretKeyRef:
-                  name: spms-env-test
-                  key: SPMS_MAINTAINER_EMAIL
+          envFrom:
+            - secretRef:
+                name: spms-env-test
           volumeMounts:
             - name: spms-media-test
               mountPath: /usr/src/app/backend/files
