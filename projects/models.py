@@ -422,6 +422,40 @@ class StudentProjectDetails(models.Model):
         verbose_name = "Student Project Detail"
         verbose_name_plural = "Student Project Details"
 
+    def clean(self):
+        """
+        Validate and clean stale affiliation references from organisation field.
+        Removes affiliation names that no longer exist in the Affiliation table.
+        """
+        from django.conf import settings
+        from agencies.models import Affiliation
+
+        if self.organisation:
+            # Parse semicolon-delimited list
+            affiliations = [
+                a.strip() for a in self.organisation.split("; ") if a.strip()
+            ]
+
+            if affiliations:
+                # Get all valid affiliation names
+                valid_names = set(
+                    Affiliation.objects.values_list("name", flat=True)
+                )
+
+                # Filter out non-existent affiliations
+                original_count = len(affiliations)
+                valid_affiliations = [a for a in affiliations if a in valid_names]
+
+                # Update field if any were removed
+                if len(valid_affiliations) < original_count:
+                    removed_count = original_count - len(valid_affiliations)
+                    self.organisation = "; ".join(valid_affiliations) if valid_affiliations else ""
+
+                    settings.LOGGER.info(
+                        f"Cleaned {removed_count} stale affiliation(s) from "
+                        f"StudentProjectDetails (project: {self.project_id})"
+                    )
+
     def __str__(self) -> str:
         return f"{self.level} | {self.organisation}"
 
@@ -461,6 +495,40 @@ class ExternalProjectDetails(models.Model):
     class Meta:
         verbose_name = "External Project Detail"
         verbose_name_plural = "External Project Details"
+
+    def clean(self):
+        """
+        Validate and clean stale affiliation references from collaboration_with field.
+        Removes affiliation names that no longer exist in the Affiliation table.
+        """
+        from django.conf import settings
+        from agencies.models import Affiliation
+
+        if self.collaboration_with:
+            # Parse semicolon-delimited list
+            affiliations = [
+                a.strip() for a in self.collaboration_with.split("; ") if a.strip()
+            ]
+
+            if affiliations:
+                # Get all valid affiliation names
+                valid_names = set(
+                    Affiliation.objects.values_list("name", flat=True)
+                )
+
+                # Filter out non-existent affiliations
+                original_count = len(affiliations)
+                valid_affiliations = [a for a in affiliations if a in valid_names]
+
+                # Update field if any were removed
+                if len(valid_affiliations) < original_count:
+                    removed_count = original_count - len(valid_affiliations)
+                    self.collaboration_with = "; ".join(valid_affiliations) if valid_affiliations else ""
+
+                    settings.LOGGER.info(
+                        f"Cleaned {removed_count} stale affiliation(s) from "
+                        f"ExternalProjectDetails (project: {self.project_id})"
+                    )
 
     def __str__(self) -> str:
         return f"{self.project} | {self.collaboration_with} "

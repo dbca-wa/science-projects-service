@@ -5044,14 +5044,18 @@ class UnifiedReportDocGeneration(APIView):
             # Helper function to get media URL
             def get_media_url(kind, default=""):
                 media = media_dict.get(kind)
-                return media.file.url if media else default
+                if media and hasattr(media, 'file') and media.file:
+                    if hasattr(media.file, 'url') and media.file.url:
+                        return media.file.url
+                return default
 
             # Helper function to get media file path (for Prince XML)
             def get_media_file_path(kind, default=""):
                 media = media_dict.get(kind)
-                if media and media.file:
-                    # Construct the full file path
-                    return os.path.join(base_dir, media.file.url.lstrip("/"))
+                if media and hasattr(media, 'file') and media.file:
+                    if hasattr(media.file, 'url') and media.file.url:
+                        # Construct the full file path
+                        return os.path.join(base_dir, media.file.url.lstrip("/"))
                 return default
 
             # Set up paths efficiently
@@ -5293,7 +5297,9 @@ class UnifiedReportDocGeneration(APIView):
             )
 
         except Exception as e:
+            import traceback
             settings.LOGGER.error(f"Error generating {genkind} report: {e}")
+            settings.LOGGER.error(f"Traceback: {traceback.format_exc()}")
             set_report_generation_status(report=report, is_generating=False)
             return Response({"error": True}, status=HTTP_400_BAD_REQUEST)
 

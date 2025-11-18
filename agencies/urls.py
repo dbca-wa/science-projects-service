@@ -22,6 +22,7 @@ urlpatterns = [
     path("affiliations", views.Affiliations.as_view()),
     path("affiliations/<int:pk>", views.AffiliationDetail.as_view()),
     path("affiliations/merge", views.AffiliationsMerge.as_view()),
+    path("affiliations/clean_orphaned", views.AffiliationsCleanOrphaned.as_view()),
     # Divisions URLS
     path("divisions", views.Divisions.as_view()),
     path("divisions/<int:pk>", views.DivisionDetail.as_view()),

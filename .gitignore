@@ -1,4 +1,6 @@
 *.lnk
+.docs/
+.vscode/
 
 publish-ghcr.yaml
 docker-compose.yml

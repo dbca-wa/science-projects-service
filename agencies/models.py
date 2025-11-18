@@ -11,7 +11,7 @@ from common.models import CommonModel
 class Affiliation(CommonModel):
     """Model Definition for Affiliation for external users (Previously defined on UserModel)"""
 
-    name = models.CharField(max_length=250)
+    name = models.CharField(max_length=250, unique=True)
 
     def __str__(self) -> str:
         return f"{self.name}"

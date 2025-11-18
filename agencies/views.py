@@ -154,9 +154,60 @@ class AffiliationDetail(APIView):
     def delete(self, req, pk):
         affiliation = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is deleting affiliation {affiliation}")
+        
+        from projects.models import ExternalProjectDetails, StudentProjectDetails
+        
+        # Find and clean external projects
+        external_projects = ExternalProjectDetails.objects.filter(
+            collaboration_with__icontains=affiliation.name
+        )
+        
+        external_count = 0
+        for ext in external_projects:
+            if ext.collaboration_with:
+                # Parse semicolon-delimited list
+                affiliations = [a.strip() for a in ext.collaboration_with.split('; ') if a.strip()]
+                # Remove the deleted affiliation
+                affiliations = [a for a in affiliations if a != affiliation.name]
+                # Rejoin with semicolons
+                ext.collaboration_with = '; '.join(affiliations) if affiliations else ''
+                ext.save()
+                external_count += 1
+        
+        # Find and clean student projects
+        student_projects = StudentProjectDetails.objects.filter(
+            organisation__icontains=affiliation.name
+        )
+        
+        student_count = 0
+        for student in student_projects:
+            if student.organisation:
+                # Parse semicolon-delimited list
+                affiliations = [a.strip() for a in student.organisation.split('; ') if a.strip()]
+                # Remove the deleted affiliation
+                affiliations = [a for a in affiliations if a != affiliation.name]
+                # Rejoin with semicolons
+                student.organisation = '; '.join(affiliations) if affiliations else ''
+                student.save()
+                student_count += 1
+        
+        project_count = external_count + student_count
+        
+        settings.LOGGER.info(
+            f"{req.user} deleted affiliation {affiliation.name}, "
+            f"cleaned from {project_count} project(s) "
+            f"({external_count} external, {student_count} student)"
+        )
+        
         affiliation.delete()
+        
         return Response(
-            status=HTTP_204_NO_CONTENT,
+            {
+                'message': f'Affiliation deleted and removed from {project_count} project(s)',
+                'external_projects_updated': external_count,
+                'student_projects_updated': student_count,
+            },
+            status=HTTP_200_OK,
         )
 
     def put(self, req, pk):
@@ -233,6 +284,87 @@ class AffiliationsMerge(APIView):
             {"message": "Merged!"},
             status=HTTP_202_ACCEPTED,
         )
+
+
+class AffiliationsCleanOrphaned(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, req):
+        """
+        Clean orphaned affiliations that have no links to any projects or users.
+        Returns count of deleted affiliations.
+        """
+        from projects.models import ExternalProjectDetails, StudentProjectDetails
+        
+        settings.LOGGER.info(f"{req.user} is cleaning orphaned affiliations")
+        
+        try:
+            all_affiliations = Affiliation.objects.all()
+            total_count = all_affiliations.count()
+            
+            orphaned_affiliations = []
+            
+            # Check each affiliation for references
+            for affiliation in all_affiliations:
+                # Check if referenced in external projects
+                external_refs = ExternalProjectDetails.objects.filter(
+                    collaboration_with__icontains=affiliation.name
+                ).count()
+                
+                # Check if referenced in student projects
+                student_refs = StudentProjectDetails.objects.filter(
+                    organisation__icontains=affiliation.name
+                ).count()
+                
+                # Check if referenced in user work
+                user_refs = UserWork.objects.filter(
+                    affiliation=affiliation.pk
+                ).count()
+                
+                # If no references found, mark as orphaned
+                if external_refs == 0 and student_refs == 0 and user_refs == 0:
+                    orphaned_affiliations.append(affiliation)
+            
+            orphaned_count = len(orphaned_affiliations)
+            
+            if orphaned_count == 0:
+                settings.LOGGER.info("No orphaned affiliations found")
+                return Response(
+                    {
+                        "message": "No orphaned affiliations found",
+                        "deleted_count": 0,
+                        "total_count": total_count
+                    },
+                    status=HTTP_200_OK,
+                )
+            
+            # Delete orphaned affiliations
+            deleted_names = [aff.name for aff in orphaned_affiliations]
+            for aff in orphaned_affiliations:
+                settings.LOGGER.info(f"Deleting orphaned affiliation: {aff.name} (pk={aff.pk})")
+                aff.delete()
+            
+            settings.LOGGER.info(
+                f"Cleaned {orphaned_count} orphaned affiliation(s): {', '.join(deleted_names[:10])}"
+                + (f" and {len(deleted_names) - 10} more..." if len(deleted_names) > 10 else "")
+            )
+            
+            return Response(
+                {
+                    "message": f"Cleaned {orphaned_count} orphaned affiliation(s)",
+                    "deleted_count": orphaned_count,
+                    "total_count": total_count,
+                    "deleted_names": deleted_names[:10]  # Return first 10 names
+                },
+                status=HTTP_200_OK,
+            )
+            
+        except Exception as e:
+            settings.LOGGER.error(f"Error during orphaned affiliation cleanup: {str(e)}")
+            return Response(
+                {"message": f"Error during cleanup: {str(e)}"},
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # endregion  =================================================================================================

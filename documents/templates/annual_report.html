@@ -826,7 +826,7 @@
                                         <div class="pr_data_rhs">
                                             <div class="pr_title_container">
                                                 <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                                    {{report.document.project.title | safe  }}
+                                                    {{report.document.project.title | extract_text_content | safe  }}
                                                 </h2>
                                                 <div class="track-page-number"></div>
                                             </div>
@@ -935,9 +935,9 @@
                                 <tbody class="table_body">
                                     {% for project in sorted_external_project_data %}
                                         <tr class="ext_table_tr">
-                                            <td class="ext_project_title_td ext_table_td">{{project.title | safe}}</td>
+                                            <td class="ext_project_title_td ext_table_td">{{project.title | extract_text_content | safe}}</td>
                                             <td class="partners_td ext_table_td">{% if project.partners %}
-                                                {{ project.partners }}
+                                                {{ project.partners | semicolon_to_comma }}
                                             {% else %}
                                                 <div class="no_data_table_placeholder">No partners set</div>
                                             {% endif %}</td>
@@ -992,7 +992,7 @@
                                     <tbody class="table_body student_table_body">
                                         {% for report in sorted_student_report_array %}
                                             <tr class="sr_table_tr">
-                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | safe }}</td>
+                                                <td class="student_project_title_td sr_table_td">{{report.document.project.title | extract_text_content | safe}}</td>
                                                 <td class="student_td sr_table_td">{% with students=report.team_members|filter_by_role:"student" %}{% for student in students %}{% if not forloop.first %}, {% endif %}{{ student.user.display_first_name }} {{ student.user.display_last_name }} ({{report.document.project.student_level|get_student_level_text}}){% endfor %}{% endwith %}</td>
                                                 <td class="duration_td sr_table_td">{{report.document.project.start_date|year_only}} - {{report.document.project.end_date|year_only}}</td>
                                                 {% comment %} Abbrev. and add organisation {% endcomment %}
@@ -1039,7 +1039,7 @@
                                     <div class="pr_data_rhs">
                                     <div class="pr_title_container">
                                         <h2 id="{{ report.document.project.title | safe | extract_text_content }}" class="subheading">
-                                            {{report.document.project.title | safe }}
+                                            {{report.document.project.title | extract_text_content | safe }}
                                         </h2>
                                         <div class="track-page-number"></div>
                                     </div>
@@ -1147,7 +1147,7 @@
                                     <tbody class="ba_table_body">
                                     {% for report in ba_item.progress_reports %}
                                         <tr class="ba_table_tr">
-                                            <td class="project_title_td ba_table_td">{{report.document.project.title | safe }}</td>
+                                            <td class="project_title_td ba_table_td">{{report.document.project.title | extract_text_content | safe}}</td>
                                            
                                             <td class="dbca_region_td ba_table_td">
                                                 {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"dbcaregion" %}
