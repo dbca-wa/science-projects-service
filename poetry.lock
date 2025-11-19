@@ -1083,14 +1083,14 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "sentry-sdk"
-version = "2.44.0"
+version = "2.45.0"
 description = "Python client for Sentry (https://sentry.io)"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "sentry_sdk-2.44.0-py2.py3-none-any.whl", hash = "sha256:9e36a0372b881e8f92fdbff4564764ce6cec4b7f25424d0a3a8d609c9e4651a7"},
-    {file = "sentry_sdk-2.44.0.tar.gz", hash = "sha256:5b1fe54dfafa332e900b07dd8f4dfe35753b64e78e7d9b1655a28fd3065e2493"},
+    {file = "sentry_sdk-2.45.0-py2.py3-none-any.whl", hash = "sha256:86c8ab05dc3e8666aece77a5c747b45b25aa1d5f35f06cde250608f495d50f23"},
+    {file = "sentry_sdk-2.45.0.tar.gz", hash = "sha256:e9bbfe69d5f6742f48bad22452beffb525bbc5b797d817c7f1b1f7d210cdd271"},
 ]
 
 [package.dependencies]
@@ -1129,6 +1129,7 @@ openai = ["openai (>=1.0.0)", "tiktoken (>=0.3.0)"]
 openfeature = ["openfeature-sdk (>=0.7.1)"]
 opentelemetry = ["opentelemetry-distro (>=0.35b0)"]
 opentelemetry-experimental = ["opentelemetry-distro"]
+opentelemetry-otlp = ["opentelemetry-distro[otlp] (>=0.35b0)"]
 pure-eval = ["asttokens", "executing", "pure_eval"]
 pydantic-ai = ["pydantic-ai (>=1.0.0)"]
 pymongo = ["pymongo (>=3.1)"]
@@ -1185,21 +1186,21 @@ doc = ["sphinx"]
 
 [[package]]
 name = "tinycss2"
-version = "1.4.0"
+version = "1.5.0"
 description = "A tiny CSS parser"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289"},
-    {file = "tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7"},
+    {file = "tinycss2-1.5.0-py3-none-any.whl", hash = "sha256:6645326e562ea497d6d11cfa608ce3ad30c1e96576b0e43d678dcf6275df6761"},
+    {file = "tinycss2-1.5.0.tar.gz", hash = "sha256:6a7be7a654f38a2a55b61d2d97b1f65a7eb40d1cb4057ac37145f675f16efdf9"},
 ]
 
 [package.dependencies]
 webencodings = ">=0.4"
 
 [package.extras]
-doc = ["sphinx", "sphinx_rtd_theme"]
+doc = ["furo", "sphinx"]
 test = ["pytest", "ruff"]
 
 [[package]]
