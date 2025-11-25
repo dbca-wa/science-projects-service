@@ -937,7 +937,7 @@
                                         <tr class="ext_table_tr">
                                             <td class="ext_project_title_td ext_table_td">{{project.title | extract_text_content | safe}}</td>
                                             <td class="partners_td ext_table_td">{% if project.partners %}
-                                                {{ project.partners | semicolon_to_comma }}
+                                                {{ project.partners }}
                                             {% else %}
                                                 <div class="no_data_table_placeholder">No partners set</div>
                                             {% endif %}</td>
