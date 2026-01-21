@@ -307,7 +307,7 @@ class Me(APIView):
 
 #         search_term = request.GET.get("searchTerm")
 #         only_internal = request.GET.get("onlyInternal")
-#         project_pk = request.GET.get("fromProject")
+#         project_id = request.GET.get("fromProject")
 
 #         # Comma separated string of pks
 #         ignore_string = request.GET.get("ignoreArray")
@@ -318,8 +318,8 @@ class Me(APIView):
 #             only_internal = False
 
 #         if only_internal == True:
-#             if project_pk:
-#                 project = Project.objects.get(pk=project_pk)
+#             if project_id:
+#                 project = Project.objects.get(pk=project_id)
 #                 users = User.objects.filter(member_of__project=project, is_staff=True)
 
 #             else:
@@ -385,7 +385,7 @@ class SmallInternalUserSearch(APIView):
 
         search_term = request.GET.get("searchTerm")
         only_internal = request.GET.get("onlyInternal")
-        project_pk = request.GET.get("fromProject")
+        project_id = request.GET.get("fromProject")
 
         # Comma separated string of pks
         ignore_string = request.GET.get("ignoreArray")
@@ -396,9 +396,9 @@ class SmallInternalUserSearch(APIView):
             only_internal = False
 
         if only_internal == True:
-            if project_pk:
+            if project_id:
                 try:
-                    project = Project.objects.get(pk=project_pk)
+                    project = Project.objects.get(pk=project_id)
 
                     # Get all user IDs that should be mentionable
                     user_ids = set()
@@ -501,7 +501,7 @@ class Users(APIView):
         search_term = request.GET.get("searchTerm", "").strip()
         business_area = request.GET.get("businessArea")
         only_internal = request.GET.get("onlyInternal", "False")
-        project_pk = request.GET.get("fromProject")
+        project_id = request.GET.get("fromProject")
         ignore_string = request.GET.get("ignoreArray", "")
 
         # Get the values of the checkboxes
@@ -524,9 +524,9 @@ class Users(APIView):
 
         # Build the base query
         if only_internal:
-            if project_pk:
+            if project_id:
                 try:
-                    project = Project.objects.get(pk=project_pk)
+                    project = Project.objects.get(pk=project_id)
                     users = User.objects.filter(
                         member_of__project=project, is_staff=True
                     )
@@ -1284,11 +1284,11 @@ class StaffProfileDetail(APIView):
             for tag_data in keyword_tags_data:
                 if isinstance(tag_data, dict):  # Ensure we're handling a dictionary
                     tag_name = tag_data.get("name")
-                    # tag_pk = tag_data.get("pk")
+                    # tag_id = tag_data.get("id")
 
-                    # if tag_pk:
-                    #     processed_tags.append({"pk": tag_pk, "name": tag_name})
-                    if tag_name:  # Create or get the tag by name if pk is not provided
+                    # if tag_id:
+                    #     processed_tags.append({"id": tag_id, "name": tag_name})
+                    if tag_name:  # Create or get the tag by name if ID is not provided
                         tag, created = KeywordTag.objects.get_or_create(name=tag_name)
                         processed_tags.append({"pk": tag.pk, "name": tag.name})
 
@@ -2050,9 +2050,9 @@ class StaffProfileProjects(APIView):
 
 
 class UserStaffEmploymentEntries(APIView):
-    def go(self, user_pk):
+    def go(self, user_id):
         try:
-            entries = EmploymentEntry.objects.filter(user=user_pk)
+            entries = EmploymentEntry.objects.filter(user=user_id)
         except EmploymentEntry.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -2061,15 +2061,15 @@ class UserStaffEmploymentEntries(APIView):
         return entries
 
     def get(self, req, pk):
-        users_employment = self.go(user_pk=pk)
+        users_employment = self.go(user_id=pk)
         ser = EmploymentEntrySerializer(users_employment, many=True)
         return Response(ser.data, status=HTTP_200_OK)
 
 
 class UserStaffEducationEntries(APIView):
-    def go(self, user_pk):
+    def go(self, user_id):
         try:
-            entries = EducationEntry.objects.filter(user=user_pk)
+            entries = EducationEntry.objects.filter(user=user_id)
         except EducationEntry.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -2078,7 +2078,7 @@ class UserStaffEducationEntries(APIView):
         return entries
 
     def get(self, req, pk):
-        users_employment = self.go(user_pk=pk)
+        users_employment = self.go(user_id=pk)
         ser = EducationEntrySerializer(users_employment, many=True)
         return Response(ser.data, status=HTTP_200_OK)
 

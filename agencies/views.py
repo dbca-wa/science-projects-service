@@ -925,15 +925,15 @@ class BusinessAreasUnapprovedDocs(APIView):
             for baPk in pksArray:
                 unapproved = self.get_unapproved_docs_for_ba(baPk)
                 processed_unapproved = []
-                seen_pks = set()
+                seen_ids = set()
                 unlinked_docs = []
                 for item in unapproved:
-                    if item.pk not in seen_pks:
+                    if item.pk not in seen_ids:
                         if item.has_project_document_data() == False:
                             unlinked_docs.append(item)
                         else:
                             processed_unapproved.append(item)
-                            seen_pks.add(item.pk)
+                            seen_ids.add(item.pk)
                 ser = ProjectDocumentSerializer(processed_unapproved, many=True)
                 ser2 = ProjectDocumentSerializer(unlinked_docs, many=True)
                 data[baPk] = {
