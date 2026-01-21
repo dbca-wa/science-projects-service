@@ -295,13 +295,13 @@ class ProjectArea(CommonModel):
 
     def save(self, *args, **kwargs):
         # Check for duplicate primary keys in the areas array
-        duplicate_area_pks = set(
+        duplicate_area_ids = set(
             [area for area in self.areas if self.areas.count(area) > 1]
         )
-        if duplicate_area_pks:
+        if duplicate_area_ids:
             raise ValidationError(
                 {
-                    "areas": f"Duplicate primary keys found in areas: {duplicate_area_pks}"
+                    "areas": f"Duplicate primary keys found in areas: {duplicate_area_ids}"
                 }
             )
         super().save(*args, **kwargs)

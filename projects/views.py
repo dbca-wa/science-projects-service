@@ -3380,9 +3380,9 @@ class RemedyOpenClosed(APIView):
 #     permission_classes = [IsAuthenticated]
 
 #     # Get the project itself
-#     def get_project(self, project_pk):
+#     def get_project(self, project_id):
 #         try:
-#             project = Project.objects.get(pk=project_pk)
+#             project = Project.objects.get(pk=project_id)
 #         except Project.DoesNotExist:
 #             raise NotFound
 #         except Exception as e:
@@ -3615,7 +3615,7 @@ class RemedyNoLeaderProjects(APIView):
                 msg=f"{req.user} is remedying leaderless projects\nArray: {leaderless_projects_pk_array}"
             )
             for proj in leaderless_projects_pk_array:
-                members = self.get_members(project_pk=proj)
+                members = self.get_members(project_id=proj)
                 # Adjust position of members
                 for mem in members:
                     if mem.is_leader == False:
@@ -3636,9 +3636,9 @@ class RemedyNoLeaderProjects(APIView):
 
 # Where there are multiple users with the leader tag
 class RemedyMultipleLeaderProjects(APIView):
-    def get_members(self, project_pk):
+    def get_members(self, project_id):
         try:
-            members = ProjectMember.objects.filter(project=project_pk)
+            members = ProjectMember.objects.filter(project=project_id)
         except ProjectMember.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -3654,7 +3654,7 @@ class RemedyMultipleLeaderProjects(APIView):
                 msg=f"{req.user} is remedying multiple lead projects\nArray: {multiple_leader_projects_pk_array}"
             )
             for proj in multiple_leader_projects_pk_array:
-                members = self.get_members(project_pk=proj)
+                members = self.get_members(project_id=proj)
                 lead_roles = members.filter(role="supervising")
                 # Adjust position of members
                 for mem in lead_roles:
@@ -3701,9 +3701,9 @@ class RemedyMultipleLeaderProjects(APIView):
 
 # Where an external leader is set with the is_leader tag
 class RemedyExternalLeaderProjects(APIView):
-    def get_members(self, project_pk):
+    def get_members(self, project_id):
         try:
-            members = ProjectMember.objects.filter(project=project_pk)
+            members = ProjectMember.objects.filter(project=project_id)
         except ProjectMember.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -3713,8 +3713,8 @@ class RemedyExternalLeaderProjects(APIView):
 
     # Check to see if the project has any documents, return the first one if it does
     # (concept, project, progress/student rep, closure)
-    def get_first_document_if_exists(self, project_pk):
-        documents_list = ProjectDocument.objects.filter(project=project_pk)
+    def get_first_document_if_exists(self, project_id):
+        documents_list = ProjectDocument.objects.filter(project=project_id)
         concept_plan = None
         project_plan = None
         progress_report = None
@@ -3766,7 +3766,7 @@ class RemedyExternalLeaderProjects(APIView):
             # Perform similar logic to memberless projects - searching creators of documents and setting them as leader if they are in the team
             for proj in externally_led_project_pk_array:
                 # Get members list
-                members = self.get_members(project_pk=proj)
+                members = self.get_members(project_id=proj)
                 # skup if no members
                 if not members:
                     continue
@@ -3774,7 +3774,7 @@ class RemedyExternalLeaderProjects(APIView):
                 # Extract users from the membership list
                 users_in_membership = [membership.user for membership in members]
                 # Check if a doc exists
-                first_doc = self.get_first_document_if_exists(project_pk=proj)
+                first_doc = self.get_first_document_if_exists(project_id=proj)
                 # If it does, add the creator of the first document and set them as the leader if they are on the team
                 if first_doc is not None:
                     creator = first_doc.creator

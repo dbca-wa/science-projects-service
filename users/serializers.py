@@ -442,7 +442,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source="contact.phone")
     fax = serializers.CharField(source="contact.fax")
     # Staff Profile
-    staff_profile_pk = serializers.PrimaryKeyRelatedField(
+    staff_profile_id = serializers.PrimaryKeyRelatedField(
         source="staff_profile", read_only=True
     )
     staff_profile_hidden = serializers.BooleanField(
@@ -494,7 +494,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "fax",
             "affiliation",
             "business_areas_led",
-            "staff_profile_pk",
+            "staff_profile_id",
             "staff_profile_hidden",
             "public_email",
             "public_email_on",
@@ -685,11 +685,10 @@ class KeywordTagSerializer(serializers.ModelSerializer):
         if isinstance(data, dict):
             tag_name = data.get("name")
             tag_id = data.get("id")
-            tag_pk = data.get("pk")  # Keep for backwards compatibility
 
-            if tag_id or tag_pk:
+            if tag_id:
                 try:
-                    tag = KeywordTag.objects.get(pk=tag_id or tag_pk)
+                    tag = KeywordTag.objects.get(pk=tag_id)
                 except KeywordTag.DoesNotExist:
                     raise serializers.ValidationError({"keyword_tags": "Invalid id"})
             elif tag_name:

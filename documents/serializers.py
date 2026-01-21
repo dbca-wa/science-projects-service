@@ -952,14 +952,14 @@ class OptimisedStudentReportAnnualReportSerializer(
             try:
                 from locations.models import Area
 
-                area_pks = (
+                area_ids = (
                     obj.project.area.areas if hasattr(obj.project.area, "areas") else []
                 )
                 areas = (
-                    Area.objects.filter(pk__in=area_pks).values(
+                    Area.objects.filter(pk__in=area_ids).values(
                         "pk", "name", "area_type"
                     )
-                    if area_pks
+                    if area_ids
                     else []
                 )
                 return {"data": {"areas": list(areas)}}
@@ -1042,12 +1042,12 @@ class OptimisedProgressReportAnnualReportSerializer(
             # Also fetch the actual area data for the template
             from locations.models import Area
 
-            area_pks = (
+            area_ids = (
                 obj.project.area.areas if hasattr(obj.project.area, "areas") else []
             )
             areas = (
-                Area.objects.filter(pk__in=area_pks).values("pk", "name", "area_type")
-                if area_pks
+                Area.objects.filter(pk__in=area_ids).values("pk", "name", "area_type")
+                if area_ids
                 else []
             )
             return {"data": {"areas": list(areas)}}
