@@ -8,11 +8,11 @@ urlpatterns = [
     path("reports/download", views.DownloadAnnualReport.as_view()),
     path("reports/latestyear", views.GetLatestReportYear.as_view()),
     path(
-        "reports/availableyears/<int:project_pk>/progressreport",
+        "reports/availableyears/<int:project_id>/progressreport",
         views.GetAvailableReportYearsForProgressReport.as_view(),
     ),
     path(
-        "reports/availableyears/<int:project_pk>/studentreport",
+        "reports/availableyears/<int:project_id>/studentreport",
         views.GetAvailableReportYearsForStudentReport.as_view(),
     ),
     path("reports/withoutPDF", views.GetWithoutPDFs.as_view()),

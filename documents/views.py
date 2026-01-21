@@ -120,9 +120,9 @@ from .serializers import (
 # endregion ==================================================
 
 
-def get_current_maintainer_pk():
+def get_current_maintainer_id():
     """
-    Retrieves the primary key of the current maintainer set in AdminOptions.
+    Retrieves the ID of the current maintainer set in AdminOptions.
     Returns None if no maintainer is set.
     """
     from adminoptions.models import AdminOptions
@@ -433,10 +433,10 @@ class GetAvailableReportYearsForStudentReport(APIView):
     # Returns a list of serialized reports with the following:
     # year, report id
     # Only returns the years in which a progress report doesn't already exist for a given project
-    def get(self, request, project_pk):
-        if project_pk:
+    def get(self, request, project_id):
+        if project_id:
             all_student_reports = StudentReport.objects.filter(
-                document__project_id=project_pk
+                document__project_id=project_id
             ).all()
             list_of_years_from_student_reports = list(
                 set([report.year for report in all_student_reports])
@@ -469,10 +469,10 @@ class GetAvailableReportYearsForProgressReport(APIView):
     # Returns a list of serialized reports with the following:
     # year, report id
     # Only returns the years in which a progress report doesn't already exist for a given project
-    def get(self, request, project_pk):
-        if project_pk:
+    def get(self, request, project_id):
+        if project_id:
             all_progress_reports = ProgressReport.objects.filter(
-                document__project_id=project_pk
+                document__project_id=project_id
             ).all()
             list_of_years_from_progress_reports = list(
                 set([report.year for report in all_progress_reports])
@@ -792,14 +792,14 @@ class ProjectDocuments(APIView):
             msg=f"{req.user} is Creating Project Document for project {req.data.get('project')}"
         )
         kind = req.data.get("kind")
-        project_pk = req.data.get("project")
+        project_id = req.data.get("project")
         project_kind = req.data.get("projectKind")
 
         data = {
             "old_id": 1,
             "kind": kind,
             "status": ProjectDocument.StatusChoices.NEW,
-            "project": project_pk,
+            "project": project_id,
             "creator": req.user.pk,
             "modifier": req.user.pk,
         }
@@ -2286,7 +2286,7 @@ class DocumentSpawner(APIView):
                     settings.LOGGER.error(msg=f"{e}")
                     return Response(e, HTTP_400_BAD_REQUEST)
                 else:
-                    doc_pk = project_document.pk
+                    doc_id = project_document.pk
                     if kind == "concept":
                         pass
                     elif kind == "projectplan":
@@ -2309,17 +2309,17 @@ class GetPreviousReportsData(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, req):
-        project_pk = req.data["project_pk"]
+        project_id = req.data["project_id"]
         doc_kind = req.data["writeable_document_kind"]
         section = req.data["section"]
 
         if doc_kind == "Progress Report":
             documents_of_type_from_project = ProgressReport.objects.filter(
-                project=project_pk
+                project=project_id
             ).order_by("-year")
         elif doc_kind == "Student Report":
             documents_of_type_from_project = StudentReport.objects.filter(
-                project=project_pk
+                project=project_id
             ).order_by("-year")
         else:
             return Response(status=HTTP_400_BAD_REQUEST)
@@ -2465,9 +2465,9 @@ class GetConceptPlanData(APIView):
             project_status = concept_plan_data.project.status
             business_area_name = concept_plan_data.project.business_area.name
 
-            def get_project_team(project_pk):
+            def get_project_team(project_id):
                 # Get the member objects
-                members = ProjectMember.objects.filter(project=project_pk).all()
+                members = ProjectMember.objects.filter(project=project_id).all()
 
                 # Separate leader and other members
                 leader = None
@@ -2498,9 +2498,9 @@ class GetConceptPlanData(APIView):
 
             project_team = get_project_team(concept_plan_data.project.pk)
 
-            def get_project_image(project_pk):
+            def get_project_image(project_id):
                 try:
-                    image = ProjectPhoto.objects.get(project=project_pk)
+                    image = ProjectPhoto.objects.get(project=project_id)
                 except ProjectPhoto.DoesNotExist:
                     return None
                 return image
@@ -2575,9 +2575,9 @@ class GetConceptPlanData(APIView):
                 concept_plan_data.budget
             )
             return {
-                "concept_plan_data_pk": concept_plan_data.pk,
-                "document_pk": concept_plan_data.document.pk,
-                "project_pk": concept_plan_data.project.pk,
+                "concept_plan_data_id": concept_plan_data.pk,
+                "document_id": concept_plan_data.document.pk,
+                "project_id": concept_plan_data.project.pk,
                 "document_tag": document_tag,
                 "project_title": project_title,
                 "project_status": project_status,
@@ -2847,7 +2847,7 @@ class UpdateProgressReport(APIView):
         return report
 
     def post(self, req):
-        report = self.go(pk=int(req.data["main_document_pk"]))
+        report = self.go(pk=int(req.data["main_document_id"]))
         section = req.data["section"]
         html_data = req.data["html"]
 
@@ -3052,7 +3052,7 @@ class UpdateStudentReport(APIView):
         return report
 
     def post(self, req):
-        report = self.go(pk=int(req.data["main_document_pk"]))
+        report = self.go(pk=int(req.data["main_document_id"]))
         ser = StudentReportSerializer(
             report,
             data={"progress_report": req.data["html"]},
@@ -3450,9 +3450,9 @@ class DownloadProjectDocument(APIView):
 class RepoenProject(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get_base_document(self, project_pk):
+    def get_base_document(self, project_id):
         obj = ProjectDocument.objects.filter(
-            project=project_pk, kind="projectclosure"
+            project=project_id, kind="projectclosure"
         ).first()
         if obj is None:
             return None
@@ -3463,7 +3463,7 @@ class RepoenProject(APIView):
             msg=f"{req.user} is reopening project belonging to doc ({pk})"
         )
 
-        maintainer_pk = get_current_maintainer_pk()
+        maintainer_id = get_current_maintainer_id()
 
         with transaction.atomic():
             try:
@@ -3562,7 +3562,7 @@ class RepoenProject(APIView):
                             else:
                                 # test
                                 print(f"TEST: Sending email to {recipient["name"]}")
-                                if recipient["pk"] == maintainer_pk:
+                                if recipient["pk"] == maintainer_id:
                                     email_subject = f"SPMS: {project_tag} Re-Opened"
                                     to_email = [recipient["email"]]
 
@@ -4188,7 +4188,7 @@ class NewCycleOpen(APIView):
 
         if should_email == True:
             print("SENDING CYCLE OPENED EMAILS")
-            maintainer_pk = get_current_maintainer_pk()
+            maintainer_id = get_current_maintainer_id()
             # Preset info
             from_email = settings.DEFAULT_FROM_EMAIL
             templ = "./email_templates/new_cycle_open_email.html"
@@ -4260,7 +4260,7 @@ class NewCycleOpen(APIView):
                     else:
                         # test
                         print(f"TEST: Sending email to {recipient["name"]}")
-                        if recipient["pk"] == maintainer_pk:
+                        if recipient["pk"] == maintainer_id:
                             email_subject = f"SPMS: New Reporting Cycle Open"
                             to_email = [recipient["email"]]
 
@@ -4405,8 +4405,8 @@ class NewCycleOpen(APIView):
 
 #                 else:
 #                     # In test environment, only send to maintainer
-#                     maintainer_pk = get_current_maintainer_pk()
-#                     if user_to_action.pk == maintainer_pk:
+#                     maintainer_id = get_current_maintainer_id()
+#                     if user_to_action.pk == maintainer_id:
 #                         settings.LOGGER.info(
 #                             f"TEST: Sending bump email to {user_to_action.email}"
 #                         )
@@ -4587,8 +4587,8 @@ class SendBumpEmails(APIView):
 
                 else:
                     # In test environment, only send to maintainer
-                    maintainer_pk = get_current_maintainer_pk()
-                    if user_to_action.pk == maintainer_pk:
+                    maintainer_id = get_current_maintainer_id()
+                    if user_to_action.pk == maintainer_id:
                         settings.LOGGER.info(
                             f"TEST: Sending bump email to {user_to_action.email}"
                         )
@@ -4927,22 +4927,22 @@ class UnifiedReportDocGeneration(APIView):
             ba = project["business_area"]
 
             if ba:  # Check if ba exists
-                ba_pk = ba["pk"]
+                ba_id = ba["pk"]
 
                 # Add to BA dictionary
-                if ba_pk not in ba_dict:
-                    ba_dict[ba_pk] = ba
+                if ba_id not in ba_dict:
+                    ba_dict[ba_id] = ba
 
                 # Group progress reports by BA
-                progress_reports_by_ba[ba_pk].append(pr)
+                progress_reports_by_ba[ba_id].append(pr)
 
         # Get user names in batch (only for leaders we actually need)
-        user_pks = [ba["leader"] for ba in ba_dict.values() if ba and ba.get("leader")]
+        user_ids = [ba["leader"] for ba in ba_dict.values() if ba and ba.get("leader")]
         users_dict = {}
-        if user_pks:
+        if user_ids:
             users_dict = {
                 user.pk: f"{user.display_first_name} {user.display_last_name}"
-                for user in User.objects.filter(pk__in=user_pks).only(
+                for user in User.objects.filter(pk__in=user_ids).only(
                     "pk", "display_first_name", "display_last_name"
                 )
             }
@@ -4960,8 +4960,8 @@ class UnifiedReportDocGeneration(APIView):
 
         # Build sorted BA data efficiently
         sorted_ba_data = []
-        for ba_pk, ba in ba_dict.items():
-            progress_reports = progress_reports_by_ba[ba_pk]
+        for ba_id, ba in ba_dict.items():
+            progress_reports = progress_reports_by_ba[ba_id]
 
             # Sort progress reports efficiently
             sorted_progress_reports = sorted(
@@ -5443,9 +5443,9 @@ class BeginProjectDocGeneration(APIView):
             # Return the modified HTML as a string
             return str(soup)
 
-        def get_project_team(project_pk):
+        def get_project_team(project_id):
             # Get the member objects
-            members = ProjectMember.objects.filter(project=project_pk).all()
+            members = ProjectMember.objects.filter(project=project_id).all()
 
             # Separate leader and other members
             leader = None
@@ -5474,17 +5474,17 @@ class BeginProjectDocGeneration(APIView):
 
             return team_name_array
 
-        def get_project_image(project_pk):
+        def get_project_image(project_id):
             try:
-                image = ProjectPhoto.objects.get(project=project_pk)
+                image = ProjectPhoto.objects.get(project=project_id)
             except ProjectPhoto.DoesNotExist:
                 return None
             return image
 
-        def get_methodology_image(project_pk):
+        def get_methodology_image(project_id):
             try:
                 image = ProjectPlanMethodologyPhoto.objects.get(
-                    project_plan__project=project_pk
+                    project_plan__project=project_id
                 )
             except ProjectPlanMethodologyPhoto.DoesNotExist:
                 return None
@@ -5779,18 +5779,18 @@ class BeginProjectDocGeneration(APIView):
             staff_time_allocation = concept_plan_data.staff_time_allocation
             indicative_operating_budget = concept_plan_data.budget
 
-            data_document_pk = concept_plan_data.pk
-            main_document_pk = concept_plan_data.document.pk
-            project_pk = concept_plan_data.project.pk
+            data_document_id = concept_plan_data.pk
+            main_document_id = concept_plan_data.document.pk
+            project_id = concept_plan_data.project.pk
 
             return {
                 "project_kind": project_kind,
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
                 "doc_kind_url": doc_kind_url,
-                "document_data_pk": data_document_pk,
-                "document_pk": main_document_pk,
-                "project_pk": project_pk,
+                "document_data_id": data_document_id,
+                "document_id": main_document_id,
+                "project_id": project_id,
                 "document_tag": document_tag,
                 "project_title": project_title,
                 "project_status": project_status,
@@ -5886,9 +5886,9 @@ class BeginProjectDocGeneration(APIView):
             specimens = endorsements.no_specimens
             data_management = endorsements.data_management
 
-            data_document_pk = project_plan_data.pk
-            main_document_pk = project_plan_data.document.pk
-            project_pk = project_plan_data.project.pk
+            data_document_id = project_plan_data.pk
+            main_document_id = project_plan_data.document.pk
+            project_id = project_plan_data.project.pk
 
             return {
                 "departmental_service_name": departmental_service_name,
@@ -5896,9 +5896,9 @@ class BeginProjectDocGeneration(APIView):
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
                 "doc_kind_url": doc_kind_url,
-                "document_data_pk": data_document_pk,
-                "document_pk": main_document_pk,
-                "project_pk": project_pk,
+                "document_data_id": data_document_id,
+                "document_id": main_document_id,
+                "project_id": project_id,
                 "document_tag": document_tag,
                 "project_title": project_title,
                 "project_status": project_status,
@@ -5974,11 +5974,11 @@ class BeginProjectDocGeneration(APIView):
             implications = progress_report_data.implications
             future = progress_report_data.future
 
-            data_document_pk = progress_report_data.pk
-            main_document_pk = progress_report_data.document.pk
-            project_pk = progress_report_data.project.pk
+            data_document_id = progress_report_data.pk
+            main_document_id = progress_report_data.document.pk
+            project_id = progress_report_data.project.pk
 
-            service = get_associated_service(pk=project_pk)
+            service = get_associated_service(pk=project_id)
             if service:
                 departmental_service_name = service.name
             else:
@@ -5990,10 +5990,10 @@ class BeginProjectDocGeneration(APIView):
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
                 "doc_kind_url": doc_kind_url,
-                "document_data_pk": data_document_pk,
-                "document_pk": main_document_pk,
+                "document_data_id": data_document_id,
+                "document_id": main_document_id,
                 "financial_year_string": financial_year_string,
-                "project_pk": project_pk,
+                "project_id": project_id,
                 "document_tag": document_tag,
                 "project_title": project_title,
                 "project_status": project_status,
@@ -6066,9 +6066,9 @@ class BeginProjectDocGeneration(APIView):
 
             progress_report = student_report_data.progress_report
 
-            data_document_pk = student_report_data.pk
-            main_document_pk = student_report_data.document.pk
-            project_pk = student_report_data.project.pk
+            data_document_id = student_report_data.pk
+            main_document_id = student_report_data.document.pk
+            project_id = student_report_data.project.pk
 
             return {
                 "departmental_service_name": departmental_service_name,
@@ -6076,10 +6076,10 @@ class BeginProjectDocGeneration(APIView):
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
                 "doc_kind_url": doc_kind_url,
-                "document_data_pk": data_document_pk,
-                "document_pk": main_document_pk,
+                "document_data_id": data_document_id,
+                "document_id": main_document_id,
                 "financial_year_string": financial_year_string,
-                "project_pk": project_pk,
+                "project_id": project_id,
                 "document_tag": document_tag,
                 "project_title": project_title,
                 "project_status": project_status,
@@ -6143,11 +6143,11 @@ class BeginProjectDocGeneration(APIView):
             scientific_outputs = project_closure_data.scientific_outputs
             intended_outcome = project_closure_data.intended_outcome
 
-            data_document_pk = project_closure_data.pk
-            main_document_pk = project_closure_data.document.pk
-            project_pk = project_closure_data.project.pk
+            data_document_id = project_closure_data.pk
+            main_document_id = project_closure_data.document.pk
+            project_id = project_closure_data.project.pk
 
-            service = get_associated_service(pk=project_pk)
+            service = get_associated_service(pk=project_id)
             if service:
                 departmental_service_name = service.name
             else:
@@ -6159,9 +6159,9 @@ class BeginProjectDocGeneration(APIView):
                 "document_kind_url": doc_kind_url,
                 "document_kind_string": doc_kind_str,
                 "doc_kind_url": doc_kind_url,
-                "document_data_pk": data_document_pk,
-                "document_pk": main_document_pk,
-                "project_pk": project_pk,
+                "document_data_id": data_document_id,
+                "document_id": main_document_id,
+                "project_id": project_id,
                 "document_tag": document_tag,
                 "project_title": project_title,
                 "project_status": project_status,
@@ -6274,7 +6274,7 @@ class BeginProjectDocGeneration(APIView):
                     "document_kind_url": doc_data["document_kind_url"],
                     "document_kind_string": doc_data["document_kind_string"],
                     "project_kind": doc_data["project_kind"],
-                    "project_id": doc_data["project_pk"],
+                    "project_id": doc_data["project_id"],
                     "html_data_items": {
                         "background": {
                             "title": "Background",
@@ -6354,7 +6354,7 @@ class BeginProjectDocGeneration(APIView):
                     "document_kind_url": doc_data["document_kind_url"],
                     "document_kind_string": doc_data["document_kind_string"],
                     "project_kind": doc_data["project_kind"],
-                    "project_id": doc_data["project_pk"],
+                    "project_id": doc_data["project_id"],
                     "methodology_image": doc_data["methodology_image"],
                     "html_data_items": {
                         "background": {
@@ -6459,7 +6459,7 @@ class BeginProjectDocGeneration(APIView):
                     "document_kind_url": doc_data["document_kind_url"],
                     "document_kind_string": doc_data["document_kind_string"],
                     "project_kind": doc_data["project_kind"],
-                    "project_id": doc_data["project_pk"],
+                    "project_id": doc_data["project_id"],
                     "html_data_items": {
                         "context": {
                             "title": "Context",
@@ -6527,7 +6527,7 @@ class BeginProjectDocGeneration(APIView):
                     "document_kind_url": doc_data["document_kind_url"],
                     "document_kind_string": doc_data["document_kind_string"],
                     "project_kind": doc_data["project_kind"],
-                    "project_id": doc_data["project_pk"],
+                    "project_id": doc_data["project_id"],
                     "html_data_items": {
                         "progress_report": {
                             "title": "Progress Report",
@@ -6578,7 +6578,7 @@ class BeginProjectDocGeneration(APIView):
                     "document_kind_url": doc_data["document_kind_url"],
                     "document_kind_string": doc_data["document_kind_string"],
                     "project_kind": doc_data["project_kind"],
-                    "project_id": doc_data["project_pk"],
+                    "project_id": doc_data["project_id"],
                     "html_data_items": {
                         "reason": {
                             "title": "Reason",
@@ -6663,10 +6663,10 @@ class BeginProjectDocGeneration(APIView):
                 "projectclosure": "Project Closure",
             }
             if document_type == "progressreport" or document_type == "studentreport":
-                pdf_filename = f'{doc_data["project_pk"]}_{document_kind_dict[document_type]} ({doc_data["financial_year_string"]}).pdf'
+                pdf_filename = f'{doc_data["project_id"]}_{document_kind_dict[document_type]} ({doc_data["financial_year_string"]}).pdf'
             else:
                 pdf_filename = (
-                    f'{doc_data["project_pk"]}_{document_kind_dict[document_type]}.pdf'
+                    f'{doc_data["project_id"]}_{document_kind_dict[document_type]}.pdf'
                 )
             file_content = ContentFile(pdf, name=pdf_filename)
 
@@ -7105,8 +7105,8 @@ class SendMentionNotification(APIView):
                 processed_users.add(user_id)
 
                 # Skip if not in production and not specific test user
-                maintainer_pk = get_current_maintainer_pk()
-                if (settings.ENVIRONMENT != "production") and user_id != maintainer_pk:
+                maintainer_id = get_current_maintainer_id()
+                if (settings.ENVIRONMENT != "production") and user_id != maintainer_id:
                     print(f"TEST: Skipping mention notification to {user_name}")
                     continue
 
@@ -7179,15 +7179,15 @@ class BaseDocumentAction(APIView):
         settings.LOGGER.info("DOC ACTION: Validating req data")
 
         stage = req.data.get("stage")
-        document_pk = req.data.get("documentPk")
-        if not stage or not document_pk:
+        document_id = req.data.get("documentPk")
+        if not stage or not document_id:
             settings.LOGGER.info(
                 f"{req.user} failed in doc action: no stage/document pk"
             )
             return None, None
 
         stage = int(stage) if stage else None
-        return stage, document_pk
+        return stage, document_id
 
     # Document and Project Update Methods
     def update_document(self, document, data, user):
@@ -7449,12 +7449,12 @@ class BaseDocumentAction(APIView):
         </table>
         """
 
-    def get_default_project_plan_data(self, project_pk, document_pk):
+    def get_default_project_plan_data(self, project_id, document_id):
         """Return default data for a new project plan"""
         settings.LOGGER.info("DOC ACTION: Getting default project plan data")
         return {
-            "document": document_pk,
-            "project": project_pk,
+            "document": document_id,
+            "project": project_id,
             "background": "<p></p>",
             "methodology": "<p></p>",
             "aims": "<p></p>",
@@ -7603,12 +7603,12 @@ class BaseDocumentAction(APIView):
                 )
 
         # Deduplication step
-        seen_pks = set()
+        seen_ids = set()
         deduplicated_list = []
 
         for recipient in recipients_list:
-            if recipient["pk"] not in seen_pks:
-                seen_pks.add(recipient["pk"])
+            if recipient["pk"] not in seen_ids:
+                seen_ids.add(recipient["pk"])
                 deduplicated_list.append(recipient)
 
         # Return deduplicated list
@@ -7671,7 +7671,7 @@ class BaseDocumentAction(APIView):
         if not recipients_list:
             return "No recipients found", HTTP_202_ACCEPTED
 
-        maintainer_pk = get_current_maintainer_pk()
+        maintainer_id = get_current_maintainer_id()
 
         project = document.project
         template_path, email_subject = self.get_email_template_and_subject(
@@ -7702,11 +7702,11 @@ class BaseDocumentAction(APIView):
             processed.append(recipient["pk"])
 
             # Skip if not in production and not specific test user (maintainer - adjust)
-            # TODO: Adjust to user set as maintainer isntead of hardcode
+            # TODO: Adjust to user set as maintainer instead of hardcode
             if (
                 settings.ENVIRONMENT == "staging"
                 or settings.ENVIRONMENT == "development"
-            ) and recipient["pk"] != maintainer_pk:
+            ) and recipient["pk"] != maintainer_id:
                 print(f"TEST: Skipping email to {recipient['name']}")
                 continue
 
@@ -7757,7 +7757,7 @@ class BaseDocumentAction(APIView):
 
 
 class DocApproval(BaseDocumentAction):
-    def get_approval_data(self, stage, user_pk):
+    def get_approval_data(self, stage, user_id):
         """Return appropriate data dict based on approval stage"""
         settings.LOGGER.info("DOC ACTION: Getting approval data")
         stage = int(stage)
@@ -7765,19 +7765,19 @@ class DocApproval(BaseDocumentAction):
         if stage == 1:
             return {
                 "project_lead_approval_granted": True,
-                "modifier": user_pk,
+                "modifier": user_id,
                 "status": "inapproval",
             }
         elif stage == 2:
             return {
                 "business_area_lead_approval_granted": True,
-                "modifier": user_pk,
+                "modifier": user_id,
                 "status": "inapproval",
             }
         elif stage == 3:
             return {
                 "directorate_approval_granted": True,
-                "modifier": user_pk,
+                "modifier": user_id,
                 "status": "approved",
             }
         else:
@@ -7786,10 +7786,10 @@ class DocApproval(BaseDocumentAction):
 
     def create_project_plan_if_needed(self, concept_document, user):
         """Create a project plan if one doesn't already exist"""
-        project_pk = concept_document.project.pk
+        project_id = concept_document.project.pk
 
         # Check if project plan already exists
-        if ProjectPlan.objects.filter(project=project_pk).exists():
+        if ProjectPlan.objects.filter(project=project_id).exists():
             return True
 
         # Create new project plan document
@@ -7799,7 +7799,7 @@ class DocApproval(BaseDocumentAction):
                     "old_id": 1,
                     "kind": "projectplan",
                     "status": "new",
-                    "project": project_pk,
+                    "project": project_id,
                     "creator": user.pk,
                     "modifier": user.pk,
                 }
@@ -7817,7 +7817,7 @@ class DocApproval(BaseDocumentAction):
 
                 # Create project plan with default content
                 plan_data = self.get_default_project_plan_data(
-                    project_pk, projplanmaindoc.pk
+                    project_id, projplanmaindoc.pk
                 )
                 project_plan_serializer = ProjectPlanCreateSerializer(data=plan_data)
 
@@ -7861,11 +7861,11 @@ class DocApproval(BaseDocumentAction):
         """Handle document approval"""
         try:
             # Validate basic parameters
-            stage, document_pk = self.validate_request_data(req)
-            if not stage or not document_pk:
+            stage, document_id = self.validate_request_data(req)
+            if not stage or not document_id:
                 return Response(status=HTTP_400_BAD_REQUEST)
 
-            document = self.get_document(pk=document_pk)
+            document = self.get_document(pk=document_id)
             settings.LOGGER.info(f"{req.user} is approving {document}")
 
             # Get approval data based on stage
@@ -7924,7 +7924,7 @@ class DocApproval(BaseDocumentAction):
 
 
 class DocRecall(BaseDocumentAction):
-    def get_recall_data(self, stage, user_pk, document):
+    def get_recall_data(self, stage, user_id, document):
         """Return appropriate data dict based on recall stage"""
         settings.LOGGER.info("DOC ACTION: Getting recall data")
         stage = int(stage)
@@ -7933,20 +7933,20 @@ class DocRecall(BaseDocumentAction):
             if document.business_area_lead_approval_granted == False:
                 return {
                     "project_lead_approval_granted": False,
-                    "modifier": user_pk,
+                    "modifier": user_id,
                     "status": "revising",
                 }
         elif stage == 2:
             if document.directorate_approval_granted == False:
                 return {
                     "business_area_lead_approval_granted": False,
-                    "modifier": user_pk,
+                    "modifier": user_id,
                     "status": "inapproval",
                 }
         elif stage == 3:
             return {
                 "directorate_approval_granted": False,
-                "modifier": user_pk,
+                "modifier": user_id,
                 "status": "inapproval",
             }
 
@@ -7956,11 +7956,11 @@ class DocRecall(BaseDocumentAction):
         """Handle document recall"""
         try:
             # Validate basic parameters
-            stage, document_pk = self.validate_request_data(req)
-            if not stage or not document_pk:
+            stage, document_id = self.validate_request_data(req)
+            if not stage or not document_id:
                 return Response(status=HTTP_400_BAD_REQUEST)
 
-            document = self.get_document(pk=document_pk)
+            document = self.get_document(pk=document_id)
             settings.LOGGER.info(f"{req.user} is recalling {document}")
 
             # Get recall data based on stage
@@ -8026,7 +8026,7 @@ class DocRecall(BaseDocumentAction):
 
 
 class DocSendBack(BaseDocumentAction):
-    def get_send_back_data(self, stage, user_pk):
+    def get_send_back_data(self, stage, user_id):
         """Return appropriate data dict based on send back stage"""
         settings.LOGGER.info("DOC ACTION: Getting send back data")
         stage = int(stage)
@@ -8035,14 +8035,14 @@ class DocSendBack(BaseDocumentAction):
             return {
                 "business_area_lead_approval_granted": False,
                 "project_lead_approval_granted": False,
-                "modifier": user_pk,
+                "modifier": user_id,
                 "status": "revising",
             }
         elif stage == 3:
             return {
                 "business_area_lead_approval_granted": False,
                 "directorate_approval_granted": False,
-                "modifier": user_pk,
+                "modifier": user_id,
                 "status": "revising",
             }
 
@@ -8052,11 +8052,11 @@ class DocSendBack(BaseDocumentAction):
         """Handle document send back"""
         try:
             # Validate basic parameters
-            stage, document_pk = self.validate_request_data(req)
-            if not stage or not document_pk:
+            stage, document_id = self.validate_request_data(req)
+            if not stage or not document_id:
                 return Response(status=HTTP_400_BAD_REQUEST)
 
-            document = self.get_document(pk=document_pk)
+            document = self.get_document(pk=document_id)
             settings.LOGGER.info(f"{req.user} is sending back {document}")
 
             # Get send back data based on stage
@@ -8109,12 +8109,12 @@ class DocReopenProject(BaseDocumentAction):
         """Handle project reopening by deleting closure document"""
         try:
             # Validate basic parameters
-            stage, document_pk = self.validate_request_data(req)
-            if not stage or not document_pk:
+            stage, document_id = self.validate_request_data(req)
+            if not stage or not document_id:
                 settings.LOGGER.error("Error reopening - no stage/doc pk")
                 return Response(status=HTTP_400_BAD_REQUEST)
 
-            document = self.get_document(pk=document_pk)
+            document = self.get_document(pk=document_id)
             settings.LOGGER.info(
                 f"{req.user} is reopening project by deleting closure for {document.project}"
             )
@@ -8404,7 +8404,7 @@ class NewCycleOpenEmail(APIView):
             msg=f"{req.user} is attempting to send an email (New Cycle Open) to Project Leads for active projects and all Business Area Leaders"
         )
 
-        maintainer_pk = get_current_maintainer_pk()
+        maintainer_id = get_current_maintainer_id()
 
         # Preset info
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -8442,8 +8442,8 @@ class NewCycleOpenEmail(APIView):
 
         recipients_list = []
 
-        for recipient_pk in recipients_list_data:
-            user = User.objects.get(pk=recipient_pk)
+        for recipient_id in recipients_list_data:
+            user = User.objects.get(pk=recipient_id)
             user_name = f"{user.display_first_name} {user.display_last_name}"
             user_email = f"{user.email}"
             data_obj = {"pk": user.pk, "name": user_name, "email": user_email}
@@ -8491,7 +8491,7 @@ class NewCycleOpenEmail(APIView):
                 else:
                     # test
                     print(f"TEST: Sending email to {recipient["name"]}")
-                    if recipient["pk"] == maintainer_pk:
+                    if recipient["pk"] == maintainer_id:
                         email_subject = (
                             f"SPMS: {financial_year_string} Reporting Cycle Open"
                         )

@@ -222,7 +222,7 @@ class Projects(APIView):
         # Get the values of the checkboxes
         only_active = bool(request.GET.get("only_active", False))
         only_inactive = bool(request.GET.get("only_inactive", False))
-        ba_pk = request.GET.get("businessarea", "All")
+        ba_id = request.GET.get("businessarea", "All")
 
         selected_user = request.GET.get("selected_user", None)
 
@@ -258,8 +258,8 @@ class Projects(APIView):
         if selected_user:
             projects = projects.filter(members__user__pk=selected_user)
 
-        if ba_pk != "All":
-            projects = projects.filter(business_area__pk=ba_pk)
+        if ba_id != "All":
+            projects = projects.filter(business_area__pk=ba_id)
 
         status_slug = request.GET.get("projectstatus", "All")
         if status_slug != "All":
@@ -1931,16 +1931,16 @@ class ToggleUserProfileVisibilityForProject(APIView):
     def post(self, req, pk):
         proj = self.go(pk)
         print(req.data)
-        userPk = req.data.get("user_pk")
+        userId = req.data.get("user_id")
         settings.LOGGER.info(
-            msg=f"{req.user} is toggling ({userPk}) user profile visibility for project: {proj}"
+            msg=f"{req.user} is toggling ({userId}) user profile visibility for project: {proj}"
         )
         try:
-            # Access the array hidden_from_staff_profiles and if the user's pk is in it, remove it, otherwise add it
-            if userPk in proj.hidden_from_staff_profiles:
-                proj.hidden_from_staff_profiles.remove(userPk)
+            # Access the array hidden_from_staff_profiles and if the user's ID is in it, remove it, otherwise add it
+            if userId in proj.hidden_from_staff_profiles:
+                proj.hidden_from_staff_profiles.remove(userId)
             else:
-                proj.hidden_from_staff_profiles.append(userPk)
+                proj.hidden_from_staff_profiles.append(userId)
             proj.save()
             return Response(
                 TinyProjectSerializer(proj).data,
@@ -3200,9 +3200,9 @@ class RemedyOpenClosed(APIView):
     permission_classes = [IsAuthenticated]
 
     # Get the project itself
-    def get_project(self, project_pk):
+    def get_project(self, project_id):
         try:
-            project = Project.objects.get(pk=project_pk)
+            project = Project.objects.get(pk=project_id)
         except Project.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -3268,20 +3268,20 @@ class RemedyOpenClosed(APIView):
             should_update_closures = target_status in ["completed", "terminated"]
 
             # Process each requested project
-            for proj_pk in open_closed_projects:
+            for proj_id in open_closed_projects:
                 try:
                     # Check if project exists
-                    if proj_pk not in projects_dict:
+                    if proj_id not in projects_dict:
                         failed_projects.append(
-                            {"project_id": proj_pk, "error": "Project not found"}
+                            {"project_id": proj_id, "error": "Project not found"}
                         )
                         continue
 
-                    project = projects_dict[proj_pk]
+                    project = projects_dict[proj_id]
 
                     # Check if project has approved closure documents
-                    if proj_pk in closure_docs_by_project:
-                        closure_docs = closure_docs_by_project[proj_pk]
+                    if proj_id in closure_docs_by_project:
+                        closure_docs = closure_docs_by_project[proj_id]
                         closure_count = len(closure_docs)
                         action_taken = ""
 
@@ -3329,7 +3329,7 @@ class RemedyOpenClosed(APIView):
 
                         remedied_projects.append(
                             {
-                                "project_id": proj_pk,
+                                "project_id": proj_id,
                                 "project_title": project.title,
                                 "closure_action": action_taken,
                                 "previous_status": previous_status,
@@ -3338,20 +3338,20 @@ class RemedyOpenClosed(APIView):
                         )
 
                         settings.LOGGER.info(
-                            msg=f"Remedied project {proj_pk}: {action_taken}, changed status from {previous_status} to {project.status}"
+                            msg=f"Remedied project {proj_id}: {action_taken}, changed status from {previous_status} to {project.status}"
                         )
                     else:
                         failed_projects.append(
                             {
-                                "project_id": proj_pk,
+                                "project_id": proj_id,
                                 "error": "No approved closure documents found",
                             }
                         )
 
                 except Exception as e:
-                    failed_projects.append({"project_id": proj_pk, "error": str(e)})
+                    failed_projects.append({"project_id": proj_id, "error": str(e)})
                     settings.LOGGER.error(
-                        msg=f"Failed to remedy project {proj_pk}: {e}"
+                        msg=f"Failed to remedy project {proj_id}: {e}"
                     )
 
             response_data = {
@@ -3432,20 +3432,20 @@ class RemedyOpenClosed(APIView):
 #             failed_projects = []
 
 #             # Process each requested project
-#             for proj_pk in open_closed_projects:
+#             for proj_id in open_closed_projects:
 #                 try:
 #                     # Check if project exists
-#                     if proj_pk not in projects_dict:
+#                     if proj_id not in projects_dict:
 #                         failed_projects.append(
-#                             {"project_id": proj_pk, "error": "Project not found"}
+#                             {"project_id": proj_id, "error": "Project not found"}
 #                         )
 #                         continue
 
-#                     project = projects_dict[proj_pk]
+#                     project = projects_dict[proj_id]
 
 #                     # Check if project has approved closure documents
-#                     if proj_pk in closure_docs_by_project:
-#                         closure_docs = closure_docs_by_project[proj_pk]
+#                     if proj_id in closure_docs_by_project:
+#                         closure_docs = closure_docs_by_project[proj_id]
 #                         deleted_count = len(closure_docs)
 
 #                         # Delete the closure documents (bulk delete for efficiency)
@@ -3454,7 +3454,7 @@ class RemedyOpenClosed(APIView):
 
 #                         remedied_projects.append(
 #                             {
-#                                 "project_id": proj_pk,
+#                                 "project_id": proj_id,
 #                                 "project_title": project.title,
 #                                 "deleted_closure_docs": deleted_count,
 #                             }
@@ -3465,20 +3465,20 @@ class RemedyOpenClosed(APIView):
 #                             project.save()
 
 #                         settings.LOGGER.info(
-#                             msg=f"Remedied project {proj_pk}: deleted {deleted_count} approved closure document(s)"
+#                             msg=f"Remedied project {proj_id}: deleted {deleted_count} approved closure document(s)"
 #                         )
 #                     else:
 #                         failed_projects.append(
 #                             {
-#                                 "project_id": proj_pk,
+#                                 "project_id": proj_id,
 #                                 "error": "No approved closure documents found",
 #                             }
 #                         )
 
 #                 except Exception as e:
-#                     failed_projects.append({"project_id": proj_pk, "error": str(e)})
+#                     failed_projects.append({"project_id": proj_id, "error": str(e)})
 #                     settings.LOGGER.error(
-#                         msg=f"Failed to remedy project {proj_pk}: {e}"
+#                         msg=f"Failed to remedy project {proj_id}: {e}"
 #                     )
 
 #             response_data = {
@@ -3505,9 +3505,9 @@ class RemedyMemberlessProjects(APIView):
     permission_classes = [IsAuthenticated]
 
     # Get the project itself
-    def get_project(self, project_pk):
+    def get_project(self, project_id):
         try:
-            project = Project.objects.get(pk=project_pk)
+            project = Project.objects.get(pk=project_id)
         except Project.DoesNotExist:
             raise NotFound
         except Exception as e:
@@ -3517,8 +3517,8 @@ class RemedyMemberlessProjects(APIView):
 
     # Check to see if the project has any documents, return the first one if it does
     # (concept, project, progress/student rep, closure)
-    def get_first_document_if_exists(self, project_pk):
-        documents_list = ProjectDocument.objects.filter(project=project_pk)
+    def get_first_document_if_exists(self, project_id):
+        documents_list = ProjectDocument.objects.filter(project=project_id)
         concept_plan = None
         project_plan = None
         progress_report = None
@@ -3562,19 +3562,19 @@ class RemedyMemberlessProjects(APIView):
 
     def post(self, req):
         try:
-            # get the array of pks
-            memberless_projects_pk_array = req.data.get("projects")
+            # get the array of IDs
+            memberless_projects_id_array = req.data.get("projects")
             settings.LOGGER.warning(
-                msg=f"{req.user} is remedying memberless projects\nArray: {memberless_projects_pk_array}"
+                msg=f"{req.user} is remedying memberless projects\nArray: {memberless_projects_id_array}"
             )
-            for proj in memberless_projects_pk_array:
+            for proj in memberless_projects_id_array:
                 # check to see if the project has any documents.
-                first_doc = self.get_first_document_if_exists(project_pk=proj)
+                first_doc = self.get_first_document_if_exists(project_id=proj)
                 # If it does, add the creator of the first document  and set them as the leader
                 if first_doc is not None:
                     creator = first_doc.creator
                     print(creator)
-                    project = self.get_project(project_pk=proj)
+                    project = self.get_project(project_id=proj)
                     new_leader_member = ProjectMember.objects.create(
                         project=project,
                         user=creator,
@@ -3597,9 +3597,9 @@ class RemedyMemberlessProjects(APIView):
 
 # Where there are users but no one has leader tag
 class RemedyNoLeaderProjects(APIView):
-    def get_members(self, project_pk):
+    def get_members(self, project_id):
         try:
-            members = ProjectMember.objects.filter(project=project_pk)
+            members = ProjectMember.objects.filter(project=project_id)
         except ProjectMember.DoesNotExist:
             raise NotFound
         except Exception as e:
