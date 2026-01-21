@@ -6,7 +6,7 @@ class TinyAreaSerializer(ModelSerializer):
     class Meta:
         model = Area
         fields = [
-            "pk",
+            "id",
             "name",
             "area_type",
         ]

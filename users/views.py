@@ -2403,26 +2403,26 @@ class UpdateMembership(APIView):
 
         # Convert primary key values to integers
         if user.is_staff:
-            user_pk = int(req.data.get("user_pk")) if req.data.get("user_pk") else 0
-            branch_pk = (
-                int(req.data.get("branch_pk")) if req.data.get("branch_pk") else 0
+            user_id = int(req.data.get("user_id")) if req.data.get("user_id") else 0
+            branch_id = (
+                int(req.data.get("branch_id")) if req.data.get("branch_id") else 0
             )
-            business_area_pk = (
-                int(req.data.get("business_area"))
-                if req.data.get("business_area")
+            business_area_id = (
+                int(req.data.get("business_area_id"))
+                if req.data.get("business_area_id")
                 else 0
             )
-            affiliation_pk = req.data.get("affiliation")
+            affiliation_id = req.data.get("affiliation_id")
 
             data_obj = {}
-            data_obj["user_pk"] = user_pk
-            if branch_pk != 0:
-                data_obj["branch"] = branch_pk
-            if business_area_pk != 0:
-                data_obj["business_area"] = business_area_pk
-            if affiliation_pk is not None:
+            data_obj["user_id"] = user_id
+            if branch_id != 0:
+                data_obj["branch"] = branch_id
+            if business_area_id != 0:
+                data_obj["business_area"] = business_area_id
+            if affiliation_id is not None:
                 data_obj["affiliation"] = (
-                    int(affiliation_pk) if affiliation_pk else None
+                    int(affiliation_id) if affiliation_id else None
                 )
             else:
                 data_obj["affiliation"] = None
@@ -2444,11 +2444,11 @@ class UpdateMembership(APIView):
                 )
         else:
             data_obj = {}
-            affiliation_pk = req.data.get("affiliation")
+            affiliation_id = req.data.get("affiliation_id")
 
-            if affiliation_pk is not None:
+            if affiliation_id is not None:
                 data_obj["affiliation"] = (
-                    int(affiliation_pk) if affiliation_pk else None
+                    int(affiliation_id) if affiliation_id else None
                 )
             else:
                 data_obj["affiliation"] = None

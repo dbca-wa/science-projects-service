@@ -17,7 +17,7 @@ class TinyAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = (
-            "pk",
+            "id",
             "street",
             "city",
             "state",
@@ -56,7 +56,7 @@ class AddressSerializer(serializers.ModelSerializer):
         agency = obj.agency
         if agency:
             return {
-                "pk": agency.pk,
+                "id": agency.pk,
                 "name": agency.name,
                 "key_stakeholder": agency.key_stakeholder,
                 "is_active": agency.is_active,
@@ -68,7 +68,7 @@ class AddressSerializer(serializers.ModelSerializer):
         branch = obj.branch
         if branch:
             return {
-                "pk": branch.pk,
+                "id": branch.pk,
                 "name": branch.name,
                 "agency": branch.agency.pk,
                 "manager": branch.manager,
@@ -87,7 +87,7 @@ class TinyUserContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserContact
         fields = (
-            "pk",
+            "id",
             "user",
         )
 
@@ -107,7 +107,7 @@ class TinyAgencyContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = AgencyContact
         fields = (
-            "pk",
+            "id",
             "agency",
             "email",
             "address",
@@ -130,7 +130,7 @@ class TinyBranchContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = BranchContact
         fields = [
-            "pk",
+            "id",
             "branch",
             "email",
             "address",

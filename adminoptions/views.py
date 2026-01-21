@@ -409,7 +409,7 @@ class AdminTasks(APIView):
             )
 
         settings.LOGGER.info(
-            msg=f"{req.user} is posting an instance of admin tasks ({req.data["action"]} - {details_string})"
+            msg=f"{req.user} is posting an instance of admin tasks ({req.data['action']} - {details_string})"
         )
         try:
             # Caretaker/Merge user request validation
@@ -477,10 +477,39 @@ class AdminTasks(APIView):
                 )
 
         elif data["action"] == AdminTask.ActionTypes.SETCARETAKER:
-            # First check if there is already a pending merge user request for these users
+            # Validate end_date is not in the past
+            if data.get("end_date"):
+                from django.utils import timezone
+                from datetime import datetime
+                
+                # Parse the end_date
+                try:
+                    if isinstance(data["end_date"], str):
+                        end_date = datetime.fromisoformat(data["end_date"].replace('Z', '+00:00')).date()
+                    else:
+                        end_date = data["end_date"]
+                    
+                    if end_date < timezone.now().date():
+                        settings.LOGGER.error(
+                            msg=f"Error in setting caretaker: End date cannot be in the past"
+                        )
+                        return Response(
+                            "End date cannot be in the past",
+                            status=HTTP_400_BAD_REQUEST,
+                        )
+                except (ValueError, AttributeError) as e:
+                    settings.LOGGER.error(
+                        msg=f"Error parsing end_date: {e}"
+                    )
+                    return Response(
+                        "Invalid end date format",
+                        status=HTTP_400_BAD_REQUEST,
+                    )
+            
+            # First check if there is already a pending caretaker request for this user
             if self.check_existing_caretaker_task(data):
                 settings.LOGGER.error(
-                    msg=f"Error in setting caretaker: Users already has a pending caretaker request"
+                    msg=f"Error in setting caretaker: User already has a pending caretaker request"
                 )
                 return Response(
                     "User already has a pending caretaker request",
@@ -522,6 +551,27 @@ class PendingTasks(APIView):
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting all pending admin tasks")
+        
+        # Auto-cancel expired pending caretaker requests before returning
+        from django.utils import timezone
+        
+        expired_caretaker_requests = AdminTask.objects.filter(
+            status=AdminTask.TaskStatus.PENDING,
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            end_date__lt=timezone.now().date()
+        )
+        
+        if expired_caretaker_requests.exists():
+            count = expired_caretaker_requests.count()
+            settings.LOGGER.info(
+                msg=f"Auto-cancelling {count} expired caretaker request(s)"
+            )
+            for request in expired_caretaker_requests:
+                request.status = AdminTask.TaskStatus.CANCELLED
+                request.notes = (request.notes or "") + "\n[Auto-cancelled: end date passed while request was pending]"
+                request.save()
+        
+        # Get all remaining pending tasks
         all = AdminTask.objects.filter(status=AdminTask.TaskStatus.PENDING)
         ser = AdminTaskSerializer(
             all,
@@ -1005,11 +1055,15 @@ class CheckCaretaker(APIView):
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is checking if they have a caretaker")
         user = req.user
+        
+        # Get caretaker object
         caretaker_object = Caretaker.objects.filter(user=user)
         if caretaker_object.exists():
             caretaker_object = caretaker_object.first()
         else:
             caretaker_object = None
+        
+        # Get pending caretaker requests
         caretaker_request_object = AdminTask.objects.filter(
             primary_user=user,
             action=AdminTask.ActionTypes.SETCARETAKER,
@@ -1021,12 +1075,42 @@ class CheckCaretaker(APIView):
             action=AdminTask.ActionTypes.SETCARETAKER,
             status=AdminTask.TaskStatus.PENDING,
         )
+        
+        # Auto-cancel expired pending requests
+        from django.utils import timezone
+        
         if caretaker_request_object.exists():
-            caretaker_request_object = caretaker_request_object.first()
+            request = caretaker_request_object.first()
+            # Check if request has an end_date that has passed
+            if request.end_date and request.end_date.date() < timezone.now().date():
+                settings.LOGGER.info(
+                    msg=f"Auto-cancelling expired caretaker request {request.id} for user {user.pk}"
+                )
+                request.status = AdminTask.TaskStatus.CANCELLED
+                request.notes = (request.notes or "") + "\n[Auto-cancelled: end date passed while request was pending]"
+                request.save()
+                caretaker_request_object = None
+            else:
+                caretaker_request_object = request
         else:
             caretaker_request_object = None
+            
         if become_caretaker_request_object.exists():
-            become_caretaker_request_object = become_caretaker_request_object.first()
+            request = become_caretaker_request_object.first()
+            # Check if request has an end_date that has passed
+            if request.end_date and request.end_date.date() < timezone.now().date():
+                settings.LOGGER.info(
+                    msg=f"Auto-cancelling expired become caretaker request {request.id} for user {user.pk}"
+                )
+                request.status = AdminTask.TaskStatus.CANCELLED
+                request.notes = (request.notes or "") + "\n[Auto-cancelled: end date passed while request was pending]"
+                request.save()
+                become_caretaker_request_object = None
+            else:
+                become_caretaker_request_object = request
+        else:
+            become_caretaker_request_object = None
+            
         return Response(
             {
                 "caretaker_object": (
@@ -1274,6 +1358,13 @@ class CancelTask(APIView):
             raise NotFound
         return obj
 
+    def get_user(self, pk):
+        try:
+            obj = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+        return obj
+
     def post(self, req, pk):
         task = self.go(pk)
         settings.LOGGER.info(msg=f"{req.user} is cancelling request for task {task}")
@@ -1294,10 +1385,11 @@ class CancelTask(APIView):
 
         if task.action == AdminTask.ActionTypes.SETCARETAKER:
             # If a caretaker request is cancelled, the caretaker request is cancelled
-            primary_user = self.get_user(pk=task.primary_user)
-            primary_user.caretaker_mode = False
-            primary_user.caretaker = None
-            pass
+            # Note: task.primary_user is a User object, not a pk
+            if task.primary_user:
+                primary_user = task.primary_user
+                primary_user.caretaker_mode = False
+                primary_user.save()
 
         return Response(
             status=HTTP_202_ACCEPTED,
@@ -1482,7 +1574,7 @@ class AdminSetCaretaker(APIView):
         primary_user = self.get_user(primary_user_id)
         secondary_user = self.get_user(secondary_user_id)
         # Reject if secondary user has a caretaker
-        if secondary_user.caretaker is not None:
+        if secondary_user.caretaker.exists():
             return Response(
                 {"detail": "Cannot set a user with a caretaker as caretaker."},
                 status=HTTP_400_BAD_REQUEST,
@@ -1565,6 +1657,115 @@ class SetCaretaker(APIView):
                 )
 
         return Response(status=HTTP_200_OK)
+
+
+class RespondToCaretakerRequest(APIView):
+    """
+    Allow a user to approve or reject a caretaker request where they are the requested caretaker.
+    This reduces admin burden by allowing users to self-manage caretaker requests.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_task(self, pk):
+        try:
+            obj = AdminTask.objects.get(pk=pk)
+        except AdminTask.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def get_user(self, pk):
+        try:
+            obj = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            raise NotFound
+        return obj
+
+    def post(self, req, pk):
+        """
+        Approve or reject a caretaker request.
+        Body: { "action": "approve" | "reject" }
+        """
+        task = self.get_task(pk)
+        action = req.data.get("action")
+
+        # Validate that the task is a caretaker request
+        if task.action != AdminTask.ActionTypes.SETCARETAKER:
+            return Response(
+                {"error": "This endpoint only handles caretaker requests"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate that the task is pending
+        if task.status != AdminTask.TaskStatus.PENDING:
+            return Response(
+                {"error": "This request has already been processed"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate that the current user is the requested caretaker
+        if req.user.pk not in task.secondary_users:
+            return Response(
+                {"error": "You are not authorized to respond to this request"},
+                status=HTTP_401_UNAUTHORIZED,
+            )
+
+        # Validate action
+        if action not in ["approve", "reject"]:
+            return Response(
+                {"error": "Action must be 'approve' or 'reject'"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+        settings.LOGGER.info(
+            msg=f"{req.user} is {action}ing caretaker request {task}"
+        )
+
+        if action == "approve":
+            # Approve and fulfill the task
+            task.status = AdminTask.TaskStatus.APPROVED
+            task.save()
+
+            with transaction.atomic():
+                try:
+                    # Get the primary user (who needs a caretaker)
+                    user_who_needs_caretaker = self.get_user(task.primary_user.pk)
+                    # Get the caretaker (current user)
+                    caretaker = self.get_user(task.secondary_users[0])
+
+                    # Create the caretaker relationship
+                    Caretaker.objects.create(
+                        user=user_who_needs_caretaker,
+                        caretaker=caretaker,
+                        reason=task.reason,
+                        end_date=task.end_date,
+                        notes=task.notes,
+                    )
+
+                    # Fulfill the task
+                    task.status = AdminTask.TaskStatus.FULFILLED
+                    task.save()
+
+                    return Response(
+                        {"message": "Caretaker request approved successfully"},
+                        status=HTTP_202_ACCEPTED,
+                    )
+
+                except Exception as e:
+                    settings.LOGGER.error(msg=f"Error in fulfilling task: {e}")
+                    return Response(
+                        {"error": "Failed to create caretaker relationship"},
+                        status=HTTP_400_BAD_REQUEST,
+                    )
+
+        else:  # action == "reject"
+            # Reject the task
+            task.status = AdminTask.TaskStatus.REJECTED
+            task.save()
+
+            return Response(
+                {"message": "Caretaker request rejected successfully"},
+                status=HTTP_202_ACCEPTED,
+            )
 
 
 # endregion  =================================================================================================

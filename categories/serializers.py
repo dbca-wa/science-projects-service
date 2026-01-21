@@ -6,7 +6,7 @@ class ProjectCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectCategory
         fields = [
-            "pk",
+            "id",
             "name",
             "kind",
         ]

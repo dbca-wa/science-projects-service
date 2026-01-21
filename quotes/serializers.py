@@ -6,7 +6,7 @@ class QuoteListSerializer(ModelSerializer):
     class Meta:
         model = Quote
         fields = [
-            "pk",
+            "id",
             "text",
             "author",
             "created_at",

@@ -39,16 +39,6 @@ class CreateProjectSerializer(ModelSerializer):
         model = Project
         fields = "__all__"
 
-    def to_representation(self, instance):
-        # Get the serialized data from the parent class
-        representation = super().to_representation(instance)
-
-        # Check if the custom context key is present and use 'pk' instead of 'id'
-        if self.context.get("use_pk_for_id"):
-            representation["pk"] = representation.pop("id")
-
-        return representation
-
 
 class ARProjectSerializer(ModelSerializer):
     image = ProjectPhotoSerializer(read_only=True)
@@ -58,16 +48,6 @@ class ARProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = "__all__"
-
-    def to_representation(self, instance):
-        # Get the serialized data from the parent class
-        representation = super().to_representation(instance)
-
-        # Check if the custom context key is present and use 'pk' instead of 'id'
-        if self.context.get("use_pk_for_id"):
-            representation["pk"] = representation.pop("id")
-
-        return representation
 
 
 class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
@@ -101,16 +81,6 @@ class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
         model = Project
         fields = "__all__"
 
-    def to_representation(self, instance):
-        # Get the serialized data from the parent class
-        representation = super().to_representation(instance)
-
-        # Check if the custom context key is present and use 'pk' instead of 'id'
-        if self.context.get("use_pk_for_id"):
-            representation["pk"] = representation.pop("id")
-
-        return representation
-
 
 class ProblematicProjectSerializer(ModelSerializer):
     tag = serializers.SerializerMethodField()
@@ -120,7 +90,7 @@ class ProblematicProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            "pk",
+            "id",
             "title",
             "tag",
             "image",
@@ -148,19 +118,6 @@ class ProjectSerializer(ModelSerializer):
         # Use the method defined on the Project model to get the deletion request ID
         return instance.get_deletion_request_id()
 
-    def to_representation(self, instance):
-        # Get the serialized data from the parent class
-        representation = super().to_representation(instance)
-
-        # Check if the custom context key is present and use 'pk' instead of 'id'
-        if self.context.get("use_pk_for_id"):
-            representation["pk"] = representation.pop("id")
-
-        # If a deletion request exists, add the deletion request ID to the representation
-        representation["deletion_request_id"] = self.get_deletion_request_id(instance)
-
-        return representation
-
     def get_areas(self, instance):
         return instance.area.areas
         # return TinyAreaSerializer(areas).data
@@ -178,16 +135,6 @@ class ProjectUpdateSerializer(ModelSerializer):
         model = Project
         fields = "__all__"
 
-    def to_representation(self, instance):
-        # Get the serialized data from the parent class
-        representation = super().to_representation(instance)
-
-        # Check if the custom context key is present and use 'pk' instead of 'id'
-        if self.context.get("use_pk_for_id"):
-            representation["pk"] = representation.pop("id")
-
-        return representation
-
 
 class UserProfileProjectSerializer(ModelSerializer):
     tag = serializers.SerializerMethodField()
@@ -195,7 +142,7 @@ class UserProfileProjectSerializer(ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["pk", "title", "tag", "image"]
+        fields = ["id", "title", "tag", "image"]
 
     def get_tag(self, obj):
         return obj.get_project_tag()
@@ -208,7 +155,7 @@ class TinyProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = (
-            "pk",
+            "id",
             "title",
             "status",
             "kind",
@@ -230,7 +177,7 @@ class TinyStudentProjectARSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = (
-            "pk",
+            "id",
             "title",
             "status",
             "kind",
@@ -270,7 +217,7 @@ class ProjectAreaSerializer(serializers.ModelSerializer):
 class PkAndKindOnlyProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
-        fields = ["pk", "kind"]
+        fields = ["id", "kind"]
 
 
 class MiniUserSerializer(ModelSerializer):
@@ -292,7 +239,7 @@ class MiniUserSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "pk",
+            "id",
             "display_first_name",
             "display_last_name",
             "email",
@@ -309,7 +256,7 @@ class MiniUserSerializer(ModelSerializer):
         # Set caretaker data using list comprehension
         caretakers_data = [
             {
-                "pk": obj.caretaker.pk,
+                "id": obj.caretaker.pk,
                 "display_first_name": obj.caretaker.display_first_name,
                 "display_last_name": obj.caretaker.display_last_name,
                 "email": obj.caretaker.email,
@@ -342,7 +289,7 @@ class TinyProjectMemberSerializer(ModelSerializer):
     class Meta:
         model = ProjectMember
         fields = [
-            "pk",
+            "id",
             "user",
             "project",
             "is_leader",
@@ -367,7 +314,7 @@ class ProjectDataTableSerializer(ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            "pk",
+            "id",
             "title",
             "role",
             "tag",
@@ -405,13 +352,6 @@ class ProjectDataTableSerializer(ModelSerializer):
     def get_description(self, obj):
         return obj.get_description()
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        if self.context.get("use_pk_for_id"):
-            representation["pk"] = representation.pop("id")
-        representation["role"] = self.get_role(instance)
-        return representation
-
 
 class ProjectMemberSerializer(ModelSerializer):
     def validate_role(self, value):
@@ -441,7 +381,7 @@ class ProjectDetailViewSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None
@@ -450,7 +390,7 @@ class ProjectDetailViewSerializer(ModelSerializer):
         service = obj.service
         if service:
             return {
-                "pk": service.pk,
+                "id": service.pk,
                 "name": service.name,
             }
         return None
@@ -459,7 +399,7 @@ class ProjectDetailViewSerializer(ModelSerializer):
         user = obj.creator
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -477,7 +417,7 @@ class ProjectDetailViewSerializer(ModelSerializer):
         user = obj.owner
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -495,7 +435,7 @@ class ProjectDetailViewSerializer(ModelSerializer):
         user = obj.site_custodian
         if user:
             return {
-                "pk": user.id,
+                "id": user.id,
                 "username": user.username,
             }
         return None
@@ -510,7 +450,7 @@ class ProjectDetailSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None
@@ -519,7 +459,7 @@ class ProjectDetailSerializer(ModelSerializer):
         service = obj.service
         if service:
             return {
-                "pk": service.pk,
+                "id": service.pk,
                 "name": service.name,
             }
         return None
@@ -528,7 +468,7 @@ class ProjectDetailSerializer(ModelSerializer):
         user = obj.creator
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -546,7 +486,7 @@ class ProjectDetailSerializer(ModelSerializer):
         user = obj.owner
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -564,7 +504,7 @@ class ProjectDetailSerializer(ModelSerializer):
         user = obj.site_custodian
         if user:
             return {
-                "pk": user.id,
+                "id": user.id,
                 "username": user.username,
             }
         return None
@@ -581,7 +521,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
     class Meta:
         model = ProjectDetail
         fields = (
-            "pk",
+            "id",
             "project",
             "creator",
             "modifier",
@@ -594,7 +534,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None
@@ -603,7 +543,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
         user = obj.creator
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -612,7 +552,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
         user = obj.modifier
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -621,7 +561,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
         user = obj.owner
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -630,7 +570,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
         user = obj.data_custodian
         if user:
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "username": user.username,
             }
         return None
@@ -656,7 +596,7 @@ class StudentProjectDetailSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None
@@ -668,7 +608,7 @@ class TinyStudentProjectDetailSerializer(ModelSerializer):
     class Meta:
         model = StudentProjectDetails
         fields = (
-            "pk",
+            "id",
             "project",
             "level",
             "organisation",
@@ -678,7 +618,7 @@ class TinyStudentProjectDetailSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None
@@ -693,7 +633,7 @@ class ExternalProjectDetailSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None
@@ -705,7 +645,7 @@ class TinyExternalProjectDetailSerializer(ModelSerializer):
     class Meta:
         model = ExternalProjectDetails
         fields = (
-            "pk",
+            "id",
             "project",
             "collaboration_with",
             "budget",
@@ -717,7 +657,7 @@ class TinyExternalProjectDetailSerializer(ModelSerializer):
         project = obj.project
         if project:
             return {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
             }
         return None

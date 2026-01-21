@@ -153,7 +153,7 @@ class AdminOptionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminOptions
         fields = (
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "email_options",
@@ -186,9 +186,11 @@ class AdminOptionsSerializer(serializers.ModelSerializer):
 
 
 class IAdminTaskRequesterSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    
     class Meta:
         model = User
-        fields = ["pk", "display_first_name", "display_last_name"]
+        fields = ["id", "display_first_name", "display_last_name", "email"]
 
 
 class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
@@ -201,22 +203,25 @@ class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
 
 
 class IAdminTaskProjectSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    
     class Meta:
         model = Project
-        fields = ["pk", "title"]
+        fields = ["id", "title"]
 
 
 class SecondaryUserSerializer(serializers.ModelSerializer):
-    image = UserAvatarSerializer(source="profile.avatar")
+    id = serializers.IntegerField(source='pk', read_only=True)
+    image = UserAvatarSerializer(source="avatar")
 
     class Meta:
         model = User
-        fields = ["pk", "display_first_name", "display_last_name", "image"]
+        fields = ["id", "display_first_name", "display_last_name", "email", "image"]
 
 
 class AdminTaskSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)  # Explicitly use 'id' for consistency
     requester = IAdminTaskRequesterSerializer()
-    # primary_user = IAdminTaskRequesterSerializer()
     primary_user = SecondaryUserSerializer()
     project = IAdminTaskProjectSerializer()
     secondary_users = serializers.SerializerMethodField()
@@ -233,6 +238,7 @@ class AdminTaskSerializer(serializers.ModelSerializer):
 
 
 class CaretakerSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)  # Explicitly use 'id' for consistency
     caretaker = BasicUserSerializer()
     user = MiniUserSerializer()
 

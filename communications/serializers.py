@@ -26,7 +26,7 @@ class TinyDirectMessageSerializer(ModelSerializer):
     class Meta:
         model = DirectMessage
         fields = [
-            "pk",
+            "id",
             "text",
             "user",
             "chat_room",
@@ -39,7 +39,7 @@ class TinyReactionSerializer(ModelSerializer):
     class Meta:
         model = Reaction
         fields = [
-            "pk",
+            "id",
             "user",
             "direct_message",
             "comment",
@@ -57,7 +57,7 @@ class TinyCommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            "pk",
+            "id",
             "user",
             "document",
             "text",
@@ -72,7 +72,7 @@ class TinyCommentCreateSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            "pk",
+            "id",
             "user",
             "document",
             "text",
@@ -99,7 +99,7 @@ class TinyChatRoomSerializer(ModelSerializer):
     class Meta:
         model = ChatRoom
         fields = [
-            "pk",
+            "id",
             "users",
         ]
 
@@ -140,7 +140,7 @@ class ReactionCreateSerializer(ModelSerializer):
     class Meta:
         model = Reaction
         fields = [
-            "pk",
+            "id",
             "user",
             "comment",
             "direct_message",

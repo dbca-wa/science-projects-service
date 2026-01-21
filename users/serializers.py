@@ -43,7 +43,7 @@ class StaffProfileEmailListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "name",
             "email",
             "image",
@@ -92,7 +92,7 @@ class MiniUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "first_name",
             "last_name",
             "username",
@@ -138,17 +138,19 @@ class MiniUserSerializer(serializers.ModelSerializer):
 
 
 class BasicUserSerializer(serializers.ModelSerializer):
-    pk = serializers.IntegerField()
+    id = serializers.IntegerField(source='pk', read_only=True)
     display_first_name = serializers.CharField()
     display_last_name = serializers.CharField()
+    email = serializers.EmailField()
     image = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "display_first_name",
             "display_last_name",
+            "email",
             "image",
         )
 
@@ -172,7 +174,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "display_first_name",
             "display_last_name",
             "first_name",
@@ -243,7 +245,7 @@ class TinyUserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = (
-            "pk",
+            "id",
             "user",
             "title",
             "middle_initials",
@@ -270,7 +272,7 @@ class TinyUserWorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserWork
         fields = (
-            "pk",
+            "id",
             "user",
             "role",
             "agency",
@@ -468,7 +470,7 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "display_first_name",
             "display_last_name",
             "first_name",
@@ -558,7 +560,7 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "first_name",
             "last_name",
             "display_first_name",
@@ -645,7 +647,7 @@ class StaffProfileCreationSerializer(serializers.ModelSerializer):
 
 
 class UserStaffProfileSerializer(serializers.ModelSerializer):
-    pk = serializers.PrimaryKeyRelatedField(read_only=True)
+    id = serializers.IntegerField(source='pk', read_only=True)
     display_first_name = serializers.CharField(read_only=True)
     display_last_name = serializers.CharField(read_only=True)
     email = serializers.EmailField(read_only=True)
@@ -655,7 +657,7 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            "pk",
+            "id",
             "display_first_name",
             "display_last_name",
             "email",
@@ -677,18 +679,19 @@ class UserStaffProfileSerializer(serializers.ModelSerializer):
 class KeywordTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = KeywordTag
-        fields = ("pk", "name")
+        fields = ("id", "name")
 
     def to_internal_value(self, data):
         if isinstance(data, dict):
             tag_name = data.get("name")
-            tag_pk = data.get("pk")
+            tag_id = data.get("id")
+            tag_pk = data.get("pk")  # Keep for backwards compatibility
 
-            if tag_pk:
+            if tag_id or tag_pk:
                 try:
-                    tag = KeywordTag.objects.get(pk=tag_pk)
+                    tag = KeywordTag.objects.get(pk=tag_id or tag_pk)
                 except KeywordTag.DoesNotExist:
-                    raise serializers.ValidationError({"keyword_tags": "Invalid pk"})
+                    raise serializers.ValidationError({"keyword_tags": "Invalid id"})
             elif tag_name:
                 tag, created = KeywordTag.objects.get_or_create(name=tag_name)
             else:
@@ -711,7 +714,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublicStaffProfile
         fields = (
-            "pk",
+            "id",
             "user",
             "title",
             # "keyword_tags",
@@ -744,7 +747,7 @@ class StaffProfileOverviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublicStaffProfile
         fields = (
-            "pk",
+            "id",
             "user",
             "about",
             "expertise",
@@ -756,7 +759,7 @@ class EmploymentEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = EmploymentEntry
         fields = (
-            "pk",
+            "id",
             "public_profile",
             "position_title",
             "start_year",
@@ -782,7 +785,7 @@ class EducationEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = EducationEntry
         fields = (
-            "pk",
+            "id",
             "public_profile",
             # "qualification_kind",
             # "qualification_field",
@@ -803,7 +806,7 @@ class StaffProfileCVSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublicStaffProfile
         fields = (
-            "pk",
+            "id",
             "user",
             "employment",
             "education",
@@ -830,7 +833,7 @@ class StaffProfileUserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             "ba_lead_status",
-            "pk",
+            "id",
             "is_active",
             "display_first_name",
             "display_last_name",
@@ -858,7 +861,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublicStaffProfile
         fields = (
-            "pk",
+            "id",
             "it_asset_id",
             "employee_id",
             "is_hidden",

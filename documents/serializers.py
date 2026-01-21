@@ -48,7 +48,7 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnnualReport
         fields = [
-            "pk",
+            "id",
             "year",
             "creator",
             "date_open",
@@ -64,7 +64,7 @@ class MiniAnnualReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnnualReport
         fields = [
-            "pk",
+            "id",
             "year",
             "pdf_generation_in_progress",
         ]
@@ -105,7 +105,7 @@ class MidDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectDocument
         fields = [
-            "pk",
+            "id",
             "kind",
             "project",
             "referenced_doc",
@@ -123,7 +123,7 @@ class TinyProjectDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectDocument
         fields = [
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "creator",
@@ -161,7 +161,7 @@ class TinyProjectDocumentSerializerWithUserDocsBelongTo(serializers.ModelSeriali
             image_url = avatar.file.url if avatar else None
 
             return {
-                "pk": user.pk,
+                "id": user.pk,
                 "email": user.email,
                 "display_first_name": user.display_first_name,
                 "display_last_name": user.display_last_name,
@@ -172,7 +172,7 @@ class TinyProjectDocumentSerializerWithUserDocsBelongTo(serializers.ModelSeriali
     class Meta:
         model = ProjectDocument
         fields = [
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "creator",
@@ -202,7 +202,7 @@ class TinyProjectDocumentARSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectDocument
         fields = [
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "creator",
@@ -226,7 +226,7 @@ class TinyConceptPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConceptPlan
         fields = [
-            "pk",
+            "id",
             "document",
             "background",
             "aims",
@@ -243,7 +243,7 @@ class SuperSmallProjSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            "pk",
+            "id",
             "title",
             "kind",
             "year",
@@ -258,7 +258,7 @@ class SuperSmallDocSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectDocument
         fields = [
-            "pk",
+            "id",
             "project",
         ]
 
@@ -270,7 +270,7 @@ class TinyProjectPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectPlan
         fields = [
-            "pk",
+            "id",
             "document",
             "background",
             "aims",
@@ -289,7 +289,7 @@ class MiniEndorsementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Endorsement
         fields = [
-            "pk",
+            "id",
             "project_plan",
         ]
 
@@ -301,7 +301,7 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Endorsement
         fields = [
-            "pk",
+            "id",
             "project_plan",
             "ae_endorsement_required",
             "ae_endorsement_provided",
@@ -313,7 +313,7 @@ class TinyProgressReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressReport
         fields = [
-            "pk",
+            "id",
             "document",
             "year",
             "is_final_report",
@@ -329,7 +329,7 @@ class TinyProjectClosureSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectClosure
         fields = [
-            "pk",
+            "id",
             "document",
             "intended_outcome",
             "reason",
@@ -345,7 +345,7 @@ class TinyStudentReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentReport
         fields = [
-            "pk",
+            "id",
             "document",
             "progress_report",
             "year",
@@ -409,7 +409,7 @@ class ProgressReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProgressReport
         fields = [
-            "pk",
+            "id",
             "document",
             "project",
             "report",
@@ -451,7 +451,7 @@ class EndorsementSerializerForProjectPlanView(serializers.ModelSerializer):
     class Meta:
         model = Endorsement
         fields = [
-            "pk",
+            "id",
             "ae_endorsement_provided",
             "ae_endorsement_required",
             "data_management",
@@ -503,7 +503,7 @@ class ConceptPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConceptPlan
         fields = [
-            "pk",
+            "id",
             "document",
             "background",
             "aims",
@@ -529,7 +529,7 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectPlan
         fields = [
-            "pk",
+            "id",
             "document",
             "endorsements",
             "background",
@@ -572,7 +572,7 @@ class TinySReportARProjectDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectDocument
         fields = [
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "creator",
@@ -609,7 +609,7 @@ class StudentReportAnnualReportSerializer(TeamMemberMixin, serializers.ModelSeri
     class Meta:
         model = StudentReport
         fields = [
-            "pk",
+            "id",
             "document",
             # "project",
             "report",
@@ -642,7 +642,7 @@ class ProgressReportAnnualReportSerializer(
     class Meta:
         model = ProgressReport
         fields = [
-            "pk",
+            "id",
             "document",
             "report",
             "year",
@@ -665,7 +665,7 @@ class ProgressReportSerializer(TeamMemberMixin, serializers.ModelSerializer):
     class Meta:
         model = ProgressReport
         fields = [
-            "pk",
+            "id",
             "document",
             "report",
             "year",
@@ -687,7 +687,7 @@ class StudentReportSerializer(TeamMemberMixin, serializers.ModelSerializer):
     class Meta:
         model = StudentReport
         fields = [
-            "pk",
+            "id",
             "document",
             "report",
             "progress_report",
@@ -702,7 +702,7 @@ class ProjectClosureSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectClosure
         fields = [
-            "pk",
+            "id",
             "document",
             "intended_outcome",
             "reason",
@@ -723,7 +723,7 @@ class ProjectClosureSerializer(serializers.ModelSerializer):
 class CustomPublicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomPublication
-        fields = ["pk", "public_profile", "title", "year"]
+        fields = ["id", "public_profile", "title", "year"]
 
 
 class PublicationDocSerializer(serializers.Serializer):
@@ -801,12 +801,12 @@ class OptimisedTeamMemberMixin:
         # Return data in the format expected by template filters
         return [
             {
-                "pk": member.pk,
+                "id": member.pk,
                 "role": member.role,
                 "position": member.position,
                 "is_leader": member.is_leader,
                 "user": {
-                    "pk": member.user.pk,
+                    "id": member.user.pk,
                     "display_first_name": member.user.display_first_name,
                     "display_last_name": member.user.display_last_name,
                     "is_staff": member.user.is_staff,
@@ -848,12 +848,12 @@ class OptimisedProjectTeamMemberMixin:
 
         return [
             {
-                "pk": member.pk,
+                "id": member.pk,
                 "role": member.role,
                 "position": member.position,
                 "is_leader": member.is_leader,
                 "user": {
-                    "pk": member.user.pk,
+                    "id": member.user.pk,
                     "display_first_name": member.user.display_first_name,
                     "display_last_name": member.user.display_last_name,
                     "is_staff": member.user.is_staff,
@@ -890,7 +890,7 @@ class OptimisedARExternalProjectSerializer(
 
     class Meta:
         model = Project
-        fields = ["pk", "title", "partners", "funding", "team_members"]
+        fields = ["id", "title", "partners", "funding", "team_members"]
 
 
 class OptimisedStudentReportAnnualReportSerializer(
@@ -912,9 +912,9 @@ class OptimisedStudentReportAnnualReportSerializer(
             student_level = project.student_project_info.level
 
         return {
-            "pk": doc.pk,
+            "id": doc.pk,
             "project": {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
                 "year": project.year,
                 "kind": getattr(project, "kind", ""),  # Add missing kind field
@@ -933,7 +933,7 @@ class OptimisedStudentReportAnnualReportSerializer(
                 },
                 "business_area": (
                     {
-                        "pk": business_area.pk,
+                        "id": business_area.pk,
                         "name": business_area.name,
                         "leader": business_area.leader_id,
                         "introduction": business_area.introduction,
@@ -971,7 +971,7 @@ class OptimisedStudentReportAnnualReportSerializer(
     class Meta:
         model = StudentReport
         fields = [
-            "pk",
+            "id",
             "document",
             "year",
             "progress_report",
@@ -994,9 +994,9 @@ class OptimisedProgressReportAnnualReportSerializer(
         business_area = project.business_area
 
         return {
-            "pk": doc.pk,
+            "id": doc.pk,
             "project": {
-                "pk": project.pk,
+                "id": project.pk,
                 "title": project.title,
                 "year": project.year,
                 "kind": getattr(project, "kind", ""),
@@ -1013,7 +1013,7 @@ class OptimisedProgressReportAnnualReportSerializer(
                 },
                 "business_area": (
                     {
-                        "pk": business_area.pk,
+                        "id": business_area.pk,
                         "name": business_area.name,
                         "leader": business_area.leader_id,
                         "introduction": business_area.introduction,
@@ -1056,7 +1056,7 @@ class OptimisedProgressReportAnnualReportSerializer(
     class Meta:
         model = ProgressReport
         fields = [
-            "pk",
+            "id",
             "document",
             "year",
             "is_final_report",

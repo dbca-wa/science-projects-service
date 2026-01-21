@@ -34,6 +34,7 @@ urlpatterns = [
     path("tasks/<int:pk>/approve", views.ApproveTask.as_view()),
     path("tasks/<int:pk>/reject", views.RejectTask.as_view()),
     path("tasks/<int:pk>/cancel", views.CancelTask.as_view()),
+    path("tasks/<int:pk>/respond", views.RespondToCaretakerRequest.as_view()),
     # Misc (Admin) ======================================================
     path("mergeusers", views.MergeUsers.as_view()),
     path("caretakers/setcaretaker", views.SetCaretaker.as_view()),

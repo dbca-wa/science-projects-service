@@ -30,7 +30,7 @@ class ProjectDocumentPDFSerializer(ModelSerializer):
     class Meta:
         model = ProjectDocumentPDF
         fields = [
-            "pk",
+            "id",
             "file",
             "document",
             "project",
@@ -66,7 +66,7 @@ class TinyMethodologyImageSerializer(ModelSerializer):
     class Meta:
         model = ProjectPlanMethodologyPhoto
         fields = [
-            "pk",
+            "id",
             "file",
             "project_plan",
             "uploader",
@@ -130,7 +130,7 @@ class TinyAnnualReportMediaSerializer(ModelSerializer):
     class Meta:
         model = AnnualReportMedia
         fields = [
-            "pk",
+            "id",
             "kind",
             "file",
             "report",
@@ -175,7 +175,7 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
     class Meta:
         model = AnnualReportPDF
         fields = [
-            "pk",
+            "id",
             "file",
             "report",
         ]
@@ -196,7 +196,7 @@ class TinyLegacyAnnualReportPDFSerializer(ModelSerializer):
     class Meta:
         model = LegacyAnnualReportPDF
         fields = [
-            "pk",
+            "id",
             "file",
             "year",
             "report",
@@ -290,7 +290,7 @@ class TinyBusinessAreaPhotoSerializer(ModelSerializer):
     class Meta:
         model = BusinessAreaPhoto
         fields = [
-            "pk",
+            "id",
             "business_area",
             "uploader",
         ]
@@ -334,7 +334,7 @@ class TinyProjectPhotoSerializer(ModelSerializer):
     class Meta:
         model = ProjectPhoto
         fields = [
-            "pk",
+            "id",
             "file",
             "project",
             "uploader",
@@ -397,7 +397,7 @@ class TinyAgencyPhotoSerializer(ModelSerializer):
     class Meta:
         model = AgencyImage
         fields = [
-            "pk",
+            "id",
             "file",
             "agency",
         ]
@@ -450,7 +450,7 @@ class TinyUserAvatarSerializer(ModelSerializer):
     class Meta:
         model = UserAvatar
         fields = [
-            "pk",
+            "id",
             "file",
             "user",
         ]
