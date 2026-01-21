@@ -27,7 +27,7 @@ urlpatterns = [
     path("caretakers", views.Caretakers.as_view()),
     path("caretakers/<int:pk>", views.CaretakerDetail.as_view()),
     path("caretakers/pending/<int:pk>", views.PendingCaretakerTasks.as_view()),
-    path("caretakers/requests", views.CheckPendingCaretakerRequestForUser.as_view()),
+    path("caretakers/requests", views.GetPendingCaretakerRequestsForUser.as_view()),  # GET with ?user_id=X
     path("caretakers/adminsetcaretaker", views.AdminSetCaretaker.as_view()),
     path("caretakers/checkcaretaker", views.CheckCaretaker.as_view()),
     # Functions on approval of tasks =====================================

@@ -601,6 +601,42 @@ class CheckPendingCaretakerRequestForUser(APIView):
         )
 
 
+class GetPendingCaretakerRequestsForUser(APIView):
+    """
+    Get all pending caretaker requests for a specific user
+    Returns requests where someone wants to become THIS user's caretaker
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, req):
+        user_id = req.query_params.get('user_id')
+        
+        if not user_id:
+            return Response(
+                {"error": "user_id query parameter is required"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        
+        settings.LOGGER.info(
+            msg=f"{req.user} is getting pending caretaker requests for user {user_id}"
+        )
+        
+        # Get all pending caretaker requests for this user
+        pending_requests = AdminTask.objects.filter(
+            primary_user=user_id,
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+        )
+        
+        # Serialize the requests
+        serializer = AdminTaskSerializer(pending_requests, many=True)
+        
+        return Response(
+            serializer.data,
+            status=HTTP_200_OK,
+        )
+
+
 class PendingCaretakerTasks(APIView):
     permission_classes = [IsAuthenticated]
 
