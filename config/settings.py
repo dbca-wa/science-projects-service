@@ -274,7 +274,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_THROTTLE_RATES": {
         # General API rate limits
-        "anon": "100/hour",  # Anonymous users (login page, public endpoints)
+        "anon": "200/hour",  # Anonymous users (login page, public endpoints)
         "user": "1000/hour",  # Authenticated users (normal usage)
         
         # Specific endpoint rate limits (use custom throttle classes)
