@@ -268,6 +268,20 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        # General API rate limits
+        "anon": "100/hour",  # Anonymous users (login page, public endpoints)
+        "user": "1000/hour",  # Authenticated users (normal usage)
+        
+        # Specific endpoint rate limits (use custom throttle classes)
+        "burst": "30/minute",  # Burst protection for rapid requests
+        "login": "5/minute",  # Login attempts (prevents brute force)
+        "password_reset": "3/hour",  # Password reset requests
+    },
 }
 
 TEMPLATES = [

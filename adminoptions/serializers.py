@@ -187,10 +187,11 @@ class AdminOptionsSerializer(serializers.ModelSerializer):
 
 class IAdminTaskRequesterSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk', read_only=True)
+    image = UserAvatarSerializer(source="avatar")
     
     class Meta:
         model = User
-        fields = ["id", "display_first_name", "display_last_name", "email"]
+        fields = ["id", "display_first_name", "display_last_name", "email", "image"]
 
 
 class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
