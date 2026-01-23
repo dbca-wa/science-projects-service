@@ -201,10 +201,41 @@ class BranchSerializer(serializers.ModelSerializer):
 class MiniBASerializer(serializers.ModelSerializer):
     leader = UserPkOnly()
     caretaker = UserPkOnly()
+    image = serializers.SerializerMethodField()
+    project_count = serializers.SerializerMethodField()
+    division = serializers.SerializerMethodField()
 
     class Meta:
         model = BusinessArea
-        fields = ["id", "name", "leader", "caretaker"]
+        fields = ["id", "name", "leader", "caretaker", "image", "project_count", "division"]
+    
+    def get_image(self, obj):
+        """Get the business area image file URL"""
+        try:
+            if obj.image and obj.image.file:
+                return obj.image.file.url
+        except:
+            pass
+        return None
+    
+    def get_project_count(self, obj):
+        """Get the count of projects in this business area"""
+        try:
+            # Count all projects in this business area, not just active ones
+            # since we want to show the total scope of the BA
+            return obj.project_set.count()
+        except:
+            return 0
+    
+    def get_division(self, obj):
+        """Get division info"""
+        if obj.division:
+            return {
+                "id": obj.division.id,
+                "name": obj.division.name,
+                "slug": obj.division.slug
+            }
+        return None
 
 
 class BusinessAreaSerializer(serializers.ModelSerializer):

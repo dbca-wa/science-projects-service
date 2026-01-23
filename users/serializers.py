@@ -189,6 +189,7 @@ class TinyUserSerializer(serializers.ModelSerializer):
             "role",
             "branch",
             "business_area",
+            "business_areas_led",
             "affiliation",
             "caretakers",
             "caretaking_for",
@@ -441,6 +442,8 @@ class ProfilePageSerializer(serializers.ModelSerializer):
     # Contact
     phone = serializers.CharField(source="contact.phone")
     fax = serializers.CharField(source="contact.fax")
+    # Business Areas Led - return full objects instead of just IDs
+    business_areas_led = MiniBASerializer(many=True, read_only=True)
     # Staff Profile
     staff_profile_id = serializers.PrimaryKeyRelatedField(
         source="staff_profile", read_only=True

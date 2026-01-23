@@ -508,6 +508,7 @@ class Users(APIView):
         only_superuser = bool(request.GET.get("only_superuser", False))
         only_staff = bool(request.GET.get("only_staff", False))
         only_external = bool(request.GET.get("only_external", False))
+        only_ba_lead = bool(request.GET.get("only_ba_lead", False))
 
         # Parse only_internal to boolean
         try:
@@ -574,6 +575,9 @@ class Users(APIView):
             users = users.filter(is_staff=True)
         elif only_superuser:
             users = users.filter(is_superuser=True)
+        elif only_ba_lead:
+            # Filter for users who are leaders of business areas
+            users = users.filter(business_areas_led__isnull=False).distinct()
 
         # Filter by business area
         if business_area and business_area != "All":
