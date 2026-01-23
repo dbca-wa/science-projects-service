@@ -215,7 +215,7 @@ class Projects(APIView):
             # If the user sends a non-integer value as the page parameter
             page = 1
 
-        page_size = 12
+        page_size = settings.PAGE_SIZE
         start = (page - 1) * page_size
         end = start + page_size
 

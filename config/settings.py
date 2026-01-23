@@ -72,7 +72,7 @@ if not DEBUG and not PRINCE_SERVER_URL:
 # App configuration
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500
-PAGE_SIZE = 10
+PAGE_SIZE = 24
 USER_LIST_PAGE_SIZE = 250
 FILE_UPLOAD_PERMISSIONS = None  # Use default operating system file permissions
 # APPEND_SLASH=False
@@ -276,7 +276,6 @@ REST_FRAMEWORK = {
         # General API rate limits
         "anon": "200/hour",  # Anonymous users (login page, public endpoints)
         "user": "1000/hour",  # Authenticated users (normal usage)
-        
         # Specific endpoint rate limits (use custom throttle classes)
         "burst": "30/minute",  # Burst protection for rapid requests
         "login": "5/minute",  # Login attempts (prevents brute force)
