@@ -233,7 +233,3 @@ users = UserService.list_users(
     search='john'
 )
 ```
-
----
-
-**Version:** 2.0 (Refactored)

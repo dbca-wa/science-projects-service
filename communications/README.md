@@ -109,7 +109,3 @@ reaction, was_deleted = CommunicationService.toggle_comment_reaction(
     comment_id=comment.id
 )
 ```
-
----
-
-**Version**: 1.0.0

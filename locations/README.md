@@ -73,7 +73,3 @@ area = AreaService.create_area(user, {
     'area_type': 'dbcadistrict'
 })
 ```
-
----
-
-**Version**: 1.0.0

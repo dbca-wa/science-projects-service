@@ -104,7 +104,3 @@ contact = ContactService.create_agency_contact(user, {
     'email': 'contact@environment.gov.au'
 })
 ```
-
----
-
-**Version**: 1.0.0

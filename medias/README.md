@@ -186,7 +186,3 @@ media = MediaService.get_annual_report_media_by_report_and_kind(
     kind='cover'
 )
 ```
-
----
-
-**Version**: 2.0  

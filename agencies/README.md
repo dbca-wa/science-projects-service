@@ -199,7 +199,3 @@ updated_ba = AgencyService.set_business_area_active(pk=1)
 # Clean orphaned affiliations
 result = AgencyService.clean_orphaned_affiliations(user=request.user)
 ```
-
----
-
-**Version**: 2.0  
