@@ -23,13 +23,8 @@ urlpatterns = [
     path("tasks", views.AdminTasks.as_view()),
     path("tasks/pending", views.PendingTasks.as_view()),
     path("tasks/<int:pk>", views.AdminTaskDetail.as_view()),
-    # Caretaker ==========================================================
-    path("caretakers", views.Caretakers.as_view()),
-    path("caretakers/<int:pk>", views.CaretakerDetail.as_view()),
-    path("caretakers/pending/<int:pk>", views.PendingCaretakerTasks.as_view()),
-    path("caretakers/requests", views.GetPendingCaretakerRequestsForUser.as_view()),  # GET with ?user_id=X
-    path("caretakers/adminsetcaretaker", views.AdminSetCaretaker.as_view()),
-    path("caretakers/checkcaretaker", views.CheckCaretaker.as_view()),
+    # Caretaker (DEPRECATED - use /api/v1/caretakers/ instead) ===========
+    path("caretakers/", include("caretakers.urls_compat")),
     # Functions on approval of tasks =====================================
     path("tasks/<int:pk>/approve", views.ApproveTask.as_view()),
     path("tasks/<int:pk>/reject", views.RejectTask.as_view()),

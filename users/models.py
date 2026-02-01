@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import requests
-from adminoptions.models import Caretaker
+from caretakers.models import Caretaker
 from common.models import CommonModel
 from medias.models import UserAvatar
 from rest_framework import serializers
@@ -94,8 +94,9 @@ class User(AbstractUser):
         avatar = self.get_image()
 
         # Get the first related caretaker instance (if any)
+        # Note: Using 'caretakers' (plural) - the new related_name
         caretaker_instance = (
-            self.caretaker.first()
+            self.caretakers.first()
         )  # Use `.first()` to get a specific instance
         caretaker_id = caretaker_instance.pk if caretaker_instance else None
 

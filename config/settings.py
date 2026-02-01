@@ -244,6 +244,7 @@ CUSTOM_APPS = [
     "communications.apps.CommunicationsConfig",
     "documents.apps.DocumentsConfig",
     "adminoptions.apps.AdminoptionsConfig",
+    "caretakers.apps.CaretakersConfig",
 ]
 
 INSTALLED_APPS = SYSTEM_APPS + THIRD_PARTY_APPS + CUSTOM_APPS

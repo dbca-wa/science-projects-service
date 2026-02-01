@@ -23,7 +23,6 @@ from django.db import transaction
 from adminoptions.models import (
     AdminOptions,
     AdminTask,
-    Caretaker,
     ContentField,
     GuideSection,
 )
@@ -32,11 +31,12 @@ from adminoptions.serializers import (
     AdminOptionsSerializer,
     AdminTaskRequestCreationSerializer,
     AdminTaskSerializer,
-    CaretakerSerializer,
     ContentFieldSerializer,
     GuideSectionCreateUpdateSerializer,
     GuideSectionSerializer,
 )
+from caretakers.models import Caretaker
+from caretakers.serializers import CaretakerSerializer
 from agencies.models import BusinessArea
 from documents.models import ProjectDocument
 from documents.serializers import (
@@ -604,7 +604,8 @@ class CheckPendingCaretakerRequestForUser(APIView):
 class GetPendingCaretakerRequestsForUser(APIView):
     """
     Get all pending caretaker requests for a specific user
-    Returns requests where someone wants to become THIS user's caretaker
+    Returns requests where someone wants THIS user to become THEIR caretaker
+    (i.e., where THIS user is in the secondary_users array)
     """
     permission_classes = [IsAuthenticated]
 
@@ -621,11 +622,12 @@ class GetPendingCaretakerRequestsForUser(APIView):
             msg=f"{req.user} is getting pending caretaker requests for user {user_id}"
         )
         
-        # Get all pending caretaker requests for this user
+        # Get all pending caretaker requests where THIS user is being asked to be the caretaker
+        # The user_id should be in the secondary_users array
         pending_requests = AdminTask.objects.filter(
-            primary_user=user_id,
             action=AdminTask.ActionTypes.SETCARETAKER,
             status=AdminTask.TaskStatus.PENDING,
+            secondary_users__contains=[int(user_id)],  # User is in the secondary_users array
         )
         
         # Serialize the requests
@@ -650,6 +652,9 @@ class PendingCaretakerTasks(APIView):
             project__in=project_queryset,
             business_area_lead_approval_granted=True,
             directorate_approval_granted=False,
+        ).select_related(
+            'project',
+            'project__business_area',
         )
 
     def get_ba_documents(self, project_queryset):
@@ -662,6 +667,9 @@ class PendingCaretakerTasks(APIView):
             project__in=project_queryset,
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=False,
+        ).select_related(
+            'project',
+            'project__business_area',
         )
 
     def get_lead_documents(self, project_queryset):
@@ -673,6 +681,9 @@ class PendingCaretakerTasks(APIView):
         ).filter(
             project__in=project_queryset,
             project_lead_approval_granted=False,
+        ).select_related(
+            'project',
+            'project__business_area',
         )
 
     def get_all_caretaker_assignments(self, user_id, processed_users=None):
@@ -696,8 +707,16 @@ class PendingCaretakerTasks(APIView):
         # Add current user to processed set
         processed_users.add(user_id)
 
-        # Get direct caretaker assignments for this user
-        direct_assignments = Caretaker.objects.filter(caretaker=user_id)
+        # Get direct caretaker assignments for this user with optimized queries
+        direct_assignments = Caretaker.objects.filter(
+            caretaker=user_id
+        ).select_related(
+            'user',
+            'user__work',
+            'user__work__business_area',
+        ).prefetch_related(
+            'user__business_areas_led',
+        )
         all_assignments = list(direct_assignments)
 
         # For each user being caretaken, get their caretaker assignments
@@ -726,7 +745,8 @@ class PendingCaretakerTasks(APIView):
             try:
                 if is_serialized:
                     # For serialized data, doc is a dictionary
-                    key = f"{doc["pk"]}_{doc["kind"]}"
+                    # Use 'id' not 'pk' - serializers return 'id'
+                    key = f"{doc['id']}_{doc['kind']}"
 
                 else:
                     # For model instances, doc is a ProjectDocument object
@@ -759,51 +779,49 @@ class PendingCaretakerTasks(APIView):
             msg=f"{request.user} is getting pending caretaker documents pending action"
         )
 
-        # 1) Gather caretaker assignments
-        # caretaker_assignments = Caretaker.objects.filter(caretaker=pk)
-        # the actual "users" being cared for
-        # caretaker_users = [assignment.user for assignment in caretaker_assignments]
-
+        # 1) Gather caretaker assignments (now optimized with select_related/prefetch_related)
         caretaker_assignments = self.get_all_caretaker_assignments(pk)
 
-        # 2) Determine if at least one caretaker user is "Directorate" or superuser
-        #    Similarly, gather all BA leader user IDs, etc.
+        # 2) Batch query for all project memberships to avoid N+1 queries
+        caretakee_ids = [assignment.user.id for assignment in caretaker_assignments]
+        
+        # Single query for all lead memberships
+        lead_user_ids = set(
+            ProjectMember.objects.exclude(
+                project__status=Project.CLOSED_ONLY
+            ).filter(
+                user_id__in=caretakee_ids,
+                is_leader=True
+            ).values_list('user_id', flat=True)
+        )
+        
+        # Single query for all team memberships
+        team_user_ids = set(
+            ProjectMember.objects.exclude(
+                project__status=Project.CLOSED_ONLY
+            ).filter(
+                user_id__in=caretakee_ids,
+                is_leader=False
+            ).values_list('user_id', flat=True)
+        )
+        
+        # Determine roles for each caretakee
         directorate_user_found = False
         ba_leader_user_ids = set()
-        project_lead_user_ids = set()
-        team_member_user_ids = set()
+        project_lead_user_ids = lead_user_ids
+        team_member_user_ids = team_user_ids
 
         for assignment in caretaker_assignments:
             user = assignment.user
             user_ba = user.work.business_area if hasattr(user, "work") else None
 
             # Check Directorate
-            if (
-                not request.user.is_superuser
-                and (user_ba and user_ba.name == "Directorate")
-                or user.is_superuser
-            ):
+            if ((user_ba and user_ba.name == "Directorate") or user.is_superuser):
                 directorate_user_found = True
 
-            # Check if BA leader
-            business_areas_led = user.business_areas_led.values_list("id", flat=True)
-            if business_areas_led:
+            # Check if BA leader (using prefetched data)
+            if user.business_areas_led.exists():
                 ba_leader_user_ids.add(user.id)
-
-            # Check if project lead
-            # This will help gather project lead IDs for further filtering
-            lead_memberships = ProjectMember.objects.exclude(
-                project__status=Project.CLOSED_ONLY
-            ).filter(user=user, is_leader=True)
-            if lead_memberships.exists():
-                project_lead_user_ids.add(user.id)
-
-            # Check if team member (non-leader)
-            non_leader_memberships = ProjectMember.objects.filter(
-                user=user, is_leader=False
-            )
-            if non_leader_memberships.exists():
-                team_member_user_ids.add(user.id)
 
         # 3) Find the relevant projects
         active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY)
@@ -815,6 +833,18 @@ class PendingCaretakerTasks(APIView):
         directorate_documents = []
         if directorate_user_found:
             directorate_documents = self.get_directorate_documents(active_projects)
+            
+            # Filter out directorate documents that the requesting user already has access to
+            requesting_user = request.user
+            requesting_user_ba = requesting_user.work.business_area if hasattr(requesting_user, "work") else None
+            requesting_user_is_directorate = (
+                (requesting_user_ba and requesting_user_ba.name == "Directorate") 
+                or requesting_user.is_superuser
+            )
+            
+            if requesting_user_is_directorate:
+                directorate_documents = []
+            
             all_documents.extend(directorate_documents)
 
         # 4b) BA docs
@@ -845,10 +875,11 @@ class PendingCaretakerTasks(APIView):
             # This example reuses the same lead_documents filter with
             # project_lead_approval_granted=False, but specifically for those team members’ projects
             # You might need a separate query if your logic differs.
-            team_projects = ProjectMember.objects.filter(
+            team_projects = ProjectMember.objects.exclude(
+                project__status=Project.CLOSED_ONLY
+            ).filter(
                 user_id__in=team_member_user_ids,
                 is_leader=False,
-                project__in=active_projects,
             ).values_list("project_id", flat=True)
 
             member_documents = ProjectDocument.objects.exclude(
@@ -856,6 +887,9 @@ class PendingCaretakerTasks(APIView):
             ).filter(
                 project__in=team_projects,
                 project_lead_approval_granted=False,
+            ).select_related(
+                'project',
+                'project__business_area',
             )
             all_documents.extend(member_documents)
 

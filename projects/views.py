@@ -1162,27 +1162,126 @@ class Projects(APIView):
 class ProjectMap(APIView):
     permission_classes = [IsAuthenticated]
 
+    def determine_db_kind(self, provided):
+        if provided.startswith("CF"):
+            return "core_function"
+        elif provided.startswith("STP"):
+            return "student"
+        elif provided.startswith("SP"):
+            return "science"
+        elif provided.startswith("EXT"):
+            return "external"
+        else:
+            return None
+
+    def parse_search_term(self, search_term):
+        kind = None
+        year = None
+        number = None
+
+        if not search_term:
+            return Project.objects.none()
+
+        # Split the search term into parts using '-'
+        parts = search_term.split("-")
+
+        # Get the project kind from the first part
+        if parts and parts[0]:
+            db_kind = self.determine_db_kind(parts[0].upper())
+            kind = db_kind
+
+            # If db_kind couldn't be determined, return empty queryset
+            if not kind:
+                return Project.objects.none()
+        else:
+            return Project.objects.none()
+
+        # Initialize the base queryset with the determined kind
+        projects = Project.objects.filter(kind=kind)
+
+        # Case: prefix-year-number (e.g., "CF-2022-123")
+        if len(parts) >= 3:
+            # Handle year part
+            if (
+                parts[1] and parts[1].strip()
+            ):  # Check if the year part is not empty (fix invalid literal for int)
+                year = parts[1]
+                try:
+                    year_as_int = int(year)
+                    if len(year) == 4:  # Only filter by year if it's a 4-digit year
+                        projects = projects.filter(year=year_as_int)
+                except (ValueError, TypeError):
+                    # If year can't be converted to int, continue with just the kind filter
+                    pass
+
+            # Handle number part
+            if (
+                parts[2] and parts[2].strip()
+            ):  # Check if the number part is not empty (fix invalid literal for int)
+                number = parts[2]
+                try:
+                    number_as_int = int(number)
+                    number_filter = Q(number__icontains=number_as_int)
+                    projects = projects.filter(number_filter)
+                except (ValueError, TypeError):
+                    # If number can't be converted to int, continue with previous filters
+                    pass
+
+        # Case: prefix-year (e.g., "CF-2022")
+        elif len(parts) == 2:
+            if parts[1] and parts[1].strip():  # Check if the year part is not empty
+                year = parts[1]
+                try:
+                    year_as_int = int(year)
+                    if len(year) == 4:  # Only filter by year if it's a 4-digit year
+                        projects = projects.filter(year=year_as_int)
+                except (ValueError, TypeError):
+                    # If year can't be converted to int, continue with just the kind filter
+                    pass
+
+        # Case: just the prefix (e.g., "CF")
+        # We've already filtered by kind above, so no additional filtering needed
+
+        # Additional N+1 Query optomisation
+        projects = projects.select_related(
+            "business_area",
+            "business_area__division",
+            "business_area__division__director",
+            "business_area__division__approver",
+            "business_area__leader",
+            "business_area__caretaker",
+            "business_area__finance_admin",
+            "business_area__data_custodian",
+            "business_area__image",
+            "image",
+            "image__uploader",
+            "area",
+        ).prefetch_related(
+            "members",
+            "members__user",
+            "members__user__profile",
+            "members__user__work",
+            "members__user__work__business_area",
+            "members__user__caretaker",
+            "members__user__caretaker_for",
+            "business_area__division__directorate_email_list",
+            "admintasks",
+        )
+
+        return projects
+
     def get(self, req):
         print(f"{req.user} is viewing the map")
         settings.LOGGER.info(msg=f"{req.user} is viewing/filtering projects")
-        try:
-            page = int(req.query_params.get("page", 1))
-        except ValueError:
-            # If the user sends a non-integer value as the page parameter
-            page = 1
+        
+        # Get all projects for total count and projects without location calculation
+        all_projects = Project.objects.all()
+        total_projects_count = all_projects.count()
+        projects_without_location_count = all_projects.filter(
+            Q(area__isnull=True) | Q(area__areas__isnull=True) | Q(area__areas=[])
+        ).distinct().count()
 
-        page_size = 2000
-        start = (page - 1) * page_size
-        end = start + page_size
-
-        # Get any location selections (is in json format)
-        # location = req.query_params.get("locations", None)
-        # print(location)
-        # if location is not None:
-        #     location = json.loads(location)
-        #     projects = Project.objects.filter(projectarea__location__in=location).all()
-        # else:
-        #     projects = Project.objects.all()
+        # Apply filters for the map display
         # Get the search term
         search_term = req.GET.get("searchTerm")
         # Handle search by project id string
@@ -1210,7 +1309,6 @@ class ProjectMap(APIView):
                 )
 
         selected_user = req.GET.get("selected_user", None)
-
         if selected_user:
             projects = projects.filter(members__user__pk=selected_user)
 
@@ -1218,6 +1316,37 @@ class ProjectMap(APIView):
         if business_areas:
             business_areas = business_areas.split(",")
             projects = projects.filter(business_area__pk__in=business_areas)
+
+        status_slug = req.GET.get("projectstatus", "All")
+        if status_slug != "All":
+            if status_slug == "unknown":
+                projects = projects.exclude(status__in=Project.StatusChoices.values)
+            else:
+                projects = projects.filter(status=status_slug)
+
+        kind_slug = req.GET.get("projectkind", "All")
+        if kind_slug != "All":
+            projects = projects.filter(kind=kind_slug)
+
+        year_filter = req.GET.get("year", "All")
+        if year_filter != "All":
+            projects = projects.filter(year=year_filter)
+
+        # Get the values of the checkboxes
+        only_active = bool(req.GET.get("only_active", False))
+        only_inactive = bool(req.GET.get("only_inactive", False))
+
+        # Interaction logic between checkboxes
+        if only_active:
+            only_inactive = False
+        elif only_inactive:
+            only_active = False
+
+        # Filter projects based on checkbox values
+        if only_active:
+            projects = projects.filter(status__in=Project.ACTIVE_ONLY)
+        elif only_inactive:
+            projects = projects.exclude(status__in=Project.ACTIVE_ONLY)
 
         # N+1 query optimization
         projects = projects.select_related(
@@ -1228,6 +1357,7 @@ class ProjectMap(APIView):
             "area",  # Based on serializer
         ).prefetch_related(
             "members",
+            "area",  # For location data
         )
 
         projects = projects.annotate(
@@ -1241,22 +1371,20 @@ class ProjectMap(APIView):
         ).order_by("custom_ordering", "-year", "id")
         projects = projects.distinct()
 
-        total_projects = projects.count()
-        total_pages = ceil(total_projects / page_size)
-
+        # Get all filtered projects (no pagination for map)
         serialized_projects = ProjectSerializer(
-            projects[start:end],
+            projects,
             many=True,
             context={
                 "request": req,
-                "projects": projects[start:end],
+                "projects": projects,
             },
         )
 
         response_data = {
             "projects": serialized_projects.data,
-            "total_results": total_projects,
-            "total_pages": total_pages,
+            "total_projects": total_projects_count,
+            "projects_without_location": projects_without_location_count,
         }
 
         return Response(response_data, status=HTTP_200_OK)
@@ -4043,7 +4171,8 @@ class DownloadAllProjectsAsCSV(APIView):
         settings.LOGGER.info(msg=f"{req.user} is generating a csv of all projects...")
         try:
             # Retrieve projects data from the database
-            projects = Project.objects.all()
+            # Don't use select_related for leader as it may not exist
+            projects = Project.objects.select_related('business_area').prefetch_related('members__user').all()
 
             # Create a response object with CSV content type
             res = HttpResponse(content_type="text/csv")
@@ -4073,6 +4202,28 @@ class DownloadAllProjectsAsCSV(APIView):
 
             # Write project data rows
             for project in projects:
+                # Safely get business area leader
+                ba_leader = ""
+                if project.business_area and project.business_area.leader_id:
+                    try:
+                        # Import User model here to avoid circular imports
+                        from users.models import User
+                        leader_user = User.objects.filter(pk=project.business_area.leader_id).first()
+                        if leader_user:
+                            ba_leader = str(leader_user)
+                    except Exception:
+                        ba_leader = ""
+                
+                # Safely get team members (skip members with missing users)
+                team_members = []
+                for project_member in project.members.all():
+                    try:
+                        if project_member.user:
+                            team_members.append(f"{project_member.user.first_name} {project_member.user.last_name}")
+                    except Exception:
+                        # Skip members with missing users
+                        continue
+                
                 row = [
                     project.pk,
                     project.get_project_tag(),
@@ -4081,13 +4232,8 @@ class DownloadAllProjectsAsCSV(APIView):
                     project.year,
                     strip_html_tags(project.title),  # Strip HTML from title
                     project.business_area,
-                    (project.business_area.leader if project.business_area else ""),
-                    ", ".join(
-                        [
-                            f"{project_member.user.first_name} {project_member.user.last_name}"
-                            for project_member in project.members.all()
-                        ]
-                    ),
+                    ba_leader,
+                    ", ".join(team_members),
                     project.business_area.cost_center if project.business_area else "",
                     project.start_date,
                     project.end_date,
@@ -4178,6 +4324,28 @@ class DownloadARProjectsAsCSV(APIView):
                 else:
                     report_type = "Unknown"
 
+                # Safely get business area leader
+                ba_leader = ""
+                if project.business_area and project.business_area.leader_id:
+                    try:
+                        # Import User model here to avoid circular imports
+                        from users.models import User
+                        leader_user = User.objects.filter(pk=project.business_area.leader_id).first()
+                        if leader_user:
+                            ba_leader = str(leader_user)
+                    except Exception:
+                        ba_leader = ""
+
+                # Safely get team members (skip members with missing users)
+                team_members = []
+                for project_member in project.members.all():
+                    try:
+                        if project_member.user:
+                            team_members.append(f"{project_member.user.first_name} {project_member.user.last_name}")
+                    except Exception:
+                        # Skip members with missing users
+                        continue
+
                 row = [
                     project.pk,
                     project.get_project_tag(),
@@ -4186,13 +4354,8 @@ class DownloadARProjectsAsCSV(APIView):
                     project.year,
                     strip_html_tags(project.title),  # Strip HTML from title
                     project.business_area,
-                    (project.business_area.leader if project.business_area else ""),
-                    ", ".join(
-                        [
-                            f"{project_member.user.first_name} {project_member.user.last_name}"
-                            for project_member in project.members.all()
-                        ]
-                    ),
+                    ba_leader,
+                    ", ".join(team_members),
                     project.business_area.cost_center if project.business_area else "",
                     project.start_date,
                     project.end_date,

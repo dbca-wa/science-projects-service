@@ -692,9 +692,7 @@ class Users(APIView):
                     UserProfile.objects.create(user=new_user)
                     # Creates UserContact entry
                     UserContact.objects.create(user=new_user)
-                    # Creates StaffProfile entry
-                    if staff:
-                        PublicStaffProfile.objects.create(user=new_user)
+                    # Note: PublicStaffProfile is already created above for all users
 
                     new_user.set_password(settings.EXTERNAL_PASS)
                     new_user.save()

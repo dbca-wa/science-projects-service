@@ -119,8 +119,14 @@ class ProjectSerializer(ModelSerializer):
         return instance.get_deletion_request_id()
 
     def get_areas(self, instance):
-        return instance.area.areas
-        # return TinyAreaSerializer(areas).data
+        from locations.models import Area
+        from locations.serializers import TinyAreaSerializer
+        
+        area_ids = instance.area.areas
+        if area_ids:
+            areas = Area.objects.filter(id__in=area_ids)
+            return TinyAreaSerializer(areas, many=True).data
+        return []
 
 
 class ProjectBAUpdateSerializer(ModelSerializer):

@@ -3,10 +3,10 @@ from rest_framework import serializers
 from adminoptions.models import (
     AdminOptions,
     AdminTask,
-    Caretaker,
     GuideSection,
     ContentField,
 )
+from caretakers.models import Caretaker
 from medias.serializers import UserAvatarSerializer
 from projects.models import Project
 from users.models import User
@@ -238,14 +238,8 @@ class AdminTaskSerializer(serializers.ModelSerializer):
         return []
 
 
-class CaretakerSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)  # Explicitly use 'id' for consistency
-    caretaker = BasicUserSerializer()
-    user = MiniUserSerializer()
-
-    class Meta:
-        model = Caretaker
-        fields = "__all__"
+# Import CaretakerSerializer from the new caretakers app
+from caretakers.serializers import CaretakerSerializer
 
 
 # endregion  =================================================================================================

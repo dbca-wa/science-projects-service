@@ -153,11 +153,8 @@ class TinyProjectDocumentSerializerWithUserDocsBelongTo(serializers.ModelSeriali
         # Retrieve the user from the serializer context
         user = self.context.get("for_user", None)
         if user:
-
             # Safely get the user's avatar
             avatar = getattr(user, "avatar", None)
-
-            print(avatar)
             image_url = avatar.file.url if avatar else None
 
             return {
