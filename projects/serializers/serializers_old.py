@@ -17,7 +17,7 @@ from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerialize
 from locations.serializers import TinyAreaSerializer
 from users.models import User
 from users.serializers import TinyUserSerializer
-from .models import (
+from projects.models import (
     ExternalProjectDetails,
     Project,
     ProjectArea,
