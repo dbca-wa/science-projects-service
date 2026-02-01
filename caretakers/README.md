@@ -142,3 +142,7 @@ status = RequestService.check_caretaker_status(user)
 
 ---
 
+<<<<<<< Updated upstream
+=======
+**Version:** 2.0 (Refactored)
+>>>>>>> Stashed changes

@@ -269,7 +269,7 @@ class ApproveCaretakerRequestViewTest(TestCase):
         response = self.client.post(
             f"/api/v1/caretakers/requests/{self.task.pk}/approve/"
         )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class RejectCaretakerRequestViewTest(TestCase):

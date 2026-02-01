@@ -95,6 +95,9 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Refactoring archive (old code preserved for reference)
+_refactor_archive/
+
 # Flask stuff:
 instance/
 .webassets-cache

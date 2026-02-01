@@ -1,24 +1,9 @@
-# region IMPORTS
+"""
+Serializers for creating caretaker relationships
+"""
 from rest_framework import serializers
-from .models import Caretaker
+from ..models import Caretaker
 from users.models import User
-from users.serializers import BasicUserSerializer, MiniUserSerializer
-
-# endregion
-
-
-class CaretakerSerializer(serializers.ModelSerializer):
-    """Serializer for reading caretaker relationships"""
-    id = serializers.IntegerField(source='pk', read_only=True)
-    user = MiniUserSerializer(read_only=True)
-    caretaker = BasicUserSerializer(read_only=True)
-    
-    class Meta:
-        model = Caretaker
-        fields = [
-            'id', 'user', 'caretaker', 'end_date', 
-            'reason', 'notes', 'created_at', 'updated_at'
-        ]
 
 
 class CaretakerCreateSerializer(serializers.ModelSerializer):
@@ -31,6 +16,7 @@ class CaretakerCreateSerializer(serializers.ModelSerializer):
         fields = ['user', 'caretaker', 'end_date', 'reason', 'notes']
     
     def validate(self, data):
+        """Validate caretaker relationship"""
         # Prevent self-caretaking
         if data['user'] == data['caretaker']:
             raise serializers.ValidationError("Cannot caretake for yourself")
