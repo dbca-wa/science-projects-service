@@ -1,8 +1,8 @@
 """
-Contact views - Compatibility layer
+Contact views
 """
-from .views.addresses import Addresses, AddressDetail
-from .views.contacts import (
+from .addresses import Addresses, AddressDetail
+from .contacts import (
     AgencyContacts,
     AgencyContactDetail,
     BranchContacts,
