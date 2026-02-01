@@ -1,7 +1,7 @@
 """
-Communication views - Compatibility layer
+Communication views
 """
-from .views.crud import (
+from .crud import (
     ChatRooms,
     ChatRoomDetail,
     DirectMessages,
