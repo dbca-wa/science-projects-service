@@ -23,7 +23,7 @@ class EmploymentService:
             QuerySet of EmploymentEntry objects
         """
         return EmploymentEntry.objects.filter(
-            profile_id=profile_id
+            public_profile_id=profile_id
         ).order_by('-start_year', '-end_year')
 
     @staticmethod
@@ -61,11 +61,12 @@ class EmploymentService:
         settings.LOGGER.info(f"Creating employment entry for profile {profile_id}")
         
         entry = EmploymentEntry.objects.create(
-            profile_id=profile_id,
-            position=data['position'],
-            organisation=data['organisation'],
+            public_profile_id=profile_id,
+            position_title=data['position_title'],
+            employer=data['employer'],
             start_year=data['start_year'],
             end_year=data.get('end_year'),
+            section=data.get('section', ''),
         )
         
         return entry
@@ -121,8 +122,8 @@ class EducationService:
             QuerySet of EducationEntry objects
         """
         return EducationEntry.objects.filter(
-            profile_id=profile_id
-        ).order_by('-year')
+            public_profile_id=profile_id
+        ).order_by('-end_year')
 
     @staticmethod
     def get_education(entry_id):
@@ -159,10 +160,11 @@ class EducationService:
         settings.LOGGER.info(f"Creating education entry for profile {profile_id}")
         
         entry = EducationEntry.objects.create(
-            profile_id=profile_id,
-            qualification=data['qualification'],
+            public_profile_id=profile_id,
+            qualification_name=data['qualification_name'],
             institution=data['institution'],
-            year=data['year'],
+            end_year=data['end_year'],
+            location=data.get('location', ''),
         )
         
         return entry

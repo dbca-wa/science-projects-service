@@ -59,7 +59,7 @@ class ProblematicProjects(APIView):
         open_with_closure = Project.objects.filter(
             status__in=['active', 'updating'],
         ).exclude(
-            Q(projectclosure__isnull=True) | Q(projectclosure__document__status='new')
+            Q(closure__isnull=True) | Q(closure__document__status='new')
         ).select_related(
             'business_area',
         ).prefetch_related(
@@ -132,14 +132,14 @@ class RemedyOpenClosed(APIView):
         projects = Project.objects.filter(
             status__in=['active', 'updating'],
         ).exclude(
-            Q(projectclosure__isnull=True) | Q(projectclosure__document__status='new')
+            Q(closure__isnull=True) | Q(closure__document__status='new')
         ).select_related(
             'business_area',
             'business_area__division',
         ).prefetch_related(
             'members',
             'members__user',
-            'projectclosure_set',
+            'closure',
         ).distinct()
         
         serializer = ProblematicProjectSerializer(projects, many=True)

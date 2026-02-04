@@ -31,7 +31,7 @@ class ProfileService:
         ).prefetch_related(
             'employment_entries',
             'education_entries',
-            'keywords',
+            'keyword_tags',
         )
         
         if search:
@@ -43,10 +43,8 @@ class ProfileService:
             )
         
         if filters:
-            if 'is_active' in filters:
-                profiles = profiles.filter(is_active=filters['is_active'])
-            if 'public' in filters:
-                profiles = profiles.filter(public=filters['public'])
+            if 'is_hidden' in filters:
+                profiles = profiles.filter(is_hidden=filters['is_hidden'])
             if 'business_area' in filters:
                 profiles = profiles.filter(
                     user__work__business_area_id=filters['business_area']
@@ -76,7 +74,7 @@ class ProfileService:
             ).prefetch_related(
                 'employment_entries',
                 'education_entries',
-                'keywords',
+                'keyword_tags',
             ).get(pk=profile_id)
         except PublicStaffProfile.DoesNotExist:
             raise NotFound(f"Profile {profile_id} not found")
@@ -99,7 +97,7 @@ class ProfileService:
             ).prefetch_related(
                 'employment_entries',
                 'education_entries',
-                'keywords',
+                'keyword_tags',
             ).get(user_id=user_id)
         except PublicStaffProfile.DoesNotExist:
             return None
@@ -129,8 +127,7 @@ class ProfileService:
             user_id=user_id,
             about=data.get('about', ''),
             expertise=data.get('expertise', ''),
-            public=data.get('public', False),
-            is_active=data.get('is_active', True),
+            is_hidden=data.get('is_hidden', False),
         )
         
         return profile
@@ -174,7 +171,7 @@ class ProfileService:
     @transaction.atomic
     def toggle_visibility(profile_id):
         """
-        Toggle profile public visibility
+        Toggle profile hidden status
         
         Args:
             profile_id: Profile ID
@@ -183,22 +180,22 @@ class ProfileService:
             Updated PublicStaffProfile object
         """
         profile = ProfileService.get_staff_profile(profile_id)
-        profile.public = not profile.public
+        profile.is_hidden = not profile.is_hidden
         profile.save()
         
-        settings.LOGGER.info(f"Toggled visibility for profile {profile_id}: {profile.public}")
+        settings.LOGGER.info(f"Toggled visibility for profile {profile_id}: {profile.is_hidden}")
         return profile
 
     @staticmethod
     def get_active_staff_emails():
         """
-        Get all active staff profile emails
+        Get all non-hidden staff profile emails
         
         Returns:
             QuerySet of PublicStaffProfile objects
         """
         return PublicStaffProfile.objects.filter(
-            is_active=True,
+            is_hidden=False,
             user__is_active=True,
         ).select_related('user')
 
@@ -211,19 +208,19 @@ class ProfileService:
             user_id: User ID
             
         Returns:
-            Dict with profile data and active state
+            Dict with profile data and hidden state
         """
         try:
             profile = PublicStaffProfile.objects.select_related('user').get(user_id=user_id)
             return {
                 'exists': True,
-                'is_active': profile.is_active,
+                'is_hidden': profile.is_hidden,
                 'profile': profile,
             }
         except PublicStaffProfile.DoesNotExist:
             return {
                 'exists': False,
-                'is_active': False,
+                'is_hidden': False,
                 'profile': None,
             }
 

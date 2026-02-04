@@ -15,7 +15,6 @@ class TinyUserProfileSerializer(serializers.ModelSerializer):
             "id",
             "user",
             "title",
-            "expertise",
         )
 
 
@@ -42,8 +41,6 @@ class ProfilePageSerializer(serializers.ModelSerializer):
             "work",
             "avatar",
             "title",
-            "expertise",
-            "about",
         )
     
     def get_user(self, obj):

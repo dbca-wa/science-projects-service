@@ -20,7 +20,7 @@ from users.serializers import BasicUserSerializer, MiniUserSerializer
 class ContentFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentField
-        fields = ["id", "title", "field_key", "description", "order"]
+        fields = ["id", "title", "field_key", "description", "section", "order"]
 
 
 class GuideSectionSerializer(serializers.ModelSerializer):
@@ -146,8 +146,34 @@ class AdminOptionsMaintainerSerializer(serializers.ModelSerializer):
         fields = ["maintainer"]
 
 
+class AdminOptionsCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating AdminOptions with writable maintainer field"""
+    maintainer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = AdminOptions
+        fields = (
+            "id",
+            "email_options",
+            "maintainer",
+            "guide_content",
+            # Legacy fields - keep for backward compatibility
+            "guide_admin",
+            "guide_about",
+            "guide_login",
+            "guide_profile",
+            "guide_user_creation",
+            "guide_user_view",
+            "guide_project_creation",
+            "guide_project_view",
+            "guide_project_team",
+            "guide_documents",
+            "guide_report",
+        )
+
+
 class AdminOptionsSerializer(serializers.ModelSerializer):
-    maintainer = MiniUserSerializer()
+    maintainer = MiniUserSerializer(read_only=True)
     guide_sections = serializers.SerializerMethodField()
 
     class Meta:

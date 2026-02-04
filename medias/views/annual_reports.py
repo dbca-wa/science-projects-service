@@ -170,7 +170,7 @@ class AnnualReportMedias(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting annual report media")
-        serializer = AnnualReportMediaSerializer(data=request.data)
+        serializer = AnnualReportMediaCreationSerializer(data=request.data)
         
         if serializer.is_valid():
             media = serializer.save()

@@ -7,11 +7,16 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import (
     HTTP_200_OK,
+    HTTP_201_CREATED,
     HTTP_202_ACCEPTED,
     HTTP_400_BAD_REQUEST,
+    HTTP_403_FORBIDDEN,
+    HTTP_404_NOT_FOUND,
 )
 
 from adminoptions.serializers import AdminTaskSerializer
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from users.models import User
 from ..serializers import CaretakerSerializer
 from ..services import CaretakerRequestService
 
@@ -69,3 +74,83 @@ class RejectCaretakerRequest(APIView):
             {"message": "Caretaker request rejected successfully"},
             status=HTTP_202_ACCEPTED,
         )
+
+
+class CaretakerRequestCreate(APIView):
+    """Create a new caretaker request"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Create caretaker request"""
+        # Validate input
+        user_id = request.data.get('user_id')
+        caretaker_id = request.data.get('caretaker_id')
+        
+        if not user_id or not caretaker_id:
+            return Response(
+                {"error": "user_id and caretaker_id are required"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        
+        try:
+            # Create request via service
+            task = CaretakerRequestService.create_request(
+                requester=request.user,
+                user_id=user_id,
+                caretaker_id=caretaker_id,
+                reason=request.data.get('reason'),
+                end_date=request.data.get('end_date'),
+                notes=request.data.get('notes'),
+            )
+            
+            # Serialize and return
+            serializer = AdminTaskSerializer(task)
+            return Response(
+                {
+                    "task_id": task.id,
+                    "task": serializer.data,
+                },
+                status=HTTP_201_CREATED,
+            )
+            
+        except User.DoesNotExist:
+            return Response(
+                {"error": "User not found"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        except ValidationError as e:
+            return Response(
+                {"error": str(e)},
+                status=HTTP_400_BAD_REQUEST,
+            )
+
+
+class CaretakerRequestCancel(APIView):
+    """Cancel a caretaker request"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        """Cancel caretaker request"""
+        try:
+            CaretakerRequestService.cancel_request(pk, request.user)
+            
+            return Response(
+                {"message": "Caretaker request cancelled successfully"},
+                status=HTTP_202_ACCEPTED,
+            )
+            
+        except NotFound as e:
+            return Response(
+                {"error": str(e)},
+                status=HTTP_404_NOT_FOUND,
+            )
+        except PermissionDenied as e:
+            return Response(
+                {"error": str(e)},
+                status=HTTP_403_FORBIDDEN,
+            )
+        except ValidationError as e:
+            return Response(
+                {"error": str(e)},
+                status=HTTP_400_BAD_REQUEST,
+            )

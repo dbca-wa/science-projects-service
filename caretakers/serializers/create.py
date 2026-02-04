@@ -17,17 +17,12 @@ class CaretakerCreateSerializer(serializers.ModelSerializer):
     
     def validate(self, data):
         """Validate caretaker relationship"""
-        # Prevent self-caretaking
-        if data['user'] == data['caretaker']:
-            raise serializers.ValidationError("Cannot caretake for yourself")
+        # Get user and caretaker from data or instance
+        user = data.get('user', getattr(self.instance, 'user', None))
+        caretaker = data.get('caretaker', getattr(self.instance, 'caretaker', None))
         
-        # Check for existing relationship
-        if Caretaker.objects.filter(
-            user=data['user'],
-            caretaker=data['caretaker']
-        ).exists():
-            raise serializers.ValidationError(
-                "Caretaker relationship already exists"
-            )
+        # Prevent self-caretaking (only if both are provided)
+        if user and caretaker and user == caretaker:
+            raise serializers.ValidationError("Cannot caretake for yourself")
         
         return data

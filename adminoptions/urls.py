@@ -2,15 +2,13 @@ from . import views
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-# Create a router for ViewSet-based views
-router = DefaultRouter()
+# Create a router for ViewSet-based views (without root URL)
+router = DefaultRouter(trailing_slash=True)
 router.register(r"guide-sections", views.GuideSectionViewSet, basename="guide-sections")
 router.register(r"content-fields", views.ContentFieldViewSet, basename="content-fields")
 
 urlpatterns = [
-    # Include the router URLs
-    path("", include(router.urls)),
-    # Your existing URLs
+    # Your existing URLs (must come before router to avoid conflicts)
     path("", views.AdminControls.as_view()),
     path("<int:pk>", views.AdminControlsDetail.as_view()),
     # Fixed URL for guide content updates
@@ -22,6 +20,7 @@ urlpatterns = [
     # Admin Tasks ========================================================
     path("tasks", views.AdminTasks.as_view()),
     path("tasks/pending", views.PendingTasks.as_view()),
+    path("tasks/check/<int:pk>", views.CheckPendingCaretakerRequestForUser.as_view()),
     path("tasks/<int:pk>", views.AdminTaskDetail.as_view()),
     # Caretaker (DEPRECATED - use /api/v1/caretakers/ instead) ===========
     path("caretakers/", include("caretakers.urls_compat")),
@@ -32,5 +31,6 @@ urlpatterns = [
     path("tasks/<int:pk>/respond", views.RespondToCaretakerRequest.as_view()),
     # Misc (Admin) ======================================================
     path("mergeusers", views.MergeUsers.as_view()),
-    path("caretakers/setcaretaker", views.SetCaretaker.as_view()),
+    # Include the router URLs at the end to avoid conflicts
+    path("", include(router.urls)),
 ]

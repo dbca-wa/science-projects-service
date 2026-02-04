@@ -25,34 +25,29 @@ class CheckCaretaker(APIView):
         """Check caretaker status for current user"""
         settings.LOGGER.info(f"{request.user} is checking caretaker status")
         
-        user = request.user
+        # Get status via service
+        status = CaretakerService.get_caretaker_check(request.user)
         
-        # Get caretaker object
-        caretaker_object = CaretakerService.get_user_caretaker(user)
+        # Serialize objects
+        response_data = {
+            "caretaker_object": (
+                CaretakerSerializer(status['caretaker_object']).data
+                if status['caretaker_object']
+                else None
+            ),
+            "caretaker_request_object": (
+                AdminTaskSerializer(status['caretaker_request_object']).data
+                if status['caretaker_request_object']
+                else None
+            ),
+            "become_caretaker_request_object": (
+                AdminTaskSerializer(status['become_caretaker_request_object']).data
+                if status['become_caretaker_request_object']
+                else None
+            ),
+        }
         
-        # Get pending requests
-        requests = CaretakerRequestService.get_user_requests(user)
-        
-        return Response(
-            {
-                "caretaker_object": (
-                    CaretakerSerializer(caretaker_object).data
-                    if caretaker_object
-                    else None
-                ),
-                "caretaker_request_object": (
-                    AdminTaskSerializer(requests['caretaker_request']).data
-                    if requests['caretaker_request']
-                    else None
-                ),
-                "become_caretaker_request_object": (
-                    AdminTaskSerializer(requests['become_caretaker_request']).data
-                    if requests['become_caretaker_request']
-                    else None
-                ),
-            },
-            status=HTTP_200_OK,
-        )
+        return Response(response_data, status=HTTP_200_OK)
 
 
 class AdminSetCaretaker(APIView):

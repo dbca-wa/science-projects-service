@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.status import HTTP_200_OK
 
 from users.services import UserService
-from users.serializers import TinyUserSerializer
+from users.serializers import TinyUserSerializer, UserMeSerializer
 
 
 class CheckEmailExists(APIView):
@@ -54,7 +54,7 @@ class Me(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = TinyUserSerializer(request.user)
+        serializer = UserMeSerializer(request.user)
         return Response(serializer.data)
 
 

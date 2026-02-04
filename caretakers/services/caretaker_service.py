@@ -166,3 +166,49 @@ class CaretakerService:
         )
         
         return caretaker_qs.first() if caretaker_qs.exists() else None
+
+    @staticmethod
+    def get_caretaker_check(user):
+        """
+        Check caretaker status for user
+        Returns active caretaker, pending requests
+        
+        Maintains same format as legacy for frontend compatibility
+        
+        Args:
+            user: User to check
+            
+        Returns:
+            Dict with three keys:
+                - caretaker_object: Active Caretaker where user is being caretaken for
+                - caretaker_request_object: Pending AdminTask where user is primary_user
+                - become_caretaker_request_object: Pending AdminTask where user is in secondary_users
+        """
+        from adminoptions.models import AdminTask
+        
+        # Active caretaker
+        caretaker_object = Caretaker.objects.filter(user=user).select_related(
+            'caretaker',
+            'caretaker__work',
+            'caretaker__work__business_area',
+        ).first()
+        
+        # Pending request where user is primary_user
+        caretaker_request_object = AdminTask.objects.filter(
+            primary_user=user,
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+        ).select_related('requester').first()
+        
+        # Pending request where user is in secondary_users
+        become_caretaker_request_object = AdminTask.objects.filter(
+            secondary_users__contains=[user.pk],
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+        ).select_related('requester', 'primary_user').first()
+        
+        return {
+            'caretaker_object': caretaker_object,
+            'caretaker_request_object': caretaker_request_object,
+            'become_caretaker_request_object': become_caretaker_request_object,
+        }

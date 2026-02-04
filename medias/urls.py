@@ -22,6 +22,7 @@ urlpatterns = [
     path("project_photos", views.ProjectPhotos.as_view()),
     path("project_photos/<int:pk>", views.ProjectPhotoDetail.as_view()),
     # Project Docs
+    path("project_document_pdfs", views.ProjectDocPDFS.as_view()),
     path("methodology_photos", views.MethodologyPhotos.as_view()),
     path("methodology_photos/<int:pk>", views.MethodologyPhotoDetail.as_view()),
     # Agency

@@ -48,12 +48,13 @@ class AreaDetail(APIView):
 
     def put(self, request, pk):
         """Update area"""
-        serializer = AreaSerializer(data=request.data, partial=True)
+        area = AreaService.get_area(pk)
+        serializer = AreaSerializer(area, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
-        area = AreaService.update_area(pk, request.user, serializer.validated_data)
-        result = TinyAreaSerializer(area)
+        updated_area = AreaService.update_area(pk, request.user, serializer.validated_data)
+        result = TinyAreaSerializer(updated_area)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
     def delete(self, request, pk):

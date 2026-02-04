@@ -10,6 +10,7 @@ from .base import (
     StaffProfileEmailListSerializer,
     TinyUserWorkSerializer,
     UserWorkSerializer,
+    UserMeSerializer,
 )
 from .profile import (
     TinyUserProfileSerializer,
@@ -48,6 +49,7 @@ __all__ = [
     'StaffProfileEmailListSerializer',
     'TinyUserWorkSerializer',
     'UserWorkSerializer',
+    'UserMeSerializer',
     # Profile
     'TinyUserProfileSerializer',
     'UserProfileSerializer',

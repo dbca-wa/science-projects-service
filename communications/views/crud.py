@@ -3,6 +3,7 @@ Communication CRUD views
 """
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -28,6 +29,7 @@ from communications.serializers import (
 
 class ChatRooms(APIView):
     """List and create chat rooms"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """List all chat rooms"""
@@ -48,6 +50,7 @@ class ChatRooms(APIView):
 
 class ChatRoomDetail(APIView):
     """Get, update, and delete chat room"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         """Get chat room detail"""
@@ -73,6 +76,7 @@ class ChatRoomDetail(APIView):
 
 class DirectMessages(APIView):
     """List and create direct messages"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """List all direct messages"""
@@ -93,6 +97,7 @@ class DirectMessages(APIView):
 
 class DirectMessageDetail(APIView):
     """Get, update, and delete direct message"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         """Get direct message detail"""
@@ -118,6 +123,7 @@ class DirectMessageDetail(APIView):
 
 class Comments(APIView):
     """List and create comments"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """List all comments"""
@@ -138,6 +144,7 @@ class Comments(APIView):
 
 class CommentDetail(APIView):
     """Get, update, and delete comment"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         """Get comment detail"""
@@ -169,6 +176,7 @@ class CommentDetail(APIView):
 
 class Reactions(APIView):
     """List and toggle reactions"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """List all reactions"""
@@ -201,6 +209,7 @@ class Reactions(APIView):
 
 class ReactionDetail(APIView):
     """Get, update, and delete reaction"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         """Get reaction detail"""

@@ -31,6 +31,7 @@ urlpatterns = [
     path("api/v1/documents/", include("documents.urls")),
     path("api/v1/quotes/", include("quotes.urls")),
     path("api/v1/locations/", include("locations.urls")),
+    path("api/v1/categories/", include("categories.urls")),
     path("api/v1/adminoptions/", include("adminoptions.urls")),
     path("api/v1/caretakers/", include("caretakers.urls")),
     re_path(r"^files/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),

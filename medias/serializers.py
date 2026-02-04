@@ -321,6 +321,13 @@ class BusinessAreaPhotoSerializer(ModelSerializer):
             }
 
 
+class BusinessAreaPhotoCreateSerializer(ModelSerializer):
+    """Serializer for creating business area photos"""
+    class Meta:
+        model = BusinessAreaPhoto
+        fields = "__all__"
+
+
 # endregion  ===================================
 
 
@@ -384,6 +391,13 @@ class ProjectPhotoSerializer(ModelSerializer):
             }
 
 
+class ProjectPhotoCreateSerializer(ModelSerializer):
+    """Serializer for creating project photos"""
+    class Meta:
+        model = ProjectPhoto
+        fields = "__all__"
+
+
 # endregion ===================================
 
 
@@ -438,6 +452,13 @@ class AgencyPhotoSerializer(ModelSerializer):
             return file.url
 
 
+class AgencyPhotoCreateSerializer(ModelSerializer):
+    """Serializer for creating agency photos"""
+    class Meta:
+        model = AgencyImage
+        fields = "__all__"
+
+
 # endregion  ===================================
 
 
@@ -478,6 +499,13 @@ class UserAvatarSerializer(ModelSerializer):
                 "id": user.id,
                 "username": user.username,
             }
+
+
+class UserAvatarCreateSerializer(ModelSerializer):
+    """Serializer for creating user avatars"""
+    class Meta:
+        model = UserAvatar
+        fields = "__all__"
 
 
 class StaffProfileAvatarSerializer(ModelSerializer):

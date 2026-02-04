@@ -55,8 +55,8 @@ class ProjectService:
             "members__user__profile",
             "members__user__work",
             "members__user__work__business_area",
-            "members__user__caretaker",
-            "members__user__caretaker_for",
+            "members__user__caretakers",
+            "members__user__caretaking_for",
             "business_area__division__directorate_email_list",
             "admintasks",
         )
@@ -207,7 +207,10 @@ class ProjectService:
                 except (ValueError, TypeError):
                     pass
         
-        # Apply N+1 optimization
+        # Case: prefix only (e.g., "CF")
+        # No additional filtering needed, just the kind filter above
+        
+        # Apply N+1 optimization for ALL cases (including single-part searches)
         projects = projects.select_related(
             "business_area",
             "business_area__division",
@@ -227,8 +230,8 @@ class ProjectService:
             "members__user__profile",
             "members__user__work",
             "members__user__work__business_area",
-            "members__user__caretaker",
-            "members__user__caretaker_for",
+            "members__user__caretakers",
+            "members__user__caretaking_for",
             "business_area__division__directorate_email_list",
             "admintasks",
         )

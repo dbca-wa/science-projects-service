@@ -87,7 +87,7 @@ class CanManageEmploymentEntry(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_superuser:
             return True
-        return obj.profile.user == request.user
+        return obj.public_profile.user == request.user
 
 
 class CanManageEducationEntry(BasePermission):
@@ -100,4 +100,4 @@ class CanManageEducationEntry(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_superuser:
             return True
-        return obj.profile.user == request.user
+        return obj.public_profile.user == request.user

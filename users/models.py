@@ -101,7 +101,7 @@ class User(AbstractUser):
         caretaker_id = caretaker_instance.pk if caretaker_instance else None
 
         return {
-            "pk": self.pk,
+            "id": self.pk,
             "caretaker_obj_id": caretaker_id,
             "display_first_name": self.display_first_name,
             "display_last_name": self.display_last_name,

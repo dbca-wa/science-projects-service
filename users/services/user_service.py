@@ -3,9 +3,11 @@ User service for core user operations
 """
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from django.db.models import Q, Case, When, Value, CharField
 from django.db.models.functions import Concat
+from django.utils.crypto import get_random_string
 from rest_framework.exceptions import NotFound, ValidationError
 
 from users.models import User, UserWork
@@ -82,13 +84,12 @@ class UserService:
         user.save()
 
     @staticmethod
-    def list_users(filters=None, search=None):
+    def list_users(filters=None):
         """
         List users with optional filters
         
         Args:
-            filters: Dict of filter parameters
-            search: Search term
+            filters: Dict of filter parameters (query_params)
             
         Returns:
             QuerySet of User objects
@@ -101,8 +102,19 @@ class UserService:
             'groups',
         )
         
+        # Apply filters if provided
+        if filters:
+            users = UserService._apply_filters(users, filters)
+        
+        return users.distinct()
+    
+    @staticmethod
+    def _apply_filters(queryset, filters):
+        """Apply filters to user queryset"""
+        # Search term
+        search = filters.get('search')
         if search:
-            users = users.annotate(
+            queryset = queryset.annotate(
                 full_name=Concat('first_name', Value(' '), 'last_name')
             ).filter(
                 Q(username__icontains=search) |
@@ -112,17 +124,67 @@ class UserService:
                 Q(full_name__icontains=search)
             )
         
-        if filters:
-            if 'is_active' in filters:
-                users = users.filter(is_active=filters['is_active'])
-            if 'is_staff' in filters:
-                users = users.filter(is_staff=filters['is_staff'])
-            if 'is_superuser' in filters:
-                users = users.filter(is_superuser=filters['is_superuser'])
-            if 'business_area' in filters:
-                users = users.filter(work__business_area_id=filters['business_area'])
+        # Staff filter (only_staff=true means is_staff=True)
+        only_staff = filters.get('only_staff')
+        if only_staff and only_staff.lower() == 'true':
+            queryset = queryset.filter(is_staff=True)
         
-        return users.distinct()
+        # External filter (only_external=true means is_staff=False)
+        only_external = filters.get('only_external')
+        if only_external and only_external.lower() == 'true':
+            queryset = queryset.filter(is_staff=False)
+        
+        # Superuser filter
+        only_superuser = filters.get('only_superuser')
+        if only_superuser and only_superuser.lower() == 'true':
+            queryset = queryset.filter(is_superuser=True)
+        
+        # BA Lead filter (users who lead a business area)
+        only_ba_lead = filters.get('only_ba_lead')
+        if only_ba_lead and only_ba_lead.lower() == 'true':
+            from agencies.models import BusinessArea
+            ba_leader_ids = BusinessArea.objects.values_list('leader_id', flat=True).distinct()
+            queryset = queryset.filter(id__in=ba_leader_ids)
+        
+        # Business area filter
+        business_area = filters.get('business_area') or filters.get('businessArea')
+        if business_area:
+            queryset = queryset.filter(work__business_area_id=business_area)
+        
+        # Active filter
+        is_active = filters.get('is_active')
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active)
+        
+        # Ignore array (exclude specific user IDs)
+        ignore_array = filters.get('ignoreArray')
+        if ignore_array:
+            if isinstance(ignore_array, str):
+                ignore_ids = [int(id.strip()) for id in ignore_array.split(',') if id.strip()]
+            else:
+                ignore_ids = ignore_array
+            queryset = queryset.exclude(id__in=ignore_ids)
+        
+        return queryset
+    
+    @staticmethod
+    def get_users_by_directorate(directorate_id):
+        """
+        Get users by directorate (via business area division)
+        
+        Args:
+            directorate_id: Division ID
+            
+        Returns:
+            QuerySet of User objects
+        """
+        return User.objects.filter(
+            work__business_area__division_id=directorate_id
+        ).select_related(
+            'profile',
+            'work',
+            'work__business_area',
+        ).distinct()
 
     @staticmethod
     def get_user(user_id):
@@ -166,7 +228,7 @@ class UserService:
         user = User.objects.create_user(
             username=data['username'],
             email=data.get('email', ''),
-            password=data.get('password', User.objects.make_random_password()),
+            password=data.get('password', get_random_string(12)),
             first_name=data.get('first_name', ''),
             last_name=data.get('last_name', ''),
             is_staff=data.get('is_staff', False),
@@ -276,23 +338,3 @@ class UserService:
             Boolean
         """
         return User.objects.filter(username=username).exists()
-
-    @staticmethod
-    def get_users_by_directorate(directorate_id):
-        """
-        Get users by directorate
-        
-        Args:
-            directorate_id: Directorate ID
-            
-        Returns:
-            QuerySet of User objects
-        """
-        return User.objects.filter(
-            work__business_area__division__directorate_id=directorate_id
-        ).select_related(
-            'work',
-            'work__business_area',
-            'work__business_area__division',
-            'work__business_area__division__directorate',
-        ).distinct()

@@ -59,9 +59,40 @@ class DetailsService:
             raise NotFound(f"Project details not found for project {project_id}")
 
     @staticmethod
-    def get_student_details(project_id):
+    def get_detail_by_project(project_id):
         """
-        Get student project details
+        Alias for get_project_details for backward compatibility
+        
+        Args:
+            project_id: Project ID
+            
+        Returns:
+            ProjectDetail instance
+        """
+        return DetailsService.get_project_details(project_id)
+
+    @staticmethod
+    def get_student_details(detail_id):
+        """
+        Get student project details by detail ID
+        
+        Args:
+            detail_id: StudentProjectDetails ID
+            
+        Returns:
+            StudentProjectDetails instance or None
+        """
+        try:
+            return StudentProjectDetails.objects.select_related(
+                "project"
+            ).get(pk=detail_id)
+        except StudentProjectDetails.DoesNotExist:
+            return None
+    
+    @staticmethod
+    def get_student_details_by_project(project_id):
+        """
+        Get student project details by project ID
         
         Args:
             project_id: Project ID
@@ -77,9 +108,27 @@ class DetailsService:
             return None
 
     @staticmethod
-    def get_external_details(project_id):
+    def get_external_details(detail_id):
         """
-        Get external project details
+        Get external project details by detail ID
+        
+        Args:
+            detail_id: ExternalProjectDetails ID
+            
+        Returns:
+            ExternalProjectDetails instance or None
+        """
+        try:
+            return ExternalProjectDetails.objects.select_related(
+                "project"
+            ).get(pk=detail_id)
+        except ExternalProjectDetails.DoesNotExist:
+            return None
+    
+    @staticmethod
+    def get_external_details_by_project(project_id):
+        """
+        Get external project details by project ID
         
         Args:
             project_id: Project ID
@@ -106,8 +155,8 @@ class DetailsService:
             Dict with base, student, and external details
         """
         base_details = DetailsService.get_project_details(project_id)
-        student_details = DetailsService.get_student_details(project_id)
-        external_details = DetailsService.get_external_details(project_id)
+        student_details = DetailsService.get_student_details_by_project(project_id)
+        external_details = DetailsService.get_external_details_by_project(project_id)
         
         return {
             'base': base_details,
@@ -131,14 +180,21 @@ class DetailsService:
         """
         settings.LOGGER.info(f"{user} is creating details for project {project_id}")
         
+        # Extract IDs from data (handle both ID and object inputs)
+        def get_id(value):
+            """Extract ID from value (handles both int and model instance)"""
+            if value is None:
+                return None
+            return value.pk if hasattr(value, 'pk') else value
+        
         details = ProjectDetail.objects.create(
             project_id=project_id,
-            creator_id=data.get('creator'),
-            modifier_id=data.get('modifier', data.get('creator')),
-            owner_id=data.get('owner', data.get('creator')),
-            data_custodian_id=data.get('data_custodian'),
-            site_custodian_id=data.get('site_custodian'),
-            service_id=data.get('service'),
+            creator_id=get_id(data.get('creator')),
+            modifier_id=get_id(data.get('modifier', data.get('creator'))),
+            owner_id=get_id(data.get('owner', data.get('creator'))),
+            data_custodian_id=get_id(data.get('data_custodian')),
+            site_custodian_id=get_id(data.get('site_custodian')),
+            service_id=get_id(data.get('service')),
         )
         
         return details
@@ -207,7 +263,7 @@ class DetailsService:
         Returns:
             Updated StudentProjectDetails instance
         """
-        details = DetailsService.get_student_details(project_id)
+        details = DetailsService.get_student_details_by_project(project_id)
         if not details:
             raise NotFound(f"Student details not found for project {project_id}")
         
@@ -262,7 +318,7 @@ class DetailsService:
         Returns:
             Updated ExternalProjectDetails instance
         """
-        details = DetailsService.get_external_details(project_id)
+        details = DetailsService.get_external_details_by_project(project_id)
         if not details:
             raise NotFound(f"External details not found for project {project_id}")
         

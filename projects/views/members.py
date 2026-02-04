@@ -15,6 +15,8 @@ from ..permissions.project_permissions import CanManageProjectMembers
 class ProjectMembers(APIView):
     """List and create project members"""
     
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         """Get all project members"""
         members = MemberService.list_members()
@@ -51,18 +53,23 @@ class ProjectMemberDetail(APIView):
 
     def put(self, request, project_id, user_id):
         """Update project member"""
-        serializer = ProjectMemberSerializer(data=request.data, partial=True)
+        # Get existing member first
+        member = MemberService.get_member(project_id, user_id)
+        
+        # Pass instance to serializer for update
+        serializer = ProjectMemberSerializer(member, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
-        member = MemberService.update_member(
+        # Update member
+        updated_member = MemberService.update_member(
             project_id=project_id,
             user_id=user_id,
             data=serializer.validated_data,
             requesting_user=request.user
         )
         
-        result_serializer = TinyProjectMemberSerializer(member)
+        result_serializer = TinyProjectMemberSerializer(updated_member)
         return Response(result_serializer.data, status=HTTP_202_ACCEPTED)
 
     def delete(self, request, project_id, user_id):
@@ -99,6 +106,8 @@ class MembersForProject(APIView):
 
 class PromoteToLeader(APIView):
     """Promote member to project leader"""
+    
+    permission_classes = [IsAuthenticated]
     
     def post(self, request):
         """Promote user to leader"""

@@ -31,8 +31,7 @@ class TinyStaffProfileSerializer(serializers.ModelSerializer):
             "business_area",
             "about",
             "expertise",
-            "is_active",
-            "public",
+            "is_hidden",
         )
     
     def get_user(self, obj):
@@ -90,7 +89,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
             "id": obj.user.id,
             "first_name": obj.user.display_first_name,
             "last_name": obj.user.display_last_name,
-            "email": obj.user.email if obj.public_email_on else None,
+            "email": obj.public_email if obj.public_email_on and obj.public_email else None,
         }
     
     def get_work(self, obj):
@@ -98,7 +97,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
             work = obj.user.work
             return {
                 "id": work.id,
-                "title": obj.custom_title if obj.custom_title_on and obj.custom_title else work.title,
+                "role": obj.custom_title if obj.custom_title_on and obj.custom_title else work.role,
                 "business_area": {
                     "id": work.business_area.id,
                     "name": work.business_area.name,
@@ -110,7 +109,7 @@ class StaffProfileHeroSerializer(serializers.ModelSerializer):
 class StaffProfileOverviewSerializer(serializers.ModelSerializer):
     """Staff profile overview section serializer"""
     
-    keywords = KeywordTagSerializer(many=True, read_only=True)
+    keywords = KeywordTagSerializer(source='keyword_tags', many=True, read_only=True)
     
     class Meta:
         model = PublicStaffProfile
@@ -145,7 +144,7 @@ class StaffProfileCVSerializer(serializers.ModelSerializer):
     def get_education_entries(self, obj):
         from .entries import EducationEntrySerializer
         return EducationEntrySerializer(
-            obj.education_entries.all().order_by('-year'),
+            obj.education_entries.all().order_by('-end_year'),
             many=True
         ).data
 
@@ -156,7 +155,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
     avatar = StaffProfileAvatarSerializer(source='user.avatar', read_only=True)
     work = serializers.SerializerMethodField()
-    keywords = KeywordTagSerializer(many=True, read_only=True)
+    keywords = KeywordTagSerializer(source='keyword_tags', many=True, read_only=True)
     employment_entries = serializers.SerializerMethodField()
     education_entries = serializers.SerializerMethodField()
     
@@ -172,8 +171,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             "keywords",
             "employment_entries",
             "education_entries",
-            "is_active",
-            "public",
+            "is_hidden",
             "custom_title",
             "custom_title_on",
             "public_email",
@@ -193,7 +191,7 @@ class StaffProfileSerializer(serializers.ModelSerializer):
             work = obj.user.work
             return {
                 "id": work.id,
-                "title": obj.custom_title if obj.custom_title_on and obj.custom_title else work.title,
+                "role": obj.custom_title if obj.custom_title_on and obj.custom_title else work.role,
                 "business_area": {
                     "id": work.business_area.id,
                     "name": work.business_area.name,
@@ -211,6 +209,6 @@ class StaffProfileSerializer(serializers.ModelSerializer):
     def get_education_entries(self, obj):
         from .entries import EducationEntrySerializer
         return EducationEntrySerializer(
-            obj.education_entries.all().order_by('-year'),
+            obj.education_entries.all().order_by('-end_year'),
             many=True
         ).data

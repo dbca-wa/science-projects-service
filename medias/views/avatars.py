@@ -13,7 +13,11 @@ from rest_framework.status import (
 )
 
 from ..models import UserAvatar
-from ..serializers import UserAvatarSerializer, TinyUserAvatarSerializer
+from ..serializers import (
+    UserAvatarSerializer,
+    UserAvatarCreateSerializer,
+    TinyUserAvatarSerializer,
+)
 from ..services.media_service import MediaService
 
 # endregion ========================================================================================================
@@ -32,7 +36,7 @@ class UserAvatars(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a user avatar")
-        serializer = UserAvatarSerializer(data=request.data)
+        serializer = UserAvatarCreateSerializer(data=request.data)
         
         if serializer.is_valid():
             avatar = serializer.save()

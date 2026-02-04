@@ -155,7 +155,7 @@ class CaretakerTaskService:
         # Single query for all lead memberships
         lead_user_ids = set(
             ProjectMember.objects.exclude(
-                project__status=Project.CLOSED_ONLY
+                project__status__in=Project.CLOSED_ONLY
             ).filter(
                 user_id__in=caretakee_ids,
                 is_leader=True
@@ -165,7 +165,7 @@ class CaretakerTaskService:
         # Single query for all team memberships
         team_user_ids = set(
             ProjectMember.objects.exclude(
-                project__status=Project.CLOSED_ONLY
+                project__status__in=Project.CLOSED_ONLY
             ).filter(
                 user_id__in=caretakee_ids,
                 is_leader=False
@@ -218,7 +218,7 @@ class CaretakerTaskService:
         roles = CaretakerTaskService.analyze_caretakee_roles(caretaker_assignments)
         
         # Get active projects
-        active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY)
+        active_projects = Project.objects.exclude(status__in=Project.CLOSED_ONLY)
         
         # Build document lists
         all_documents = []
@@ -244,7 +244,7 @@ class CaretakerTaskService:
         ba_documents = []
         if roles['ba_leader_user_ids']:
             ba_projects = Project.objects.exclude(
-                status=Project.CLOSED_ONLY
+                status__in=Project.CLOSED_ONLY
             ).filter(
                 business_area__leader__in=roles['ba_leader_user_ids']
             )
@@ -265,7 +265,7 @@ class CaretakerTaskService:
         member_documents = []
         if roles['team_member_user_ids']:
             team_projects = ProjectMember.objects.exclude(
-                project__status=Project.CLOSED_ONLY
+                project__status__in=Project.CLOSED_ONLY
             ).filter(
                 user_id__in=roles['team_member_user_ids'],
                 is_leader=False,

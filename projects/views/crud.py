@@ -93,12 +93,20 @@ class Projects(APIView):
         keywords_str = keywords_str.strip('[]').replace('"', '')
         keywords_list = keywords_str.split(',')
         
+        # Parse year safely
+        year = data.get('year')
+        if year is not None:
+            try:
+                year = int(year)
+            except (ValueError, TypeError):
+                year = None
+        
         # Prepare project data
         project_data = {
             'old_id': 1,
             'kind': kind,
             'status': 'new',
-            'year': int(data.get('year')),
+            'year': year,
             'title': data.get('title'),
             'description': data.get('description', ''),
             'tagline': '',
@@ -217,12 +225,21 @@ class ProjectDetails(APIView):
     def get(self, request, pk):
         """Get project details"""
         project = ProjectService.get_project(pk)
-        serializer = ProjectDetailViewSerializer(project)
+        serializer = ProjectSerializer(project)
         return Response(serializer.data, status=HTTP_200_OK)
+
+    def get_permissions(self):
+        """
+        Instantiate and return the list of permissions that this view requires.
+        """
+        if self.request.method in ['PUT', 'DELETE']:
+            return [IsAuthenticated(), CanEditProject()]
+        return [IsAuthenticated()]
 
     def put(self, request, pk):
         """Update project"""
-        self.check_object_permissions(request, ProjectService.get_project(pk))
+        project = ProjectService.get_project(pk)
+        self.check_object_permissions(request, project)
         
         serializer = ProjectUpdateSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
@@ -234,12 +251,13 @@ class ProjectDetails(APIView):
             data=serializer.validated_data
         )
         
-        result_serializer = ProjectDetailViewSerializer(project)
+        result_serializer = ProjectSerializer(project)
         return Response(result_serializer.data, status=HTTP_202_ACCEPTED)
 
     def delete(self, request, pk):
         """Delete project"""
-        self.check_object_permissions(request, ProjectService.get_project(pk))
+        project = ProjectService.get_project(pk)
+        self.check_object_permissions(request, project)
         
         ProjectService.delete_project(pk, request.user)
         return Response(status=HTTP_204_NO_CONTENT)

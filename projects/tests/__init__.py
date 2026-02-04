@@ -1,0 +1,3 @@
+"""
+Projects app tests
+"""

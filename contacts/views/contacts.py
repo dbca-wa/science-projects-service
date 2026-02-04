@@ -15,10 +15,13 @@ from rest_framework.status import (
 from contacts.services import ContactService
 from contacts.serializers import (
     AgencyContactSerializer,
+    AgencyContactCreateSerializer,
     TinyAgencyContactSerializer,
     BranchContactSerializer,
+    BranchContactCreateSerializer,
     TinyBranchContactSerializer,
     UserContactSerializer,
+    UserContactCreateSerializer,
     TinyUserContactSerializer,
 )
 
@@ -35,12 +38,12 @@ class AgencyContacts(APIView):
 
     def post(self, request):
         """Create new agency contact"""
-        serializer = AgencyContactSerializer(data=request.data)
+        serializer = AgencyContactCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
         contact = ContactService.create_agency_contact(request.user, serializer.validated_data)
-        result = TinyAgencyContactSerializer(contact)
+        result = AgencyContactSerializer(contact)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
@@ -56,12 +59,13 @@ class AgencyContactDetail(APIView):
 
     def put(self, request, pk):
         """Update agency contact"""
-        serializer = AgencyContactSerializer(data=request.data, partial=True)
+        contact = ContactService.get_agency_contact(pk)
+        serializer = AgencyContactCreateSerializer(contact, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
-        contact = ContactService.update_agency_contact(pk, request.user, serializer.validated_data)
-        result = TinyAgencyContactSerializer(contact)
+        contact = serializer.save()
+        result = AgencyContactSerializer(contact)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
     def delete(self, request, pk):
@@ -82,12 +86,12 @@ class BranchContacts(APIView):
 
     def post(self, request):
         """Create new branch contact"""
-        serializer = BranchContactSerializer(data=request.data)
+        serializer = BranchContactCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
         contact = ContactService.create_branch_contact(request.user, serializer.validated_data)
-        result = TinyBranchContactSerializer(contact)
+        result = BranchContactSerializer(contact)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
@@ -103,12 +107,13 @@ class BranchContactDetail(APIView):
 
     def put(self, request, pk):
         """Update branch contact"""
-        serializer = BranchContactSerializer(data=request.data, partial=True)
+        contact = ContactService.get_branch_contact(pk)
+        serializer = BranchContactCreateSerializer(contact, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
-        contact = ContactService.update_branch_contact(pk, request.user, serializer.validated_data)
-        result = TinyBranchContactSerializer(contact)
+        contact = serializer.save()
+        result = BranchContactSerializer(contact)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
     def delete(self, request, pk):
@@ -129,17 +134,18 @@ class UserContacts(APIView):
 
     def post(self, request):
         """Create new user contact"""
-        serializer = UserContactSerializer(data=request.data)
+        serializer = UserContactCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
         contact = ContactService.create_user_contact(request.user, serializer.validated_data)
-        result = TinyUserContactSerializer(contact)
+        result = UserContactSerializer(contact)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class UserContactDetail(APIView):
     """Get, update, and delete user contact"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
         """Get user contact detail"""
@@ -149,12 +155,13 @@ class UserContactDetail(APIView):
 
     def put(self, request, pk):
         """Update user contact"""
-        serializer = UserContactSerializer(data=request.data, partial=True)
+        contact = ContactService.get_user_contact(pk)
+        serializer = UserContactCreateSerializer(contact, data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
-        contact = ContactService.update_user_contact(pk, request.user, serializer.validated_data)
-        result = TinyUserContactSerializer(contact)
+        contact = serializer.save()
+        result = UserContactSerializer(contact)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
     def delete(self, request, pk):

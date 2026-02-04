@@ -32,26 +32,25 @@ class ExportService:
             'Email',
             'Business Area',
             'Position',
-            'Is Active',
-            'Public',
+            'Is Hidden',
         ])
         
         profiles = PublicStaffProfile.objects.select_related(
             'user',
             'user__work',
             'user__work__business_area',
-        ).filter(is_active=True)
+        ).filter(is_hidden=False)
         
         for profile in profiles:
+            user_work = getattr(profile.user, 'work', None)
             writer.writerow([
                 profile.id,
                 profile.user.first_name,
                 profile.user.last_name,
                 profile.user.email,
-                profile.user.work.business_area.name if profile.user.work else '',
-                profile.user.work.title if profile.user.work else '',
-                profile.is_active,
-                profile.public,
+                user_work.business_area.name if user_work and user_work.business_area else '',
+                user_work.role if user_work else '',
+                profile.is_hidden,
             ])
         
         return response

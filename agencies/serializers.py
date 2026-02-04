@@ -85,7 +85,7 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
 
 
 class DivisionSerializer(serializers.ModelSerializer):
-    directorate_email_list = DirectorateEmailListSerializer()
+    directorate_email_list = DirectorateEmailListSerializer(read_only=True)
 
     class Meta:
         model = Division
@@ -138,12 +138,16 @@ class TinyAgencySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
     def get_image(self, obj):
-        agency_image = obj.image
-        if agency_image and agency_image.file:
-            return {
-                "id": agency_image.pk,
-                "file": agency_image.file.url,
-            }
+        try:
+            agency_image = obj.image
+            if agency_image and agency_image.file:
+                return {
+                    "id": agency_image.pk,
+                    "file": agency_image.file.url,
+                }
+        except AttributeError:
+            # Agency model doesn't have image relationship
+            pass
         return None
 
     class Meta:

@@ -105,10 +105,8 @@ class AgencyService:
         """List branches with optional search"""
         queryset = Branch.objects.all()
         if search:
-            queryset = queryset.filter(
-                Q(name__icontains=search) | Q(email__icontains=search)
-            )
-        return queryset.order_by("email")
+            queryset = queryset.filter(Q(name__icontains=search))
+        return queryset.order_by("name")
 
     @staticmethod
     def get_branch(pk):
@@ -145,9 +143,9 @@ class AgencyService:
 
     # Business Area operations
     @staticmethod
-    def list_business_areas(search=None, division=None, focus=None):
-        """List business areas with optional filters"""
-        queryset = BusinessArea.objects.select_related(
+    def list_business_areas():
+        """List all business areas with optimized queries"""
+        return BusinessArea.objects.select_related(
             "division",
             "division__director",
             "division__approver",
@@ -155,19 +153,9 @@ class AgencyService:
             "caretaker",
             "finance_admin",
             "data_custodian",
-            "image",
         ).prefetch_related(
             "division__directorate_email_list"
-        )
-        
-        if search:
-            queryset = queryset.filter(Q(name__icontains=search))
-        if division:
-            queryset = queryset.filter(division=division)
-        if focus:
-            queryset = queryset.filter(focus=focus)
-        
-        return queryset.order_by("name")
+        ).order_by("name")
 
     @staticmethod
     def get_business_area(pk):

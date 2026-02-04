@@ -55,6 +55,6 @@ def parse_keywords(keywords_str):
     
     # Remove brackets and quotes
     keywords_str = keywords_str.strip("[]").replace('"', "")
-    keywords_list = keywords_str.split(",")
+    keywords_list = [k.strip() for k in keywords_str.split(",")]
     
     return ",".join(keywords_list)

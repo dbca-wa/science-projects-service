@@ -27,8 +27,7 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = (
             "title",
-            "expertise",
-            "about",
+            "middle_initials",
         )
 
 
@@ -38,7 +37,7 @@ class UpdateMembershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserWork
         fields = (
-            "title",
+            "role",
             "business_area",
             "affiliation",
             "branch",

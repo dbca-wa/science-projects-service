@@ -4,6 +4,12 @@ from common.models import CommonModel
 from django.core.validators import MinValueValidator
 from bs4 import BeautifulSoup
 from rest_framework import serializers
+from documents.utils.html_tables import (
+    default_staff_time_allocation,
+    default_concept_plan_budget,
+    default_internal_budget,
+    default_external_budget,
+)
 
 # endregion ==================================
 
@@ -315,145 +321,14 @@ class ConceptPlan(models.Model):
         blank=True,
         null=True,
         help_text="Summarise staff time allocation by role for the first three years, or for a time span appropriate for the Project's life time",
-        default='<table class="table-light">\
-					<colgroup>\
-						<col>\
-						<col>\
-						<col>\
-						<col>\
-					</colgroup>\
-					<tbody>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Role</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 1</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 2</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 3</span>\
-								</p>\
-							</th>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Scientist</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Technical</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Volunteer</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Collaborator</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-					</tbody>\
-				</table>',
-        # json.dumps(
-        #     [
-        #         ["Role", "Year 1", "Year 2", "Year 3"],
-        #         ["Scientist", "", "", ""],
-        #         ["Technical", "", "", ""],
-        #         ["Volunteer", "", "", ""],
-        #         ["Collaborator", "", "", ""],
-        #     ],
-        #     cls=DjangoJSONEncoder,
-        # ),
+        default=default_staff_time_allocation,
     )
 
     budget = models.TextField(
         blank=True,
         null=True,
         help_text="Indicate the operating budget for the first three years, or for a time span appropriate for the Project's life time.",
-        default='<table class="table-light"><colgroup>\
-				<col>\
-				<col>\
-				<col>\
-				<col>\
-			</colgroup>\
-			<tbody>\
-				<tr>\
-					<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-						<p class="editor-p-light" dir="ltr">\
-							<span style="white-space: pre-wrap;">Source</span>\
-						</p>\
-					</th>\
-					<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-						<p class="editor-p-light" dir="ltr">\
-							<span style="white-space: pre-wrap;">Year 1</span>\
-						</p>\
-					</th>\
-					<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-						<p class="editor-p-light" dir="ltr">\
-							<span style="white-space: pre-wrap;">Year 2</span>\
-						</p>\
-					</th>\
-					<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-						<p class="editor-p-light" dir="ltr">\
-							<span style="white-space: pre-wrap;">Year 3</span>\
-						</p>\
-					</th>\
-				</tr>\
-				<tr>\
-					<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-						<p class="editor-p-light" dir="ltr">\
-							<span style="white-space: pre-wrap;">Consolidated Funds (DBCA)</span>\
-						</p>\
-					</th>\
-					<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-					<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-					<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-				</tr>\
-				<tr>\
-					<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-						<p class="editor-p-light" dir="ltr">\
-							<span style="white-space: pre-wrap;">External Funding</span>\
-						</p>\
-					</th>\
-					<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-					<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-					<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-				</tr>\
-			</tbody>\
-		</table>',
+        default=default_concept_plan_budget,
     )
 
     def extract_inner_text(self, html_string):
@@ -548,216 +423,14 @@ class ProjectPlan(models.Model):
         blank=True,
         null=True,
         help_text="Estimated budget: consolidated DBCA funds",
-        default='<table class="table-light">\
-					<colgroup>\
-						<col>\
-						<col>\
-						<col>\
-						<col>\
-					</colgroup>\
-					<tbody>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Source</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 1</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 2</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 3</span>\
-								</p>\
-							</th>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">FTE Scientist</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">FTE Technical</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Equipment</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Vehicle</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Travel</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Other</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Total</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-					</tbody>\
-				</table>',
+        default=default_internal_budget,
     )
 
     operating_budget_external = models.TextField(
         blank=True,
         null=True,
         help_text="Estimated budget: external funds",
-        default='<table class="table-light">\
-					<colgroup>\
-						<col>\
-						<col>\
-						<col>\
-						<col>\
-					</colgroup>\
-					<tbody>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Source</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 1</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 2</span>\
-								</p>\
-							</th>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Year 3</span>\
-								</p>\
-							</th>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Salaries, Wages, Overtime</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Overheads</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Equipment</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Vehicle</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Travel</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Other</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-						<tr>\
-							<th class="table-cell-light table-cell-header-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start; background-color: rgb(242, 243, 245);">\
-								<p class="editor-p-light" dir="ltr">\
-									<span style="white-space: pre-wrap;">Total</span>\
-								</p>\
-							</th>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-							<td class="table-cell-light" style="border: 1px solid black; width: 175px; vertical-align: top; text-align: start;"></td>\
-						</tr>\
-					</tbody>\
-				</table>',
+        default=default_external_budget,
     )
 
     related_projects = models.TextField(

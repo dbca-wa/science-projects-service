@@ -24,15 +24,12 @@ class Users(APIView):
 
     def get(self, request):
         """List users with pagination and filters"""
-        search = request.query_params.get('search')
-        filters = {
-            'is_active': request.query_params.get('is_active'),
-            'is_staff': request.query_params.get('is_staff'),
-            'business_area': request.query_params.get('business_area'),
-        }
-        filters = {k: v for k, v in filters.items() if v is not None}
+        # Delegate filtering to service (pass all query params)
+        users = UserService.list_users(
+            filters=request.query_params
+        )
         
-        users = UserService.list_users(filters=filters, search=search)
+        # Paginate results
         paginated = paginate_queryset(users, request)
         
         serializer = TinyUserSerializer(paginated['items'], many=True)

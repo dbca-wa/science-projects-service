@@ -5,7 +5,6 @@ import json
 from adminoptions.models import (
     AdminOptions,
     AdminTask,
-    Caretaker,
     ContentField,
     GuideSection,
 )
@@ -173,16 +172,4 @@ class AdminTaskAdmin(admin.ModelAdmin):
         "created_at",
         "reason",
         "project",
-    ]
-
-
-@admin.register(Caretaker)
-class CaretakerAdmin(admin.ModelAdmin):
-    list_display = [
-        "pk",
-        "user",
-        "caretaker",
-        "reason",
-        "end_date",
-        "created_at",
     ]

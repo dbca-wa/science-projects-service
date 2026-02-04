@@ -114,7 +114,7 @@ class ProjectDataTableSerializer(ModelSerializer):
         return None
 
     def get_end_date(self, obj):
-        if obj.start_date:
+        if obj.end_date:
             return obj.end_date.year
         return None
 

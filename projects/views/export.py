@@ -15,7 +15,7 @@ class DownloadAllProjectsAsCSV(APIView):
 
     def get(self, request):
         """Generate and download CSV of all projects"""
-        csv_content = ExportService.export_all_projects_csv()
+        csv_content = ExportService.export_all_projects_csv(request.user)
         
         response = HttpResponse(csv_content, content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="all_projects.csv"'
@@ -29,7 +29,7 @@ class DownloadARProjectsAsCSV(APIView):
 
     def get(self, request):
         """Generate and download CSV of annual report projects"""
-        csv_content = ExportService.export_annual_report_projects_csv()
+        csv_content = ExportService.export_annual_report_projects_csv(request.user)
         
         response = HttpResponse(csv_content, content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="annual_report_projects.csv"'

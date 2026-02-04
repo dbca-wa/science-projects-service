@@ -12,6 +12,7 @@ from rest_framework.status import (
 from ..models import ProjectDocumentPDF
 from ..serializers import (
     ProjectDocumentPDFSerializer,
+    ProjectDocumentPDFCreationSerializer,
     TinyAnnualReportMediaSerializer,
 )
 from ..services.media_service import MediaService
@@ -34,12 +35,12 @@ class ProjectDocPDFS(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a project document pdf")
-        serializer = ProjectDocumentPDFSerializer(data=request.data)
+        serializer = ProjectDocumentPDFCreationSerializer(data=request.data)
         
         if serializer.is_valid():
             pdf = serializer.save()
             return Response(
-                TinyAnnualReportMediaSerializer(pdf).data,
+                ProjectDocumentPDFSerializer(pdf).data,
                 status=HTTP_201_CREATED,
             )
         else:

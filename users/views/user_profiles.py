@@ -69,13 +69,13 @@ class UpdatePersonalInformation(APIView):
     """Update user personal information"""
     permission_classes = [IsAuthenticated]
 
-    def put(self, request):
+    def put(self, request, pk):
         serializer = UpdatePISerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
         user = ProfileService.update_personal_information(
-            request.user.id,
+            pk,
             serializer.validated_data
         )
         result = UpdatePISerializer(user)
@@ -86,13 +86,23 @@ class UpdateProfile(APIView):
     """Update user profile"""
     permission_classes = [IsAuthenticated]
 
-    def put(self, request):
+    def put(self, request, pk):
+        # Get the user's profile ID from the pk (user ID)
+        try:
+            from users.models import User
+            user = User.objects.get(pk=pk)
+            profile_id = user.profile.id
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        except AttributeError:
+            return Response({"error": "User has no profile"}, status=404)
+        
         serializer = UpdateProfileSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
         profile = ProfileService.update_user_profile(
-            request.user.profile.id,
+            profile_id,
             serializer.validated_data
         )
         result = UpdateProfileSerializer(profile)
