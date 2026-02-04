@@ -25,6 +25,7 @@ class TestUserFilters:
     """Tests for user filtering utilities"""
 
     def test_apply_user_filters_is_active(self, user, db):
+        """Test filtering users by is_active"""
         # Arrange
         queryset = User.objects.all()
         filters = {'is_active': True}
