@@ -103,12 +103,23 @@ jobs:
             -ra \
             --maxfail=5
       
+      - name: Debug coverage files
+        if: always()
+        run: |
+          echo "=== Coverage files in current directory ==="
+          ls -la .coverage* 2>/dev/null || echo "No .coverage files found"
+          echo ""
+          echo "=== All coverage-related files ==="
+          find . -name '.coverage*' -type f 2>/dev/null || echo "No coverage files found anywhere"
+      
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-${{ matrix.shard }}
-          path: .coverage.*
+          path: |
+            .coverage
+            .coverage.*
           retention-days: 1
   
   # Combine coverage from all shards
@@ -149,19 +160,19 @@ jobs:
           ls -laR coverage-reports/
           echo ""
           echo "=== Coverage files found ==="
-          find coverage-reports -name '.coverage.*' -type f
+          find coverage-reports -name '.coverage*' -type f
           echo ""
           echo "=== File count ==="
-          find coverage-reports -name '.coverage.*' -type f | wc -l
+          find coverage-reports -name '.coverage*' -type f | wc -l
       
       - name: Combine coverage data
         run: |
           # Find and list all coverage files for debugging
           echo "=== Coverage files found ==="
-          find coverage-reports -name '.coverage.*' -type f
+          find coverage-reports -name '.coverage*' -type f
           
-          # Combine binary coverage files
-          poetry run coverage combine coverage-reports/*/.coverage.*
+          # Combine binary coverage files (handles both .coverage and .coverage.*)
+          poetry run coverage combine coverage-reports/*/.coverage*
           
           # Generate reports from combined data
           poetry run coverage xml -o coverage.xml
