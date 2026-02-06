@@ -131,15 +131,30 @@ jobs:
           # Create directory for artifacts
           mkdir -p coverage-output
           
-          # Find and copy ALL .coverage.* files (parallel mode creates machine-specific names)
-          coverage_files=$(find . -maxdepth 1 -name '.coverage.*' -type f)
+          # Look for both .coverage and .coverage.* files
+          # pytest-cov with xdist creates a single .coverage file (already combined from workers)
+          # We need to rename it to avoid conflicts when combining from multiple shards
+          coverage_files=$(find . -maxdepth 1 \( -name '.coverage' -o -name '.coverage.*' \) -type f ! -name '.coveragerc')
           
           if [ -n "$coverage_files" ]; then
             echo "✅ Found coverage files:"
             echo "$coverage_files"
             
-            # Copy all coverage files to output directory
-            cp .coverage.* coverage-output/ 2>/dev/null || true
+            # Copy coverage files to output directory
+            # Rename .coverage to .coverage.SHARD to avoid conflicts
+            for file in .coverage .coverage.*; do
+              if [ -f "$file" ] && [ "$file" != ".coveragerc" ]; then
+                if [ "$file" = ".coverage" ]; then
+                  # Rename single .coverage file to shard-specific name
+                  cp "$file" "coverage-output/.coverage.${{ matrix.shard }}"
+                  echo "Copied $file as .coverage.${{ matrix.shard }}"
+                else
+                  # Copy .coverage.* files as-is
+                  cp "$file" "coverage-output/"
+                  echo "Copied $file"
+                fi
+              fi
+            done
             
             echo ""
             echo "=== Files in coverage-output/ ==="
@@ -153,7 +168,7 @@ jobs:
               exit 1
             fi
           else
-            echo "❌ No .coverage.* files found"
+            echo "❌ No coverage files found"
             echo "This indicates coverage collection failed"
             exit 1
           fi
