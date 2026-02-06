@@ -1,7 +1,7 @@
 # Science Projects Backend
 
-[![Coverage](https://raw.githubusercontent.com/dbca-wa/science-projects-service/badges/coverage.svg)](https://github.com/dbca-wa/science-projects-service/actions/workflows/test.yml)
-![Version](https://raw.githubusercontent.com/dbca-wa/science-projects-service/badges/version.svg)
+[![Tests](https://github.com/dbca-wa/science-projects-service/actions/workflows/test.yml/badge.svg)](https://github.com/dbca-wa/science-projects-service/actions/workflows/test.yml)
+![Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen)
 
 The Django-based backend for the science projects app
 
@@ -11,8 +11,10 @@ Linked to Frontend https://github.com/dbca-wa/science-projects-client
 
 ## Coverage
 
-The coverage badge above shows the current test coverage percentage. It updates automatically on each push to the main branch. The minimum coverage threshold is 80%.
+The coverage badge above shows the current test coverage percentage. The minimum coverage threshold is 80%. Detailed coverage reports are available as workflow artifacts after each test run.
 
-## Version
-
-The version badge updates automatically when a new release tag is pushed (e.g., `v1.2.3`).
+To view detailed coverage:
+1. Go to [Actions](https://github.com/dbca-wa/science-projects-service/actions/workflows/test.yml)
+2. Click on a recent workflow run
+3. Download the `coverage-report-combined` artifact
+4. Open `htmlcov/index.html` in your browser

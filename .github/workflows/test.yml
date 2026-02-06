@@ -340,56 +340,6 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
       
-      - name: Generate Coverage Badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.test.result == 'success'
-        uses: tj-actions/coverage-badge-py@v2
-        with:
-          output: coverage.svg
-        continue-on-error: true
-        id: badge-generation
-      
-      - name: Checkout badges branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
-        uses: actions/checkout@v4
-        with:
-          ref: badges
-          path: badges-repo
-        continue-on-error: true
-      
-      - name: Store badge in badges branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
-        run: |
-          cd badges-repo
-          
-          # Copy badge file
-          cp ../coverage.svg coverage.svg
-          
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Commit and push if changed
-          git add coverage.svg
-          if git diff --staged --quiet; then
-            echo "✅ No changes to coverage badge"
-          else
-            git commit -m "Update coverage badge [skip ci]"
-            git push origin badges
-            echo "✅ Coverage badge updated"
-          fi
-        continue-on-error: true
-      
-      - name: Check badge generation outcome
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          if [ "${{ steps.badge-generation.outcome }}" == "failure" ]; then
-            echo "::warning::Badge generation failed - coverage.xml may be invalid"
-          elif [ "${{ steps.badge-generation.outcome }}" == "success" ]; then
-            echo "✅ Coverage badge generated successfully"
-          else
-            echo "::warning::Badge generation was skipped"
-          fi
-      
       - name: Test Summary
         if: always()
         run: |
