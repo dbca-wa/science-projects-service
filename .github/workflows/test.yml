@@ -85,6 +85,7 @@ jobs:
           EMAIL_PORT: "25"
         run: |
           poetry run pytest \
+            -n auto \
             --tb=short \
             --cov=. \
             --cov-report=xml \
