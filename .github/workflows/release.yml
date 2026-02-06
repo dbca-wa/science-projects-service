@@ -74,6 +74,10 @@ jobs:
           IT_ASSETS_ACCESS_TOKEN: "test-it-assets-token"
           IT_ASSETS_USER: "test-user"
           PRINCE_SERVER_URL: ""
+          DEFAULT_FROM_EMAIL: "test-noreply@example.com"
+          SPMS_MAINTAINER_EMAIL: "test-maintainer@example.com"
+          EMAIL_HOST: "localhost"
+          EMAIL_PORT: "25"
         run: |
           poetry run pytest \
             --tb=short \

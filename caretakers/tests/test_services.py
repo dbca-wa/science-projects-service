@@ -1016,6 +1016,25 @@ class TestCaretakerRequestService:
             CaretakerRequestService.validate_caretaker_request(task, other_user)
     
     @pytest.mark.django_db
+    def test_approve_request_empty_secondary_users(self, db):
+        """Test approve_request raises ValidationError when secondary_users is empty"""
+        # Arrange
+        superuser = UserFactory(is_superuser=True)
+        caretakee = UserFactory()
+        
+        task = AdminTask.objects.create(
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+            primary_user=caretakee,
+            secondary_users=[],  # Empty list - the bug scenario
+            reason='Test request',
+        )
+        
+        # Act & Assert
+        with pytest.raises(ValidationError, match="no caretaker specified in secondary_users"):
+            CaretakerRequestService.approve_request(task.pk, superuser)
+    
+    @pytest.mark.django_db
     def test_approve_request_success(self, db):
         """Test approve_request creates caretaker relationship"""
         # Arrange

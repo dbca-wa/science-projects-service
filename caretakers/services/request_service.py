@@ -312,11 +312,15 @@ class CaretakerRequestService:
         # Check permission (admin OR caretaker being requested)
         # The caretaker (in secondary_users) must approve, not the requester
         caretaker_id = task.secondary_users[0] if task.secondary_users else None
+        
+        # Validate that secondary_users is not empty
+        if not caretaker_id:
+            raise ValidationError("Cannot approve request: no caretaker specified in secondary_users")
+        
         if not (approver.is_superuser or approver.pk == caretaker_id):
             raise PermissionDenied("Only the requested caretaker or an admin can approve this request")
         
-        # Get caretaker user
-        caretaker_id = task.secondary_users[0]
+        # Get caretaker user (safe now - we validated caretaker_id exists)
         caretaker = User.objects.get(pk=caretaker_id)
         
         # Create Caretaker relationship
