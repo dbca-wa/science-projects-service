@@ -74,6 +74,14 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi
       
+      - name: Restore test durations cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.sha }}
+          restore-keys: |
+            test-durations-
+      
       - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
@@ -96,6 +104,7 @@ jobs:
           poetry run pytest \
             --splits 4 \
             --group ${{ matrix.shard }} \
+            --store-durations \
             -n auto \
             --tb=short \
             --cov=. \
@@ -113,14 +122,19 @@ jobs:
           echo "=== All coverage-related files ==="
           find . -name '.coverage*' -type f 2>/dev/null || echo "No coverage files found anywhere"
       
+      - name: Save test durations cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .test_durations
+          key: test-durations-${{ github.sha }}
+      
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-${{ matrix.shard }}
-          path: |
-            .coverage.${{ matrix.shard }}
-            .coverage.${{ matrix.shard }}.*
+          path: .coverage.${{ matrix.shard }}
           retention-days: 1
   
   # Combine coverage from all shards
