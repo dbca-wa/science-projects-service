@@ -180,12 +180,28 @@ jobs:
           path: .test_durations
           key: test-durations-${{ github.sha }}-${{ matrix.shard }}
       
+      - name: Debug paths before upload
+        if: always()
+        run: |
+          echo "=== Workspace info ==="
+          echo "GITHUB_WORKSPACE: ${{ github.workspace }}"
+          echo "PWD: $(pwd)"
+          echo ""
+          echo "=== Coverage output from PWD ==="
+          ls -la coverage-output/ || echo "Not found at PWD"
+          echo ""
+          echo "=== Coverage output from workspace ==="
+          ls -la "${{ github.workspace }}/coverage-output/" || echo "Not found at workspace"
+          echo ""
+          echo "=== Finding all coverage-output directories ==="
+          find "${{ github.workspace }}" -type d -name "coverage-output" -exec ls -la {} \;
+      
       - name: Upload test durations
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-durations-${{ matrix.shard }}
-          path: .test_durations
+          path: ${{ github.workspace }}/.test_durations
           retention-days: 7
           if-no-files-found: warn
       
@@ -194,7 +210,7 @@ jobs:
         if: always()
         with:
           name: coverage-${{ matrix.shard }}
-          path: coverage-output/
+          path: ${{ github.workspace }}/coverage-output/
           retention-days: 1
           if-no-files-found: error
   
