@@ -75,7 +75,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 2500
 PAGE_SIZE = 24
 USER_LIST_PAGE_SIZE = 250
 FILE_UPLOAD_PERMISSIONS = None  # Use default operating system file permissions
-# APPEND_SLASH=False
+
+# URL Configuration - No trailing slashes (REST API best practice)
+APPEND_SLASH = False
 
 # endregion ========================================================================================
 

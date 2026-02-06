@@ -116,6 +116,27 @@ class CaretakerRequestService:
         ).order_by('-created_at')
 
     @staticmethod
+    def get_outgoing_requests_for_user(user_id):
+        """
+        Get all pending caretaker requests where user is primary_user
+        (requests THIS user made for someone to be THEIR caretaker)
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            QuerySet of AdminTask objects
+        """
+        return AdminTask.objects.filter(
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+            primary_user_id=user_id,
+        ).select_related(
+            'requester',
+            'primary_user',
+        ).order_by('-created_at')
+
+    @staticmethod
     @transaction.atomic
     def approve_request(task_id, approver):
         """

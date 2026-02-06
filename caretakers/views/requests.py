@@ -85,11 +85,19 @@ class CaretakerRequestCreate(APIView):
         # Validate input
         user_id = request.data.get('user_id')
         caretaker_id = request.data.get('caretaker_id')
+        approve_immediately = request.data.get('approve_immediately', False)
         
         if not user_id or not caretaker_id:
             return Response(
                 {"error": "user_id and caretaker_id are required"},
                 status=HTTP_400_BAD_REQUEST,
+            )
+        
+        # Validate approve_immediately permission
+        if approve_immediately and not request.user.is_superuser:
+            return Response(
+                {"error": "Only superusers can approve requests immediately"},
+                status=HTTP_403_FORBIDDEN,
             )
         
         try:
@@ -102,6 +110,18 @@ class CaretakerRequestCreate(APIView):
                 end_date=request.data.get('end_date'),
                 notes=request.data.get('notes'),
             )
+            
+            # If approve_immediately is True, approve the request immediately
+            if approve_immediately:
+                caretaker = CaretakerRequestService.approve_request(task.id, request.user)
+                return Response(
+                    {
+                        "task_id": task.id,
+                        "approved": True,
+                        "caretaker": CaretakerSerializer(caretaker).data,
+                    },
+                    status=HTTP_201_CREATED,
+                )
             
             # Serialize and return
             serializer = AdminTaskSerializer(task)
@@ -154,3 +174,34 @@ class CaretakerRequestCancel(APIView):
                 {"error": str(e)},
                 status=HTTP_400_BAD_REQUEST,
             )
+
+
+class CaretakerOutgoingRequestList(APIView):
+    """Get outgoing caretaker requests for a user"""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Get all pending caretaker requests where user is primary_user"""
+        user_id = request.query_params.get('user_id')
+        
+        if not user_id:
+            return Response(
+                {"error": "user_id query parameter is required"},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        
+        # Verify user can only see their own requests (unless admin)
+        if not request.user.is_superuser and str(request.user.id) != str(user_id):
+            return Response(
+                {"error": "You can only view your own requests"},
+                status=HTTP_403_FORBIDDEN,
+            )
+        
+        settings.LOGGER.info(
+            f"{request.user} is getting outgoing caretaker requests for user {user_id}"
+        )
+        
+        outgoing_requests = CaretakerRequestService.get_outgoing_requests_for_user(user_id)
+        serializer = AdminTaskSerializer(outgoing_requests, many=True)
+        
+        return Response(serializer.data, status=HTTP_200_OK)

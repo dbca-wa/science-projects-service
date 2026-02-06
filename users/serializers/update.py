@@ -3,31 +3,36 @@ Update serializers for user and profile modifications
 """
 from rest_framework import serializers
 
-from users.models import User, UserProfile, UserWork
+from users.models import User, UserProfile, UserWork, PublicStaffProfile
 
 
 class UpdatePISerializer(serializers.ModelSerializer):
     """Update personal information serializer"""
     
+    # Include fields from related models
+    title = serializers.CharField(source='profile.title', required=False, allow_blank=True, allow_null=True)
+    phone = serializers.CharField(source='contact.phone', required=False, allow_blank=True, allow_null=True)
+    fax = serializers.CharField(source='contact.fax', required=False, allow_blank=True, allow_null=True)
+    
     class Meta:
         model = User
         fields = (
-            "first_name",
-            "last_name",
             "display_first_name",
             "display_last_name",
-            "email",
+            "title",
+            "phone",
+            "fax",
         )
 
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
-    """Update user profile serializer"""
+    """Update user profile serializer (about, expertise from PublicStaffProfile)"""
     
     class Meta:
-        model = UserProfile
+        model = PublicStaffProfile
         fields = (
-            "title",
-            "middle_initials",
+            "about",
+            "expertise",
         )
 
 

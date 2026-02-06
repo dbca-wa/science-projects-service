@@ -8,6 +8,7 @@ from .requests import (
     ApproveCaretakerRequest,
     RejectCaretakerRequest,
     CaretakerRequestCancel,
+    CaretakerOutgoingRequestList,
 )
 from .tasks import CaretakerTasksForUser
 from .utils import CheckCaretaker, AdminSetCaretaker
@@ -20,6 +21,7 @@ __all__ = [
     'ApproveCaretakerRequest',
     'RejectCaretakerRequest',
     'CaretakerRequestCancel',
+    'CaretakerOutgoingRequestList',
     'CaretakerTasksForUser',
     'CheckCaretaker',
     'AdminSetCaretaker',

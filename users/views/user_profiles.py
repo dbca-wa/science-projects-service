@@ -70,57 +70,105 @@ class UpdatePersonalInformation(APIView):
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):
-        serializer = UpdatePISerializer(data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        # Get the user
+        try:
+            from users.models import User
+            user = User.objects.select_related('profile', 'contact').get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
         
-        user = ProfileService.update_personal_information(
-            pk,
-            serializer.validated_data
-        )
+        # Update user fields (display names)
+        if 'display_first_name' in request.data:
+            user.display_first_name = request.data['display_first_name']
+        if 'display_last_name' in request.data:
+            user.display_last_name = request.data['display_last_name']
+        user.save()
+        
+        # Update profile fields (title)
+        if 'title' in request.data and hasattr(user, 'profile') and user.profile:
+            user.profile.title = request.data['title']
+            user.profile.save()
+        
+        # Update contact fields (phone, fax)
+        # Create contact if it doesn't exist
+        if 'phone' in request.data or 'fax' in request.data:
+            from contacts.models import UserContact
+            
+            # Get or create contact
+            contact, created = UserContact.objects.get_or_create(user=user)
+            
+            if 'phone' in request.data:
+                contact.phone = request.data['phone']
+            if 'fax' in request.data:
+                contact.fax = request.data['fax']
+            
+            contact.save()
+            
+            # Refresh user to include the contact relationship
+            user.refresh_from_db()
+        
+        # Return updated data
         result = UpdatePISerializer(user)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
 
 class UpdateProfile(APIView):
-    """Update user profile"""
+    """Update user profile (about, expertise, image)"""
     permission_classes = [IsAuthenticated]
 
     def put(self, request, pk):
-        # Get the user's profile ID from the pk (user ID)
+        # Get the user
         try:
             from users.models import User
-            user = User.objects.get(pk=pk)
-            profile_id = user.profile.id
+            user = User.objects.select_related('staff_profile').get(pk=pk)
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
-        except AttributeError:
-            return Response({"error": "User has no profile"}, status=404)
         
-        serializer = UpdateProfileSerializer(data=request.data, partial=True)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+        # Update staff_profile fields (about, expertise)
+        if hasattr(user, 'staff_profile') and user.staff_profile:
+            staff_profile = user.staff_profile
+            
+            if 'about' in request.data:
+                staff_profile.about = request.data['about']
+            if 'expertise' in request.data:
+                staff_profile.expertise = request.data['expertise']
+            
+            staff_profile.save()
         
-        profile = ProfileService.update_user_profile(
-            profile_id,
-            serializer.validated_data
-        )
-        result = UpdateProfileSerializer(profile)
-        return Response(result.data, status=HTTP_202_ACCEPTED)
+        # Handle image upload if present
+        if 'image' in request.FILES:
+            from medias.models import UserAvatar
+            image_file = request.FILES['image']
+            
+            # Get or create avatar
+            avatar, created = UserAvatar.objects.get_or_create(user=user)
+            avatar.file = image_file
+            avatar.save()
+        
+        # Return updated data
+        serializer = UpdateProfileSerializer(user.staff_profile if hasattr(user, 'staff_profile') else None)
+        return Response(serializer.data, status=HTTP_202_ACCEPTED)
 
 
 class UpdateMembership(APIView):
     """Update user work/membership"""
     permission_classes = [IsAuthenticated]
 
-    def put(self, request):
+    def put(self, request, pk):
         serializer = UpdateMembershipSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
+        # Get the user by pk
+        try:
+            from users.models import User
+            user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        
         # Update user work
-        if hasattr(request.user, 'work') and request.user.work:
-            work = request.user.work
+        if hasattr(user, 'work') and user.work:
+            work = user.work
             for field, value in serializer.validated_data.items():
                 setattr(work, field, value)
             work.save()
@@ -134,12 +182,17 @@ class RemoveAvatar(APIView):
     """Remove user avatar"""
     permission_classes = [IsAuthenticated]
 
-    def delete(self, request):
+    def post(self, request, pk):
         try:
-            if hasattr(request.user, 'avatar') and request.user.avatar:
-                request.user.avatar.delete()
+            from users.models import User
+            user = User.objects.get(pk=pk)
+            
+            if hasattr(user, 'avatar') and user.avatar:
+                user.avatar.delete()
                 return Response({"ok": "Avatar removed"}, status=HTTP_204_NO_CONTENT)
             return Response({"error": "No avatar found"}, status=404)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 

@@ -3,13 +3,14 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 # Create a router for ViewSet-based views (without root URL)
-router = DefaultRouter(trailing_slash=True)
+router = DefaultRouter(trailing_slash=False)
 router.register(r"guide-sections", views.GuideSectionViewSet, basename="guide-sections")
 router.register(r"content-fields", views.ContentFieldViewSet, basename="content-fields")
 
 urlpatterns = [
     # Your existing URLs (must come before router to avoid conflicts)
-    path("", views.AdminControls.as_view()),
+    # Using "list" instead of "" to avoid trailing slash
+    path("list", views.AdminControls.as_view()),
     path("<int:pk>", views.AdminControlsDetail.as_view()),
     # Fixed URL for guide content updates
     path(

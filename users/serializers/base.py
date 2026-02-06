@@ -383,11 +383,13 @@ class UserMeSerializer(serializers.ModelSerializer):
         return ""
     
     def get_phone(self, obj):
-        # Phone/fax might be on contact model - return empty for now
+        if hasattr(obj, 'contact') and obj.contact:
+            return obj.contact.phone or ""
         return ""
     
     def get_fax(self, obj):
-        # Phone/fax might be on contact model - return empty for now
+        if hasattr(obj, 'contact') and obj.contact:
+            return obj.contact.fax or ""
         return ""
     
     def get_staff_profile_id(self, obj):

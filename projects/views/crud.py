@@ -26,9 +26,12 @@ from ..serializers import (
     ProjectUpdateSerializer,
     ProjectAreaSerializer,
     ProjectMemberSerializer,
+    MiniProjectMemberSerializer,
     ProjectDetailSerializer,
     StudentProjectDetailSerializer,
+    TinyStudentProjectDetailSerializer,
     ExternalProjectDetailSerializer,
+    TinyExternalProjectDetailSerializer,
 )
 from ..services.project_service import ProjectService
 from ..services.member_service import MemberService
@@ -223,10 +226,94 @@ class ProjectDetails(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        """Get project details"""
+        """Get full project details including project, details, documents, and members"""
+        from ..models import ProjectDetail, StudentProjectDetails, ExternalProjectDetails, ProjectMember
+        from documents.models import ConceptPlan, ProjectPlan, ProgressReport, StudentReport, ProjectClosure
+        
+        # Get project
         project = ProjectService.get_project(pk)
-        serializer = ProjectSerializer(project)
-        return Response(serializer.data, status=HTTP_200_OK)
+        project_data = ProjectSerializer(project).data
+        
+        # Get project details (base)
+        try:
+            base_detail = ProjectDetail.objects.select_related(
+                'creator', 'modifier', 'owner', 'data_custodian', 'site_custodian', 'service'
+            ).get(project=project)
+            base_data = ProjectDetailViewSerializer(base_detail).data
+        except ProjectDetail.DoesNotExist:
+            base_data = None
+        
+        # Get student details if applicable
+        try:
+            student_detail = StudentProjectDetails.objects.get(project=project)
+            student_data = TinyStudentProjectDetailSerializer(student_detail).data
+        except StudentProjectDetails.DoesNotExist:
+            student_data = []
+        
+        # Get external details if applicable
+        try:
+            external_detail = ExternalProjectDetails.objects.get(project=project)
+            external_data = TinyExternalProjectDetailSerializer(external_detail).data
+        except ExternalProjectDetails.DoesNotExist:
+            external_data = []
+        
+        # Get project members
+        members = ProjectMember.objects.filter(project=project).select_related(
+            'user', 'user__profile', 'user__work', 'user__work__affiliation'
+        ).prefetch_related('user__caretakers').order_by('position')
+        members_data = MiniProjectMemberSerializer(members, many=True).data if members.exists() else None
+        
+        # Get documents
+        documents = {
+            'concept_plan': None,
+            'project_plan': None,
+            'progress_reports': [],
+            'student_reports': [],
+            'project_closure': None,
+        }
+        
+        # Get concept plan
+        try:
+            concept_plan = ConceptPlan.objects.select_related('document').get(project=project)
+            documents['concept_plan'] = {'id': concept_plan.id, 'status': concept_plan.document.status}
+        except ConceptPlan.DoesNotExist:
+            pass
+        
+        # Get project plan
+        try:
+            project_plan = ProjectPlan.objects.select_related('document').get(project=project)
+            documents['project_plan'] = {'id': project_plan.id, 'status': project_plan.document.status}
+        except ProjectPlan.DoesNotExist:
+            pass
+        
+        # Get progress reports
+        progress_reports = ProgressReport.objects.filter(project=project).select_related('document').order_by('-year', '-id')
+        documents['progress_reports'] = [{'id': pr.id, 'status': pr.document.status} for pr in progress_reports]
+        
+        # Get student reports
+        student_reports = StudentReport.objects.filter(project=project).select_related('document').order_by('-id')
+        documents['student_reports'] = [{'id': sr.id, 'status': sr.document.status} for sr in student_reports]
+        
+        # Get project closure
+        try:
+            project_closure = ProjectClosure.objects.select_related('document').get(project=project)
+            documents['project_closure'] = {'id': project_closure.id, 'status': project_closure.document.status}
+        except ProjectClosure.DoesNotExist:
+            pass
+        
+        # Construct full response
+        response_data = {
+            'project': project_data,
+            'details': {
+                'base': base_data,
+                'external': external_data,
+                'student': student_data,
+            },
+            'documents': documents,
+            'members': members_data,
+        }
+        
+        return Response(response_data, status=HTTP_200_OK)
 
     def get_permissions(self):
         """

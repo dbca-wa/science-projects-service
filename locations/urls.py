@@ -2,8 +2,8 @@ from . import views
 from django.urls import path
 
 urlpatterns = [
-    # Main
-    path("", views.Areas.as_view()),
+    # Main - Using "list" instead of "" to avoid trailing slash
+    path("list", views.Areas.as_view()),
     path("<int:pk>", views.AreaDetail.as_view()),
     # Sub Types
     path("dbcaregions", views.DBCARegions.as_view()),
