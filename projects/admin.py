@@ -61,16 +61,19 @@ def clean_orphaned_project_memberships(model_admin, req, selected):
         return
 
     from users.models import User
-    
+
     # Find all ProjectMember records
     all_members = ProjectMember.objects.all()
     orphaned_count = 0
     orphaned_details = []
-    
+
     for member in all_members:
         # Check if the user exists
         try:
-            if member.user is None or not User.objects.filter(pk=member.user_id).exists():
+            if (
+                member.user is None
+                or not User.objects.filter(pk=member.user_id).exists()
+            ):
                 orphaned_details.append(
                     f"Project: {member.project.title} (ID: {member.project.pk}), "
                     f"User ID: {member.user_id}, Role: {member.role}"
@@ -78,19 +81,22 @@ def clean_orphaned_project_memberships(model_admin, req, selected):
                 member.delete()
                 orphaned_count += 1
         except Exception as e:
-            orphaned_details.append(
-                f"Error checking member {member.pk}: {str(e)}"
-            )
+            orphaned_details.append(f"Error checking member {member.pk}: {str(e)}")
             member.delete()
             orphaned_count += 1
-    
+
     if orphaned_count > 0:
-        message = f"Cleaned {orphaned_count} orphaned project membership(s):\n" + "\n".join(orphaned_details[:10])
+        message = (
+            f"Cleaned {orphaned_count} orphaned project membership(s):\n"
+            + "\n".join(orphaned_details[:10])
+        )
         if len(orphaned_details) > 10:
             message += f"\n... and {len(orphaned_details) - 10} more"
         model_admin.message_user(req, message, level="warning")
     else:
-        model_admin.message_user(req, "No orphaned project memberships found.", level="success")
+        model_admin.message_user(
+            req, "No orphaned project memberships found.", level="success"
+        )
 
 
 @admin.action(description="Report orphaned data")
@@ -104,14 +110,17 @@ def report_orphaned_data(model_admin, req, selected):
         return
 
     from users.models import User
-    
+
     report = []
-    
+
     # Check ProjectMember for orphaned users
     orphaned_members = []
     for member in ProjectMember.objects.all():
         try:
-            if member.user is None or not User.objects.filter(pk=member.user_id).exists():
+            if (
+                member.user is None
+                or not User.objects.filter(pk=member.user_id).exists()
+            ):
                 orphaned_members.append(
                     f"  - ProjectMember ID {member.pk}: Project '{member.project.title}' (ID: {member.project.pk}), "
                     f"User ID: {member.user_id}, Role: {member.role}"
@@ -120,21 +129,19 @@ def report_orphaned_data(model_admin, req, selected):
             orphaned_members.append(
                 f"  - ProjectMember ID {member.pk}: Error accessing user data"
             )
-    
+
     if orphaned_members:
         report.append(f"Orphaned ProjectMembers ({len(orphaned_members)}):")
         report.extend(orphaned_members[:20])
         if len(orphaned_members) > 20:
             report.append(f"  ... and {len(orphaned_members) - 20} more")
-    
+
     # Check ProjectDetail for null user references
     orphaned_details = []
-    for detail in ProjectDetail.objects.filter(
-        creator__isnull=True
-    ) | ProjectDetail.objects.filter(
-        modifier__isnull=True
-    ) | ProjectDetail.objects.filter(
-        owner__isnull=True
+    for detail in (
+        ProjectDetail.objects.filter(creator__isnull=True)
+        | ProjectDetail.objects.filter(modifier__isnull=True)
+        | ProjectDetail.objects.filter(owner__isnull=True)
     ):
         issues = []
         if detail.creator is None:
@@ -146,13 +153,13 @@ def report_orphaned_data(model_admin, req, selected):
         orphaned_details.append(
             f"  - ProjectDetail ID {detail.pk}: Project '{detail.project.title}' ({', '.join(issues)})"
         )
-    
+
     if orphaned_details:
         report.append(f"\nProjectDetails with null users ({len(orphaned_details)}):")
         report.extend(orphaned_details[:20])
         if len(orphaned_details) > 20:
             report.append(f"  ... and {len(orphaned_details) - 20} more")
-    
+
     if report:
         full_report = "ORPHANED DATA REPORT:\n" + "\n".join(report)
         model_admin.message_user(req, full_report, level="warning")
@@ -178,7 +185,6 @@ class ProjectAdmin(admin.ModelAdmin):
     ]
 
     search_fields = [
-        "old_id",
         "title",
         "tagline",
         "description",
@@ -222,6 +228,7 @@ class ProjectAreaAdmin(admin.ModelAdmin):
     ]
 
     list_filter = ["project__id"]
+
 
 @admin.register(ProjectMember)
 class ProjectMemberAdmin(admin.ModelAdmin):
@@ -332,7 +339,6 @@ class ProjectMemberAdmin(admin.ModelAdmin):
                 # Create a new ExternalProjectDetails instance
                 ExternalProjectDetails.objects.create(
                     project=project,
-                    old_id=project.old_id,  # Assuming you want to use the project's old_id or handle it accordingly
                 )
                 updated_count += 1
         model_admin.message_user(req, f"Successfully updated {updated_count} projects.")

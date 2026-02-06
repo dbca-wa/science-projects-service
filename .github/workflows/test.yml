@@ -1,0 +1,179 @@
+name: "Test Suite"
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/test.yml"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "backend/**"
+      - ".github/workflows/test.yml"
+
+permissions:
+  contents: write  # Required for pushing to badges branch
+
+jobs:
+  test:
+    name: Run tests with coverage
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+      
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-interaction --no-ansi
+      
+      - name: Run tests with coverage
+        env:
+          DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+          DJANGO_SETTINGS_MODULE: config.settings
+          SECRET_KEY: test-secret-key-for-ci-${{ github.run_id }}
+          DEBUG: "False"
+          ENVIRONMENT: development
+          EXTERNAL_PASS: "test-external-pass"
+          LIBRARY_API_URL: "https://library-test.example.com/api"
+          LIBRARY_BEARER_TOKEN: "test-bearer-token"
+          IT_ASSETS_ACCESS_TOKEN: "test-it-assets-token"
+          IT_ASSETS_USER: "test-user"
+          PRINCE_SERVER_URL: ""
+          DEFAULT_FROM_EMAIL: "test-noreply@example.com"
+          SPMS_MAINTAINER_EMAIL: "test-maintainer@example.com"
+          EMAIL_HOST: "localhost"
+          EMAIL_PORT: "25"
+        run: |
+          poetry run pytest \
+            -n auto \
+            --tb=short \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term-missing:skip-covered \
+            --cov-fail-under=80 \
+            -v \
+            -ra \
+            --maxfail=5
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.run_id }}
+          path: htmlcov/
+          retention-days: 30
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        with:
+          file: coverage.xml
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        continue-on-error: true
+      
+      - name: Generate Coverage Badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: tj-actions/coverage-badge-py@v2
+        with:
+          output: coverage.svg
+        continue-on-error: true
+        id: badge-generation
+      
+      - name: Checkout badges branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
+        uses: actions/checkout@v4
+        with:
+          ref: badges
+          path: badges-repo
+        continue-on-error: true
+      
+      - name: Store badge in badges branch
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
+        run: |
+          # Create badges branch if it doesn't exist
+          if ! git ls-remote --heads origin badges | grep badges; then
+            echo "Creating badges branch..."
+            git checkout --orphan badges
+            git rm -rf .
+            git commit --allow-empty -m "Initialize badges branch"
+            git push origin badges
+            git checkout main
+          fi
+          
+          # Copy badge to badges branch
+          cp coverage.svg badges-repo/coverage.svg
+          cd badges-repo
+          
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Commit and push
+          git add coverage.svg
+          git diff --quiet && git diff --staged --quiet || git commit -m "Update coverage badge [skip ci]"
+          git push origin badges || echo "::warning::Failed to push badge update"
+        continue-on-error: true
+      
+      - name: Check badge generation outcome
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if [ "${{ steps.badge-generation.outcome }}" == "failure" ]; then
+            echo "::warning::Badge generation failed - coverage.xml may be invalid"
+          elif [ "${{ steps.badge-generation.outcome }}" == "success" ]; then
+            echo "✅ Coverage badge generated successfully"
+          else
+            echo "::warning::Badge generation was skipped"
+          fi
+      
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "📊 Coverage report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 Minimum coverage: 80%" >> $GITHUB_STEP_SUMMARY

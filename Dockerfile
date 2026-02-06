@@ -105,9 +105,13 @@ RUN rm -f /usr/lib/prince/license/license.dat
 
 # ====================== LAUNCH ======================
 
+# Copy and set permissions for entrypoint script
+COPY entrypoint.sh /usr/src/app/backend/entrypoint.sh
+RUN chmod +x /usr/src/app/backend/entrypoint.sh
+
 # Switch to spmsuser (non-root)
 USER ${UID}
 # Expose and enter entry point (launch django app on p 8000)
 EXPOSE 8000
-# Launch (entrypoint.sh with migration command removed)
-CMD ["gunicorn", "config.wsgi", "--bind", "0.0.0.0:8000", "--timeout", "300", "--graceful-timeout", "90", "--max-requests", "2048", "--workers", "4", "--preload"]
+# Launch via entrypoint script (runs migrations + data migration + gunicorn)
+CMD ["/usr/src/app/backend/entrypoint.sh"]

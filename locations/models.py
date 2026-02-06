@@ -34,8 +34,6 @@ class Area(CommonModel):
         choices=AreaTypeChoices.choices,
     )
 
-    old_id = models.IntegerField()
-
     class Meta:
         verbose_name = "Area"
         verbose_name_plural = "Areas"

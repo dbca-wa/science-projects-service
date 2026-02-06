@@ -18,14 +18,14 @@ from .models import (
 class UserPkOnly(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ("pk",)
+        fields = ("id",)
 
 
 # region Division Serializers ====================================================================================================
 
 
 class UserInEmailListSerializer(serializers.Serializer):
-    pk = serializers.IntegerField()
+    id = serializers.IntegerField(source='pk', read_only=True)
     name = serializers.CharField()
     email = serializers.EmailField()
 
@@ -46,7 +46,7 @@ class DirectorateEmailListSerializer(serializers.Serializer):
 
         return [
             {
-                "pk": user.pk,
+                "id": user.pk,
                 "email": user.email,
                 "name": (
                     f"{user.display_first_name} {user.display_last_name}"
@@ -65,7 +65,7 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Division
         fields = (
-            "pk",
+            "id",
             "name",
             "slug",
             "director",
@@ -76,7 +76,7 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
     def get_directorate_email_list(self, obj):
         return [
             {
-                "pk": user.pk,
+                "id": user.pk,
                 "email": user.email,
                 "name": f"{user.display_first_name} {user.display_last_name}",
             }
@@ -85,7 +85,7 @@ class TinyDivisionSerializer(serializers.ModelSerializer):
 
 
 class DivisionSerializer(serializers.ModelSerializer):
-    directorate_email_list = DirectorateEmailListSerializer()
+    directorate_email_list = DirectorateEmailListSerializer(read_only=True)
 
     class Meta:
         model = Division
@@ -101,7 +101,7 @@ class DivisionSerializer(serializers.ModelSerializer):
 class TinyDepartmentalServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = DepartmentalService
-        fields = ("pk", "name", "director")
+        fields = ("id", "name", "director")
 
 
 class DepartmentalServiceSerializer(serializers.ModelSerializer):
@@ -120,7 +120,7 @@ class AffiliationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Affiliation
         fields = (
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "name",
@@ -138,18 +138,22 @@ class TinyAgencySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
     def get_image(self, obj):
-        agency_image = obj.image
-        if agency_image and agency_image.file:
-            return {
-                "pk": agency_image.pk,
-                "file": agency_image.file.url,
-            }
+        try:
+            agency_image = obj.image
+            if agency_image and agency_image.file:
+                return {
+                    "id": agency_image.pk,
+                    "file": agency_image.file.url,
+                }
+        except AttributeError:
+            # Agency model doesn't have image relationship
+            pass
         return None
 
     class Meta:
         model = Agency
         fields = (
-            "pk",
+            "id",
             "name",
             "key_stakeholder",
             "is_active",
@@ -173,7 +177,7 @@ class TinyBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = [
-            "pk",
+            "id",
             "name",
             "agency",
             "manager",
@@ -183,7 +187,7 @@ class TinyBranchSerializer(serializers.ModelSerializer):
 class MiniBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ["pk", "name"]
+        fields = ["id", "name"]
 
 
 class BranchSerializer(serializers.ModelSerializer):
@@ -201,10 +205,41 @@ class BranchSerializer(serializers.ModelSerializer):
 class MiniBASerializer(serializers.ModelSerializer):
     leader = UserPkOnly()
     caretaker = UserPkOnly()
+    image = serializers.SerializerMethodField()
+    project_count = serializers.SerializerMethodField()
+    division = serializers.SerializerMethodField()
 
     class Meta:
         model = BusinessArea
-        fields = ["pk", "name", "leader", "caretaker"]
+        fields = ["id", "name", "leader", "caretaker", "image", "project_count", "division"]
+    
+    def get_image(self, obj):
+        """Get the business area image file URL"""
+        try:
+            if obj.image and obj.image.file:
+                return obj.image.file.url
+        except:
+            pass
+        return None
+    
+    def get_project_count(self, obj):
+        """Get the count of projects in this business area"""
+        try:
+            # Count all projects in this business area, not just active ones
+            # since we want to show the total scope of the BA
+            return obj.project_set.count()
+        except:
+            return 0
+    
+    def get_division(self, obj):
+        """Get division info"""
+        if obj.division:
+            return {
+                "id": obj.division.id,
+                "name": obj.division.name,
+                "slug": obj.division.slug
+            }
+        return None
 
 
 class BusinessAreaSerializer(serializers.ModelSerializer):
@@ -224,11 +259,11 @@ class BusinessAreaNameViewSerializer(serializers.ModelSerializer):
 class BusinessAreaImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessAreaPhoto
-        fields = ["pk", "file"]
+        fields = ["id", "file"]
 
     def to_representation(self, instance):
         return {
-            "pk": instance.pk,
+            "id": instance.pk,
             "file": instance.file.url if instance.file else None,
         }
 
@@ -241,7 +276,7 @@ class TinyBusinessAreaSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessArea
         fields = (
-            "pk",
+            "id",
             "name",
             "slug",
             "focus",
@@ -268,7 +303,7 @@ class StaffProfileAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = (
-            "pk",
+            "id",
             "street",
             "city",
             "state",

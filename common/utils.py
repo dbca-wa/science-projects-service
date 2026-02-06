@@ -1,43 +1,8 @@
-class TeamMemberMixin:
-    def get_team_members(self, obj):
-        from projects.models import ProjectMember
-        from projects.serializers import MiniProjectMemberSerializer
+"""
+Legacy utils.py - Maintained for backward compatibility
+Import from common.utils.mixins instead
+"""
+from common.utils.mixins import TeamMemberMixin, ProjectTeamMemberMixin
 
-        project = obj.document.project
-        if (
-            hasattr(project, "_prefetched_objects_cache")
-            and "members" in project._prefetched_objects_cache
-        ):
-            members = project._prefetched_objects_cache["members"]
-        else:
-            members = (
-                ProjectMember.objects.select_related(
-                    "user", "user__profile", "user__work", "user__work__business_area"
-                )
-                .prefetch_related("user__caretaker", "user__caretaker_for")
-                .filter(project=project.pk)
-                .all()
-            )
-        return MiniProjectMemberSerializer(members, many=True).data
+__all__ = ['TeamMemberMixin', 'ProjectTeamMemberMixin']
 
-
-class ProjectTeamMemberMixin:
-    def get_team_members(self, project):
-        from projects.models import ProjectMember
-        from projects.serializers import MiniProjectMemberSerializer
-
-        if (
-            hasattr(project, "_prefetched_objects_cache")
-            and "members" in project._prefetched_objects_cache
-        ):
-            members = project._prefetched_objects_cache["members"]
-        else:
-            members = (
-                ProjectMember.objects.select_related(
-                    "user", "user__profile", "user__work", "user__work__business_area"
-                )
-                .prefetch_related("user__caretaker", "user__caretaker_for")
-                .filter(project=project.pk)
-                .all()
-            )
-        return MiniProjectMemberSerializer(members, many=True).data

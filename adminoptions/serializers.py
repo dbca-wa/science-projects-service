@@ -3,10 +3,10 @@ from rest_framework import serializers
 from adminoptions.models import (
     AdminOptions,
     AdminTask,
-    Caretaker,
     GuideSection,
     ContentField,
 )
+from caretakers.models import Caretaker
 from medias.serializers import UserAvatarSerializer
 from projects.models import Project
 from users.models import User
@@ -20,7 +20,7 @@ from users.serializers import BasicUserSerializer, MiniUserSerializer
 class ContentFieldSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContentField
-        fields = ["id", "title", "field_key", "description", "order"]
+        fields = ["id", "title", "field_key", "description", "section", "order"]
 
 
 class GuideSectionSerializer(serializers.ModelSerializer):
@@ -146,14 +146,40 @@ class AdminOptionsMaintainerSerializer(serializers.ModelSerializer):
         fields = ["maintainer"]
 
 
+class AdminOptionsCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating AdminOptions with writable maintainer field"""
+    maintainer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = AdminOptions
+        fields = (
+            "id",
+            "email_options",
+            "maintainer",
+            "guide_content",
+            # Legacy fields - keep for backward compatibility
+            "guide_admin",
+            "guide_about",
+            "guide_login",
+            "guide_profile",
+            "guide_user_creation",
+            "guide_user_view",
+            "guide_project_creation",
+            "guide_project_view",
+            "guide_project_team",
+            "guide_documents",
+            "guide_report",
+        )
+
+
 class AdminOptionsSerializer(serializers.ModelSerializer):
-    maintainer = MiniUserSerializer()
+    maintainer = MiniUserSerializer(read_only=True)
     guide_sections = serializers.SerializerMethodField()
 
     class Meta:
         model = AdminOptions
         fields = (
-            "pk",
+            "id",
             "created_at",
             "updated_at",
             "email_options",
@@ -186,9 +212,12 @@ class AdminOptionsSerializer(serializers.ModelSerializer):
 
 
 class IAdminTaskRequesterSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    image = UserAvatarSerializer(source="avatar")
+    
     class Meta:
         model = User
-        fields = ["pk", "display_first_name", "display_last_name"]
+        fields = ["id", "display_first_name", "display_last_name", "email", "image"]
 
 
 class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
@@ -201,22 +230,25 @@ class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
 
 
 class IAdminTaskProjectSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    
     class Meta:
         model = Project
-        fields = ["pk", "title"]
+        fields = ["id", "title"]
 
 
 class SecondaryUserSerializer(serializers.ModelSerializer):
-    image = UserAvatarSerializer(source="profile.avatar")
+    id = serializers.IntegerField(source='pk', read_only=True)
+    image = UserAvatarSerializer(source="avatar")
 
     class Meta:
         model = User
-        fields = ["pk", "display_first_name", "display_last_name", "image"]
+        fields = ["id", "display_first_name", "display_last_name", "email", "image"]
 
 
 class AdminTaskSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)  # Explicitly use 'id' for consistency
     requester = IAdminTaskRequesterSerializer()
-    # primary_user = IAdminTaskRequesterSerializer()
     primary_user = SecondaryUserSerializer()
     project = IAdminTaskProjectSerializer()
     secondary_users = serializers.SerializerMethodField()
@@ -232,13 +264,8 @@ class AdminTaskSerializer(serializers.ModelSerializer):
         return []
 
 
-class CaretakerSerializer(serializers.ModelSerializer):
-    caretaker = BasicUserSerializer()
-    user = MiniUserSerializer()
-
-    class Meta:
-        model = Caretaker
-        fields = "__all__"
+# Import CaretakerSerializer from the new caretakers app
+from caretakers.serializers import CaretakerSerializer
 
 
 # endregion  =================================================================================================

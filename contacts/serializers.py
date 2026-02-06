@@ -1,9 +1,12 @@
 # region IMPORTS ====================================================================================================
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from agencies.models import Agency, Branch
 from agencies.serializers import TinyBranchSerializer, TinyAgencySerializer
 from .models import Address, AgencyContact, UserContact, BranchContact
 from users.serializers import TinyUserSerializer
+
+User = get_user_model()
 
 # endregion ====================================================================================================
 
@@ -17,7 +20,7 @@ class TinyAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = (
-            "pk",
+            "id",
             "street",
             "city",
             "state",
@@ -56,7 +59,7 @@ class AddressSerializer(serializers.ModelSerializer):
         agency = obj.agency
         if agency:
             return {
-                "pk": agency.pk,
+                "id": agency.pk,
                 "name": agency.name,
                 "key_stakeholder": agency.key_stakeholder,
                 "is_active": agency.is_active,
@@ -68,7 +71,7 @@ class AddressSerializer(serializers.ModelSerializer):
         branch = obj.branch
         if branch:
             return {
-                "pk": branch.pk,
+                "id": branch.pk,
                 "name": branch.name,
                 "agency": branch.agency.pk,
                 "manager": branch.manager,
@@ -82,32 +85,43 @@ class AddressSerializer(serializers.ModelSerializer):
 
 
 class TinyUserContactSerializer(serializers.ModelSerializer):
-    user = TinyUserSerializer()
+    user = TinyUserSerializer(read_only=True)
 
     class Meta:
         model = UserContact
         fields = (
-            "pk",
+            "id",
             "user",
         )
 
 
 class UserContactSerializer(serializers.ModelSerializer):
-    user = TinyUserSerializer()
+    user = TinyUserSerializer(read_only=True)
 
     class Meta:
         model = UserContact
         fields = "__all__"
 
 
+class UserContactCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating user contacts"""
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all()
+    )
+    
+    class Meta:
+        model = UserContact
+        fields = ['id', 'user', 'email', 'phone', 'alt_phone', 'fax']
+
+
 class TinyAgencyContactSerializer(serializers.ModelSerializer):
-    agency = TinyAgencySerializer()
-    address = TinyAddressSerializer()
+    agency = TinyAgencySerializer(read_only=True)
+    address = TinyAddressSerializer(read_only=True)
 
     class Meta:
         model = AgencyContact
         fields = (
-            "pk",
+            "id",
             "agency",
             "email",
             "address",
@@ -115,22 +129,33 @@ class TinyAgencyContactSerializer(serializers.ModelSerializer):
 
 
 class AgencyContactSerializer(serializers.ModelSerializer):
-    agency = TinyAgencySerializer()
-    address = TinyAddressSerializer()
+    agency = TinyAgencySerializer(read_only=True)
+    address = TinyAddressSerializer(read_only=True)
 
     class Meta:
         model = AgencyContact
         fields = "__all__"
 
 
+class AgencyContactCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating agency contacts"""
+    agency = serializers.PrimaryKeyRelatedField(
+        queryset=Agency.objects.all()
+    )
+    
+    class Meta:
+        model = AgencyContact
+        fields = ['id', 'agency', 'email', 'phone', 'alt_phone', 'fax', 'address']
+
+
 class TinyBranchContactSerializer(serializers.ModelSerializer):
-    branch = TinyBranchSerializer()
-    address = TinyAddressSerializer()
+    branch = TinyBranchSerializer(read_only=True)
+    address = TinyAddressSerializer(read_only=True)
 
     class Meta:
         model = BranchContact
         fields = [
-            "pk",
+            "id",
             "branch",
             "email",
             "address",
@@ -138,12 +163,23 @@ class TinyBranchContactSerializer(serializers.ModelSerializer):
 
 
 class BranchContactSerializer(serializers.ModelSerializer):
-    branch = TinyBranchSerializer()
-    address = TinyAddressSerializer()
+    branch = TinyBranchSerializer(read_only=True)
+    address = TinyAddressSerializer(read_only=True)
 
     class Meta:
         model = BranchContact
         fields = "__all__"
+
+
+class BranchContactCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating/updating branch contacts"""
+    branch = serializers.PrimaryKeyRelatedField(
+        queryset=Branch.objects.all()
+    )
+    
+    class Meta:
+        model = BranchContact
+        fields = ['id', 'branch', 'email', 'phone', 'alt_phone', 'fax', 'address']
 
 
 # endregion  =================================================================================================

@@ -1,0 +1,6 @@
+"""
+Contact services
+"""
+from .contact_service import ContactService
+
+__all__ = ['ContactService']

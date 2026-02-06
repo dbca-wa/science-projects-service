@@ -26,7 +26,7 @@ class TinyDirectMessageSerializer(ModelSerializer):
     class Meta:
         model = DirectMessage
         fields = [
-            "pk",
+            "id",
             "text",
             "user",
             "chat_room",
@@ -39,7 +39,7 @@ class TinyReactionSerializer(ModelSerializer):
     class Meta:
         model = Reaction
         fields = [
-            "pk",
+            "id",
             "user",
             "direct_message",
             "comment",
@@ -57,7 +57,7 @@ class TinyCommentSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            "pk",
+            "id",
             "user",
             "document",
             "text",
@@ -72,10 +72,27 @@ class TinyCommentCreateSerializer(ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            "pk",
+            "id",
             "user",
             "document",
             "text",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class CommentCreateSerializer(ModelSerializer):
+    """Serializer for creating comments with writable foreign keys"""
+    class Meta:
+        model = Comment
+        fields = [
+            "id",
+            "user",
+            "document",
+            "text",
+            "ip_address",
+            "is_public",
+            "is_removed",
             "created_at",
             "updated_at",
         ]
@@ -99,8 +116,25 @@ class TinyChatRoomSerializer(ModelSerializer):
     class Meta:
         model = ChatRoom
         fields = [
-            "pk",
+            "id",
             "users",
+        ]
+
+
+class DirectMessageCreateSerializer(ModelSerializer):
+    """Serializer for creating direct messages with writable foreign keys"""
+    class Meta:
+        model = DirectMessage
+        fields = [
+            "id",
+            "text",
+            "user",
+            "chat_room",
+            "ip_address",
+            "is_public",
+            "is_removed",
+            "created_at",
+            "updated_at",
         ]
 
 
@@ -140,7 +174,7 @@ class ReactionCreateSerializer(ModelSerializer):
     class Meta:
         model = Reaction
         fields = [
-            "pk",
+            "id",
             "user",
             "comment",
             "direct_message",

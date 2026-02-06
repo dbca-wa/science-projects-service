@@ -2,17 +2,19 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # BASE URLS
-    path("", views.Projects.as_view()),
+    # BASE URLS - Using explicit "list" instead of "" to avoid trailing slash on base URL
+    path("list", views.Projects.as_view()),
+    # String patterns MUST come before <int:pk> to avoid matching conflicts
+    path("map", views.ProjectMap.as_view()),
+    path("mine", views.MyProjects.as_view()),
+    path("listofyears", views.ProjectYears.as_view()),
+    path("smallsearch", views.SmallProjectSearch.as_view()),
+    # Integer pk patterns come after string patterns
     path("<int:pk>", views.ProjectDetails.as_view()),
     path(
         "<int:pk>/toggle_user_profile_visibility",
         views.ToggleUserProfileVisibilityForProject.as_view(),
     ),
-    path("map", views.ProjectMap.as_view()),
-    path("mine", views.MyProjects.as_view()),
-    path("listofyears", views.ProjectYears.as_view()),
-    path("smallsearch", views.SmallProjectSearch.as_view()),
     # PROJECT SPECIFIC URLS
     path("<int:pk>/project_docs", views.ProjectDocs.as_view()),
     path("<int:pk>/team", views.MembersForProject.as_view()),

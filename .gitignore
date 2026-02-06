@@ -84,6 +84,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+test_results/
 
 # Translations
 *.mo
@@ -94,6 +95,9 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+
+# Refactoring archive (old code preserved for reference)
+_refactor_archive/
 
 # Flask stuff:
 instance/

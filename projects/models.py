@@ -91,7 +91,6 @@ class Project(CommonModel):
         # StatusChoices.SUSPENDED,
     )
 
-    old_id = models.BigIntegerField()
     kind = models.CharField(
         choices=CategoryKindChoices.choices,
         blank=True,
@@ -295,13 +294,13 @@ class ProjectArea(CommonModel):
 
     def save(self, *args, **kwargs):
         # Check for duplicate primary keys in the areas array
-        duplicate_area_pks = set(
+        duplicate_area_ids = set(
             [area for area in self.areas if self.areas.count(area) > 1]
         )
-        if duplicate_area_pks:
+        if duplicate_area_ids:
             raise ValidationError(
                 {
-                    "areas": f"Duplicate primary keys found in areas: {duplicate_area_pks}"
+                    "areas": f"Duplicate primary keys found in areas: {duplicate_area_ids}"
                 }
             )
         super().save(*args, **kwargs)
@@ -370,8 +369,6 @@ class ProjectMember(CommonModel):
         help_text="Any comments clarifying the project membership.",
     )
 
-    old_id = models.BigIntegerField()
-
     def __str__(self) -> str:
         return f"{self.user} ({self.project}) "
 
@@ -416,7 +413,6 @@ class StudentProjectDetails(models.Model):
         null=True,
         help_text="The full name of the academic organisation.",
     )
-    old_id = models.BigIntegerField()
 
     class Meta:
         verbose_name = "Student Project Detail"
@@ -490,7 +486,6 @@ class ExternalProjectDetails(models.Model):
         null=True,
         blank=True,
     )
-    old_id = models.BigIntegerField()
 
     class Meta:
         verbose_name = "External Project Detail"

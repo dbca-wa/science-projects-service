@@ -2,13 +2,14 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Base Views
+    # Base Views - String patterns MUST come before <int:pk>
     path("is_staff/<int:pk>", views.CheckUserIsStaff.as_view()),
-    path("", views.Users.as_view()),
-    path("<int:pk>", views.UserDetail.as_view()),
     path("me", views.Me.as_view()),
     path("smallsearch", views.SmallInternalUserSearch.as_view()),
     path("directorate", views.DirectorateUsers.as_view()),
+    path("list", views.Users.as_view()),  # Using "list" instead of "" to avoid trailing slash
+    # Integer pk pattern comes after string patterns
+    path("<int:pk>", views.UserDetail.as_view()),
     # Login / Config Views
     path("<int:pk>/toggleactive", views.ToggleUserActive.as_view()),
     path("<int:pk>/admin", views.SwitchAdmin.as_view()),
@@ -45,11 +46,11 @@ urlpatterns = [
     path("staffprofiles/<int:pk>/overview", views.StaffProfileOverviewDetail.as_view()),
     path("staffprofiles/<int:pk>/cv", views.StaffProfileCVDetail.as_view()),
     # Staff Profile Adjacent Views
-    path("employment_entries/", views.StaffProfileEmploymentEntries.as_view()),
+    path("profiles/<int:profile_id>/employment_entries", views.StaffProfileEmploymentEntries.as_view()),
     path(
         "employment_entries/<int:pk>", views.StaffProfileEmploymentEntryDetail.as_view()
     ),
-    path("education_entries/", views.StaffProfileEducationEntries.as_view()),
+    path("profiles/<int:profile_id>/education_entries", views.StaffProfileEducationEntries.as_view()),
     path(
         "education_entries/<int:pk>", views.StaffProfileEducationEntryDetail.as_view()
     ),

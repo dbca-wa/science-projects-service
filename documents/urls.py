@@ -5,14 +5,14 @@ urlpatterns = [
     # Reports ========================================================
     path("reports", views.Reports.as_view()),
     path("reports/<int:pk>", views.ReportDetail.as_view()),
-    path("reports/download", views.DownloadAnnualReport.as_view()),
+    path("reports/download/<int:pk>", views.DownloadAnnualReport.as_view()),
     path("reports/latestyear", views.GetLatestReportYear.as_view()),
     path(
-        "reports/availableyears/<int:project_pk>/progressreport",
+        "reports/availableyears/<int:project_id>/progressreport",
         views.GetAvailableReportYearsForProgressReport.as_view(),
     ),
     path(
-        "reports/availableyears/<int:project_pk>/studentreport",
+        "reports/availableyears/<int:project_id>/studentreport",
         views.GetAvailableReportYearsForStudentReport.as_view(),
     ),
     path("reports/withoutPDF", views.GetWithoutPDFs.as_view()),
@@ -28,12 +28,7 @@ urlpatterns = [
     path("latest_inactive_reports", views.LatestYearsInactiveReports.as_view()),
     path("reports/latest", views.FullLatestReport.as_view()),
     # Annual Report Gen ========================================================
-    path("reports/<int:pk>/generate_pdf", views.UnifiedReportDocGeneration.as_view()),
-    # path("reports/<int:pk>/generate_pdf", views.BeginReportDocGeneration.as_view()),
-    # path(
-    #     "reports/<int:pk>/unapproved_generate_pdf",
-    #     views.BeginUnapprovedReportDocGeneration.as_view(),
-    # ),
+    path("reports/<int:pk>/generate_pdf", views.BeginAnnualReportDocGeneration.as_view()),
     path(
         "reports/<int:pk>/cancel_doc_gen",
         views.CancelReportDocGeneration.as_view(),
@@ -60,23 +55,23 @@ urlpatterns = [
     path("projectclosures", views.ProjectClosures.as_view()),
     path("projectclosures/<int:pk>", views.ProjectClosureDetail.as_view()),
     # Project Documents Secondary ========================================================
-    path("projectdocuments/<int:pk>/comments", views.ProjectDocumentComments.as_view()),
+    # path("projectdocuments/<int:pk>/comments", views.ProjectDocumentComments.as_view()),  # TODO: Comment model not implemented
     path(
         "projectdocuments/pendingmyaction",
         views.ProjectDocsPendingMyActionAllStages.as_view(),
     ),
-    path(
-        "projectdocuments/pendingmyaction/stage1",
-        views.ProjectDocsPendingMyActionStageOne.as_view(),
-    ),
-    path(
-        "projectdocuments/pendingmyaction/stage2",
-        views.ProjectDocsPendingMyActionStageTwo.as_view(),
-    ),
-    path(
-        "projectdocuments/pendingmyaction/stage3",
-        views.ProjectDocsPendingMyActionStageThree.as_view(),
-    ),
+    # path(
+    #     "projectdocuments/pendingmyaction/stage1",
+    #     views.ProjectDocsPendingMyActionStageOne.as_view(),  # TODO: Not yet implemented
+    # ),
+    # path(
+    #     "projectdocuments/pendingmyaction/stage2",
+    #     views.ProjectDocsPendingMyActionStageTwo.as_view(),  # TODO: Not yet implemented
+    # ),
+    # path(
+    #     "projectdocuments/pendingmyaction/stage3",
+    #     views.ProjectDocsPendingMyActionStageThree.as_view(),  # TODO: Not yet implemented
+    # ),
     path("projectplans/endorsements", views.Endorsements.as_view()),
     path(
         "projectplans/endorsements/<int:pk>",
@@ -108,21 +103,21 @@ urlpatterns = [
     ),
     path("cancel_doc_gen/<int:pk>", views.CancelProjectDocGeneration.as_view()),
     # EMAILS (Testing) ========================================================
-    path("spms_link_email", views.SPMSInviteEmail.as_view()),
-    path("new_cycle_email", views.NewCycleOpenEmail.as_view()),
-    path("get_project_lead_emails", views.GetProjectLeadEmail.as_view()),
+    # path("spms_link_email", views.SPMSInviteEmail.as_view()),  # TODO: Not yet implemented
+    # path("new_cycle_email", views.NewCycleOpenEmail.as_view()),  # TODO: Not yet implemented
+    # path("get_project_lead_emails", views.GetProjectLeadEmail.as_view()),  # TODO: Not yet implemented
     # ACTIONS (Sends emails) ========================================================
     path("sendbumpemails", views.SendBumpEmails.as_view()),
     path("opennewcycle", views.NewCycleOpen.as_view()),
     path("batchapprove", views.BatchApprove.as_view()),
     path("batchapproveold", views.BatchApproveOld.as_view()),
-    path("projectclosures/reopen/<int:pk>", views.RepoenProject.as_view()),
+    path("projectclosures/reopen/<int:pk>", views.ReopenProject.as_view()),
     # Actions (Project Docs - Sends emails) ========================================================
     path("notifications/mentions", views.SendMentionNotification.as_view()),
     path("actions/approve", views.DocApproval.as_view(), name="document-approve"),
     path("actions/recall", views.DocRecall.as_view(), name="document-recall"),
     path("actions/send_back", views.DocSendBack.as_view(), name="document-send-back"),
-    path("actions/reopen", views.DocReopenProject.as_view(), name="document-reopen"),
+    # path("actions/reopen", views.DocReopenProject.as_view(), name="document-reopen"),  # TODO: Not yet implemented
     # Helper ========================================================
     path("downloadProjectDocument/<int:pk>", views.DownloadProjectDocument.as_view()),
     # Publications ========================================================

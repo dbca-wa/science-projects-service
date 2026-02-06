@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 import requests
-from adminoptions.models import Caretaker
+from caretakers.models import Caretaker
 from common.models import CommonModel
 from medias.models import UserAvatar
 from rest_framework import serializers
@@ -94,14 +94,15 @@ class User(AbstractUser):
         avatar = self.get_image()
 
         # Get the first related caretaker instance (if any)
+        # Note: Using 'caretakers' (plural) - the new related_name
         caretaker_instance = (
-            self.caretaker.first()
+            self.caretakers.first()
         )  # Use `.first()` to get a specific instance
-        caretaker_pk = caretaker_instance.pk if caretaker_instance else None
+        caretaker_id = caretaker_instance.pk if caretaker_instance else None
 
         return {
-            "pk": self.pk,
-            "caretaker_obj_id": caretaker_pk,
+            "id": self.pk,
+            "caretaker_obj_id": caretaker_id,
             "display_first_name": self.display_first_name,
             "display_last_name": self.display_last_name,
             "is_superuser": self.is_superuser,
@@ -173,11 +174,28 @@ class User(AbstractUser):
         return result
 
     def get_caretakers(self):
-        all = Caretaker.objects.filter(user=self)
+        """Get active caretakers for this user (excludes expired)"""
+        from django.utils import timezone
+        all = Caretaker.objects.filter(user=self).filter(
+            models.Q(end_date__isnull=True) | models.Q(end_date__gt=timezone.now())
+        )
         return all
 
+    def get_all_caretakers(self):
+        """Get all caretakers for this user (including expired) - for admin/audit purposes"""
+        return Caretaker.objects.filter(user=self)
+
     def get_caretaking_for(self):
-        all = Caretaker.objects.filter(caretaker=self)
+        """Get active users this user is caretaking for (excludes expired)"""
+        from django.utils import timezone
+        all = Caretaker.objects.filter(caretaker=self).filter(
+            models.Q(end_date__isnull=True) | models.Q(end_date__gt=timezone.now())
+        )
+        return all
+
+    def get_all_caretaking_for(self):
+        """Get all users this user is caretaking for (including expired) - for admin/audit purposes"""
+        return Caretaker.objects.filter(caretaker=self)
         # print(all)
         return all
 

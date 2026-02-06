@@ -30,7 +30,7 @@ class ProjectDocumentPDFSerializer(ModelSerializer):
     class Meta:
         model = ProjectDocumentPDF
         fields = [
-            "pk",
+            "id",
             "file",
             "document",
             "project",
@@ -66,7 +66,7 @@ class TinyMethodologyImageSerializer(ModelSerializer):
     class Meta:
         model = ProjectPlanMethodologyPhoto
         fields = [
-            "pk",
+            "id",
             "file",
             "project_plan",
             "uploader",
@@ -130,7 +130,7 @@ class TinyAnnualReportMediaSerializer(ModelSerializer):
     class Meta:
         model = AnnualReportMedia
         fields = [
-            "pk",
+            "id",
             "kind",
             "file",
             "report",
@@ -175,7 +175,7 @@ class TinyAnnualReportPDFSerializer(ModelSerializer):
     class Meta:
         model = AnnualReportPDF
         fields = [
-            "pk",
+            "id",
             "file",
             "report",
         ]
@@ -196,7 +196,7 @@ class TinyLegacyAnnualReportPDFSerializer(ModelSerializer):
     class Meta:
         model = LegacyAnnualReportPDF
         fields = [
-            "pk",
+            "id",
             "file",
             "year",
             "report",
@@ -290,7 +290,7 @@ class TinyBusinessAreaPhotoSerializer(ModelSerializer):
     class Meta:
         model = BusinessAreaPhoto
         fields = [
-            "pk",
+            "id",
             "business_area",
             "uploader",
         ]
@@ -321,6 +321,13 @@ class BusinessAreaPhotoSerializer(ModelSerializer):
             }
 
 
+class BusinessAreaPhotoCreateSerializer(ModelSerializer):
+    """Serializer for creating business area photos"""
+    class Meta:
+        model = BusinessAreaPhoto
+        fields = "__all__"
+
+
 # endregion  ===================================
 
 
@@ -334,7 +341,7 @@ class TinyProjectPhotoSerializer(ModelSerializer):
     class Meta:
         model = ProjectPhoto
         fields = [
-            "pk",
+            "id",
             "file",
             "project",
             "uploader",
@@ -384,6 +391,13 @@ class ProjectPhotoSerializer(ModelSerializer):
             }
 
 
+class ProjectPhotoCreateSerializer(ModelSerializer):
+    """Serializer for creating project photos"""
+    class Meta:
+        model = ProjectPhoto
+        fields = "__all__"
+
+
 # endregion ===================================
 
 
@@ -397,7 +411,7 @@ class TinyAgencyPhotoSerializer(ModelSerializer):
     class Meta:
         model = AgencyImage
         fields = [
-            "pk",
+            "id",
             "file",
             "agency",
         ]
@@ -438,6 +452,13 @@ class AgencyPhotoSerializer(ModelSerializer):
             return file.url
 
 
+class AgencyPhotoCreateSerializer(ModelSerializer):
+    """Serializer for creating agency photos"""
+    class Meta:
+        model = AgencyImage
+        fields = "__all__"
+
+
 # endregion  ===================================
 
 
@@ -450,7 +471,7 @@ class TinyUserAvatarSerializer(ModelSerializer):
     class Meta:
         model = UserAvatar
         fields = [
-            "pk",
+            "id",
             "file",
             "user",
         ]
@@ -478,6 +499,13 @@ class UserAvatarSerializer(ModelSerializer):
                 "id": user.id,
                 "username": user.username,
             }
+
+
+class UserAvatarCreateSerializer(ModelSerializer):
+    """Serializer for creating user avatars"""
+    class Meta:
+        model = UserAvatar
+        fields = "__all__"
 
 
 class StaffProfileAvatarSerializer(ModelSerializer):
