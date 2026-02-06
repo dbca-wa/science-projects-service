@@ -18,6 +18,7 @@ from locations.serializers import TinyAreaSerializer, AreaSerializer
 
 class Areas(APIView):
     """List and create areas"""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         """List all areas"""
