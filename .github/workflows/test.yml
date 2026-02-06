@@ -22,7 +22,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: test_user
@@ -62,13 +62,11 @@ jobs:
             ${{ runner.os }}-poetry-
       
       - name: Install dependencies
-        working-directory: backend
         run: |
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi
       
       - name: Run tests with coverage
-        working-directory: backend
         env:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
           DJANGO_SETTINGS_MODULE: config.settings
@@ -91,14 +89,14 @@ jobs:
         if: always()
         with:
           name: coverage-report-${{ github.run_id }}
-          path: backend/htmlcov/
+          path: htmlcov/
           retention-days: 30
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: github.event_name == 'push' || github.event_name == 'pull_request'
         with:
-          file: backend/coverage.xml
+          file: coverage.xml
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
@@ -110,7 +108,6 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: tj-actions/coverage-badge-py@v2
         with:
-          working-directory: backend
           output: coverage.svg
         continue-on-error: true
         id: badge-generation
@@ -137,7 +134,7 @@ jobs:
           fi
           
           # Copy badge to badges branch
-          cp backend/coverage.svg badges-repo/coverage.svg
+          cp coverage.svg badges-repo/coverage.svg
           cd badges-repo
           
           # Configure git

@@ -21,7 +21,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:15
+        image: postgres:17
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: test_user
@@ -57,13 +57,11 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
       
       - name: Install dependencies
-        working-directory: backend
         run: |
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi
       
       - name: Run tests
-        working-directory: backend
         env:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
           DJANGO_SETTINGS_MODULE: config.settings
@@ -112,7 +110,7 @@ jobs:
         uses: docker/build-push-action@v6
         id: build
         with:
-          context: backend
+          context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
