@@ -275,7 +275,7 @@ class GuideSectionViewSet(viewsets.ModelViewSet):
 
         for index, section_id in enumerate(section_ids):
             try:
-                section = GuideSection.objects.get(id=section_id)
+                section = GuideSection.objects.get(pk=section_id)
                 section.order = index
                 section.save(update_fields=["order"])
             except GuideSection.DoesNotExist:
@@ -291,7 +291,7 @@ class GuideSectionViewSet(viewsets.ModelViewSet):
 
         for index, field_id in enumerate(field_ids):
             try:
-                field = ContentField.objects.get(id=field_id, section_id=pk)
+                field = ContentField.objects.get(pk=field_id, section_id=pk)
                 field.order = index
                 field.save(update_fields=["order"])
             except ContentField.DoesNotExist:
