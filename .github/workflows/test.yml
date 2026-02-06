@@ -100,7 +100,6 @@ jobs:
           SPMS_MAINTAINER_EMAIL: "test-maintainer@example.com"
           EMAIL_HOST: "localhost"
           EMAIL_PORT: "25"
-          COVERAGE_FILE: .coverage.${{ matrix.shard }}
         run: |
           poetry run pytest \
             --splits 4 \
@@ -123,36 +122,39 @@ jobs:
           echo "=== All coverage-related files ==="
           find . -name '.coverage*' -type f 2>/dev/null || echo "No coverage files found anywhere"
           echo ""
-          echo "=== Checking specific file ==="
-          if [ -f ".coverage.${{ matrix.shard }}" ]; then
-            echo "✅ .coverage.${{ matrix.shard }} exists"
-            ls -lh ".coverage.${{ matrix.shard }}"
-          else
-            echo "❌ .coverage.${{ matrix.shard }} does NOT exist"
-          fi
-          echo ""
           echo "=== Current working directory ==="
           pwd
-          echo ""
-          echo "=== All files in current directory ==="
-          ls -la
       
       - name: Prepare coverage file for upload
         if: always()
         run: |
-          # Ensure the coverage file exists and is in the right place
-          if [ -f ".coverage.${{ matrix.shard }}" ]; then
-            echo "✅ Coverage file .coverage.${{ matrix.shard }} found"
-            ls -lh ".coverage.${{ matrix.shard }}"
-            # Create a directory for the artifact
-            mkdir -p coverage-output
-            cp ".coverage.${{ matrix.shard }}" "coverage-output/.coverage.${{ matrix.shard }}"
-            echo "✅ Copied to coverage-output/"
+          # Create directory for artifacts
+          mkdir -p coverage-output
+          
+          # Find and copy ALL .coverage.* files (parallel mode creates machine-specific names)
+          coverage_files=$(find . -maxdepth 1 -name '.coverage.*' -type f)
+          
+          if [ -n "$coverage_files" ]; then
+            echo "✅ Found coverage files:"
+            echo "$coverage_files"
+            
+            # Copy all coverage files to output directory
+            cp .coverage.* coverage-output/ 2>/dev/null || true
+            
+            echo ""
+            echo "=== Files in coverage-output/ ==="
             ls -la coverage-output/
+            
+            # Verify at least one file was copied
+            if [ -n "$(ls -A coverage-output/)" ]; then
+              echo "✅ Successfully prepared coverage files for upload"
+            else
+              echo "❌ No files copied to coverage-output/"
+              exit 1
+            fi
           else
-            echo "❌ Coverage file .coverage.${{ matrix.shard }} NOT found"
-            echo "Looking for any .coverage files..."
-            find . -name '.coverage*' -type f
+            echo "❌ No .coverage.* files found"
+            echo "This indicates coverage collection failed"
             exit 1
           fi
       
@@ -250,10 +252,10 @@ jobs:
           ls -laR coverage-reports/
           echo ""
           echo "=== Coverage files found ==="
-          find coverage-reports -name '.coverage*' -type f
+          find coverage-reports -name '.coverage.*' -type f
           echo ""
           echo "=== File count ==="
-          find coverage-reports -name '.coverage*' -type f | wc -l
+          find coverage-reports -name '.coverage.*' -type f | wc -l
       
       - name: Combine coverage data
         run: |
@@ -265,10 +267,21 @@ jobs:
           echo "=== Coverage files in current directory ==="
           ls -la .coverage.* 2>/dev/null || echo "No coverage files found"
           
+          # Count coverage files
+          coverage_count=$(find . -maxdepth 1 -name '.coverage.*' -type f | wc -l)
+          echo "Found $coverage_count coverage file(s)"
+          
+          if [ "$coverage_count" -eq 0 ]; then
+            echo "❌ ERROR: No coverage files found to combine"
+            exit 1
+          fi
+          
           # Combine binary coverage files
+          echo "=== Combining coverage data ==="
           poetry run coverage combine
           
           # Generate reports from combined data
+          echo "=== Generating coverage reports ==="
           poetry run coverage xml -o coverage.xml
           poetry run coverage html
           poetry run coverage report --fail-under=80
