@@ -78,8 +78,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .test_durations
-          key: test-durations-${{ github.sha }}
+          key: test-durations-${{ github.sha }}-${{ matrix.shard }}
           restore-keys: |
+            test-durations-combined-
             test-durations-
       
       - name: Run tests with coverage
@@ -127,7 +128,15 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: .test_durations
-          key: test-durations-${{ github.sha }}
+          key: test-durations-${{ github.sha }}-${{ matrix.shard }}
+      
+      - name: Upload test durations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-durations-${{ matrix.shard }}
+          path: .test_durations
+          retention-days: 7
       
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
@@ -168,6 +177,37 @@ jobs:
         with:
           pattern: coverage-*
           path: coverage-reports
+      
+      - name: Download all test durations
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-durations-*
+          path: test-durations-reports
+        continue-on-error: true
+      
+      - name: Combine test durations
+        if: always()
+        run: |
+          # Combine all test duration files into one
+          if [ -d "test-durations-reports" ]; then
+            echo "=== Combining test durations from all shards ==="
+            cat test-durations-reports/*/.test_durations > .test_durations 2>/dev/null || echo "No test durations to combine"
+            
+            # Save combined durations to cache for next run
+            if [ -f ".test_durations" ]; then
+              echo "✅ Combined test durations file created"
+              wc -l .test_durations
+            fi
+          fi
+        continue-on-error: true
+      
+      - name: Save combined test durations cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .test_durations
+          key: test-durations-combined-${{ github.sha }}
+        continue-on-error: true
       
       - name: Debug coverage files
         run: |
