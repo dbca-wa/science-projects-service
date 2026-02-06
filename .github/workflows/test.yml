@@ -72,6 +72,13 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings
           SECRET_KEY: test-secret-key-for-ci-${{ github.run_id }}
           DEBUG: "False"
+          ENVIRONMENT: development
+          EXTERNAL_PASS: "test-external-pass"
+          LIBRARY_API_URL: "https://library-test.example.com/api"
+          LIBRARY_BEARER_TOKEN: "test-bearer-token"
+          IT_ASSETS_ACCESS_TOKEN: "test-it-assets-token"
+          IT_ASSETS_USER: "test-user"
+          PRINCE_SERVER_URL: ""
         run: |
           poetry run pytest \
             --tb=short \
