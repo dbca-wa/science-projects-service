@@ -1,6 +1,7 @@
 [run]
 source = .
 parallel = true
+concurrency = multiprocessing
 data_file = .coverage
 omit =
     */migrations/*

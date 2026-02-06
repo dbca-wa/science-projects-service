@@ -91,6 +91,7 @@ jobs:
           SPMS_MAINTAINER_EMAIL: "test-maintainer@example.com"
           EMAIL_HOST: "localhost"
           EMAIL_PORT: "25"
+          COVERAGE_FILE: .coverage.${{ matrix.shard }}
         run: |
           poetry run pytest \
             --splits 4 \
@@ -118,8 +119,8 @@ jobs:
         with:
           name: coverage-${{ matrix.shard }}
           path: |
-            .coverage
-            .coverage.*
+            .coverage.${{ matrix.shard }}
+            .coverage.${{ matrix.shard }}.*
           retention-days: 1
   
   # Combine coverage from all shards
@@ -171,7 +172,7 @@ jobs:
           echo "=== Coverage files found ==="
           find coverage-reports -name '.coverage*' -type f
           
-          # Combine binary coverage files (handles both .coverage and .coverage.*)
+          # Combine binary coverage files (handles .coverage.N and .coverage.N.*)
           poetry run coverage combine coverage-reports/*/.coverage*
           
           # Generate reports from combined data
