@@ -122,6 +122,14 @@ jobs:
           echo ""
           echo "=== All coverage-related files ==="
           find . -name '.coverage*' -type f 2>/dev/null || echo "No coverage files found anywhere"
+          echo ""
+          echo "=== Checking specific file ==="
+          if [ -f ".coverage.${{ matrix.shard }}" ]; then
+            echo "✅ .coverage.${{ matrix.shard }} exists"
+            ls -lh ".coverage.${{ matrix.shard }}"
+          else
+            echo "❌ .coverage.${{ matrix.shard }} does NOT exist"
+          fi
       
       - name: Save test durations cache
         if: always()
@@ -137,6 +145,7 @@ jobs:
           name: test-durations-${{ matrix.shard }}
           path: .test_durations
           retention-days: 7
+          if-no-files-found: warn
       
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
@@ -222,12 +231,16 @@ jobs:
       
       - name: Combine coverage data
         run: |
-          # Find and list all coverage files for debugging
-          echo "=== Coverage files found ==="
-          find coverage-reports -name '.coverage*' -type f
+          # Move all coverage files to current directory for combining
+          echo "=== Moving coverage files to current directory ==="
+          find coverage-reports -name '.coverage.*' -type f -exec mv {} . \;
           
-          # Combine binary coverage files (handles .coverage.N and .coverage.N.*)
-          poetry run coverage combine coverage-reports/*/.coverage*
+          # List files in current directory
+          echo "=== Coverage files in current directory ==="
+          ls -la .coverage.* 2>/dev/null || echo "No coverage files found"
+          
+          # Combine binary coverage files
+          poetry run coverage combine
           
           # Generate reports from combined data
           poetry run coverage xml -o coverage.xml
