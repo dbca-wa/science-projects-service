@@ -98,19 +98,17 @@ jobs:
             -n auto \
             --tb=short \
             --cov=. \
-            --cov-report=xml:.coverage.${{ matrix.shard }}.xml \
-            --cov-report=term-missing:skip-covered \
-            --cov-fail-under=80 \
+            --cov-report= \
             -v \
             -ra \
             --maxfail=5
       
-      - name: Upload coverage report
+      - name: Upload coverage data
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-${{ matrix.shard }}
-          path: .coverage.${{ matrix.shard }}.xml
+          path: .coverage.*
           retention-days: 1
   
   # Combine coverage from all shards
@@ -145,12 +143,30 @@ jobs:
           pattern: coverage-*
           path: coverage-reports
       
-      - name: Combine coverage reports
+      - name: Debug coverage files
         run: |
-          poetry run coverage combine coverage-reports/*/.coverage.*.xml
+          echo "=== Downloaded artifacts structure ==="
+          ls -laR coverage-reports/
+          echo ""
+          echo "=== Coverage files found ==="
+          find coverage-reports -name '.coverage.*' -type f
+          echo ""
+          echo "=== File count ==="
+          find coverage-reports -name '.coverage.*' -type f | wc -l
+      
+      - name: Combine coverage data
+        run: |
+          # Find and list all coverage files for debugging
+          echo "=== Coverage files found ==="
+          find coverage-reports -name '.coverage.*' -type f
+          
+          # Combine binary coverage files
+          poetry run coverage combine coverage-reports/*/.coverage.*
+          
+          # Generate reports from combined data
           poetry run coverage xml -o coverage.xml
           poetry run coverage html
-          poetry run coverage report
+          poetry run coverage report --fail-under=80
       
       - name: Upload combined coverage report
         uses: actions/upload-artifact@v4
@@ -190,28 +206,24 @@ jobs:
       - name: Store badge in badges branch
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
         run: |
-          # Create badges branch if it doesn't exist
-          if ! git ls-remote --heads origin badges | grep badges; then
-            echo "Creating badges branch..."
-            git checkout --orphan badges
-            git rm -rf .
-            git commit --allow-empty -m "Initialize badges branch"
-            git push origin badges
-            git checkout main
-          fi
-          
-          # Copy badge to badges branch
-          cp coverage.svg badges-repo/coverage.svg
           cd badges-repo
+          
+          # Copy badge file
+          cp ../coverage.svg coverage.svg
           
           # Configure git
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Commit and push
+          # Commit and push if changed
           git add coverage.svg
-          git diff --quiet && git diff --staged --quiet || git commit -m "Update coverage badge [skip ci]"
-          git push origin badges || echo "::warning::Failed to push badge update"
+          if git diff --staged --quiet; then
+            echo "✅ No changes to coverage badge"
+          else
+            git commit -m "Update coverage badge [skip ci]"
+            git push origin badges
+            echo "✅ Coverage badge updated"
+          fi
         continue-on-error: true
       
       - name: Check badge generation outcome

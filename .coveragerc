@@ -1,5 +1,7 @@
 [run]
 source = .
+parallel = true
+data_file = .coverage
 omit =
     */migrations/*
     */tests/*
