@@ -201,18 +201,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-durations-${{ matrix.shard }}
-          path: ${{ github.workspace }}/.test_durations
+          path: .test_durations
           retention-days: 7
           if-no-files-found: warn
+          include-hidden-files: true
       
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: coverage-${{ matrix.shard }}
-          path: ${{ github.workspace }}/coverage-output/
+          path: coverage-output/.coverage.*
           retention-days: 1
           if-no-files-found: error
+          include-hidden-files: true
   
   # Combine coverage from all shards
   coverage:
