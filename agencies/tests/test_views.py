@@ -7,6 +7,7 @@ from rest_framework import status
 
 from agencies.models import Affiliation, Agency
 from agencies.services.agency_service import AgencyService
+from common.tests.test_helpers import agencies_urls
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ class TestAffiliations:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/affiliations')
+        response = api_client.get(agencies_urls.path('affiliations'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -34,7 +35,7 @@ class TestAffiliations:
     def test_list_affiliations_unauthenticated(self, api_client, db):
         """Test listing affiliations without authentication"""
         # Act
-        response = api_client.get('/api/v1/agencies/affiliations')
+        response = api_client.get(agencies_urls.path('affiliations'))
         
         # Assert
         # DRF returns 403 (Forbidden) when no authentication is provided
@@ -48,7 +49,7 @@ class TestAffiliations:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/affiliations?searchTerm=Test')
+        response = api_client.get(f"{agencies_urls.path('affiliations')}?searchTerm=Test")
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -66,7 +67,7 @@ class TestAffiliations:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/affiliations?searchTerm=Test&page=2')
+        response = api_client.get(f"{agencies_urls.path('affiliations')}?searchTerm=Test&page=2")
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -80,7 +81,7 @@ class TestAffiliations:
         data = {"name": "New Affiliation"}
         
         # Act
-        response = api_client.post('/api/v1/agencies/affiliations', data, format='json')
+        response = api_client.post(agencies_urls.path('affiliations'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -94,7 +95,7 @@ class TestAffiliations:
         data = {}  # Missing required 'name' field
         
         # Act
-        response = api_client.post('/api/v1/agencies/affiliations', data, format='json')
+        response = api_client.post(agencies_urls.path('affiliations'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -109,7 +110,7 @@ class TestAffiliationDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/affiliations/{affiliation.id}')
+        response = api_client.get(agencies_urls.path('affiliations', affiliation.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -121,7 +122,7 @@ class TestAffiliationDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/affiliations/0')
+        response = api_client.get(agencies_urls.path('affiliations', 0))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -132,7 +133,7 @@ class TestAffiliationDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/affiliations/999')
+        response = api_client.get(agencies_urls.path('affiliations', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -145,7 +146,7 @@ class TestAffiliationDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/affiliations/{affiliation.id}',
+            agencies_urls.path('affiliations', affiliation.id),
             data,
             format='json'
         )
@@ -164,7 +165,7 @@ class TestAffiliationDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/affiliations/{affiliation.id}',
+            agencies_urls.path('affiliations', affiliation.id),
             data,
             format='json'
         )
@@ -179,7 +180,7 @@ class TestAffiliationDetail:
         affiliation_id = affiliation.id
         
         # Act
-        response = api_client.delete(f'/api/v1/agencies/affiliations/{affiliation_id}')
+        response = api_client.delete(agencies_urls.path('affiliations', affiliation_id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -212,7 +213,7 @@ class TestAffiliationsMerge:
         }
         
         # Act
-        response = api_client.post('/api/v1/agencies/affiliations/merge', data, format='json')
+        response = api_client.post(agencies_urls.path('affiliations', 'merge'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -231,7 +232,7 @@ class TestAffiliationsCleanOrphaned:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.post('/api/v1/agencies/affiliations/clean_orphaned')
+        response = api_client.post(agencies_urls.path('affiliations', 'clean_orphaned'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -248,7 +249,7 @@ class TestAgencies:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/')
+        response = api_client.get(agencies_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -258,7 +259,7 @@ class TestAgencies:
     def test_list_agencies_unauthenticated(self, api_client, db):
         """Test listing agencies without authentication"""
         # Act
-        response = api_client.get('/api/v1/agencies/')
+        response = api_client.get(agencies_urls.list())
         
         # Assert
         # DRF returns 403 (Forbidden) when no authentication is provided
@@ -275,7 +276,7 @@ class TestAgencies:
         }
         
         # Act
-        response = api_client.post('/api/v1/agencies/', data, format='json')
+        response = api_client.post(agencies_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -289,7 +290,7 @@ class TestAgencies:
         data = {}  # Missing required 'name' field
         
         # Act
-        response = api_client.post('/api/v1/agencies/', data, format='json')
+        response = api_client.post(agencies_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -304,7 +305,7 @@ class TestAgencyDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/{agency.id}')
+        response = api_client.get(agencies_urls.detail(agency.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -316,7 +317,7 @@ class TestAgencyDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/999')
+        response = api_client.get(agencies_urls.detail(999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -329,7 +330,7 @@ class TestAgencyDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/{agency.id}',
+            agencies_urls.detail(agency.id),
             data,
             format='json'
         )
@@ -348,7 +349,7 @@ class TestAgencyDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/{agency.id}',
+            agencies_urls.detail(agency.id),
             data,
             format='json'
         )
@@ -363,7 +364,7 @@ class TestAgencyDetail:
         agency_id = agency.id
         
         # Act
-        response = api_client.delete(f'/api/v1/agencies/{agency_id}')
+        response = api_client.delete(agencies_urls.detail(agency_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -379,7 +380,7 @@ class TestBranches:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/branches')
+        response = api_client.get(agencies_urls.path('branches'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -390,12 +391,12 @@ class TestBranches:
         """Test listing branches with search term"""
         # Arrange
         from agencies.models import Branch
-        Branch.objects.create(name="Test Branch", old_id=1)
-        Branch.objects.create(name="Another Branch", old_id=2)
+        Branch.objects.create(name="Test Branch")
+        Branch.objects.create(name="Another Branch")
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/branches?searchTerm=Test')
+        response = api_client.get(f"{agencies_urls.path('branches')}?searchTerm=Test")
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -411,12 +412,11 @@ class TestBranches:
         api_client.force_authenticate(user=user)
         data = {
             "name": "New Branch",
-            "old_id": 999,
             "agency": agency.id,
         }
         
         # Act
-        response = api_client.post('/api/v1/agencies/branches', data, format='json')
+        response = api_client.post(agencies_urls.path('branches'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -429,7 +429,7 @@ class TestBranches:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/agencies/branches', data, format='json')
+        response = api_client.post(agencies_urls.path('branches'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -444,7 +444,7 @@ class TestBranchDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/branches/{branch.id}')
+        response = api_client.get(agencies_urls.path('branches', branch.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -456,7 +456,7 @@ class TestBranchDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/branches/999')
+        response = api_client.get(agencies_urls.path('branches', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -469,7 +469,7 @@ class TestBranchDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/branches/{branch.id}',
+            agencies_urls.path('branches', branch.id),
             data,
             format='json'
         )
@@ -488,7 +488,7 @@ class TestBranchDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/branches/{branch.id}',
+            agencies_urls.path('branches', branch.id),
             data,
             format='json'
         )
@@ -503,7 +503,7 @@ class TestBranchDetail:
         branch_id = branch.id
         
         # Act
-        response = api_client.delete(f'/api/v1/agencies/branches/{branch_id}')
+        response = api_client.delete(agencies_urls.path('branches', branch_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -520,7 +520,7 @@ class TestBusinessAreas:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/business_areas')
+        response = api_client.get(agencies_urls.path('business_areas'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -539,7 +539,7 @@ class TestBusinessAreas:
         }
         
         # Act
-        response = api_client.post('/api/v1/agencies/business_areas', data, format='json')
+        response = api_client.post(agencies_urls.path('business_areas'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -552,7 +552,7 @@ class TestBusinessAreas:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/agencies/business_areas', data, format='json')
+        response = api_client.post(agencies_urls.path('business_areas'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -567,7 +567,7 @@ class TestBusinessAreaDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/business_areas/{business_area.id}')
+        response = api_client.get(agencies_urls.path('business_areas', business_area.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -579,7 +579,7 @@ class TestBusinessAreaDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/business_areas/999')
+        response = api_client.get(agencies_urls.path('business_areas', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -592,7 +592,7 @@ class TestBusinessAreaDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/business_areas/{business_area.id}',
+            agencies_urls.path('business_areas', business_area.id),
             data,
             format='json'
         )
@@ -611,7 +611,7 @@ class TestBusinessAreaDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/business_areas/{business_area.id}',
+            agencies_urls.path('business_areas', business_area.id),
             data,
             format='json'
         )
@@ -626,7 +626,7 @@ class TestBusinessAreaDetail:
         business_area_id = business_area.id
         
         # Act
-        response = api_client.delete(f'/api/v1/agencies/business_areas/{business_area_id}')
+        response = api_client.delete(agencies_urls.path('business_areas', business_area_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -645,7 +645,7 @@ class TestMyBusinessAreas:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/business_areas/mine')
+        response = api_client.get(agencies_urls.path('business_areas', 'mine'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -658,7 +658,7 @@ class TestMyBusinessAreas:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/business_areas/mine')
+        response = api_client.get(agencies_urls.path('business_areas', 'mine'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -675,7 +675,7 @@ class TestSetBusinessAreaActive:
         original_status = business_area.is_active
         
         # Act
-        response = api_client.post(f'/api/v1/agencies/business_areas/setactive/{business_area.id}')
+        response = api_client.post(agencies_urls.path('business_areas', 'setactive', business_area.id))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -692,7 +692,7 @@ class TestDivisions:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/divisions')
+        response = api_client.get(agencies_urls.path('divisions'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -706,13 +706,12 @@ class TestDivisions:
         data = {
             "name": "New Division",
             "slug": "new-division",
-            "old_id": 999,
             "director": user.id,
             "approver": user.id,
         }
         
         # Act
-        response = api_client.post('/api/v1/agencies/divisions', data, format='json')
+        response = api_client.post(agencies_urls.path('divisions'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -725,7 +724,7 @@ class TestDivisions:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/agencies/divisions', data, format='json')
+        response = api_client.post(agencies_urls.path('divisions'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -740,7 +739,7 @@ class TestDivisionDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/divisions/{division.id}')
+        response = api_client.get(agencies_urls.path('divisions', division.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -752,7 +751,7 @@ class TestDivisionDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/divisions/999')
+        response = api_client.get(agencies_urls.path('divisions', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -765,7 +764,7 @@ class TestDivisionDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/divisions/{division.id}',
+            agencies_urls.path('divisions', division.id),
             data,
             format='json'
         )
@@ -784,7 +783,7 @@ class TestDivisionDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/divisions/{division.id}',
+            agencies_urls.path('divisions', division.id),
             data,
             format='json'
         )
@@ -799,7 +798,7 @@ class TestDivisionDetail:
         division_id = division.id
         
         # Act
-        response = api_client.delete(f'/api/v1/agencies/divisions/{division_id}')
+        response = api_client.delete(agencies_urls.path('divisions', division_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -816,7 +815,7 @@ class TestDivisionEmailList:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/divisions/{division.id}/email_list')
+        response = api_client.get(agencies_urls.path('divisions', division.id, 'email_list'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -833,7 +832,7 @@ class TestDivisionEmailList:
         
         # Act
         response = api_client.post(
-            f'/api/v1/agencies/divisions/{division.id}/email_list',
+            agencies_urls.path('divisions', division.id, 'email_list'),
             data,
             format='json'
         )
@@ -851,7 +850,7 @@ class TestDivisionEmailList:
         
         # Act
         response = api_client.post(
-            f'/api/v1/agencies/divisions/{division.id}/email_list',
+            agencies_urls.path('divisions', division.id, 'email_list'),
             data,
             format='json'
         )
@@ -869,7 +868,7 @@ class TestDepartmentalServices:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/services')
+        response = api_client.get(agencies_urls.path('services'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -882,11 +881,10 @@ class TestDepartmentalServices:
         api_client.force_authenticate(user=user)
         data = {
             "name": "New Service",
-            "old_id": 999,
         }
         
         # Act
-        response = api_client.post('/api/v1/agencies/services', data, format='json')
+        response = api_client.post(agencies_urls.path('services'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -899,7 +897,7 @@ class TestDepartmentalServices:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/agencies/services', data, format='json')
+        response = api_client.post(agencies_urls.path('services'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -914,7 +912,7 @@ class TestDepartmentalServiceDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/agencies/services/{departmental_service.id}')
+        response = api_client.get(agencies_urls.path('services', departmental_service.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -926,7 +924,7 @@ class TestDepartmentalServiceDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/agencies/services/999')
+        response = api_client.get(agencies_urls.path('services', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -939,7 +937,7 @@ class TestDepartmentalServiceDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/services/{departmental_service.id}',
+            agencies_urls.path('services', departmental_service.id),
             data,
             format='json'
         )
@@ -958,7 +956,7 @@ class TestDepartmentalServiceDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/agencies/services/{departmental_service.id}',
+            agencies_urls.path('services', departmental_service.id),
             data,
             format='json'
         )
@@ -973,7 +971,7 @@ class TestDepartmentalServiceDetail:
         service_id = departmental_service.id
         
         # Act
-        response = api_client.delete(f'/api/v1/agencies/services/{service_id}')
+        response = api_client.delete(agencies_urls.path('services', service_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT

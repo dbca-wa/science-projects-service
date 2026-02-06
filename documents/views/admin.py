@@ -69,7 +69,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
                 ba != None and ba.name == "Directorate"
             ) or request.user.is_superuser
 
-            active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY).all()
+            active_projects = Project.objects.exclude(status__in=Project.CLOSED_ONLY).all()
 
             # Check if the user is a leader of any business area
             business_areas_led = small_user_object.business_areas_led.values_list(

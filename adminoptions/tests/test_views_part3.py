@@ -9,6 +9,7 @@ from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
 
+from common.tests.test_helpers import adminoptions_urls
 from adminoptions.models import AdminOptions, AdminTask, GuideSection, ContentField
 from caretakers.models import Caretaker
 from projects.models import Project, ProjectMember
@@ -27,7 +28,7 @@ class TestApproveTask:
         project_id = admin_task_delete_project.project.id
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_delete_project.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -42,7 +43,7 @@ class TestApproveTask:
         secondary_user_id = admin_task_merge_user.secondary_users[0]
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_merge_user.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_merge_user.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -61,7 +62,6 @@ class TestApproveTask:
             user=secondary_user,
             is_leader=False,
             role=ProjectMember.RoleChoices.RESEARCH,
-            old_id=999999,  # Required field
         )
         
         # Create merge task
@@ -75,7 +75,7 @@ class TestApproveTask:
         )
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{task.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', task.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -94,7 +94,6 @@ class TestApproveTask:
             status=ProjectDocument.StatusChoices.NEW,
             creator=secondary_user,
             modifier=secondary_user,
-            old_id=999997,  # Required field
         )
         
         # Create merge task
@@ -108,7 +107,7 @@ class TestApproveTask:
         )
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{task.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', task.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -126,7 +125,6 @@ class TestApproveTask:
             project=project,
             kind=ProjectDocument.CategoryKindChoices.CONCEPTPLAN,
             status=ProjectDocument.StatusChoices.NEW,
-            old_id=999996,  # Required field
         )
         comment = Comment.objects.create(
             document=doc,
@@ -145,7 +143,7 @@ class TestApproveTask:
         )
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{task.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', task.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -158,7 +156,7 @@ class TestApproveTask:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_set_caretaker.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_set_caretaker.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -175,7 +173,7 @@ class TestApproveTask:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_delete_project.id, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -186,7 +184,7 @@ class TestApproveTask:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks/999/approve')
+        response = api_client.post(adminoptions_urls.path('tasks', 999, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -202,7 +200,7 @@ class TestRejectTask:
         project = admin_task_delete_project.project
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}/reject')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_delete_project.id, 'reject'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -217,7 +215,7 @@ class TestRejectTask:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_merge_user.id}/reject')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_merge_user.id, 'reject'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -230,7 +228,7 @@ class TestRejectTask:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_set_caretaker.id}/reject')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_set_caretaker.id, 'reject'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -243,7 +241,7 @@ class TestRejectTask:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}/reject')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_delete_project.id, 'reject'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -259,7 +257,7 @@ class TestCancelTask:
         project = admin_task_delete_project.project
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}/cancel')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_delete_project.id, 'cancel'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -274,7 +272,7 @@ class TestCancelTask:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_merge_user.id}/cancel')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_merge_user.id, 'cancel'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -294,7 +292,7 @@ class TestCancelTask:
         primary_user.save()
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_set_caretaker.id}/cancel')
+        response = api_client.post(adminoptions_urls.path('tasks', admin_task_set_caretaker.id, 'cancel'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -318,7 +316,7 @@ class TestMergeUsers:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/mergeusers', data, format='json')
+        response = api_client.post(adminoptions_urls.path('mergeusers'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -335,7 +333,6 @@ class TestMergeUsers:
             user=secondary_user,
             is_leader=False,
             role=ProjectMember.RoleChoices.RESEARCH,
-            old_id=999998,  # Required field
         )
         
         data = {
@@ -344,7 +341,7 @@ class TestMergeUsers:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/mergeusers', data, format='json')
+        response = api_client.post(adminoptions_urls.path('mergeusers'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -357,7 +354,7 @@ class TestMergeUsers:
         data = {}
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/mergeusers', data, format='json')
+        response = api_client.post(adminoptions_urls.path('mergeusers'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -372,7 +369,7 @@ class TestMergeUsers:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/mergeusers', data, format='json')
+        response = api_client.post(adminoptions_urls.path('mergeusers'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -389,7 +386,7 @@ class TestMergeUsers:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/mergeusers', data, format='json')
+        response = api_client.post(adminoptions_urls.path('mergeusers'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -420,7 +417,7 @@ class TestRespondToCaretakerRequest:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/tasks/{task.id}/respond',
+            adminoptions_urls.path('tasks', task.id, 'respond'),
             data,
             format='json'
         )
@@ -448,7 +445,7 @@ class TestRespondToCaretakerRequest:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/tasks/{task.id}/respond',
+            adminoptions_urls.path('tasks', task.id, 'respond'),
             data,
             format='json'
         )
@@ -467,7 +464,7 @@ class TestRespondToCaretakerRequest:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}/respond',
+            adminoptions_urls.path('tasks', admin_task_delete_project.id, 'respond'),
             data,
             format='json'
         )
@@ -492,7 +489,7 @@ class TestRespondToCaretakerRequest:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/tasks/{task.id}/respond',
+            adminoptions_urls.path('tasks', task.id, 'respond'),
             data,
             format='json'
         )
@@ -522,7 +519,7 @@ class TestRespondToCaretakerRequest:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/tasks/{task.id}/respond',
+            adminoptions_urls.path('tasks', task.id, 'respond'),
             data,
             format='json'
         )
@@ -547,7 +544,7 @@ class TestRespondToCaretakerRequest:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/tasks/{task.id}/respond',
+            adminoptions_urls.path('tasks', task.id, 'respond'),
             data,
             format='json'
         )

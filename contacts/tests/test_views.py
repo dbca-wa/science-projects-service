@@ -40,7 +40,7 @@ class TestAddressViews:
         response = api_client.get(contacts_urls.path('addresses'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_address_valid_data(self, api_client, user, agency, db):
         """Test creating address with valid data"""
@@ -158,7 +158,7 @@ class TestAgencyContactViews:
         response = api_client.get(contacts_urls.path('agencies'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_agency_contact_valid_data(self, api_client, user, agency, address_for_agency, db):
         """Test creating agency contact with valid data"""
@@ -273,7 +273,7 @@ class TestBranchContactViews:
         response = api_client.get(contacts_urls.path('branches'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_branch_contact_valid_data(self, api_client, user, branch, address_for_branch, db):
         """Test creating branch contact with valid data"""
@@ -388,7 +388,7 @@ class TestUserContactViews:
         response = api_client.get(contacts_urls.path('users'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_user_contact_valid_data(self, api_client, user, user_factory, db):
         """Test creating user contact with valid data"""
@@ -492,7 +492,7 @@ class TestUserContactDetailPermissions:
         # Assert
         # Note: UserContactDetail is missing IsAuthenticated permission class
         # This test documents the current behavior
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_update_user_contact_unauthenticated(self, api_client, user_contact, db):
         """Test updating user contact without authentication"""
@@ -509,7 +509,7 @@ class TestUserContactDetailPermissions:
         # Assert
         # Note: UserContactDetail is missing IsAuthenticated permission class
         # This test documents the current behavior (should be 401)
-        assert response.status_code in [status.HTTP_200_OK, status.HTTP_202_ACCEPTED, status.HTTP_400_BAD_REQUEST]
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_delete_user_contact_unauthenticated(self, api_client, user_contact, db):
         """Test deleting user contact without authentication"""
@@ -519,4 +519,4 @@ class TestUserContactDetailPermissions:
         # Assert
         # Note: UserContactDetail is missing IsAuthenticated permission class
         # This test documents the current behavior (should be 401)
-        assert response.status_code in [status.HTTP_204_NO_CONTENT, status.HTTP_401_UNAUTHORIZED]
+        assert response.status_code == status.HTTP_403_FORBIDDEN

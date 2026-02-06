@@ -25,7 +25,6 @@ def dbca_region(db):
     return Area.objects.create(
         name='Test DBCA Region',
         area_type=Area.AreaTypeChoices.AREA_TYPE_DBCA_REGION,
-        old_id=1,
     )
 
 
@@ -35,7 +34,6 @@ def dbca_district(db):
     return Area.objects.create(
         name='Test DBCA District',
         area_type=Area.AreaTypeChoices.AREA_TYPE_DBCA_DISTRICT,
-        old_id=2,
     )
 
 
@@ -45,7 +43,6 @@ def ibra_region(db):
     return Area.objects.create(
         name='Test IBRA Region',
         area_type=Area.AreaTypeChoices.AREA_TYPE_IBRA_REGION,
-        old_id=3,
     )
 
 

@@ -40,13 +40,12 @@ class CheckUserIsStaff(APIView):
     """Check if user is staff"""
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        user_id = request.query_params.get('user_id')
-        if not user_id:
-            return Response({"error": "User ID required"}, status=400)
-        
-        user = UserService.get_user(user_id)
-        return Response({"is_staff": user.is_staff})
+    def get(self, request, pk):
+        try:
+            user = UserService.get_user(pk)
+            return Response({"is_staff": user.is_staff})
+        except Exception:
+            return Response({"error": "User not found"}, status=400)
 
 
 class Me(APIView):
@@ -67,6 +66,6 @@ class SmallInternalUserSearch(APIView):
         if len(search) < 2:
             return Response([])
         
-        users = UserService.list_users(search=search)[:10]
+        users = UserService.list_users(filters={'search': search})[:10]
         serializer = TinyUserSerializer(users, many=True)
         return Response(serializer.data)

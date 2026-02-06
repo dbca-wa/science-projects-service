@@ -81,6 +81,23 @@ class TinyCommentCreateSerializer(ModelSerializer):
         ]
 
 
+class CommentCreateSerializer(ModelSerializer):
+    """Serializer for creating comments with writable foreign keys"""
+    class Meta:
+        model = Comment
+        fields = [
+            "id",
+            "user",
+            "document",
+            "text",
+            "ip_address",
+            "is_public",
+            "is_removed",
+            "created_at",
+            "updated_at",
+        ]
+
+
 class CommentSerializer(ModelSerializer):
     user = TinyUserSerializer(read_only=True)
     document = TinyProjectDocumentSerializer(read_only=True)
@@ -101,6 +118,23 @@ class TinyChatRoomSerializer(ModelSerializer):
         fields = [
             "id",
             "users",
+        ]
+
+
+class DirectMessageCreateSerializer(ModelSerializer):
+    """Serializer for creating direct messages with writable foreign keys"""
+    class Meta:
+        model = DirectMessage
+        fields = [
+            "id",
+            "text",
+            "user",
+            "chat_room",
+            "ip_address",
+            "is_public",
+            "is_removed",
+            "created_at",
+            "updated_at",
         ]
 
 

@@ -21,6 +21,7 @@ from projects.models import Project
 from ..models import Endorsement, ProjectPlan
 from ..serializers import (
     EndorsementSerializer,
+    EndorsementCreateSerializer,
     TinyEndorsementSerializer,
     MiniEndorsementSerializer,
 )
@@ -44,7 +45,7 @@ class Endorsements(APIView):
     def post(self, request):
         """Create a new endorsement"""
         settings.LOGGER.info(f"{request.user} is posting an endorsement")
-        serializer = EndorsementSerializer(data=request.data)
+        serializer = EndorsementCreateSerializer(data=request.data)
         
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")

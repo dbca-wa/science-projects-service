@@ -118,7 +118,7 @@ class TestUserService:
     def test_list_users_with_search(self, user, db):
         """Test listing users with search term"""
         # Act
-        users = UserService.list_users(search='Test')
+        users = UserService.list_users(filters={'search': 'Test'})
         
         # Assert
         assert users.count() >= 1

@@ -1,6 +1,7 @@
 """
 Medias app pytest fixtures
 """
+
 import pytest
 import datetime
 from unittest.mock import Mock
@@ -24,9 +25,7 @@ from medias.models import (
 def mock_file():
     """Provide a mock file for testing"""
     return SimpleUploadedFile(
-        "test_file.pdf",
-        b"file_content",
-        content_type="application/pdf"
+        "test_file.pdf", b"file_content", content_type="application/pdf"
     )
 
 
@@ -35,17 +34,15 @@ def mock_image():
     """Provide a mock image for testing"""
     from PIL import Image
     from io import BytesIO
-    
+
     # Create a simple 10x10 red image
-    image = Image.new('RGB', (10, 10), color='red')
+    image = Image.new("RGB", (10, 10), color="red")
     image_io = BytesIO()
-    image.save(image_io, format='JPEG')
+    image.save(image_io, format="JPEG")
     image_io.seek(0)
-    
+
     return SimpleUploadedFile(
-        "test_image.jpg",
-        image_io.read(),
-        content_type="image/jpeg"
+        "test_image.jpg", image_io.read(), content_type="image/jpeg"
     )
 
 
@@ -153,8 +150,8 @@ def user_avatar(db, user, mock_image):
 def project(db, business_area, user):
     """Provide a project"""
     from projects.models import Project
+
     return Project.objects.create(
-        old_id=1,
         title="Test Project",
         business_area=business_area,
         status=Project.StatusChoices.NEW,
@@ -165,8 +162,8 @@ def project(db, business_area, user):
 def project_document(db, project):
     """Provide a project document"""
     from documents.models import ProjectDocument
+
     return ProjectDocument.objects.create(
-        old_id=1,
         project=project,
         kind=ProjectDocument.CategoryKindChoices.CONCEPTPLAN,
         status=ProjectDocument.StatusChoices.NEW,
@@ -177,8 +174,8 @@ def project_document(db, project):
 def annual_report(db):
     """Provide an annual report"""
     from documents.models import AnnualReport
+
     return AnnualReport.objects.create(
-        old_id=1,
         year=2023,
         date_open=datetime.date(2023, 1, 1),
         date_closed=datetime.date(2023, 12, 31),
@@ -189,6 +186,7 @@ def annual_report(db):
 def endorsement(db, project_plan):
     """Provide an endorsement"""
     from documents.models import Endorsement
+
     return Endorsement.objects.create(
         project_plan=project_plan,
     )
@@ -198,6 +196,7 @@ def endorsement(db, project_plan):
 def project_plan(db, project, project_document):
     """Provide a project plan"""
     from documents.models import ProjectPlan
+
     return ProjectPlan.objects.create(
         document=project_document,
         project=project,
@@ -208,6 +207,7 @@ def project_plan(db, project, project_document):
 def business_area(db, agency, division, user):
     """Provide a business area"""
     from agencies.models import BusinessArea
+
     return BusinessArea.objects.create(
         agency=agency,
         name="Test Business Area",
@@ -225,6 +225,7 @@ def business_area(db, agency, division, user):
 def agency(db, user):
     """Provide an agency"""
     from agencies.models import Agency
+
     return Agency.objects.create(
         name="Test Agency",
         key_stakeholder=user,
@@ -236,8 +237,8 @@ def agency(db, user):
 def division(db, user):
     """Provide a division"""
     from agencies.models import Division
+
     return Division.objects.create(
-        old_id=1,
         name="Test Division",
         slug="test-division",
         director=user,

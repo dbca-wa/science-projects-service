@@ -32,7 +32,6 @@ def agency(db, user):
 def division(db, user):
     """Provide a division"""
     return Division.objects.create(
-        old_id=1,
         name="Test Division",
         slug="test-division",
         director=user,
@@ -44,7 +43,6 @@ def division(db, user):
 def branch(db, agency, user):
     """Provide a branch"""
     return Branch.objects.create(
-        old_id=1,
         agency=agency,
         name="Test Branch",
         manager=user,
@@ -72,7 +70,6 @@ def business_area(db, agency, division, user):
 def departmental_service(db, user):
     """Provide a departmental service"""
     return DepartmentalService.objects.create(
-        old_id=1,
         name="Test Service",
         director=user,
     )

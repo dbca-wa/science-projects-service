@@ -63,7 +63,11 @@ class TestProjectDetails:
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['id'] == project.pk
+        assert 'project' in response.data
+        assert response.data['project']['id'] == project.pk
+        assert 'details' in response.data
+        assert 'documents' in response.data
+        assert 'members' in response.data
 
     def test_get_project_unauthenticated(self, api_client, project, db):
         """Test getting project without authentication"""
@@ -176,7 +180,6 @@ class TestProjectMembers:
             'user': new_user.pk,
             'is_leader': False,
             'role': 'research',
-            'old_id': 1,
         }
         
         # Act
@@ -765,7 +768,6 @@ class TestStudentProjectAdditional:
             'project': project.pk,
             'organisation': 'Test University',
             'level': 'phd',
-            'old_id': 1,
         }
         
         # Act
@@ -865,7 +867,6 @@ class TestExternalProjectAdditional:
             'project': project.pk,
             'collaboration_with': '<p>Partner</p>',
             'budget': '<p>$5000</p>',
-            'old_id': 1,
         }
         
         # Act

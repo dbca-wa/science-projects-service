@@ -412,21 +412,4 @@ class AgencyService:
             "deleted_names": deleted_names[:10]
         }
 
-    @staticmethod
-    def list_business_areas():
-        """
-        List all business areas with optimized queries
-        
-        Returns:
-            QuerySet of BusinessArea objects
-        """
-        return (
-            BusinessArea.objects.select_related(
-                "division",
-                "image",
-            )
-            .prefetch_related(
-                "division__directorate_email_list",
-            )
-            .all()
-        )
+

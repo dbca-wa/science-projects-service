@@ -16,6 +16,146 @@ class CaretakerRequestService:
     """Service for managing caretaker requests via AdminTask"""
 
     @staticmethod
+    def get_task(task_id):
+        """
+        Get a caretaker request task by ID
+        
+        Args:
+            task_id: AdminTask ID
+            
+        Returns:
+            AdminTask instance
+            
+        Raises:
+            NotFound: If task not found
+        """
+        try:
+            return AdminTask.objects.select_related(
+                'requester',
+                'primary_user',
+            ).get(
+                pk=task_id,
+                action=AdminTask.ActionTypes.SETCARETAKER,
+            )
+        except AdminTask.DoesNotExist:
+            raise NotFound(f"Task {task_id} not found")
+
+    @staticmethod
+    def validate_caretaker_request(task, user):
+        """
+        Validate a caretaker request before processing
+        
+        Args:
+            task: AdminTask instance
+            user: User attempting to process the request
+            
+        Raises:
+            ValidationError: If task is invalid
+            PermissionDenied: If user lacks permission
+        """
+        # Validate action type
+        if task.action != AdminTask.ActionTypes.SETCARETAKER:
+            raise ValidationError("This endpoint only handles caretaker requests")
+        
+        # Validate status
+        if task.status != AdminTask.TaskStatus.PENDING:
+            raise ValidationError("This request has already been processed")
+        
+        # Validate user is the requested caretaker (in secondary_users)
+        caretaker_id = task.secondary_users[0] if task.secondary_users else None
+        if not (user.is_superuser or user.pk == caretaker_id):
+            raise PermissionDenied("You are not authorized to respond to this request")
+
+    @staticmethod
+    @transaction.atomic
+    def auto_cancel_expired_request(task):
+        """
+        Auto-cancel a caretaker request if it has expired
+        
+        Args:
+            task: AdminTask instance
+            
+        Returns:
+            bool: True if cancelled, False if not expired
+        """
+        # Only cancel if task has end_date and it's in the past
+        if not task.end_date:
+            return False
+        
+        # Convert end_date to date if it's a datetime
+        end_date = task.end_date
+        if isinstance(end_date, datetime):
+            end_date = end_date.date()
+        
+        if end_date >= timezone.now().date():
+            return False
+        
+        # Cancel the task
+        task.status = AdminTask.TaskStatus.CANCELLED
+        task.notes = f"Auto-cancelled: Request expired on {end_date}"
+        task.save()
+        
+        settings.LOGGER.info(
+            f"Auto-cancelled expired caretaker request {task.pk}"
+        )
+        
+        return True
+
+    @staticmethod
+    def get_user_requests(user):
+        """
+        Get caretaker requests for a user
+        
+        Returns both:
+        - caretaker_request: Request where user is primary_user (wants someone to be THEIR caretaker)
+        - become_caretaker_request: Request where user is in secondary_users (someone wants THEM to be caretaker)
+        
+        Auto-cancels any expired requests.
+        
+        Args:
+            user: User instance
+            
+        Returns:
+            dict with 'caretaker_request' and 'become_caretaker_request' keys
+        """
+        # Get caretaker request (user wants someone to be their caretaker)
+        caretaker_request = AdminTask.objects.filter(
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+            primary_user=user,
+        ).select_related(
+            'requester',
+            'primary_user',
+        ).first()
+        
+        # Auto-cancel if expired
+        if caretaker_request:
+            cancelled = CaretakerRequestService.auto_cancel_expired_request(caretaker_request)
+            if cancelled:
+                caretaker_request = None
+        
+        # Get become caretaker request (someone wants user to be their caretaker)
+        become_caretaker_request = AdminTask.objects.filter(
+            action=AdminTask.ActionTypes.SETCARETAKER,
+            status=AdminTask.TaskStatus.PENDING,
+            secondary_users__contains=[user.pk],
+        ).select_related(
+            'requester',
+            'primary_user',
+        ).first()
+        
+        # Auto-cancel if expired
+        if become_caretaker_request:
+            cancelled = CaretakerRequestService.auto_cancel_expired_request(become_caretaker_request)
+            if cancelled:
+                become_caretaker_request = None
+        
+        return {
+            'caretaker_request': caretaker_request,
+            'become_caretaker_request': become_caretaker_request,
+        }
+
+    @staticmethod
     @transaction.atomic
     def create_request(requester, user_id, caretaker_id, reason=None, end_date=None, notes=None):
         """
@@ -152,7 +292,7 @@ class CaretakerRequestService:
         Raises:
             NotFound: If task not found
             PermissionDenied: If user lacks permission
-            ValidationError: If task invalid
+            ValidationError: If task invalid or caretaker creation fails
         """
         # Get task
         try:
@@ -180,16 +320,19 @@ class CaretakerRequestService:
         caretaker = User.objects.get(pk=caretaker_id)
         
         # Create Caretaker relationship
-        caretaker_obj = Caretaker.objects.create(
-            user=task.primary_user,
-            caretaker=caretaker,
-            reason=task.reason,
-            end_date=task.end_date,
-            notes=task.notes,
-        )
+        try:
+            caretaker_obj = Caretaker.objects.create(
+                user=task.primary_user,
+                caretaker=caretaker,
+                reason=task.reason,
+                end_date=task.end_date,
+                notes=task.notes,
+            )
+        except Exception as e:
+            raise ValidationError(f"Failed to create caretaker relationship: {e}")
         
-        # Update task status
-        task.status = AdminTask.TaskStatus.APPROVED
+        # Update task status to FULFILLED (request approved AND caretaker created)
+        task.status = AdminTask.TaskStatus.FULFILLED
         task.save()
         
         settings.LOGGER.info(

@@ -129,6 +129,14 @@ class UserService:
         if only_staff and only_staff.lower() == 'true':
             queryset = queryset.filter(is_staff=True)
         
+        # is_staff filter (direct boolean filter)
+        is_staff = filters.get('is_staff')
+        if is_staff is not None:
+            # Handle both boolean and string values
+            if isinstance(is_staff, str):
+                is_staff = is_staff.lower() == 'true'
+            queryset = queryset.filter(is_staff=is_staff)
+        
         # External filter (only_external=true means is_staff=False)
         only_external = filters.get('only_external')
         if only_external and only_external.lower() == 'true':
@@ -138,6 +146,14 @@ class UserService:
         only_superuser = filters.get('only_superuser')
         if only_superuser and only_superuser.lower() == 'true':
             queryset = queryset.filter(is_superuser=True)
+        
+        # is_superuser filter (direct boolean filter)
+        is_superuser = filters.get('is_superuser')
+        if is_superuser is not None:
+            # Handle both boolean and string values
+            if isinstance(is_superuser, str):
+                is_superuser = is_superuser.lower() == 'true'
+            queryset = queryset.filter(is_superuser=is_superuser)
         
         # BA Lead filter (users who lead a business area)
         only_ba_lead = filters.get('only_ba_lead')

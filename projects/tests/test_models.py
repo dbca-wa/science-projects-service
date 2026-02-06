@@ -186,7 +186,6 @@ class TestProject:
         ExternalProjectDetails.objects.create(
             project=project,
             description='<p>External description</p>',
-            old_id=1,
         )
         
         # Act
@@ -319,7 +318,6 @@ class TestProjectMember:
                 user=project_lead,
                 is_leader=False,
                 role='research',
-                old_id=2,
             )
 
     def test_default_values(self, project, user, db):
@@ -329,7 +327,6 @@ class TestProjectMember:
             project=project,
             user=user,
             role='research',
-            old_id=1,
         )
         
         # Assert
@@ -348,7 +345,6 @@ class TestStudentProjectDetails:
             project=project,
             level='phd',
             organisation='Test University',
-            old_id=1,
         )
         
         # Act
@@ -369,7 +365,6 @@ class TestStudentProjectDetails:
             project=project,
             level='phd',
             organisation='Valid Affiliation; Stale Affiliation; Another Stale',
-            old_id=1,
         )
         
         # Act
@@ -385,7 +380,6 @@ class TestStudentProjectDetails:
             project=project,
             level='phd',
             organisation='',
-            old_id=1,
         )
         
         # Act
@@ -401,7 +395,6 @@ class TestStudentProjectDetails:
             project=project,
             level='phd',
             organisation=None,
-            old_id=1,
         )
         
         # Act
@@ -420,7 +413,6 @@ class TestExternalProjectDetails:
         details = ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with='Partner Organization',
-            old_id=1,
         )
         
         # Act
@@ -440,7 +432,6 @@ class TestExternalProjectDetails:
         details = ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with='Valid Partner; Stale Partner; Another Stale',
-            old_id=1,
         )
         
         # Act
@@ -455,7 +446,6 @@ class TestExternalProjectDetails:
         details = ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with='',
-            old_id=1,
         )
         
         # Act
@@ -470,7 +460,6 @@ class TestExternalProjectDetails:
         details = ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with=None,
-            old_id=1,
         )
         
         # Act

@@ -138,9 +138,7 @@ class TestDocumentService:
         project.members.create(
             user=user,
             is_leader=True,
-            role='supervising',
-            old_id=user.pk
-        )
+            role='supervising')
         
         # Create document with the correct project
         concept_plan = ConceptPlanFactory(
@@ -225,9 +223,7 @@ class TestDocumentService:
         project.members.create(
             user=user,
             is_leader=True,
-            role='supervising',
-            old_id=user.pk
-        )
+            role='supervising')
         
         # Create documents at different stages
         doc1 = ConceptPlanFactory(
@@ -372,9 +368,7 @@ class TestApprovalService:
         project.members.create(
             user=user,
             is_leader=True,
-            role='supervising',
-            old_id=user.pk
-        )
+            role='supervising')
         
         # Create document directly with the project
         document = ProjectDocumentFactory(
@@ -533,9 +527,7 @@ class TestApprovalService:
         project.members.create(
             user=project_lead,
             is_leader=True,
-            role='supervising',
-            old_id=project_lead.pk
-        )
+            role='supervising')
         
         document = ProjectDocumentFactory(
             project=project,
@@ -650,9 +642,7 @@ class TestApprovalService:
         project.members.create(
             user=project_lead,
             is_leader=True,
-            role='supervising',
-            old_id=project_lead.pk
-        )
+            role='supervising')
         
         doc1 = ProjectDocumentFactory(
             project=project,
@@ -762,9 +752,7 @@ class TestApprovalService:
         project.members.create(
             user=project_lead,
             is_leader=True,
-            role='supervising',
-            old_id=project_lead.pk
-        )
+            role='supervising')
         
         # Document that can be approved
         doc1 = ProjectDocumentFactory(
@@ -816,9 +804,7 @@ class TestApprovalService:
         project.members.create(
             user=project_lead,
             is_leader=True,
-            role='supervising',
-            old_id=project_lead.pk
-        )
+            role='supervising')
         
         document = ProjectDocumentFactory(
             project=project,
@@ -1576,7 +1562,6 @@ class TestNotificationService:
         cycle = AnnualReport.objects.create(
             year=2024,
             is_published=False,
-            old_id=1,
             date_open=datetime(2024, 1, 1),
             date_closed=datetime(2024, 12, 31),
         )
@@ -1671,8 +1656,8 @@ class TestNotificationService:
         leader = UserFactory(first_name='Lead', last_name='User', email='lead@example.com')
         member = UserFactory(first_name='Team', last_name='Member', email='member@example.com')
         
-        project.members.create(user=leader, is_leader=True, role='supervising', old_id=leader.pk)
-        project.members.create(user=member, is_leader=False, role='research', old_id=member.pk)
+        project.members.create(user=leader, is_leader=True, role='supervising')
+        project.members.create(user=member, is_leader=False, role='research')
         
         document = ProjectDocumentFactory(project=project)
         
@@ -1761,8 +1746,8 @@ class TestNotificationService:
         leader = UserFactory(first_name='Lead', last_name='User', email='lead@example.com')
         member = UserFactory(first_name='Team', last_name='Member', email='member@example.com')
         
-        project.members.create(user=leader, is_leader=True, role='supervising', old_id=leader.pk)
-        project.members.create(user=member, is_leader=False, role='research', old_id=member.pk)
+        project.members.create(user=leader, is_leader=True, role='supervising')
+        project.members.create(user=member, is_leader=False, role='research')
         
         document = ProjectDocumentFactory(project=project)
         
@@ -1788,9 +1773,9 @@ class TestNotificationService:
         member1 = UserFactory(first_name='Member', last_name='One', email='member1@example.com')
         member2 = UserFactory(first_name='Member', last_name='Two', email='member2@example.com')
         
-        project.members.create(user=leader, is_leader=True, role='supervising', old_id=leader.pk)
-        project.members.create(user=member1, is_leader=False, role='research', old_id=member1.pk)
-        project.members.create(user=member2, is_leader=False, role='technical', old_id=member2.pk)
+        project.members.create(user=leader, is_leader=True, role='supervising')
+        project.members.create(user=member1, is_leader=False, role='research')
+        project.members.create(user=member2, is_leader=False, role='technical')
         
         # Act
         recipients = NotificationService._get_project_team_recipients(project)

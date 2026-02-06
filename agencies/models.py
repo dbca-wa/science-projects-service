@@ -46,7 +46,6 @@ class Agency(CommonModel):
 class Branch(CommonModel):  # Renamed from workcenter
     """Model Definition for Business Area (Previously Workcenter)"""
 
-    old_id = models.IntegerField()
     agency = models.ForeignKey(
         "agencies.Agency",
         on_delete=models.CASCADE,
@@ -146,8 +145,6 @@ class BusinessArea(CommonModel):  # Renamed from program
         blank=True,
     )
 
-    old_id = models.IntegerField(blank=True, null=True)
-
     # NOTE SPECIES AND COMMUNITIES 1230 words (this was originally 250 words - expand further when doing lexical)
     focus = models.CharField(
         max_length=1250,
@@ -174,7 +171,6 @@ class Division(CommonModel):
     Model Definition for Division
     """
 
-    old_id = models.IntegerField()
     name = models.CharField(max_length=150)
     slug = models.SlugField(
         help_text="A URL-sage acronym of the Division's name without whitespace",
@@ -226,7 +222,6 @@ class DepartmentalService(CommonModel):
         related_name="services_led",
         help_text="The Service's Director",
     )
-    old_id = models.IntegerField()
 
     class Meta:
         verbose_name = "Departmental Service"

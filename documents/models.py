@@ -27,8 +27,6 @@ class AnnualReport(CommonModel):
     There can only be one ARR per year, enforced with a `unique` year.
     """
 
-    old_id = models.IntegerField()
-
     creator = models.ForeignKey(
         "users.User",
         on_delete=models.SET_NULL,
@@ -199,8 +197,6 @@ class ProjectDocument(CommonModel):
         INREVIEW = "inreview", "Review Requested"
         INAPPROVAL = "inapproval", "Approval Requested"
         APPROVED = "approved", "Approved"
-
-    old_id = models.IntegerField()
 
     status = models.CharField(
         max_length=50,

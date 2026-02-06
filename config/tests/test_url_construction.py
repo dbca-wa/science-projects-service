@@ -10,11 +10,11 @@ class URLConstructionTestCase(TestCase):
     """Test that URL patterns are constructed correctly without trailing slashes."""
 
     def test_projects_base_url(self):
-        """Test that /api/v1/projects resolves correctly."""
+        """Test that /api/v1/projects/list resolves correctly."""
         # This should resolve to the Projects view
-        url = "/api/v1/projects"
+        url = "/api/v1/projects/list"
         resolved = resolve(url)
-        self.assertEqual(resolved.view_name, "")  # Empty string for base path
+        self.assertIsNotNone(resolved)
         
     def test_projects_map_url(self):
         """Test that /api/v1/projects/map resolves correctly."""
@@ -37,8 +37,8 @@ class URLConstructionTestCase(TestCase):
         self.assertEqual(resolved.kwargs["pk"], 123)
         
     def test_users_base_url(self):
-        """Test that /api/v1/users resolves correctly."""
-        url = "/api/v1/users"
+        """Test that /api/v1/users/list resolves correctly."""
+        url = "/api/v1/users/list"
         resolved = resolve(url)
         self.assertIsNotNone(resolved)
         
@@ -56,8 +56,8 @@ class URLConstructionTestCase(TestCase):
         self.assertEqual(resolved.kwargs["pk"], 123)
         
     def test_caretakers_base_url(self):
-        """Test that /api/v1/caretakers resolves correctly."""
-        url = "/api/v1/caretakers"
+        """Test that /api/v1/caretakers/list resolves correctly."""
+        url = "/api/v1/caretakers/list"
         resolved = resolve(url)
         self.assertIsNotNone(resolved)
         
@@ -79,13 +79,13 @@ class URLConstructionTestCase(TestCase):
         client = Client()
         
         # These should all return 404 because we have APPEND_SLASH=False
-        response = client.get("/api/v1/projects/")
+        response = client.get("/api/v1/projects/list/")
         self.assertEqual(response.status_code, 404)
         
-        response = client.get("/api/v1/users/")
+        response = client.get("/api/v1/users/list/")
         self.assertEqual(response.status_code, 404)
         
-        response = client.get("/api/v1/caretakers/")
+        response = client.get("/api/v1/caretakers/list/")
         self.assertEqual(response.status_code, 404)
         
     def test_nested_paths_work(self):

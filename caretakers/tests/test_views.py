@@ -14,6 +14,7 @@ from caretakers.models import Caretaker
 from projects.models import Project, ProjectMember
 from documents.models import ProjectDocument
 from common.tests.factories import UserFactory, ProjectFactory
+from common.tests.test_helpers import caretakers_urls
 
 
 @pytest.fixture
@@ -23,13 +24,13 @@ def api_client():
 
 
 class TestCaretakerList:
-    """Test CaretakerList view (GET/POST /api/v1/caretakers/)"""
+    """Test CaretakerList view (GET/POST /api/v1/caretakers/list)"""
 
     @pytest.mark.django_db
     def test_list_caretakers_unauthenticated(self, api_client):
         """Test listing caretakers requires authentication"""
         # Act
-        response = api_client.get("/api/v1/caretakers/")
+        response = api_client.get(caretakers_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -41,7 +42,7 @@ class TestCaretakerList:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/")
+        response = api_client.get(caretakers_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -62,7 +63,7 @@ class TestCaretakerList:
         api_client.force_authenticate(user=user1)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/")
+        response = api_client.get(caretakers_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -81,7 +82,7 @@ class TestCaretakerList:
         }
         
         # Act
-        response = api_client.post("/api/v1/caretakers/", data)
+        response = api_client.post(caretakers_urls.list(), data)
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -98,7 +99,7 @@ class TestCaretakerList:
         }
         
         # Act
-        response = api_client.post("/api/v1/caretakers/", data)
+        response = api_client.post(caretakers_urls.list(), data)
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -117,7 +118,7 @@ class TestCaretakerList:
         }
         
         # Act
-        response = api_client.post("/api/v1/caretakers/", data)
+        response = api_client.post(caretakers_urls.list(), data)
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -130,7 +131,7 @@ class TestCaretakerDetail:
     def test_get_caretaker_unauthenticated(self, api_client, caretaker_assignment):
         """Test getting caretaker requires authentication"""
         # Act
-        response = api_client.get(f"/api/v1/caretakers/{caretaker_assignment.pk}/")
+        response = api_client.get(caretakers_urls.detail(caretaker_assignment.pk))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -142,7 +143,7 @@ class TestCaretakerDetail:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.get(f"/api/v1/caretakers/{caretaker_assignment.pk}/")
+        response = api_client.get(caretakers_urls.detail(caretaker_assignment.pk))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -155,7 +156,7 @@ class TestCaretakerDetail:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/99999/")
+        response = api_client.get(caretakers_urls.detail(99999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -167,7 +168,7 @@ class TestCaretakerDetail:
         data = {'reason': 'Updated reason'}
         
         # Act
-        response = api_client.put(f"/api/v1/caretakers/{caretaker_assignment.pk}/", data)
+        response = api_client.put(caretakers_urls.detail(caretaker_assignment.pk), data)
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -180,7 +181,7 @@ class TestCaretakerDetail:
         data = {'reason': 'Updated reason'}
         
         # Act
-        response = api_client.put(f"/api/v1/caretakers/{caretaker_assignment.pk}/", data)
+        response = api_client.put(caretakers_urls.detail(caretaker_assignment.pk), data)
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -195,7 +196,7 @@ class TestCaretakerDetail:
         data = {'notes': 'Updated notes'}
         
         # Act
-        response = api_client.put(f"/api/v1/caretakers/{caretaker_assignment.pk}/", data)
+        response = api_client.put(caretakers_urls.detail(caretaker_assignment.pk), data)
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -206,7 +207,7 @@ class TestCaretakerDetail:
     def test_delete_caretaker_unauthenticated(self, api_client, caretaker_assignment):
         """Test deleting caretaker requires authentication"""
         # Act
-        response = api_client.delete(f"/api/v1/caretakers/{caretaker_assignment.pk}/")
+        response = api_client.delete(caretakers_urls.detail(caretaker_assignment.pk))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -218,7 +219,7 @@ class TestCaretakerDetail:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.delete(f"/api/v1/caretakers/{caretaker_assignment.pk}/")
+        response = api_client.delete(caretakers_urls.detail(caretaker_assignment.pk))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -232,7 +233,7 @@ class TestCaretakerRequestList:
     def test_get_pending_requests_unauthenticated(self, api_client):
         """Test getting pending requests requires authentication"""
         # Act
-        response = api_client.get("/api/v1/caretakers/requests/")
+        response = api_client.get(caretakers_urls.path('requests'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -244,7 +245,7 @@ class TestCaretakerRequestList:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/requests/")
+        response = api_client.get(caretakers_urls.path('requests'))
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -269,7 +270,7 @@ class TestCaretakerRequestList:
         api_client.force_authenticate(user=user1)
         
         # Act
-        response = api_client.get(f"/api/v1/caretakers/requests/?user_id={user1.pk}")
+        response = api_client.get(f"{caretakers_urls.path('requests')}?user_id={user1.pk}")
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -296,7 +297,7 @@ class TestCaretakerRequestList:
         api_client.force_authenticate(user=user1)
         
         # Act
-        response = api_client.get(f"/api/v1/caretakers/requests/?user_id={user1.pk}")
+        response = api_client.get(f"{caretakers_urls.path('requests')}?user_id={user1.pk}")
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -322,7 +323,7 @@ class TestApproveCaretakerRequest:
         )
         
         # Act
-        response = api_client.post(f"/api/v1/caretakers/requests/{task.pk}/approve/")
+        response = api_client.post(caretakers_urls.path('requests', task.pk, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -345,7 +346,7 @@ class TestApproveCaretakerRequest:
         api_client.force_authenticate(user=user2)
         
         # Act
-        response = api_client.post(f"/api/v1/caretakers/requests/{task.pk}/approve/")
+        response = api_client.post(caretakers_urls.path('requests', task.pk, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -378,7 +379,7 @@ class TestApproveCaretakerRequest:
         api_client.force_authenticate(user=other_user)
         
         # Act
-        response = api_client.post(f"/api/v1/caretakers/requests/{task.pk}/approve/")
+        response = api_client.post(caretakers_urls.path('requests', task.pk, 'approve'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -403,7 +404,7 @@ class TestRejectCaretakerRequest:
         )
         
         # Act
-        response = api_client.post(f"/api/v1/caretakers/requests/{task.pk}/reject/")
+        response = api_client.post(caretakers_urls.path('requests', task.pk, 'reject'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -426,7 +427,7 @@ class TestRejectCaretakerRequest:
         api_client.force_authenticate(user=user2)
         
         # Act
-        response = api_client.post(f"/api/v1/caretakers/requests/{task.pk}/reject/")
+        response = api_client.post(caretakers_urls.path('requests', task.pk, 'reject'))
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -443,7 +444,7 @@ class TestCaretakerTasksForUser:
     def test_get_tasks_unauthenticated(self, api_client, caretaker_user):
         """Test getting tasks requires authentication"""
         # Act
-        response = api_client.get(f"/api/v1/caretakers/tasks/{caretaker_user.pk}/")
+        response = api_client.get(caretakers_urls.path('tasks', caretaker_user.pk))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -455,7 +456,7 @@ class TestCaretakerTasksForUser:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.get(f"/api/v1/caretakers/tasks/{caretaker_user.pk}/")
+        response = api_client.get(caretakers_urls.path('tasks', caretaker_user.pk))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -480,13 +481,12 @@ class TestCaretakerTasksForUser:
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=True,
             directorate_approval_granted=False,
-            old_id=1,
         )
         
         api_client.force_authenticate(user=caretaker)
         
         # Act
-        response = api_client.get(f"/api/v1/caretakers/tasks/{caretaker.pk}/")
+        response = api_client.get(caretakers_urls.path('tasks', caretaker.pk))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -506,7 +506,6 @@ class TestCaretakerTasksForUser:
             user=project_lead,
             is_leader=True,
             role='supervising',
-            old_id=project_lead.pk,
         )
         
         Caretaker.objects.create(user=project_lead, caretaker=caretaker)
@@ -516,13 +515,12 @@ class TestCaretakerTasksForUser:
             kind='concept',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
-            old_id=1,
         )
         
         api_client.force_authenticate(user=caretaker)
         
         # Act
-        response = api_client.get(f"/api/v1/caretakers/tasks/{caretaker.pk}/")
+        response = api_client.get(caretakers_urls.path('tasks', caretaker.pk))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -537,7 +535,7 @@ class TestCheckCaretaker:
     def test_check_caretaker_unauthenticated(self, api_client):
         """Test checking caretaker requires authentication"""
         # Act
-        response = api_client.get("/api/v1/caretakers/check/")
+        response = api_client.get(caretakers_urls.path('check'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -549,7 +547,7 @@ class TestCheckCaretaker:
         api_client.force_authenticate(user=caretaker_user)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/check/")
+        response = api_client.get(caretakers_urls.path('check'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -564,7 +562,7 @@ class TestCheckCaretaker:
         api_client.force_authenticate(user=caretakee_user)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/check/")
+        response = api_client.get(caretakers_urls.path('check'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -590,7 +588,7 @@ class TestCheckCaretaker:
         api_client.force_authenticate(user=user1)
         
         # Act
-        response = api_client.get("/api/v1/caretakers/check/")
+        response = api_client.get(caretakers_urls.path('check'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -604,7 +602,7 @@ class TestAdminSetCaretaker:
     def test_admin_set_caretaker_unauthenticated(self, api_client):
         """Test admin set caretaker requires authentication"""
         # Act
-        response = api_client.post("/api/v1/caretakers/admin-set/", {})
+        response = api_client.post(caretakers_urls.path('admin-set'), {})
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -621,7 +619,7 @@ class TestAdminSetCaretaker:
         }
         
         # Act
-        response = api_client.post("/api/v1/caretakers/admin-set/", data)
+        response = api_client.post(caretakers_urls.path('admin-set'), data)
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -642,7 +640,7 @@ class TestAdminSetCaretaker:
         }
         
         # Act
-        response = api_client.post("/api/v1/caretakers/admin-set/", data)
+        response = api_client.post(caretakers_urls.path('admin-set'), data)
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -660,21 +658,21 @@ class TestAdminSetCaretaker:
         
         # Act & Assert - Missing userPk
         response = api_client.post(
-            "/api/v1/caretakers/admin-set/",
+            caretakers_urls.path('admin-set'),
             {'caretakerPk': user2.pk, 'reason': 'Test'},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         
         # Act & Assert - Missing caretakerPk
         response = api_client.post(
-            "/api/v1/caretakers/admin-set/",
+            caretakers_urls.path('admin-set'),
             {'userPk': user1.pk, 'reason': 'Test'},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         
         # Act & Assert - Missing reason
         response = api_client.post(
-            "/api/v1/caretakers/admin-set/",
+            caretakers_urls.path('admin-set'),
             {'userPk': user1.pk, 'caretakerPk': user2.pk},
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -694,7 +692,7 @@ class TestAdminSetCaretaker:
         }
         
         # Act
-        response = api_client.post("/api/v1/caretakers/admin-set/", data)
+        response = api_client.post(caretakers_urls.path('admin-set'), data)
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST

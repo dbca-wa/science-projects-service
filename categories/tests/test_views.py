@@ -5,6 +5,7 @@ import pytest
 from rest_framework import status
 
 from categories.models import ProjectCategory
+from common.tests.test_helpers import categories_urls
 
 
 class TestProjectCategoryViewSet:
@@ -16,7 +17,7 @@ class TestProjectCategoryViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/categories/')
+        response = api_client.get(categories_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -29,7 +30,7 @@ class TestProjectCategoryViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/categories/')
+        response = api_client.get(categories_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -42,7 +43,7 @@ class TestProjectCategoryViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/categories/')
+        response = api_client.get(categories_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -54,7 +55,7 @@ class TestProjectCategoryViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/categories/{project_category.id}')
+        response = api_client.get(categories_urls.detail(project_category.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -68,7 +69,7 @@ class TestProjectCategoryViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/categories/999')
+        response = api_client.get(categories_urls.detail(999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -83,7 +84,7 @@ class TestProjectCategoryViewSet:
         }
         
         # Act
-        response = api_client.post('/api/v1/categories/', data, format='json')
+        response = api_client.post(categories_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -101,7 +102,7 @@ class TestProjectCategoryViewSet:
         }
         
         # Act
-        response = api_client.post('/api/v1/categories/', data, format='json')
+        response = api_client.post(categories_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -116,7 +117,7 @@ class TestProjectCategoryViewSet:
         }
         
         # Act
-        response = api_client.post('/api/v1/categories/', data, format='json')
+        response = api_client.post(categories_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -132,7 +133,7 @@ class TestProjectCategoryViewSet:
         }
         
         # Act
-        response = api_client.post('/api/v1/categories/', data, format='json')
+        response = api_client.post(categories_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -149,7 +150,7 @@ class TestProjectCategoryViewSet:
         
         # Act
         response = api_client.put(
-            f'/api/v1/categories/{project_category.id}',
+            categories_urls.detail(project_category.id),
             data,
             format='json'
         )
@@ -170,7 +171,7 @@ class TestProjectCategoryViewSet:
         
         # Act
         response = api_client.put(
-            f'/api/v1/categories/{project_category.id}',
+            categories_urls.detail(project_category.id),
             data,
             format='json'
         )
@@ -192,7 +193,7 @@ class TestProjectCategoryViewSet:
         }
         
         # Act
-        response = api_client.put('/api/v1/categories/999', data, format='json')
+        response = api_client.put(categories_urls.detail(999), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -204,7 +205,7 @@ class TestProjectCategoryViewSet:
         category_id = project_category.id
         
         # Act
-        response = api_client.delete(f'/api/v1/categories/{category_id}')
+        response = api_client.delete(categories_urls.detail(category_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -216,7 +217,7 @@ class TestProjectCategoryViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.delete('/api/v1/categories/999')
+        response = api_client.delete(categories_urls.detail(999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -230,7 +231,7 @@ class TestProjectCategoryViewSet:
         category3 = ProjectCategory.objects.create(name='Student Project', kind='student')
         
         # Act
-        response = api_client.get('/api/v1/categories/')
+        response = api_client.get(categories_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -252,7 +253,7 @@ class TestProjectCategoryViewSet:
                 'name': f'{kind.title()} Category',
                 'kind': kind,
             }
-            response = api_client.post('/api/v1/categories/', data, format='json')
+            response = api_client.post(categories_urls.list(), data, format='json')
             assert response.status_code == status.HTTP_201_CREATED
             assert response.data['kind'] == kind
 
@@ -266,7 +267,7 @@ class TestProjectCategoryViewSet:
         core_cat = ProjectCategory.objects.create(name='Core', kind='core_function')
         
         # Act
-        response = api_client.get('/api/v1/categories/')
+        response = api_client.get(categories_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -279,7 +280,7 @@ class TestProjectCategoryViewSet:
     def test_list_categories_unauthenticated(self, api_client, project_category, db):
         """Test listing categories without authentication"""
         # Act
-        response = api_client.get('/api/v1/categories/')
+        response = api_client.get(categories_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -293,7 +294,7 @@ class TestProjectCategoryViewSet:
         }
         
         # Act
-        response = api_client.post('/api/v1/categories/', data, format='json')
+        response = api_client.post(categories_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN

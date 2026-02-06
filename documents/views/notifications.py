@@ -1,6 +1,7 @@
 """
 Notification views - Admin notification operations
 """
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
@@ -46,18 +47,19 @@ class NewCycleOpen(APIView):
     """
     Open new reporting cycle and create progress/student reports for eligible projects
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         should_update = request.data["update"]
         should_prepopulate = request.data["prepopulate"]
         should_email = request.data["send_emails"]
-        
+
         settings.LOGGER.warning(
             f"{request.user} is attempting to batch create new progress reports for latest year "
             f"{'(Including projects with status Update Requested)' if should_update else '(Active Projects Only)'}..."
         )
-        
+
         if not request.user.is_superuser:
             return Response(
                 {"error": "You don't have permission to do that!"},
@@ -129,7 +131,6 @@ class NewCycleOpen(APIView):
                 continue
 
             new_doc_data = {
-                "old_id": 1,
                 "kind": typeofdoc,
                 "status": "new",
                 "modifier": request.user.pk,
@@ -142,7 +143,7 @@ class NewCycleOpen(APIView):
             if new_project_document.is_valid():
                 with transaction.atomic():
                     doc = new_project_document.save()
-                    
+
                     if project.kind != Project.CategoryKindChoices.STUDENT:
                         # Create progress report
                         exists = ProgressReport.objects.filter(
@@ -159,9 +160,15 @@ class NewCycleOpen(APIView):
 
                             if not should_prepopulate:
                                 # Prepopulate only aims, context, implications
-                                prepopulated_aims = last_one.aims if last_one else "<p></p>"
-                                prepopulated_context = last_one.context if last_one else "<p></p>"
-                                prepopulated_implications = last_one.implications if last_one else "<p></p>"
+                                prepopulated_aims = (
+                                    last_one.aims if last_one else "<p></p>"
+                                )
+                                prepopulated_context = (
+                                    last_one.context if last_one else "<p></p>"
+                                )
+                                prepopulated_implications = (
+                                    last_one.implications if last_one else "<p></p>"
+                                )
 
                                 progress_report_data = {
                                     "document": doc.pk,
@@ -315,7 +322,9 @@ class NewCycleOpen(APIView):
             for recipient in recipients_list:
                 if recipient["pk"] not in processed:
                     if settings.ENVIRONMENT == "production":
-                        settings.LOGGER.info(f"PRODUCTION: Sending email to {recipient['name']}")
+                        settings.LOGGER.info(
+                            f"PRODUCTION: Sending email to {recipient['name']}"
+                        )
 
                         email_subject = "SPMS: New Reporting Cycle Open"
                         to_email = [recipient["email"]]
@@ -330,7 +339,9 @@ class NewCycleOpen(APIView):
                             "dbca_image_path": get_encoded_image(),
                         }
 
-                        template_content = render_to_string(template_path, template_props)
+                        template_content = render_to_string(
+                            template_path, template_props
+                        )
 
                         try:
                             send_email_with_embedded_image(
@@ -347,8 +358,10 @@ class NewCycleOpen(APIView):
                     else:
                         # Test environment - only send to maintainer
                         if recipient["pk"] == maintainer_id:
-                            settings.LOGGER.info(f"TEST: Sending email to {recipient['name']}")
-                            
+                            settings.LOGGER.info(
+                                f"TEST: Sending email to {recipient['name']}"
+                            )
+
                             email_subject = "SPMS: New Reporting Cycle Open"
                             to_email = [recipient["email"]]
 
@@ -362,7 +375,9 @@ class NewCycleOpen(APIView):
                                 "dbca_image_path": get_encoded_image(),
                             }
 
-                            template_content = render_to_string(template_path, template_props)
+                            template_content = render_to_string(
+                                template_path, template_props
+                            )
 
                             try:
                                 send_email_with_embedded_image(
@@ -387,6 +402,7 @@ class SendBumpEmails(APIView):
     """
     Send reminder emails for documents requiring action
     """
+
     permission_classes = [IsAdminUser]
 
     def post(self, request):
@@ -405,7 +421,9 @@ class SendBumpEmails(APIView):
         template_path = "./email_templates/bump_email.html"
 
         actioning_user = User.objects.get(pk=request.user.pk)
-        actioning_user_name = f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
+        actioning_user_name = (
+            f"{actioning_user.display_first_name} {actioning_user.display_last_name}"
+        )
         actioning_user_email = actioning_user.email
 
         # Document kind mapping
@@ -434,7 +452,11 @@ class SendBumpEmails(APIView):
             try:
                 user_to_action = User.objects.get(pk=doc_data.get("userToTakeAction"))
 
-                if not user_to_action.is_active or not user_to_action.email or not user_to_action.is_staff:
+                if (
+                    not user_to_action.is_active
+                    or not user_to_action.email
+                    or not user_to_action.is_staff
+                ):
                     errors.append(
                         f"User {user_to_action.display_first_name} {user_to_action.display_last_name} "
                         f"is inactive, external or has no email"
@@ -442,10 +464,14 @@ class SendBumpEmails(APIView):
                     continue
 
                 document_kind_raw = doc_data.get("documentKind")
-                document_kind_title = document_kind_dict.get(document_kind_raw, document_kind_raw)
+                document_kind_title = document_kind_dict.get(
+                    document_kind_raw, document_kind_raw
+                )
                 url_doc_kind = determine_doc_kind_url_string(document_kind_raw)
 
-                email_subject = f"SPMS: Action Required - {doc_data.get('projectTitle')}"
+                email_subject = (
+                    f"SPMS: Action Required - {doc_data.get('projectTitle')}"
+                )
                 to_email = [user_to_action.email]
 
                 template_props = {
@@ -466,7 +492,9 @@ class SendBumpEmails(APIView):
                 template_content = render_to_string(template_path, template_props)
 
                 if settings.ENVIRONMENT == "production":
-                    settings.LOGGER.info(f"PRODUCTION: Sending bump email to {user_to_action.email}")
+                    settings.LOGGER.info(
+                        f"PRODUCTION: Sending bump email to {user_to_action.email}"
+                    )
 
                     try:
                         send_email_with_embedded_image(
@@ -477,12 +505,16 @@ class SendBumpEmails(APIView):
                         emails_sent += 1
                     except Exception as email_error:
                         settings.LOGGER.error(f"Email Error: {email_error}")
-                        errors.append(f"Failed to send email to {user_to_action.email}: {str(email_error)}")
+                        errors.append(
+                            f"Failed to send email to {user_to_action.email}: {str(email_error)}"
+                        )
                 else:
                     # Test environment - only send to maintainer
                     maintainer_id = get_current_maintainer_id()
                     if user_to_action.pk == maintainer_id:
-                        settings.LOGGER.info(f"TEST: Sending bump email to {user_to_action.email}")
+                        settings.LOGGER.info(
+                            f"TEST: Sending bump email to {user_to_action.email}"
+                        )
 
                         try:
                             send_email_with_embedded_image(
@@ -493,17 +525,27 @@ class SendBumpEmails(APIView):
                             emails_sent += 1
                         except Exception as email_error:
                             settings.LOGGER.error(f"Email Error: {email_error}")
-                            errors.append(f"Failed to send email to {user_to_action.email}: {str(email_error)}")
+                            errors.append(
+                                f"Failed to send email to {user_to_action.email}: {str(email_error)}"
+                            )
                     else:
-                        settings.LOGGER.info(f"TEST: Skipping email to {user_to_action.email} (not maintainer)")
+                        settings.LOGGER.info(
+                            f"TEST: Skipping email to {user_to_action.email} (not maintainer)"
+                        )
 
             except User.DoesNotExist:
-                errors.append(f"User with ID {doc_data.get('userToTakeAction')} not found")
+                errors.append(
+                    f"User with ID {doc_data.get('userToTakeAction')} not found"
+                )
             except Project.DoesNotExist:
                 errors.append(f"Project with ID {doc_data.get('projectId')} not found")
             except Exception as e:
-                settings.LOGGER.error(f"Unexpected error processing document {doc_data.get('documentId')}: {str(e)}")
-                errors.append(f"Error processing document {doc_data.get('documentId')}: {str(e)}")
+                settings.LOGGER.error(
+                    f"Unexpected error processing document {doc_data.get('documentId')}: {str(e)}"
+                )
+                errors.append(
+                    f"Error processing document {doc_data.get('documentId')}: {str(e)}"
+                )
 
         response_data = {
             "emails_sent": emails_sent,
@@ -512,7 +554,9 @@ class SendBumpEmails(APIView):
 
         if errors:
             response_data["errors"] = errors
-            settings.LOGGER.warning(f"Bump emails completed with {len(errors)} errors: {errors}")
+            settings.LOGGER.warning(
+                f"Bump emails completed with {len(errors)} errors: {errors}"
+            )
 
         if emails_sent > 0:
             settings.LOGGER.info(f"Successfully sent {emails_sent} bump emails")
@@ -567,7 +611,9 @@ class UserPublications(APIView):
         return response.json()
 
     def get(self, request, employee_id):
-        settings.LOGGER.info(f"{request.user} is getting UserPublications for {employee_id}")
+        settings.LOGGER.info(
+            f"{request.user} is getting UserPublications for {employee_id}"
+        )
 
         if not employee_id or employee_id == "null":
             return self._error_response("No employee ID provided")
@@ -583,7 +629,9 @@ class UserPublications(APIView):
         cached_data = cache.get(cache_key)
 
         # Get staff profile
-        staff_profile = PublicStaffProfile.objects.filter(employee_id=employee_id).first()
+        staff_profile = PublicStaffProfile.objects.filter(
+            employee_id=employee_id
+        ).first()
 
         # Get custom publications
         custom_publications = CustomPublication.objects.filter(
@@ -595,7 +643,9 @@ class UserPublications(APIView):
             response_data = {
                 "staffProfilePk": staff_profile.pk if staff_profile else 0,
                 "libraryData": cached_data,
-                "customPublications": CustomPublicationSerializer(custom_publications, many=True).data,
+                "customPublications": CustomPublicationSerializer(
+                    custom_publications, many=True
+                ).data,
             }
             return Response(response_data, status=HTTP_200_OK)
 
@@ -606,16 +656,22 @@ class UserPublications(APIView):
             library_response = {
                 "numFound": library_data.get("response", {}).get("numFound", 0),
                 "start": library_data.get("response", {}).get("start", 0),
-                "numFoundExact": library_data.get("response", {}).get("numFoundExact", True),
+                "numFoundExact": library_data.get("response", {}).get(
+                    "numFoundExact", True
+                ),
                 "docs": library_data.get("response", {}).get("docs", []),
                 "isError": False,
                 "errorMessage": "",
             }
 
             # Serialize and cache
-            library_serializer = LibraryPublicationResponseSerializer(data=library_response)
+            library_serializer = LibraryPublicationResponseSerializer(
+                data=library_response
+            )
             if not library_serializer.is_valid():
-                settings.LOGGER.error(f"Library Serializer errors: {library_serializer.errors}")
+                settings.LOGGER.error(
+                    f"Library Serializer errors: {library_serializer.errors}"
+                )
                 return self._error_response("Invalid library data format")
 
             cache.set(
@@ -627,12 +683,16 @@ class UserPublications(APIView):
             response_data = {
                 "staffProfilePk": staff_profile.pk if staff_profile else 0,
                 "libraryData": library_serializer.data,
-                "customPublications": CustomPublicationSerializer(custom_publications, many=True).data,
+                "customPublications": CustomPublicationSerializer(
+                    custom_publications, many=True
+                ).data,
             }
 
             final_serializer = PublicationResponseSerializer(data=response_data)
             if not final_serializer.is_valid():
-                settings.LOGGER.error(f"Final Serializer errors: {final_serializer.errors}")
+                settings.LOGGER.error(
+                    f"Final Serializer errors: {final_serializer.errors}"
+                )
                 return self._error_response("Invalid response format")
 
             return Response(final_serializer.data, status=HTTP_200_OK)
@@ -646,6 +706,7 @@ class SendMentionNotification(APIView):
     """
     Send email notifications to mentioned users in document comments
     """
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -688,7 +749,9 @@ class SendMentionNotification(APIView):
 
                 try:
                     soup = BeautifulSoup(html_content, "html.parser")
-                    mention_spans = soup.find_all("span", {"data-lexical-mention": "true"})
+                    mention_spans = soup.find_all(
+                        "span", {"data-lexical-mention": "true"}
+                    )
                     for span in mention_spans:
                         span.replace_with(span.get_text())
                     return soup.get_text().strip()
@@ -743,11 +806,15 @@ class SendMentionNotification(APIView):
                 # Skip if not in production and not test user
                 maintainer_id = get_current_maintainer_id()
                 if (settings.ENVIRONMENT != "production") and user_id != maintainer_id:
-                    settings.LOGGER.info(f"TEST: Skipping mention notification to {user_name}")
+                    settings.LOGGER.info(
+                        f"TEST: Skipping mention notification to {user_name}"
+                    )
                     continue
 
                 to_email = [user_email]
-                document_kind_string_readable = ProjectDocument.CategoryKindChoices(document.kind).label
+                document_kind_string_readable = ProjectDocument.CategoryKindChoices(
+                    document.kind
+                ).label
 
                 email_subject = f"SPMS: You were mentioned in a comment on {document_kind_string_readable} ({project_tag})"
 

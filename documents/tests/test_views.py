@@ -996,25 +996,25 @@ class TestBeginAnnualReportDocGeneration:
         mock_generate.assert_called_once_with(annual_report)
         mock_complete.assert_called_once_with(annual_report)
 
-    @pytest.mark.skip(reason="Cannot test exception path (lines 142, 147) due to Django test client re-raising exceptions")
     @patch('documents.services.pdf_service.PDFService.generate_annual_report_pdf')
     @patch('documents.services.pdf_service.PDFService.mark_pdf_generation_started')
     @patch('documents.services.pdf_service.PDFService.mark_pdf_generation_complete')
     def test_begin_annual_report_generation_with_exception(self, mock_complete, mock_start, mock_generate, api_client, user, annual_report, db):
-        """Test annual report generation with exception - SKIPPED
+        """Test annual report generation with exception - ensures cleanup is called"""
+        # Arrange
+        api_client.force_authenticate(user=user)
+        mock_generate.side_effect = Exception("PDF generation failed")
         
-        SKIPPED: This test cannot be implemented because:
-        - Django's test client re-raises exceptions that occur during request processing
-        - The exception path (lines 142, 147) cannot be tested without the exception propagating
-        - The code path IS executed in production when PDF generation fails
-        - The except block ensures cleanup (mark_pdf_generation_complete) is called before re-raising
+        # Act - the view catches the exception and re-raises it
+        # The exception will propagate through the test client
+        with pytest.raises(Exception, match="PDF generation failed"):
+            response = api_client.post(documents_urls.path('reports', annual_report.id, 'generate_pdf'))
         
-        Coverage: Lines 142, 147 remain untested (2 lines)
-        
-        Note: This is a framework limitation, not a production bug.
-        The exception handling code IS correct and will execute in production.
-        """
-        pass
+        # Assert - verify cleanup was called even though exception was raised
+        mock_start.assert_called_once_with(annual_report)
+        mock_generate.assert_called_once_with(annual_report)
+        # This is the critical assertion - mark_pdf_generation_complete should be called in the except block
+        mock_complete.assert_called_once_with(annual_report)
 
     def test_begin_annual_report_generation_not_found(self, api_client, user, db):
         """Test starting annual report generation for non-existent report - covers lines 127-130"""
@@ -1923,7 +1923,6 @@ class TestGetPreviousReportsData:
         old_report = AnnualReport.objects.create(
             year=2022,
             is_published=False,
-            old_id=999,
             date_open=datetime(2022, 1, 1),
             date_closed=datetime(2022, 12, 31),
         )
@@ -1964,7 +1963,6 @@ class TestGetPreviousReportsData:
         old_report = AnnualReport.objects.create(
             year=2022,
             is_published=False,
-            old_id=998,
             date_open=datetime(2022, 1, 1),
             date_closed=datetime(2022, 12, 31),
         )
@@ -2042,7 +2040,6 @@ class TestGetPreviousReportsData:
         old_report = AnnualReport.objects.create(
             year=2022,
             is_published=False,
-            old_id=997,
             date_open=datetime(2022, 1, 1),
             date_closed=datetime(2022, 12, 31),
         )
@@ -2144,7 +2141,6 @@ class TestBatchApproveOld:
         old_report = AnnualReport.objects.create(
             year=2022,
             is_published=False,
-            old_id=996,
             date_open=datetime(2022, 1, 1),
             date_closed=datetime(2022, 12, 31),
         )
@@ -2923,10 +2919,8 @@ class TestEndorsements:
         # Assert
         assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN]
 
-    @pytest.mark.skip(reason="Production bug: EndorsementSerializer has project_plan as read_only, causing IntegrityError")
     def test_create_endorsement_valid_data(self, api_client, user, db):
-        """Test creating endorsement - note: production code has a bug where EndorsementSerializer 
-        has project_plan as read_only, so creation will fail. This test documents the current behavior."""
+        """Test creating endorsement with valid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         
@@ -2949,26 +2943,28 @@ class TestEndorsements:
         response = api_client.post(documents_urls.path('projectplans', 'endorsements'), data, format='json')
         
         # Assert
-        # The current implementation has a bug - EndorsementSerializer has project_plan as read_only
-        # This causes the creation to fail with a 500 error (IntegrityError)
-        # We test that the endpoint exists and handles the request
-        assert response.status_code in [status.HTTP_201_CREATED, status.HTTP_400_BAD_REQUEST, status.HTTP_500_INTERNAL_SERVER_ERROR]
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['id'] is not None
+        # Response uses TinyEndorsementSerializer which has nested project_plan
+        assert 'project_plan' in response.data
 
-    @pytest.mark.skip(reason="Cannot test error logging (line 54) due to production bug: EndorsementSerializer has project_plan as read_only, causing database constraint violation before validation error can be logged")
     def test_create_endorsement_invalid_data_error_logging(self, api_client, user, db):
-        """Test creating endorsement with invalid data to cover error logging (line 54)
+        """Test creating endorsement with invalid data to cover error logging"""
+        # Arrange
+        api_client.force_authenticate(user=user)
         
-        SKIPPED: This test cannot be implemented because:
-        - Line 54 is the error logging: settings.LOGGER.error(f"{serializer.errors}")
-        - This line only executes when serializer.is_valid() returns False
-        - However, EndorsementSerializer has project_plan marked as read_only=True
-        - Without project_plan, the save() operation violates NOT NULL constraint
-        - This causes a database error before the validation error can be logged
-        - This is a production bug that should be fixed by using EndorsementCreateSerializer
+        # Missing required field project_plan
+        data = {
+            'ae_endorsement_required': True,
+            'ae_endorsement_provided': False,
+        }
         
-        Coverage: Lines 53-54 remain untested (2 lines)
-        """
-        pass
+        # Act
+        response = api_client.post(documents_urls.path('projectplans', 'endorsements'), data, format='json')
+        
+        # Assert
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'project_plan' in response.data
 
 
 class TestEndorsementDetail:
@@ -3398,32 +3394,48 @@ class TestSeekEndorsement:
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    @pytest.mark.skip(reason="Cannot test PDF validation error path (lines 188-216) due to transaction.atomic() preventing mock from working correctly")
     def test_seek_endorsement_pdf_validation_error(self, api_client, user, db):
-        """Test seeking endorsement with PDF validation error to cover lines 188-216
+        """Test seeking endorsement with PDF validation error to cover lines 188-216"""
+        # Arrange
+        api_client.force_authenticate(user=user)
         
-        SKIPPED: This test cannot be implemented because:
-        - Lines 188-216 are the PDF validation error path in SeekEndorsement.post()
-        - This code is inside a transaction.atomic() block
-        - The validation happens after the endorsement is saved
-        - Mocking AECPDFCreateSerializer doesn't work inside the transaction
-        - The transaction commits before we can intercept the validation
-        - Real validation errors are difficult to trigger without breaking file upload
+        # Create project plan and endorsement
+        project = ProjectFactory()
+        doc = ProjectDocumentFactory(project=project, kind='projectplan')
+        from documents.models import ProjectPlan, Endorsement
+        project_plan = ProjectPlan.objects.create(
+            document=doc,
+            project=project,
+        )
+        endorsement = Endorsement.objects.create(
+            project_plan=project_plan,
+            ae_endorsement_required=True,
+            ae_endorsement_provided=False,
+        )
         
-        The untested code path is:
-        ```python
-        if not new_instance_serializer.is_valid():
-            settings.LOGGER.error(f"{new_instance_serializer.errors}")
-            return Response(
-                new_instance_serializer.errors,
-                status=HTTP_400_BAD_REQUEST
+        # Create invalid PDF data - missing required 'creator' field
+        from io import BytesIO
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        pdf_file = SimpleUploadedFile("test.pdf", b"fake pdf content", content_type="application/pdf")
+        
+        # We need to mock the serializer to make it invalid
+        from unittest.mock import patch, Mock
+        with patch('documents.views.endorsement.AECPDFCreateSerializer') as mock_serializer_class:
+            mock_serializer = Mock()
+            mock_serializer.is_valid.return_value = False
+            mock_serializer.errors = {'creator': ['This field is required.']}
+            mock_serializer_class.return_value = mock_serializer
+            
+            # Act
+            response = api_client.post(
+                documents_urls.path('project_plans', project_plan.id, 'seek_endorsement'),
+                data={'ae_endorsement_provided': True, 'aec_pdf_file': pdf_file},
+                format='multipart'
             )
-        ```
-        
-        Coverage: Lines 188-216 remain untested (29 lines)
-        Note: The happy path (PDF creation success) IS tested by other tests
-        """
-        pass
+            
+            # Assert
+            assert response.status_code == status.HTTP_400_BAD_REQUEST
+            assert 'creator' in response.data
 
     def test_seek_endorsement_with_pdf_upload(self, api_client, user, db):
         """Test seeking endorsement with PDF file upload (happy path)
@@ -4593,7 +4605,7 @@ class TestReports:
         from datetime import datetime
         data = {
             'year': 2024,
-            'old_id': 999,
+            
             'date_open': datetime(2024, 1, 1).date().isoformat(),
             'date_closed': datetime(2024, 12, 31).date().isoformat(),
         }
@@ -5193,9 +5205,7 @@ class TestGetConceptPlanData:
             user=other_user,
             is_leader=False,
             position=1,
-            role='research',
-            old_id=other_user.pk
-        )
+            role='research')
         
         # Act
         response = api_client.post(

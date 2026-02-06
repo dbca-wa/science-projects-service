@@ -208,19 +208,21 @@ class ProfileService:
             user_id: User ID
             
         Returns:
-            Dict with profile data and hidden state
+            Dict with profile data, hidden state, and user active state
         """
         try:
             profile = PublicStaffProfile.objects.select_related('user').get(user_id=user_id)
             return {
                 'exists': True,
                 'is_hidden': profile.is_hidden,
+                'is_active': profile.user.is_active,
                 'profile': profile,
             }
         except PublicStaffProfile.DoesNotExist:
             return {
                 'exists': False,
                 'is_hidden': False,
+                'is_active': False,
                 'profile': None,
             }
 

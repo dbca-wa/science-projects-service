@@ -124,16 +124,19 @@ class UpdateProfile(APIView):
         except User.DoesNotExist:
             return Response({"error": "User not found"}, status=404)
         
+        # Check if user has staff_profile
+        if not hasattr(user, 'staff_profile') or not user.staff_profile:
+            return Response({"error": "User has no staff profile"}, status=404)
+        
         # Update staff_profile fields (about, expertise)
-        if hasattr(user, 'staff_profile') and user.staff_profile:
-            staff_profile = user.staff_profile
-            
-            if 'about' in request.data:
-                staff_profile.about = request.data['about']
-            if 'expertise' in request.data:
-                staff_profile.expertise = request.data['expertise']
-            
-            staff_profile.save()
+        staff_profile = user.staff_profile
+        
+        if 'about' in request.data:
+            staff_profile.about = request.data['about']
+        if 'expertise' in request.data:
+            staff_profile.expertise = request.data['expertise']
+        
+        staff_profile.save()
         
         # Handle image upload if present
         if 'image' in request.FILES:
@@ -146,7 +149,7 @@ class UpdateProfile(APIView):
             avatar.save()
         
         # Return updated data
-        serializer = UpdateProfileSerializer(user.staff_profile if hasattr(user, 'staff_profile') else None)
+        serializer = UpdateProfileSerializer(staff_profile)
         return Response(serializer.data, status=HTTP_202_ACCEPTED)
 
 
@@ -183,6 +186,21 @@ class RemoveAvatar(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
+        try:
+            from users.models import User
+            user = User.objects.get(pk=pk)
+            
+            if hasattr(user, 'avatar') and user.avatar:
+                user.avatar.delete()
+                return Response({"ok": "Avatar removed"}, status=HTTP_204_NO_CONTENT)
+            return Response({"error": "No avatar found"}, status=404)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+    
+    def delete(self, request, pk):
+        """DELETE method for removing avatar"""
         try:
             from users.models import User
             user = User.objects.get(pk=pk)

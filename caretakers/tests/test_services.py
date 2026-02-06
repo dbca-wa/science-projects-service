@@ -110,7 +110,6 @@ class TestCaretakerTaskService:
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=True,
             directorate_approval_granted=False,
-            old_id=1,
         )
         
         # Document already approved (should be excluded)
@@ -121,7 +120,6 @@ class TestCaretakerTaskService:
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=True,
             directorate_approval_granted=True,
-            old_id=2,
         )
         
         # Document not ready for directorate (should be excluded)
@@ -132,7 +130,6 @@ class TestCaretakerTaskService:
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=False,
             directorate_approval_granted=False,
-            old_id=3,
         )
         
         projects = Project.objects.filter(pk__in=[project1.pk, project2.pk])
@@ -158,7 +155,6 @@ class TestCaretakerTaskService:
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=False,
-            old_id=1,
         )
         
         # Document already approved (should be excluded)
@@ -168,7 +164,6 @@ class TestCaretakerTaskService:
             status=ProjectDocument.StatusChoices.APPROVED,
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=True,
-            old_id=2,
         )
         
         # Document not ready for BA (should be excluded)
@@ -178,7 +173,6 @@ class TestCaretakerTaskService:
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
             business_area_lead_approval_granted=False,
-            old_id=3,
         )
         
         projects = Project.objects.filter(pk__in=[project1.pk, project2.pk])
@@ -203,7 +197,6 @@ class TestCaretakerTaskService:
             kind='concept',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
-            old_id=1,
         )
         
         # Document already approved (should be excluded)
@@ -212,7 +205,6 @@ class TestCaretakerTaskService:
             kind='concept',
             status=ProjectDocument.StatusChoices.APPROVED,
             project_lead_approval_granted=True,
-            old_id=2,
         )
         
         # Document already has lead approval (should be excluded)
@@ -221,7 +213,6 @@ class TestCaretakerTaskService:
             kind='projectplan',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=True,
-            old_id=3,
         )
         
         project_ids = [project1.pk, project2.pk]
@@ -246,7 +237,6 @@ class TestCaretakerTaskService:
             kind='concept',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
-            old_id=1,
         )
         
         # Document already approved (should be excluded)
@@ -255,7 +245,6 @@ class TestCaretakerTaskService:
             kind='concept',
             status=ProjectDocument.StatusChoices.APPROVED,
             project_lead_approval_granted=True,
-            old_id=2,
         )
         
         project_ids = [project1.pk, project2.pk]
@@ -280,7 +269,6 @@ class TestCaretakerTaskService:
             user=user,
             is_leader=True,
             role='supervising',
-            old_id=user.pk,
         )
         
         # Create caretaker assignment
@@ -309,7 +297,6 @@ class TestCaretakerTaskService:
             user=user,
             is_leader=False,
             role='research',
-            old_id=user.pk,
         )
         
         # Create caretaker assignment
@@ -384,7 +371,6 @@ class TestCaretakerTaskService:
             user=user,
             is_leader=True,
             role='supervising',
-            old_id=user.pk,
         )
         
         # Create caretaker assignment
@@ -413,7 +399,6 @@ class TestCaretakerTaskService:
             user=user,
             is_leader=True,
             role='supervising',
-            old_id=user.pk,
         )
         
         # Create caretaker assignment
@@ -459,7 +444,6 @@ class TestCaretakerTaskService:
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=True,
             directorate_approval_granted=False,
-            old_id=1,
         )
         
         requesting_user = UserFactory()
@@ -488,7 +472,6 @@ class TestCaretakerTaskService:
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=True,
             directorate_approval_granted=False,
-            old_id=1,
         )
         
         # Requesting user is also in Directorate
@@ -517,7 +500,6 @@ class TestCaretakerTaskService:
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=False,
-            old_id=1,
         )
         
         requesting_user = UserFactory()
@@ -542,7 +524,6 @@ class TestCaretakerTaskService:
             user=project_lead,
             is_leader=True,
             role='supervising',
-            old_id=project_lead.pk,
         )
         
         caretaker = UserFactory()
@@ -553,7 +534,6 @@ class TestCaretakerTaskService:
             kind='concept',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
-            old_id=1,
         )
         
         requesting_user = UserFactory()
@@ -578,7 +558,6 @@ class TestCaretakerTaskService:
             user=team_member,
             is_leader=False,
             role='research',
-            old_id=team_member.pk,
         )
         
         caretaker = UserFactory()
@@ -589,7 +568,6 @@ class TestCaretakerTaskService:
             kind='concept',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
-            old_id=1,
         )
         
         requesting_user = UserFactory()
@@ -619,7 +597,6 @@ class TestCaretakerTaskService:
             user=user,
             is_leader=True,
             role='supervising',
-            old_id=user.pk,
         )
         
         caretaker = UserFactory()
@@ -632,7 +609,6 @@ class TestCaretakerTaskService:
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=True,
             business_area_lead_approval_granted=False,
-            old_id=1,
         )
         
         lead_doc = ProjectDocument.objects.create(
@@ -640,7 +616,6 @@ class TestCaretakerTaskService:
             kind='projectplan',
             status=ProjectDocument.StatusChoices.INAPPROVAL,
             project_lead_approval_granted=False,
-            old_id=2,
         )
         
         requesting_user = UserFactory()

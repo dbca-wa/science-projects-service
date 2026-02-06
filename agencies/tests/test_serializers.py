@@ -137,7 +137,6 @@ class TestBranchSerializer:
         """Test deserializing valid branch data"""
         # Arrange
         data = {
-            'old_id': 99,
             'name': 'New Branch',
             'agency': agency.id,
             'manager': user.id,
@@ -323,7 +322,6 @@ class TestDivisionSerializer:
         """Test deserializing valid division data"""
         # Arrange
         data = {
-            'old_id': 99,
             'name': 'New Division',
             'slug': 'new-division',
             'director': user.id,
@@ -399,7 +397,6 @@ class TestDepartmentalServiceSerializer:
         """Test deserializing valid departmental service data"""
         # Arrange
         data = {
-            'old_id': 99,
             'name': 'New Service',
             'director': user.id,
         }

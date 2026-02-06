@@ -186,8 +186,8 @@ class ProgressReportByYear(APIView):
                     "document__project__members__user__profile",
                     "document__project__members__user__work",
                     "document__project__members__user__work__business_area",
-                    "document__project__members__user__caretaker",
-                    "document__project__members__user__caretaker_for",
+                    "document__project__members__user__caretakers",
+                    "document__project__members__user__caretaking_for",
                 )
                 .get(year=year, document__project=project)
             )

@@ -21,7 +21,7 @@ class TeamMemberMixin:
                 ProjectMember.objects.select_related(
                     "user", "user__profile", "user__work", "user__work__business_area"
                 )
-                .prefetch_related("user__caretaker", "user__caretaker_for")
+                .prefetch_related("user__caretakers", "user__caretaking_for")
                 .filter(project=project.pk)
                 .all()
             )
@@ -45,7 +45,7 @@ class ProjectTeamMemberMixin:
                 ProjectMember.objects.select_related(
                     "user", "user__profile", "user__work", "user__work__business_area"
                 )
-                .prefetch_related("user__caretaker", "user__caretaker_for")
+                .prefetch_related("user__caretakers", "user__caretaking_for")
                 .filter(project=project.pk)
                 .all()
             )

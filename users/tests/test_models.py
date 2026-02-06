@@ -218,7 +218,7 @@ class TestUserModel:
         
         # Assert
         assert data is not None
-        assert data['pk'] == user.pk
+        assert data['id'] == user.pk
         assert data['display_first_name'] == user.display_first_name
         assert data['display_last_name'] == user.display_last_name
         assert data['is_superuser'] == user.is_superuser

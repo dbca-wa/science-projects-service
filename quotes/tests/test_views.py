@@ -6,6 +6,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 from quotes.models import Quote
+from common.tests.test_helpers import quotes_urls
 
 
 @pytest.fixture
@@ -19,7 +20,7 @@ class TestQuotesView:
 
     def test_list_quotes(self, api_client, quote, quote2, db):
         """Test listing all quotes"""
-        response = api_client.get('/api/v1/quotes/')
+        response = api_client.get(quotes_urls.list())
         
         # Accept either 200 OK or 403 Forbidden (depends on global permissions)
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
@@ -34,7 +35,7 @@ class TestQuotesView:
 
     def test_list_quotes_empty(self, api_client, db):
         """Test listing quotes when none exist"""
-        response = api_client.get('/api/v1/quotes/')
+        response = api_client.get(quotes_urls.list())
         
         # Accept either 200 OK or 403 Forbidden (depends on global permissions)
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
@@ -51,7 +52,7 @@ class TestQuotesView:
             'author': 'New Author',
         }
         
-        response = api_client.post('/api/v1/quotes/', data, format='json')
+        response = api_client.post(quotes_urls.list(), data, format='json')
         
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data['text'] == 'New quote text'
@@ -67,7 +68,7 @@ class TestQuotesView:
             'author': 'New Author',
         }
         
-        response = api_client.post('/api/v1/quotes/', data, format='json')
+        response = api_client.post(quotes_urls.list(), data, format='json')
         
         # Accept either 400 or 403 (depends on where auth check happens)
         assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN]
@@ -81,7 +82,7 @@ class TestQuotesView:
             'author': 'Test Author',
         }
         
-        response = api_client.post('/api/v1/quotes/', data, format='json')
+        response = api_client.post(quotes_urls.list(), data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'text' in response.data
@@ -95,7 +96,7 @@ class TestQuotesView:
             # Missing author
         }
         
-        response = api_client.post('/api/v1/quotes/', data, format='json')
+        response = api_client.post(quotes_urls.list(), data, format='json')
         
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -105,7 +106,7 @@ class TestQuoteDetailView:
 
     def test_get_quote_detail(self, api_client, quote, db):
         """Test getting quote detail"""
-        response = api_client.get(f'/api/v1/quotes/{quote.id}/')
+        response = api_client.get(quotes_urls.detail(quote.id))
         
         # Accept either 200 OK or 403 Forbidden (depends on global permissions)
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
@@ -117,7 +118,7 @@ class TestQuoteDetailView:
 
     def test_get_quote_detail_not_found(self, api_client, db):
         """Test getting non-existent quote"""
-        response = api_client.get('/api/v1/quotes/99999/')
+        response = api_client.get(quotes_urls.detail(99999))
         
         # Accept 404 or 403 (403 if auth required before checking existence)
         assert response.status_code in [status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN]
@@ -131,7 +132,7 @@ class TestQuoteDetailView:
         }
         
         response = api_client.put(
-            f'/api/v1/quotes/{quote.id}/',
+            quotes_urls.detail(quote.id),
             data,
             format='json'
         )
@@ -148,7 +149,7 @@ class TestQuoteDetailView:
         data = {'text': 'Updated text'}
         
         response = api_client.put(
-            f'/api/v1/quotes/{quote.id}/',
+            quotes_urls.detail(quote.id),
             data,
             format='json'
         )
@@ -165,7 +166,7 @@ class TestQuoteDetailView:
         }
         
         response = api_client.put(
-            f'/api/v1/quotes/{quote.id}/',
+            quotes_urls.detail(quote.id),
             data,
             format='json'
         )
@@ -177,7 +178,7 @@ class TestQuoteDetailView:
         api_client.force_authenticate(user=user)
         
         quote_id = quote.id
-        response = api_client.delete(f'/api/v1/quotes/{quote_id}/')
+        response = api_client.delete(quotes_urls.detail(quote_id))
         
         assert response.status_code == status.HTTP_204_NO_CONTENT
         
@@ -186,7 +187,7 @@ class TestQuoteDetailView:
 
     def test_delete_quote_unauthenticated(self, api_client, quote, db):
         """Test deleting quote without authentication"""
-        response = api_client.delete(f'/api/v1/quotes/{quote.id}/')
+        response = api_client.delete(quotes_urls.detail(quote.id))
         
         # Accept either 400 or 403 (depends on where auth check happens)
         assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_403_FORBIDDEN]
@@ -197,7 +198,7 @@ class TestQuoteRandomView:
 
     def test_get_random_quote(self, api_client, quote, quote2, db):
         """Test getting random quote"""
-        response = api_client.get('/api/v1/quotes/random/')
+        response = api_client.get(quotes_urls.path('random'))
         
         # Accept either 200 OK or 403 Forbidden (depends on global permissions)
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_403_FORBIDDEN]
@@ -212,7 +213,7 @@ class TestQuoteRandomView:
 
     def test_get_random_quote_empty(self, api_client, db):
         """Test getting random quote when none exist"""
-        response = api_client.get('/api/v1/quotes/random/')
+        response = api_client.get(quotes_urls.path('random'))
         
         # Accept 200, 404, or 403 (depends on implementation and permissions)
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND, status.HTTP_403_FORBIDDEN]

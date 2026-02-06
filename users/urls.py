@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     # Base Views - String patterns MUST come before <int:pk>
-    path("is_staff", views.CheckUserIsStaff.as_view()),
+    path("is_staff/<int:pk>", views.CheckUserIsStaff.as_view()),
     path("me", views.Me.as_view()),
     path("smallsearch", views.SmallInternalUserSearch.as_view()),
     path("directorate", views.DirectorateUsers.as_view()),

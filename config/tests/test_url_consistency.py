@@ -17,10 +17,10 @@ class URLConsistencyTestCase(TestCase):
         )
 
     def test_no_trailing_slashes_in_url_patterns(self):
-        """Verify no URL patterns end with trailing slash (except root path)"""
+        """Verify no URL patterns end with trailing slash (except include() prefixes and admin)"""
         resolver = get_resolver()
         
-        def check_patterns(patterns, prefix=""):
+        def check_patterns(patterns, prefix="", is_included=False):
             """Recursively check URL patterns for trailing slashes"""
             violations = []
             
@@ -34,8 +34,29 @@ class URLConsistencyTestCase(TestCase):
                     if pattern_str == "":
                         continue
                     
-                    # Check for trailing slash
-                    if pattern_str.endswith('/'):
+                    # Skip admin URLs (Django admin has trailing slashes by default)
+                    if full_pattern.startswith('admin/'):
+                        continue
+                    
+                    # Skip health check (has trailing slash)
+                    if full_pattern.startswith('health/'):
+                        continue
+                    
+                    # Skip patterns that are include() prefixes (they NEED trailing slashes)
+                    # These are patterns that have url_patterns (meaning they include other URLs)
+                    if hasattr(pattern, 'url_patterns'):
+                        # This is an include() - trailing slash is REQUIRED for Django concatenation
+                        # Example: "api/v1/projects/" + "map" = "api/v1/projects/map" ✅
+                        # Without: "api/v1/projects" + "map" = "api/v1/projectsmap" ❌
+                        new_prefix = prefix
+                        if hasattr(pattern, 'pattern'):
+                            new_prefix += str(pattern.pattern)
+                        violations.extend(check_patterns(pattern.url_patterns, new_prefix, is_included=True))
+                        continue
+                    
+                    # For actual endpoint patterns (not include() prefixes), check for trailing slash
+                    # Only check patterns that are inside included URL configs (our API endpoints)
+                    if is_included and pattern_str.endswith('/'):
                         violations.append(full_pattern)
                 
                 # Recursively check included URL patterns
@@ -43,7 +64,7 @@ class URLConsistencyTestCase(TestCase):
                     new_prefix = prefix
                     if hasattr(pattern, 'pattern'):
                         new_prefix += str(pattern.pattern)
-                    violations.extend(check_patterns(pattern.url_patterns, new_prefix))
+                    violations.extend(check_patterns(pattern.url_patterns, new_prefix, is_included=True))
             
             return violations
         

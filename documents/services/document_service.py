@@ -91,17 +91,12 @@ class DocumentService:
         """
         settings.LOGGER.info(f"{user} is creating {kind} document for project {project}")
         
-        # Get next old_id (for legacy compatibility)
-        from django.db.models import Max
-        max_old_id = ProjectDocument.objects.aggregate(Max('old_id'))['old_id__max'] or 0
-        
         document = ProjectDocument.objects.create(
             project=project,
             creator=user,
             modifier=user,
             kind=kind,
             status=ProjectDocument.StatusChoices.NEW,
-            old_id=max_old_id + 1,
         )
         
         return document

@@ -53,14 +53,22 @@ class MiniUserSerializer(ModelSerializer):
     caretakers = serializers.SerializerMethodField()
 
     def get_title(self, user):
-        return user.profile.title
+        """Get user title from profile, return None if no profile exists"""
+        try:
+            return user.profile.title
+        except User.profile.RelatedObjectDoesNotExist:
+            return None
 
     def get_affiliation(self, user):
-        if user.work and user.work.affiliation:
-            affiliation_instance = user.work.affiliation
-            affiliation_data = AffiliationSerializer(affiliation_instance).data
-            return affiliation_data
-        else:
+        """Get user affiliation from work, return None if no work exists"""
+        try:
+            if user.work and user.work.affiliation:
+                affiliation_instance = user.work.affiliation
+                affiliation_data = AffiliationSerializer(affiliation_instance).data
+                return affiliation_data
+            else:
+                return None
+        except User.work.RelatedObjectDoesNotExist:
             return None
 
     class Meta:

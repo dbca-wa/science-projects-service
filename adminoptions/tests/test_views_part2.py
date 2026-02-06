@@ -9,6 +9,7 @@ from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
 
+from common.tests.test_helpers import adminoptions_urls
 from adminoptions.models import AdminOptions, AdminTask, GuideSection, ContentField
 from caretakers.models import Caretaker
 from projects.models import Project, ProjectMember
@@ -30,7 +31,7 @@ class TestAdminTaskDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}')
+        response = api_client.get(adminoptions_urls.path('tasks', admin_task_delete_project.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -46,7 +47,7 @@ class TestAdminTaskDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}',
+            adminoptions_urls.path('tasks', admin_task_delete_project.id),
             data,
             format='json'
         )
@@ -61,7 +62,7 @@ class TestAdminTaskDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.delete(f'/api/v1/adminoptions/tasks/{admin_task_delete_project.id}')
+        response = api_client.delete(adminoptions_urls.path('tasks', admin_task_delete_project.id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -73,7 +74,7 @@ class TestAdminTaskDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/tasks/999')
+        response = api_client.get(adminoptions_urls.path('tasks', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND

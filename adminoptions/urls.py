@@ -14,7 +14,7 @@ urlpatterns = [
     path("<int:pk>", views.AdminControlsDetail.as_view()),
     # Fixed URL for guide content updates
     path(
-        "<int:pk>/update_guide_content/",
+        "<int:pk>/update_guide_content",
         views.AdminControlsGuideContentUpdate.as_view(),
     ),
     path("maintainer", views.GetMaintainer.as_view()),

@@ -14,7 +14,6 @@ from users.admin import (
     StaffProfileAdmin,
     UserProfileAdmin,
     UserWorkAdmin,
-    create_redirect_files,
     copy_about_expertise_to_staff_profile,
     hide_all_staff_profiles,
     create_staff_profiles,
@@ -24,6 +23,7 @@ from users.admin import (
     export_selected_users_to_csv,
     export_current_active_project_leads,
     delete_unused_tags,
+    # create_redirect_files was removed - function no longer exists
 )
 from users.models import (
     KeywordTag,
@@ -393,31 +393,215 @@ class TestSetItAssetsId:
 # ============================================================================
 
 
-@pytest.mark.skip(reason="Requires external CSV file and complex file operations - tested manually")
-class TestCreateRedirectFiles:
-    """Tests for create_redirect_files admin action"""
-
-    def test_requires_single_selection(self, user, db):
-        """Test action requires single selection"""
-        pass
-
-
-@pytest.mark.skip(reason="Requires IT Assets API integration - tested manually")
 class TestGenerateActiveStaffCSV:
     """Tests for generate_active_staff_csv admin action"""
 
     def test_requires_single_selection(self, user, db):
         """Test action requires single selection"""
-        pass
+        # Arrange
+        admin = CustomUserAdmin(User, AdminSite())
+        request = Mock()
+        selected = [user, user]
+        
+        # Act
+        with patch('builtins.print') as mock_print:
+            generate_active_staff_csv(admin, request, selected)
+            
+            # Assert
+            mock_print.assert_called_once_with("PLEASE SELECT ONLY ONE")
+
+    @patch('users.admin.requests.get')
+    def test_generates_csv_from_it_assets_api(self, mock_get, staff_user, db):
+        """Test action generates CSV from IT Assets API data"""
+        # Arrange
+        staff_profile = PublicStaffProfile.objects.create(
+            user=staff_user,
+            is_hidden=False
+        )
+        
+        # Mock API response
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = [
+            {
+                'email': staff_user.email,
+                'id': 12345,
+                'title': 'Senior Scientist',
+                'location': {'name': 'Perth'},
+                'division': 'BCS',
+                'unit': 'Biodiversity and Conservation Science Division',
+                'employee_id': 'EMP001',
+                'manager': {
+                    'name': 'Manager Name',
+                    'email': 'manager@dbca.wa.gov.au',
+                    'id': 99999
+                }
+            }
+        ]
+        mock_get.return_value = mock_response
+        
+        admin = CustomUserAdmin(User, AdminSite())
+        request = Mock()
+        selected = [staff_user]
+        
+        # Act
+        with patch('users.admin.settings') as mock_settings:
+            mock_settings.IT_ASSETS_URL = 'http://test.com'
+            mock_settings.IT_ASSETS_USER = 'user'
+            mock_settings.IT_ASSETS_ACCESS_TOKEN = 'token'
+            
+            response = generate_active_staff_csv(admin, request, selected)
+        
+        # Assert
+        assert isinstance(response, HttpResponse)
+        assert response['Content-Type'] == 'text/csv'
+        assert 'staff_data_' in response['Content-Disposition']
+        
+        # Verify CSV content includes user data
+        content = response.content.decode('utf-8')
+        assert staff_user.email in content
+
+    @patch('users.admin.requests.get')
+    def test_handles_api_failure_gracefully(self, mock_get, staff_user, db):
+        """Test action handles IT Assets API failure"""
+        # Arrange
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_get.return_value = mock_response
+        
+        admin = CustomUserAdmin(User, AdminSite())
+        request = Mock()
+        selected = [staff_user]
+        
+        # Act
+        with patch('users.admin.settings') as mock_settings:
+            mock_settings.IT_ASSETS_URL = 'http://test.com'
+            mock_settings.IT_ASSETS_USER = 'user'
+            mock_settings.IT_ASSETS_ACCESS_TOKEN = 'token'
+            
+            with patch.object(admin, 'message_user') as mock_message:
+                result = generate_active_staff_csv(admin, request, selected)
+        
+        # Assert
+        assert result is None
+        mock_message.assert_called()
+        args = mock_message.call_args[0]
+        assert "Failed to fetch IT Assets data" in args[1]
 
 
-@pytest.mark.skip(reason="Requires project data and complex logic - tested manually")
 class TestExportCurrentActiveProjectLeads:
     """Tests for export_current_active_project_leads admin action"""
 
     def test_requires_single_selection(self, user, db):
         """Test action requires single selection"""
-        pass
+        # Arrange
+        admin = CustomUserAdmin(User, AdminSite())
+        request = Mock()
+        selected = [user, user]
+        
+        # Act
+        with patch('builtins.print') as mock_print:
+            export_current_active_project_leads(admin, request, selected)
+            
+            # Assert
+            mock_print.assert_called_once_with("PLEASE SELECT ONLY ONE")
+
+    def test_exports_active_project_leads(self, user_factory, db):
+        """Test action exports active project leads to text file"""
+        # Arrange
+        from projects.models import Project, ProjectMember
+        
+        # Create users
+        dbca_lead = user_factory(
+            email='lead@dbca.wa.gov.au',
+            first_name='John',
+            last_name='Doe',
+            is_active=True
+        )
+        external_lead = user_factory(
+            email='external@example.com',
+            first_name='Jane',
+            last_name='Smith',
+            is_active=True
+        )
+        
+        # Create active project
+        project = Project.objects.create(
+            title='Test Project',
+            status='active'
+        )
+        
+        # Create project memberships
+        ProjectMember.objects.create(
+            project=project,
+            user=dbca_lead,
+            is_leader=True
+        )
+        ProjectMember.objects.create(
+            project=project,
+            user=external_lead,
+            is_leader=True
+        )
+        
+        admin = CustomUserAdmin(User, AdminSite())
+        request = Mock()
+        selected = [dbca_lead]
+        
+        # Act
+        response = export_current_active_project_leads(admin, request, selected)
+        
+        # Assert
+        assert isinstance(response, HttpResponse)
+        assert response['Content-Type'] == 'text/plain'
+        assert 'attachment; filename="active_project_leads.txt"' in response['Content-Disposition']
+        
+        # Verify content includes both DBCA and external leads
+        content = response.content.decode('utf-8')
+        assert 'lead@dbca.wa.gov.au' in content
+        assert 'external@example.com' in content
+        assert 'Test Project' in content
+
+    def test_separates_dbca_and_external_leads(self, user_factory, db):
+        """Test action separates DBCA and non-DBCA project leads"""
+        # Arrange
+        from projects.models import Project, ProjectMember
+        
+        dbca_lead = user_factory(
+            email='dbca@dbca.wa.gov.au',
+            is_active=True
+        )
+        external_lead = user_factory(
+            email='external@other.com',
+            is_active=True
+        )
+        
+        project = Project.objects.create(title='Project', status='active')
+        ProjectMember.objects.create(project=project, user=dbca_lead, is_leader=True)
+        ProjectMember.objects.create(project=project, user=external_lead, is_leader=True)
+        
+        admin = CustomUserAdmin(User, AdminSite())
+        request = Mock()
+        selected = [dbca_lead]
+        
+        # Act
+        response = export_current_active_project_leads(admin, request, selected)
+        
+        # Assert
+        content = response.content.decode('utf-8')
+        
+        # Verify sections exist
+        assert 'Unique DBCA Project Leads' in content
+        assert 'Unique Non-DBCA Emails' in content
+        
+        # Verify DBCA lead appears in DBCA section
+        dbca_section_start = content.index('Unique DBCA Project Leads')
+        non_dbca_section_start = content.index('Unique Non-DBCA Emails')
+        
+        dbca_section = content[dbca_section_start:non_dbca_section_start]
+        non_dbca_section = content[non_dbca_section_start:]
+        
+        assert 'dbca@dbca.wa.gov.au' in dbca_section
+        assert 'external@other.com' in non_dbca_section
 
 
 # ============================================================================
@@ -479,7 +663,7 @@ class TestCustomUserAdmin:
         assert export_selected_users_to_csv in admin.actions
         assert export_current_active_project_leads in admin.actions
         assert update_display_names in admin.actions
-        assert create_redirect_files in admin.actions
+        # create_redirect_files was removed - function no longer exists
 
 
 class TestStaffProfileAdmin:

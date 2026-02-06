@@ -7,6 +7,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 
 from communications.models import ChatRoom, DirectMessage, Comment, Reaction
+from common.tests.test_helpers import communications_urls
 
 User = get_user_model()
 
@@ -26,7 +27,7 @@ class TestChatRoomsView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/chat_rooms')
+        response = api_client.get(communications_urls.path('chat_rooms'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -35,10 +36,12 @@ class TestChatRoomsView:
     def test_list_chat_rooms_unauthenticated(self, api_client, chat_room, db):
         """Test listing chat rooms without authentication"""
         # Act
-        response = api_client.get('/api/v1/communications/chat_rooms')
+        response = api_client.get(communications_urls.path('chat_rooms'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
+        # IsAuthenticated permission returns 403 for unauthenticated requests
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_chat_room_valid(self, api_client, user, db):
         """Test creating chat room with valid data"""
@@ -47,7 +50,7 @@ class TestChatRoomsView:
         data = {}
         
         # Act
-        response = api_client.post('/api/v1/communications/chat_rooms', data)
+        response = api_client.post(communications_urls.path('chat_rooms'), data)
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -59,10 +62,12 @@ class TestChatRoomsView:
         data = {}
         
         # Act
-        response = api_client.post('/api/v1/communications/chat_rooms', data)
+        response = api_client.post(communications_urls.path('chat_rooms'), data)
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
+        # IsAuthenticated permission returns 403 for unauthenticated requests
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 class TestChatRoomDetailView:
@@ -74,7 +79,7 @@ class TestChatRoomDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/communications/chat_rooms/{chat_room.id}')
+        response = api_client.get(communications_urls.path('chat_rooms', chat_room.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -86,7 +91,7 @@ class TestChatRoomDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/chat_rooms/999')
+        response = api_client.get(communications_urls.path('chat_rooms', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -98,7 +103,7 @@ class TestChatRoomDetailView:
         data = {}
         
         # Act
-        response = api_client.put(f'/api/v1/communications/chat_rooms/{chat_room.id}', data)
+        response = api_client.put(communications_urls.path('chat_rooms', chat_room.id), data)
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -111,7 +116,7 @@ class TestChatRoomDetailView:
         room_id = chat_room.id
         
         # Act
-        response = api_client.delete(f'/api/v1/communications/chat_rooms/{room_id}')
+        response = api_client.delete(communications_urls.path('chat_rooms', room_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -127,7 +132,7 @@ class TestDirectMessagesView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/direct_messages')
+        response = api_client.get(communications_urls.path('direct_messages'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -136,10 +141,12 @@ class TestDirectMessagesView:
     def test_list_direct_messages_unauthenticated(self, api_client, direct_message, db):
         """Test listing direct messages without authentication"""
         # Act
-        response = api_client.get('/api/v1/communications/direct_messages')
+        response = api_client.get(communications_urls.path('direct_messages'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
+        # IsAuthenticated permission returns 403 for unauthenticated requests
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_direct_message_valid(self, api_client, user, chat_room, db):
         """Test creating direct message with valid data"""
@@ -153,7 +160,7 @@ class TestDirectMessagesView:
         }
         
         # Act
-        response = api_client.post('/api/v1/communications/direct_messages', data)
+        response = api_client.post(communications_urls.path('direct_messages'), data)
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -166,7 +173,7 @@ class TestDirectMessagesView:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/communications/direct_messages', data)
+        response = api_client.post(communications_urls.path('direct_messages'), data)
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -181,7 +188,7 @@ class TestDirectMessageDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/communications/direct_messages/{direct_message.id}')
+        response = api_client.get(communications_urls.path('direct_messages', direct_message.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -194,7 +201,7 @@ class TestDirectMessageDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/direct_messages/999')
+        response = api_client.get(communications_urls.path('direct_messages', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -206,7 +213,7 @@ class TestDirectMessageDetailView:
         data = {'text': 'Updated message'}
         
         # Act
-        response = api_client.put(f'/api/v1/communications/direct_messages/{direct_message.id}', data)
+        response = api_client.put(communications_urls.path('direct_messages', direct_message.id), data)
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -219,7 +226,7 @@ class TestDirectMessageDetailView:
         message_id = direct_message.id
         
         # Act
-        response = api_client.delete(f'/api/v1/communications/direct_messages/{message_id}')
+        response = api_client.delete(communications_urls.path('direct_messages', message_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -235,7 +242,7 @@ class TestCommentsView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/comments')
+        response = api_client.get(communications_urls.path('comments'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -244,10 +251,12 @@ class TestCommentsView:
     def test_list_comments_unauthenticated(self, api_client, comment, db):
         """Test listing comments without authentication"""
         # Act
-        response = api_client.get('/api/v1/communications/comments')
+        response = api_client.get(communications_urls.path('comments'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
+        # IsAuthenticated permission returns 403 for unauthenticated requests
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_create_comment_valid(self, api_client, user, project_document, db):
         """Test creating comment with valid data"""
@@ -261,7 +270,7 @@ class TestCommentsView:
         }
         
         # Act
-        response = api_client.post('/api/v1/communications/comments', data)
+        response = api_client.post(communications_urls.path('comments'), data)
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -274,7 +283,7 @@ class TestCommentsView:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/communications/comments', data)
+        response = api_client.post(communications_urls.path('comments'), data)
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -289,7 +298,7 @@ class TestCommentDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/communications/comments/{comment.id}')
+        response = api_client.get(communications_urls.path('comments', comment.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -302,7 +311,7 @@ class TestCommentDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/comments/999')
+        response = api_client.get(communications_urls.path('comments', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -314,7 +323,7 @@ class TestCommentDetailView:
         data = {'text': 'Updated comment'}
         
         # Act
-        response = api_client.put(f'/api/v1/communications/comments/{comment.id}', data)
+        response = api_client.put(communications_urls.path('comments', comment.id), data)
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -327,7 +336,7 @@ class TestCommentDetailView:
         comment_id = comment.id
         
         # Act
-        response = api_client.delete(f'/api/v1/communications/comments/{comment_id}')
+        response = api_client.delete(communications_urls.path('comments', comment_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -340,7 +349,7 @@ class TestCommentDetailView:
         comment_id = comment.id
         
         # Act
-        response = api_client.delete(f'/api/v1/communications/comments/{comment_id}')
+        response = api_client.delete(communications_urls.path('comments', comment_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -352,7 +361,7 @@ class TestCommentDetailView:
         api_client.force_authenticate(user=other_user)
         
         # Act
-        response = api_client.delete(f'/api/v1/communications/comments/{comment.id}')
+        response = api_client.delete(communications_urls.path('comments', comment.id))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -367,7 +376,7 @@ class TestReactionsView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/reactions')
+        response = api_client.get(communications_urls.path('reactions'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -376,10 +385,12 @@ class TestReactionsView:
     def test_list_reactions_unauthenticated(self, api_client, reaction_on_comment, db):
         """Test listing reactions without authentication"""
         # Act
-        response = api_client.get('/api/v1/communications/reactions')
+        response = api_client.get(communications_urls.path('reactions'))
         
         # Assert
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+        # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
+        # IsAuthenticated permission returns 403 for unauthenticated requests
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_toggle_reaction_create(self, api_client, user, comment, db):
         """Test toggling reaction creates new reaction"""
@@ -391,7 +402,7 @@ class TestReactionsView:
         }
         
         # Act
-        response = api_client.post('/api/v1/communications/reactions', data)
+        response = api_client.post(communications_urls.path('reactions'), data)
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -412,7 +423,7 @@ class TestReactionsView:
         }
         
         # Act
-        response = api_client.post('/api/v1/communications/reactions', data)
+        response = api_client.post(communications_urls.path('reactions'), data)
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -424,7 +435,7 @@ class TestReactionsView:
         data = {'user': user.id}
         
         # Act
-        response = api_client.post('/api/v1/communications/reactions', data)
+        response = api_client.post(communications_urls.path('reactions'), data)
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -440,7 +451,7 @@ class TestReactionDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/communications/reactions/{reaction_on_comment.id}')
+        response = api_client.get(communications_urls.path('reactions', reaction_on_comment.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -452,7 +463,7 @@ class TestReactionDetailView:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/communications/reactions/999')
+        response = api_client.get(communications_urls.path('reactions', 999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -464,7 +475,7 @@ class TestReactionDetailView:
         data = {'reaction': Reaction.ReactionChoices.HEART}
         
         # Act
-        response = api_client.put(f'/api/v1/communications/reactions/{reaction_on_comment.id}', data)
+        response = api_client.put(communications_urls.path('reactions', reaction_on_comment.id), data)
         
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
@@ -477,7 +488,7 @@ class TestReactionDetailView:
         reaction_id = reaction_on_comment.id
         
         # Act
-        response = api_client.delete(f'/api/v1/communications/reactions/{reaction_id}')
+        response = api_client.delete(communications_urls.path('reactions', reaction_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT

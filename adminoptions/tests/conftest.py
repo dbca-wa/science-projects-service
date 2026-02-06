@@ -103,7 +103,6 @@ def business_area(db, user):
         leader=user,
         finance_admin=user,
         data_custodian=user,
-        old_id=1,
     )
 
 
@@ -116,7 +115,6 @@ def project(db, business_area):
         business_area=business_area,
         status=Project.StatusChoices.NEW,
         kind=Project.CategoryKindChoices.SCIENCE,
-        old_id=1,
     )
 
 

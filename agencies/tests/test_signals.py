@@ -33,8 +33,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         StudentProjectDetails.objects.create(
             project=project,
-            organisation="Test Affiliation",
-            old_id=1
+            organisation="Test Affiliation"
         )
         
         # Act - save without changing name
@@ -51,8 +50,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation="Old Name",
-            old_id=1
+            organisation="Old Name"
         )
         
         # Act - change affiliation name
@@ -75,8 +73,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         external_project = ExternalProjectDetails.objects.create(
             project=project,
-            collaboration_with="Old Name",
-            old_id=1
+            collaboration_with="Old Name"
         )
         
         # Act - change affiliation name
@@ -102,18 +99,15 @@ class TestUpdateProjectAffiliationsOnNameChange:
         
         student_project1 = StudentProjectDetails.objects.create(
             project=project1,
-            organisation="Old Name",
-            old_id=1
+            organisation="Old Name"
         )
         student_project2 = StudentProjectDetails.objects.create(
             project=project2,
-            organisation="Old Name",
-            old_id=2
+            organisation="Old Name"
         )
         external_project = ExternalProjectDetails.objects.create(
             project=project3,
-            collaboration_with="Old Name",
-            old_id=3
+            collaboration_with="Old Name"
         )
         
         # Act - change affiliation name
@@ -141,8 +135,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation="Other Org; Old Name; Another Org",
-            old_id=1
+            organisation="Other Org; Old Name; Another Org"
         )
         
         # Act - change affiliation name
@@ -162,8 +155,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation="Test Org; Test; Testing",
-            old_id=1
+            organisation="Test Org; Test; Testing"
         )
         
         # Act - change affiliation name
@@ -183,8 +175,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation="",
-            old_id=1
+            organisation=""
         )
         
         # Act - change affiliation name
@@ -205,8 +196,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation=None,
-            old_id=1
+            organisation=None
         )
         
         # Act - change affiliation name
@@ -227,8 +217,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation="test org; Test Org; TEST ORG",
-            old_id=1
+            organisation="test org; Test Org; TEST ORG"
         )
         
         # Act - change affiliation name
@@ -280,8 +269,7 @@ class TestUpdateProjectAffiliationsOnNameChange:
         project = ProjectFactory()
         student_project = StudentProjectDetails.objects.create(
             project=project,
-            organisation="Other Org; Test Org; Another Org",  # With spaces after semicolons
-            old_id=1
+            organisation="Other Org; Test Org; Another Org"  # With spaces after semicolons
         )
         
         # Act - change affiliation name

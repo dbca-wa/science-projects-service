@@ -18,8 +18,10 @@ from communications.serializers import (
     ChatRoomSerializer,
     TinyChatRoomSerializer,
     DirectMessageSerializer,
+    DirectMessageCreateSerializer,
     TinyDirectMessageSerializer,
     CommentSerializer,
+    CommentCreateSerializer,
     TinyCommentSerializer,
     ReactionSerializer,
     TinyReactionSerializer,
@@ -86,7 +88,7 @@ class DirectMessages(APIView):
 
     def post(self, request):
         """Create new direct message"""
-        serializer = DirectMessageSerializer(data=request.data)
+        serializer = DirectMessageCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         
@@ -133,7 +135,7 @@ class Comments(APIView):
 
     def post(self, request):
         """Create new comment"""
-        serializer = CommentSerializer(data=request.data)
+        serializer = CommentCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
         

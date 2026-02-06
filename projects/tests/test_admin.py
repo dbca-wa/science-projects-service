@@ -1,6 +1,7 @@
 """
 Tests for projects admin
 """
+
 import pytest
 from unittest.mock import Mock, patch
 from django.contrib.admin.sites import AdminSite
@@ -39,15 +40,12 @@ class TestProjectAreaAdmin:
         """Test project_id method returns project ID"""
         # Arrange
         project = project_factory()
-        project_area = ProjectArea.objects.create(
-            project=project,
-            areas=[1, 2, 3]
-        )
+        project_area = ProjectArea.objects.create(project=project, areas=[1, 2, 3])
         admin = ProjectAreaAdmin(ProjectArea, AdminSite())
-        
+
         # Act
         result = admin.project_id(project_area)
-        
+
         # Assert
         assert result == project.id
 
@@ -55,64 +53,57 @@ class TestProjectAreaAdmin:
         """Test formatted_areas with valid area IDs"""
         # Arrange
         from locations.models import Area
-        
+
         # Create areas without agency
         area1 = Area.objects.create(
-            name='Area 1',
+            name="Area 1",
             area_type=Area.AreaTypeChoices.AREA_TYPE_DBCA_REGION,
-            old_id=1
         )
         area2 = Area.objects.create(
-            name='Area 2',
+            name="Area 2",
             area_type=Area.AreaTypeChoices.AREA_TYPE_DBCA_REGION,
-            old_id=2
         )
-        
+
         project = project_factory()
         project_area = ProjectArea.objects.create(
-            project=project,
-            areas=[area1.id, area2.id]
+            project=project, areas=[area1.id, area2.id]
         )
         admin = ProjectAreaAdmin(ProjectArea, AdminSite())
-        
+
         # Act
         result = admin.formatted_areas(project_area)
-        
+
         # Assert
-        assert 'Area 1' in result
-        assert 'Area 2' in result
+        assert "Area 1" in result
+        assert "Area 2" in result
 
     def test_formatted_areas_with_nonexistent_areas(self, project_factory, db):
         """Test formatted_areas with non-existent area IDs"""
         # Arrange
         project = project_factory()
         project_area = ProjectArea.objects.create(
-            project=project,
-            areas=[999, 1000]  # Non-existent IDs
+            project=project, areas=[999, 1000]  # Non-existent IDs
         )
         admin = ProjectAreaAdmin(ProjectArea, AdminSite())
-        
+
         # Act
         result = admin.formatted_areas(project_area)
-        
+
         # Assert
-        assert result == ''  # Should return empty string for non-existent areas
+        assert result == ""  # Should return empty string for non-existent areas
 
     def test_formatted_areas_empty(self, project_factory, db):
         """Test formatted_areas with empty areas list"""
         # Arrange
         project = project_factory()
-        project_area = ProjectArea.objects.create(
-            project=project,
-            areas=[]
-        )
+        project_area = ProjectArea.objects.create(project=project, areas=[])
         admin = ProjectAreaAdmin(ProjectArea, AdminSite())
-        
+
         # Act
         result = admin.formatted_areas(project_area)
-        
+
         # Assert
-        assert result == ''
+        assert result == ""
 
 
 # ============================================================================
@@ -129,15 +120,17 @@ class TestConvertExtPeerToConsulted:
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [project_member, project_member]  # Multiple selections
-        
+
         # Act
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             convert_ext_peer_to_consulted(admin, request, selected)
-            
+
             # Assert
             mock_print.assert_called_once_with("PLEASE SELECT ONLY ONE")
 
-    def test_converts_external_peer_to_consulted(self, project_with_lead, user_factory, db):
+    def test_converts_external_peer_to_consulted(
+        self, project_with_lead, user_factory, db
+    ):
         """Test action converts external peer roles to consulted"""
         # Arrange
         user = user_factory()
@@ -145,16 +138,16 @@ class TestConvertExtPeerToConsulted:
             project=project_with_lead,
             user=user,
             role=ProjectMember.RoleChoices.EXTERNALPEER,
-            is_leader=False
+            is_leader=False,
         )
-        
+
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [member]
-        
+
         # Act
         convert_ext_peer_to_consulted(admin, request, selected)
-        
+
         # Assert
         member.refresh_from_db()
         assert member.role == ProjectMember.RoleChoices.CONSULTED
@@ -169,15 +162,17 @@ class TestConvertExtCollaboratorToConsulted:
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [project_member, project_member]
-        
+
         # Act
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             convert_ext_collaborator_to_consulted(admin, request, selected)
-            
+
             # Assert
             mock_print.assert_called_once_with("PLEASE SELECT ONLY ONE")
 
-    def test_converts_external_collaborator_to_consulted(self, project_with_lead, user_factory, db):
+    def test_converts_external_collaborator_to_consulted(
+        self, project_with_lead, user_factory, db
+    ):
         """Test action converts external collaborator roles to consulted"""
         # Arrange
         user = user_factory()
@@ -185,16 +180,16 @@ class TestConvertExtCollaboratorToConsulted:
             project=project_with_lead,
             user=user,
             role=ProjectMember.RoleChoices.EXTERNALCOL,
-            is_leader=False
+            is_leader=False,
         )
-        
+
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [member]
-        
+
         # Act
         convert_ext_collaborator_to_consulted(admin, request, selected)
-        
+
         # Assert
         member.refresh_from_db()
         assert member.role == ProjectMember.RoleChoices.CONSULTED
@@ -209,11 +204,11 @@ class TestCleanOrphanedProjectMemberships:
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [project_member, project_member]
-        
+
         # Act
-        with patch.object(admin, 'message_user') as mock_message:
+        with patch.object(admin, "message_user") as mock_message:
             clean_orphaned_project_memberships(admin, request, selected)
-            
+
             # Assert
             mock_message.assert_called_once()
             args = mock_message.call_args
@@ -227,22 +222,22 @@ class TestCleanOrphanedProjectMemberships:
             project=project_with_lead,
             user=user,
             role=ProjectMember.RoleChoices.RESEARCH,
-            is_leader=False
+            is_leader=False,
         )
         member_id = member.id
-        
+
         # Delete the user (simulating orphaned membership)
         user_id = user.id
         user.delete()
-        
+
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [member]
-        
+
         # Act
-        with patch.object(admin, 'message_user') as mock_message:
+        with patch.object(admin, "message_user") as mock_message:
             clean_orphaned_project_memberships(admin, request, selected)
-            
+
             # Assert
             # Orphaned membership should be deleted
             assert not ProjectMember.objects.filter(pk=member_id).exists()
@@ -254,11 +249,11 @@ class TestCleanOrphanedProjectMemberships:
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [project_member]
-        
+
         # Act
-        with patch.object(admin, 'message_user') as mock_message:
+        with patch.object(admin, "message_user") as mock_message:
             clean_orphaned_project_memberships(admin, request, selected)
-            
+
             # Assert
             mock_message.assert_called_once()
             args = mock_message.call_args
@@ -274,17 +269,19 @@ class TestReportOrphanedData:
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [project_member, project_member]
-        
+
         # Act
-        with patch.object(admin, 'message_user') as mock_message:
+        with patch.object(admin, "message_user") as mock_message:
             report_orphaned_data(admin, request, selected)
-            
+
             # Assert
             mock_message.assert_called_once()
             args = mock_message.call_args
             assert "PLEASE SELECT ONLY ONE" in args[0][1]
 
-    @pytest.mark.skip(reason="Cannot simulate orphaned membership due to FK constraints - edge case tested manually")
+    @pytest.mark.skip(
+        reason="Cannot simulate orphaned membership due to FK constraints - edge case tested manually"
+    )
     def test_reports_orphaned_memberships(self, project_with_lead, user_factory, db):
         """Test action reports orphaned memberships"""
         # Note: This test is skipped because Django's FK constraints prevent
@@ -296,20 +293,17 @@ class TestReportOrphanedData:
         """Test action reports ProjectDetails with null users"""
         # Arrange
         detail = ProjectDetail.objects.create(
-            project=project_with_lead,
-            creator=None,
-            modifier=None,
-            owner=None
+            project=project_with_lead, creator=None, modifier=None, owner=None
         )
-        
+
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [Mock()]  # Dummy selection
-        
+
         # Act
-        with patch.object(admin, 'message_user') as mock_message:
+        with patch.object(admin, "message_user") as mock_message:
             report_orphaned_data(admin, request, selected)
-            
+
             # Assert
             mock_message.assert_called_once()
             args = mock_message.call_args
@@ -321,11 +315,11 @@ class TestReportOrphanedData:
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
         request = Mock()
         selected = [project_member]
-        
+
         # Act
-        with patch.object(admin, 'message_user') as mock_message:
+        with patch.object(admin, "message_user") as mock_message:
             report_orphaned_data(admin, request, selected)
-            
+
             # Assert
             mock_message.assert_called_once()
             args = mock_message.call_args

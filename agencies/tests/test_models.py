@@ -134,7 +134,6 @@ class TestBranch:
         """Test creating a branch"""
         # Arrange & Act
         branch = Branch.objects.create(
-            old_id=1,
             agency=agency,
             name="Test Branch",
             manager=user,
@@ -142,7 +141,6 @@ class TestBranch:
         
         # Assert
         assert branch.id is not None
-        assert branch.old_id == 1
         assert branch.agency == agency
         assert branch.name == "Test Branch"
         assert branch.manager == user
@@ -152,7 +150,6 @@ class TestBranch:
         """Test creating branch without agency"""
         # Arrange & Act
         branch = Branch.objects.create(
-            old_id=1,
             name="Test Branch",
         )
         
@@ -164,7 +161,6 @@ class TestBranch:
         """Test creating branch without manager"""
         # Arrange & Act
         branch = Branch.objects.create(
-            old_id=1,
             agency=agency,
             name="Test Branch",
         )
@@ -177,7 +173,6 @@ class TestBranch:
         """Test branch name must be unique per agency"""
         # Arrange
         Branch.objects.create(
-            old_id=1,
             agency=agency,
             name="Duplicate Branch",
         )
@@ -185,7 +180,6 @@ class TestBranch:
         # Act & Assert
         with pytest.raises(IntegrityError):
             Branch.objects.create(
-                old_id=2,
                 agency=agency,
                 name="Duplicate Branch",
             )
@@ -195,14 +189,12 @@ class TestBranch:
         # Arrange
         agency2 = Agency.objects.create(name="Agency 2")
         Branch.objects.create(
-            old_id=1,
             agency=agency,
             name="Same Name",
         )
         
         # Act
         branch2 = Branch.objects.create(
-            old_id=2,
             agency=agency2,
             name="Same Name",
         )
@@ -231,7 +223,6 @@ class TestBranch:
         """Test branch is deleted when agency is deleted"""
         # Arrange
         branch = Branch.objects.create(
-            old_id=1,
             agency=agency,
             name="Test Branch",
         )
@@ -433,7 +424,6 @@ class TestDivision:
         """Test creating a division"""
         # Arrange & Act
         division = Division.objects.create(
-            old_id=1,
             name="Test Division",
             slug="test-division",
             director=user,
@@ -442,7 +432,6 @@ class TestDivision:
         
         # Assert
         assert division.id is not None
-        assert division.old_id == 1
         assert division.name == "Test Division"
         assert division.slug == "test-division"
         assert division.director == user
@@ -453,7 +442,6 @@ class TestDivision:
         """Test creating division with minimal fields"""
         # Arrange & Act
         division = Division.objects.create(
-            old_id=1,
             name="Minimal Division",
             slug="minimal-division",
         )
@@ -484,7 +472,6 @@ class TestDivision:
         """Test director is set to null when user is deleted"""
         # Arrange
         division = Division.objects.create(
-            old_id=1,
             name="Test Division",
             slug="test-division",
             director=user,
@@ -520,14 +507,12 @@ class TestDepartmentalService:
         """Test creating a departmental service"""
         # Arrange & Act
         service = DepartmentalService.objects.create(
-            old_id=1,
             name="Test Service",
             director=user,
         )
         
         # Assert
         assert service.id is not None
-        assert service.old_id == 1
         assert service.name == "Test Service"
         assert service.director == user
         assert str(service) == "Dept. Service: Test Service"
@@ -536,7 +521,6 @@ class TestDepartmentalService:
         """Test creating departmental service without director"""
         # Arrange & Act
         service = DepartmentalService.objects.create(
-            old_id=1,
             name="Test Service",
         )
         
@@ -565,7 +549,6 @@ class TestDepartmentalService:
         """Test director is set to null when user is deleted"""
         # Arrange
         service = DepartmentalService.objects.create(
-            old_id=1,
             name="Test Service",
             director=user,
         )

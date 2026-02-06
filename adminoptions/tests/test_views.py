@@ -8,6 +8,7 @@ from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
 
+from common.tests.test_helpers import adminoptions_urls
 from adminoptions.models import AdminOptions, AdminTask, GuideSection, ContentField
 from caretakers.models import Caretaker
 from projects.models import Project, ProjectMember
@@ -24,7 +25,7 @@ class TestAdminControls:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/')
+        response = api_client.get(adminoptions_urls.list())
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -41,7 +42,7 @@ class TestAdminControls:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/', data, format='json')
+        response = api_client.post(adminoptions_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -54,7 +55,7 @@ class TestAdminControls:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/', data, format='json')
+        response = api_client.post(adminoptions_urls.list(), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -62,7 +63,7 @@ class TestAdminControls:
     def test_get_admin_controls_unauthenticated(self, api_client, db):
         """Test listing admin controls without authentication"""
         # Act
-        response = api_client.get('/api/v1/adminoptions/')
+        response = api_client.get(adminoptions_urls.list())
         
         # Assert
         # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
@@ -85,7 +86,7 @@ class TestGetMaintainer:
         )
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/maintainer')
+        response = api_client.get(adminoptions_urls.path('maintainer'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -102,7 +103,7 @@ class TestGetMaintainer:
         )
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/maintainer')
+        response = api_client.get(adminoptions_urls.path('maintainer'))
         
         # Assert
         # NOTE: Returns 403 (Forbidden) instead of 401 (Unauthorized) because
@@ -119,7 +120,7 @@ class TestAdminControlsDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/adminoptions/{admin_options.id}')
+        response = api_client.get(adminoptions_urls.detail(admin_options.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -135,7 +136,7 @@ class TestAdminControlsDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/adminoptions/{admin_options.id}',
+            adminoptions_urls.detail(admin_options.id),
             data,
             format='json'
         )
@@ -157,7 +158,7 @@ class TestAdminControlsDetail:
         
         # Act
         response = api_client.put(
-            f'/api/v1/adminoptions/{admin_options.id}',
+            adminoptions_urls.detail(admin_options.id),
             data,
             format='json'
         )
@@ -172,7 +173,7 @@ class TestAdminControlsDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.delete(f'/api/v1/adminoptions/{admin_options.id}')
+        response = api_client.delete(adminoptions_urls.detail(admin_options.id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -184,7 +185,7 @@ class TestAdminControlsDetail:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/999')
+        response = api_client.get(adminoptions_urls.detail(999))
         
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -204,7 +205,7 @@ class TestAdminControlsGuideContentUpdate:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/{admin_options.id}/update_guide_content/',
+            adminoptions_urls.path(admin_options.id, 'update_guide_content'),
             data,
             format='json'
         )
@@ -235,7 +236,7 @@ class TestAdminControlsGuideContentUpdate:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/{admin_options.id}/update_guide_content/',
+            adminoptions_urls.path(admin_options.id, 'update_guide_content'),
             data,
             format='json'
         )
@@ -255,7 +256,7 @@ class TestAdminControlsGuideContentUpdate:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/{admin_options.id}/update_guide_content/',
+            adminoptions_urls.path(admin_options.id, 'update_guide_content'),
             data,
             format='json'
         )
@@ -274,7 +275,7 @@ class TestAdminControlsGuideContentUpdate:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/{admin_options.id}/update_guide_content/',
+            adminoptions_urls.path(admin_options.id, 'update_guide_content'),
             data,
             format='json'
         )
@@ -293,7 +294,7 @@ class TestAdminControlsGuideContentUpdate:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/{admin_options.id}/update_guide_content/',
+            adminoptions_urls.path(admin_options.id, 'update_guide_content'),
             data,
             format='json'
         )
@@ -311,7 +312,7 @@ class TestGuideSectionViewSet:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/guide-sections/')
+        response = api_client.get(adminoptions_urls.path('guide-sections'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -333,7 +334,7 @@ class TestGuideSectionViewSet:
         
         # Act
         response = api_client.post(
-            '/api/v1/adminoptions/guide-sections/',
+            adminoptions_urls.path('guide-sections'),
             data,
             format='json'
         )
@@ -348,7 +349,7 @@ class TestGuideSectionViewSet:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.get(f'/api/v1/adminoptions/guide-sections/{guide_section.id}/')
+        response = api_client.get(adminoptions_urls.path('guide-sections', guide_section.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -369,7 +370,7 @@ class TestGuideSectionViewSet:
         
         # Act
         response = api_client.put(
-            f'/api/v1/adminoptions/guide-sections/{guide_section.id}/',
+            adminoptions_urls.path('guide-sections', guide_section.id),
             data,
             format='json'
         )
@@ -384,7 +385,7 @@ class TestGuideSectionViewSet:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.delete(f'/api/v1/adminoptions/guide-sections/{guide_section.id}/')
+        response = api_client.delete(adminoptions_urls.path('guide-sections', guide_section.id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -403,7 +404,7 @@ class TestGuideSectionViewSet:
         
         # Act
         response = api_client.post(
-            '/api/v1/adminoptions/guide-sections/reorder/',
+            adminoptions_urls.path('guide-sections', 'reorder'),
             data,
             format='json'
         )
@@ -432,7 +433,7 @@ class TestGuideSectionViewSet:
         
         # Act
         response = api_client.post(
-            f'/api/v1/adminoptions/guide-sections/{guide_section.id}/reorder_fields/',
+            adminoptions_urls.path('guide-sections', guide_section.id, 'reorder_fields'),
             data,
             format='json'
         )
@@ -450,7 +451,7 @@ class TestGuideSectionViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/guide-sections/')
+        response = api_client.get(adminoptions_urls.path('guide-sections'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -465,7 +466,7 @@ class TestContentFieldViewSet:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/content-fields/')
+        response = api_client.get(adminoptions_urls.path('content-fields'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -485,7 +486,7 @@ class TestContentFieldViewSet:
         
         # Act
         response = api_client.post(
-            '/api/v1/adminoptions/content-fields/',
+            adminoptions_urls.path('content-fields'),
             data,
             format='json'
         )
@@ -500,7 +501,7 @@ class TestContentFieldViewSet:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.get(f'/api/v1/adminoptions/content-fields/{content_field.id}/')
+        response = api_client.get(adminoptions_urls.path('content-fields', content_field.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -520,7 +521,7 @@ class TestContentFieldViewSet:
         
         # Act
         response = api_client.put(
-            f'/api/v1/adminoptions/content-fields/{content_field.id}/',
+            adminoptions_urls.path('content-fields', content_field.id),
             data,
             format='json'
         )
@@ -535,7 +536,7 @@ class TestContentFieldViewSet:
         api_client.force_authenticate(user=admin_user)
         
         # Act
-        response = api_client.delete(f'/api/v1/adminoptions/content-fields/{content_field.id}/')
+        response = api_client.delete(adminoptions_urls.path('content-fields', content_field.id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -547,7 +548,7 @@ class TestContentFieldViewSet:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/content-fields/')
+        response = api_client.get(adminoptions_urls.path('content-fields'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -562,7 +563,7 @@ class TestAdminTasks:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/tasks')
+        response = api_client.get(adminoptions_urls.path('tasks'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -579,7 +580,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -600,7 +601,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -626,7 +627,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         # NOTE: Currently returns 500 due to JSON serialization error
@@ -645,7 +646,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -663,7 +664,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -682,7 +683,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -702,7 +703,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -721,7 +722,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -740,7 +741,7 @@ class TestAdminTasks:
         }
         
         # Act
-        response = api_client.post('/api/v1/adminoptions/tasks', data, format='json')
+        response = api_client.post(adminoptions_urls.path('tasks'), data, format='json')
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -755,7 +756,7 @@ class TestPendingTasks:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/tasks/pending')
+        response = api_client.get(adminoptions_urls.path('tasks', 'pending'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -777,7 +778,7 @@ class TestPendingTasks:
         )
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/tasks/pending')
+        response = api_client.get(adminoptions_urls.path('tasks', 'pending'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -792,36 +793,35 @@ class TestCheckPendingCaretakerRequestForUser:
     NOTE: Production bug - This view exists but has no URL pattern in urls.py.
     The view cannot be accessed via HTTP. Tests are skipped until the URL pattern is added.
     
-    To fix:
-    1. Add URL pattern in adminoptions/urls.py:
-       path("tasks/check/<int:pk>", views.CheckPendingCaretakerRequestForUser.as_view()),
-    2. Re-enable these tests
+    Production bug has been FIXED! URL pattern now exists in adminoptions/urls.py:
+    path("tasks/check/<int:pk>", views.CheckPendingCaretakerRequestForUser.as_view())
+    
+    Tests have been enabled and should now pass.
     """
 
-    @pytest.mark.skip(reason="Production bug: View has no URL pattern in urls.py")
     def test_check_pending_caretaker_request_exists(self, api_client, user, admin_task_set_caretaker, db):
         """Test checking if user has pending caretaker request"""
         # Arrange
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{admin_task_set_caretaker.primary_user.id}')
+        response = api_client.post(adminoptions_urls.path('tasks', 'check', admin_task_set_caretaker.primary_user.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert response.data['has_request'] is True
 
-    @pytest.mark.skip(reason="Production bug: View has no URL pattern in urls.py")
     def test_check_pending_caretaker_request_not_exists(self, api_client, user, db):
         """Test checking if user has no pending caretaker request"""
         # Arrange
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.post(f'/api/v1/adminoptions/tasks/{user.id}')
+        response = api_client.post(adminoptions_urls.path('tasks', 'check', user.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
+        assert response.data['has_request'] is False
         assert response.data['has_request'] is False
 
 
@@ -842,7 +842,7 @@ class TestGetPendingCaretakerRequestsForUser:
         )
         
         # Act
-        response = api_client.get(f'/api/v1/adminoptions/tasks/pending?user_id={user.id}')
+        response = api_client.get(f"{adminoptions_urls.path('tasks', 'pending')}?user_id={user.id}")
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -855,7 +855,7 @@ class TestGetPendingCaretakerRequestsForUser:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/adminoptions/tasks/pending')
+        response = api_client.get(adminoptions_urls.path('tasks', 'pending'))
         
         # Assert
         # This should return all pending tasks, not an error

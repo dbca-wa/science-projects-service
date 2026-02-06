@@ -531,7 +531,10 @@ class TestUpdatePISerializer:
         
         # Assert
         assert serializer.is_valid()
-        assert serializer.validated_data['first_name'] == 'Updated'
+        # Read-only fields (first_name, last_name, email) are not in validated_data
+        # Only writable fields are in validated_data
+        assert serializer.validated_data['display_first_name'] == 'Updated'
+        assert serializer.validated_data['display_last_name'] == 'Name'
 
 
 class TestUpdateProfileSerializer:
@@ -543,6 +546,8 @@ class TestUpdateProfileSerializer:
         data = {
             'title': 'prof',
             'middle_initials': 'B',
+            'about': 'Updated about',
+            'expertise': 'Updated expertise',
         }
         
         # Act
@@ -550,7 +555,10 @@ class TestUpdateProfileSerializer:
         
         # Assert
         assert serializer.is_valid()
-        assert serializer.validated_data['title'] == 'prof'
+        # Read-only field (title) is not in validated_data
+        # Only writable fields are in validated_data
+        assert serializer.validated_data['about'] == 'Updated about'
+        assert serializer.validated_data['expertise'] == 'Updated expertise'
 
 
 class TestUpdateMembershipSerializer:

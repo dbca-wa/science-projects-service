@@ -188,7 +188,6 @@ class BusinessAreaDetail(APIView):
         ba_data = {
             key: value
             for key, value in {
-                "old_id": request.data.get("old_id"),
                 "name": request.data.get("name"),
                 "slug": request.data.get("slug"),
                 "agency": request.data.get("agency"),

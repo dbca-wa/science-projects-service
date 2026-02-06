@@ -78,7 +78,7 @@ class CaretakerTasksForUser(APIView):
         for assignment in caretaker_assignments:
             if assignment.user.id in roles['team_member_user_ids']:
                 from projects.models import ProjectMember, Project
-                active_projects = Project.objects.exclude(status=Project.CLOSED_ONLY)
+                active_projects = Project.objects.exclude(status__in=Project.CLOSED_ONLY)
                 user_team_projects = ProjectMember.objects.filter(
                     user=assignment.user,
                     is_leader=False,

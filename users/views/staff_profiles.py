@@ -133,7 +133,7 @@ class CheckStaffProfileAndReturnDataAndActiveState(APIView):
     """Check if staff profile exists and return data"""
     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    def get(self, request, pk):
         user_id = request.query_params.get('user_id')
         if not user_id:
             return Response({"error": "User ID required"}, status=400)

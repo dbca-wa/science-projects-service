@@ -5,6 +5,8 @@ Verifies that PUT/PATCH/DELETE requests don't cause 500 errors.
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 
+from common.tests.test_helpers import users_urls, caretakers_urls, projects_urls
+
 User = get_user_model()
 
 
@@ -24,7 +26,7 @@ class HTTPMethodsTestCase(TestCase):
         """Test that PUT requests don't cause 500 errors (original issue)."""
         # This was the original failing request
         response = self.client.put(
-            f'/api/v1/users/{self.user.id}/pi',
+            users_urls.path(self.user.id, 'pi'),
             content_type='application/json'
         )
         
@@ -38,7 +40,7 @@ class HTTPMethodsTestCase(TestCase):
     def test_patch_request_no_500_error(self):
         """Test that PATCH requests don't cause 500 errors."""
         response = self.client.patch(
-            f'/api/v1/users/{self.user.id}',
+            users_urls.detail(self.user.id),
             content_type='application/json'
         )
         
@@ -49,7 +51,7 @@ class HTTPMethodsTestCase(TestCase):
 
     def test_delete_request_no_500_error(self):
         """Test that DELETE requests don't cause 500 errors."""
-        response = self.client.delete(f'/api/v1/users/{self.user.id}')
+        response = self.client.delete(users_urls.detail(self.user.id))
         
         self.assertNotEqual(
             response.status_code, 500,
@@ -58,7 +60,7 @@ class HTTPMethodsTestCase(TestCase):
 
     def test_get_request_works(self):
         """Test that GET requests still work."""
-        response = self.client.get(f'/api/v1/users/{self.user.id}')
+        response = self.client.get(users_urls.detail(self.user.id))
         
         # Should be 401 (not authenticated) or 200 (success)
         self.assertIn(
@@ -69,7 +71,7 @@ class HTTPMethodsTestCase(TestCase):
     def test_post_request_works(self):
         """Test that POST requests still work."""
         response = self.client.post(
-            '/api/v1/users',
+            users_urls.list(),
             content_type='application/json'
         )
         
@@ -83,10 +85,10 @@ class HTTPMethodsTestCase(TestCase):
         """Test that requests don't cause 301 redirects."""
         # Test various endpoints
         endpoints = [
-            f'/api/v1/users/{self.user.id}',
-            '/api/v1/users/me',
-            '/api/v1/caretakers',
-            '/api/v1/projects',
+            users_urls.detail(self.user.id),
+            users_urls.path('me'),
+            caretakers_urls.list(),
+            projects_urls.list(),
         ]
         
         for endpoint in endpoints:

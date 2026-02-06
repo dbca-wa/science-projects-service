@@ -19,9 +19,9 @@ class TestApiUrlFunction:
     
     def test_app_only(self):
         """Test URL with app name only"""
-        assert api_url('documents') == '/api/v1/documents/'
-        assert api_url('projects') == '/api/v1/projects/'
-        assert api_url('users') == '/api/v1/users/'
+        assert api_url('documents') == '/api/v1/documents/list'
+        assert api_url('projects') == '/api/v1/projects/list'
+        assert api_url('users') == '/api/v1/users/list'
     
     def test_app_with_path(self):
         """Test URL with app name and path"""
@@ -51,10 +51,10 @@ class TestAPIUrlBuilder:
     def test_list_method(self):
         """Test list() method"""
         builder = APIUrlBuilder('documents')
-        assert builder.list() == '/api/v1/documents/'
+        assert builder.list() == '/api/v1/documents/list'
         
         builder = APIUrlBuilder('projects')
-        assert builder.list() == '/api/v1/projects/'
+        assert builder.list() == '/api/v1/projects/list'
     
     def test_detail_method(self):
         """Test detail() method"""
@@ -87,21 +87,21 @@ class TestPreConfiguredBuilders:
     
     def test_documents_urls(self):
         """Test documents_urls builder"""
-        assert documents_urls.list() == '/api/v1/documents/'
+        assert documents_urls.list() == '/api/v1/documents/list'
         assert documents_urls.detail(123) == '/api/v1/documents/123'
         assert documents_urls.path('conceptplans') == '/api/v1/documents/conceptplans'
         assert documents_urls.path('conceptplans', 123) == '/api/v1/documents/conceptplans/123'
     
     def test_projects_urls(self):
         """Test projects_urls builder"""
-        assert projects_urls.list() == '/api/v1/projects/'
+        assert projects_urls.list() == '/api/v1/projects/list'
         assert projects_urls.detail(456) == '/api/v1/projects/456'
         assert projects_urls.path('export') == '/api/v1/projects/export'
         assert projects_urls.path('members', 789) == '/api/v1/projects/members/789'
     
     def test_users_urls(self):
         """Test users_urls builder"""
-        assert users_urls.list() == '/api/v1/users/'
+        assert users_urls.list() == '/api/v1/users/list'
         assert users_urls.detail(111) == '/api/v1/users/111'
         assert users_urls.path('log-in') == '/api/v1/users/log-in'
         assert users_urls.path('log-out') == '/api/v1/users/log-out'
@@ -113,10 +113,10 @@ class TestRealWorldUsage:
     def test_crud_operations(self):
         """Test typical CRUD operation URLs"""
         # List
-        assert documents_urls.list() == '/api/v1/documents/'
+        assert documents_urls.list() == '/api/v1/documents/list'
         
         # Create (same as list)
-        assert documents_urls.list() == '/api/v1/documents/'
+        assert documents_urls.list() == '/api/v1/documents/list'
         
         # Read
         assert documents_urls.detail(123) == '/api/v1/documents/123'

@@ -34,6 +34,7 @@ from medias.models import (
     AgencyImage,
     UserAvatar,
 )
+from common.tests.test_helpers import medias_urls
 
 
 class TestAnnualReportPDFViews:
@@ -47,7 +48,7 @@ class TestAnnualReportPDFViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/report_pdfs')
+        response = api_client.get(medias_urls.path('report_pdfs'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -56,7 +57,7 @@ class TestAnnualReportPDFViews:
     def test_list_annual_report_pdfs_unauthenticated(self, api_client, db):
         """Test listing annual report PDFs without authentication"""
         # Act
-        response = api_client.get('/api/v1/medias/report_pdfs')
+        response = api_client.get(medias_urls.path('report_pdfs'))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -73,7 +74,7 @@ class TestAnnualReportPDFViews:
         }
         
         # Act
-        response = api_client.post('/api/v1/medias/report_pdfs', data, format='multipart')
+        response = api_client.post(medias_urls.path('report_pdfs'), data, format='multipart')
         
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
@@ -86,7 +87,7 @@ class TestAnnualReportPDFViews:
         data = {}  # Missing required fields
         
         # Act
-        response = api_client.post('/api/v1/medias/report_pdfs', data)
+        response = api_client.post(medias_urls.path('report_pdfs'), data)
         
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -99,7 +100,7 @@ class TestAnnualReportPDFViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/medias/report_pdfs/{annual_report_pdf.id}')
+        response = api_client.get(medias_urls.path('report_pdfs', annual_report_pdf.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -115,7 +116,7 @@ class TestAnnualReportPDFViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/report_pdfs/{annual_report_pdf.id}',
+            medias_urls.path('report_pdfs', annual_report_pdf.id),
             data,
             format='json'
         )
@@ -132,7 +133,7 @@ class TestAnnualReportPDFViews:
         pdf_id = annual_report_pdf.id
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/report_pdfs/{pdf_id}')
+        response = api_client.delete(medias_urls.path('report_pdfs', pdf_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -150,7 +151,7 @@ class TestLegacyAnnualReportPDFViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/legacy_report_pdfs')
+        response = api_client.get(medias_urls.path('legacy_report_pdfs'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -169,7 +170,7 @@ class TestLegacyAnnualReportPDFViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/legacy_report_pdfs',
+            medias_urls.path('legacy_report_pdfs'),
             data,
             format='multipart'
         )
@@ -187,7 +188,7 @@ class TestLegacyAnnualReportPDFViews:
         
         # Act
         response = api_client.get(
-            f'/api/v1/medias/legacy_report_pdfs/{legacy_annual_report_pdf.id}'
+            medias_urls.path('legacy_report_pdfs', legacy_annual_report_pdf.id)
         )
         
         # Assert
@@ -204,7 +205,7 @@ class TestLegacyAnnualReportPDFViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/legacy_report_pdfs/{legacy_annual_report_pdf.id}',
+            medias_urls.path('legacy_report_pdfs', legacy_annual_report_pdf.id),
             data,
             format='json'
         )
@@ -222,7 +223,7 @@ class TestLegacyAnnualReportPDFViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/legacy_report_pdfs/{pdf_id}'
+            medias_urls.path('legacy_report_pdfs', pdf_id)
         )
         
         # Assert
@@ -241,7 +242,7 @@ class TestAnnualReportMediaViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/report_medias')
+        response = api_client.get(medias_urls.path('report_medias'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -262,7 +263,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/report_medias',
+            medias_urls.path('report_medias'),
             data,
             format='multipart'
         )
@@ -279,7 +280,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.get(
-            f'/api/v1/medias/report_medias/{annual_report_media.id}'
+            medias_urls.path('report_medias', annual_report_media.id)
         )
         
         # Assert
@@ -296,7 +297,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/report_medias/{annual_report_media.id}',
+            medias_urls.path('report_medias', annual_report_media.id),
             data,
             format='json'
         )
@@ -314,7 +315,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/report_medias/{media_id}'
+            medias_urls.path('report_medias', media_id)
         )
         
         # Assert
@@ -329,7 +330,7 @@ class TestAnnualReportMediaViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/report_medias/latest/media')
+        response = api_client.get(medias_urls.path('report_medias', 'latest', 'media'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -343,7 +344,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.get(
-            f'/api/v1/medias/report_medias/{annual_report.id}/media'
+            medias_urls.path('report_medias', annual_report.id, 'media')
         )
         
         # Assert
@@ -362,7 +363,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.post(
-            f'/api/v1/medias/report_medias/{annual_report.id}/media',
+            medias_urls.path('report_medias', annual_report.id, 'media'),
             data,
             format='multipart'
         )
@@ -383,7 +384,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.post(
-            f'/api/v1/medias/report_medias/{annual_report.id}/media',
+            medias_urls.path('report_medias', annual_report.id, 'media'),
             data,
             format='multipart'
         )
@@ -400,7 +401,7 @@ class TestAnnualReportMediaViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/report_medias/{annual_report.id}/media/{AnnualReportMedia.MediaTypes.COVER}'
+            medias_urls.path('report_medias', annual_report.id, 'media', AnnualReportMedia.MediaTypes.COVER)
         )
         
         # Assert
@@ -418,7 +419,7 @@ class TestUserAvatarViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/user_avatars')
+        response = api_client.get(medias_urls.path('user_avatars'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -429,7 +430,7 @@ class TestUserAvatarViews:
     ):
         """Test listing user avatars without authentication (read-only)"""
         # Act
-        response = api_client.get('/api/v1/medias/user_avatars')
+        response = api_client.get(medias_urls.path('user_avatars'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -447,7 +448,7 @@ class TestUserAvatarViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/user_avatars',
+            medias_urls.path('user_avatars'),
             data,
             format='multipart'
         )
@@ -463,7 +464,7 @@ class TestUserAvatarViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/medias/user_avatars/{user_avatar.id}')
+        response = api_client.get(medias_urls.path('user_avatars', user_avatar.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -479,7 +480,7 @@ class TestUserAvatarViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/user_avatars/{user_avatar.id}',
+            medias_urls.path('user_avatars', user_avatar.id),
             data,
             format='json'
         )
@@ -497,7 +498,7 @@ class TestUserAvatarViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/user_avatars/{user_avatar.id}',
+            medias_urls.path('user_avatars', user_avatar.id),
             data,
             format='json'
         )
@@ -522,7 +523,7 @@ class TestUserAvatarViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/user_avatars/{user_avatar.id}',
+            medias_urls.path('user_avatars', user_avatar.id),
             data,
             format='json'
         )
@@ -539,7 +540,7 @@ class TestUserAvatarViews:
         avatar_id = user_avatar.id
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/user_avatars/{avatar_id}')
+        response = api_client.delete(medias_urls.path('user_avatars', avatar_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -560,7 +561,7 @@ class TestUserAvatarViews:
         api_client.force_authenticate(user=other_user)
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/user_avatars/{user_avatar.id}')
+        response = api_client.delete(medias_urls.path('user_avatars', user_avatar.id))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -578,7 +579,7 @@ class TestBusinessAreaPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/business_area_photos')
+        response = api_client.get(medias_urls.path('business_area_photos'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -598,7 +599,7 @@ class TestBusinessAreaPhotoViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/business_area_photos',
+            medias_urls.path('business_area_photos'),
             data,
             format='multipart'
         )
@@ -615,7 +616,7 @@ class TestBusinessAreaPhotoViews:
         
         # Act
         response = api_client.get(
-            f'/api/v1/medias/business_area_photos/{business_area_photo.id}'
+            medias_urls.path('business_area_photos', business_area_photo.id)
         )
         
         # Assert
@@ -632,7 +633,7 @@ class TestBusinessAreaPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/business_area_photos/{business_area_photo.id}',
+            medias_urls.path('business_area_photos', business_area_photo.id),
             data,
             format='json'
         )
@@ -657,7 +658,7 @@ class TestBusinessAreaPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/business_area_photos/{business_area_photo.id}',
+            medias_urls.path('business_area_photos', business_area_photo.id),
             data,
             format='json'
         )
@@ -675,7 +676,7 @@ class TestBusinessAreaPhotoViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/business_area_photos/{photo_id}'
+            medias_urls.path('business_area_photos', photo_id)
         )
         
         # Assert
@@ -698,7 +699,7 @@ class TestBusinessAreaPhotoViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/business_area_photos/{business_area_photo.id}'
+            medias_urls.path('business_area_photos', business_area_photo.id)
         )
         
         # Assert
@@ -716,7 +717,7 @@ class TestProjectPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/project_photos')
+        response = api_client.get(medias_urls.path('project_photos'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -736,7 +737,7 @@ class TestProjectPhotoViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/project_photos',
+            medias_urls.path('project_photos'),
             data,
             format='multipart'
         )
@@ -752,7 +753,7 @@ class TestProjectPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/medias/project_photos/{project_photo.id}')
+        response = api_client.get(medias_urls.path('project_photos', project_photo.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -768,7 +769,7 @@ class TestProjectPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/project_photos/{project_photo.id}',
+            medias_urls.path('project_photos', project_photo.id),
             data,
             format='json'
         )
@@ -793,7 +794,7 @@ class TestProjectPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/project_photos/{project_photo.id}',
+            medias_urls.path('project_photos', project_photo.id),
             data,
             format='json'
         )
@@ -810,7 +811,7 @@ class TestProjectPhotoViews:
         photo_id = project_photo.id
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/project_photos/{photo_id}')
+        response = api_client.delete(medias_urls.path('project_photos', photo_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -831,7 +832,7 @@ class TestProjectPhotoViews:
         api_client.force_authenticate(user=other_user)
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/project_photos/{project_photo.id}')
+        response = api_client.delete(medias_urls.path('project_photos', project_photo.id))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -848,7 +849,7 @@ class TestMethodologyPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/methodology_photos')
+        response = api_client.get(medias_urls.path('methodology_photos'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -867,7 +868,7 @@ class TestMethodologyPhotoViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/methodology_photos',
+            medias_urls.path('methodology_photos'),
             data,
             format='multipart'
         )
@@ -884,7 +885,7 @@ class TestMethodologyPhotoViews:
         
         # Act
         response = api_client.get(
-            f'/api/v1/medias/methodology_photos/{project_plan.id}'
+            medias_urls.path('methodology_photos', project_plan.id)
         )
         
         # Assert
@@ -900,7 +901,7 @@ class TestMethodologyPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/methodology_photos/{project_plan.id}',
+            medias_urls.path('methodology_photos', project_plan.id),
             data,
             format='json'
         )
@@ -925,7 +926,7 @@ class TestMethodologyPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/methodology_photos/{project_plan.id}',
+            medias_urls.path('methodology_photos', project_plan.id),
             data,
             format='json'
         )
@@ -943,7 +944,7 @@ class TestMethodologyPhotoViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/methodology_photos/{project_plan.id}'
+            medias_urls.path('methodology_photos', project_plan.id)
         )
         
         # Assert
@@ -966,7 +967,7 @@ class TestMethodologyPhotoViews:
         
         # Act
         response = api_client.delete(
-            f'/api/v1/medias/methodology_photos/{project_plan.id}'
+            medias_urls.path('methodology_photos', project_plan.id)
         )
         
         # Assert
@@ -984,7 +985,7 @@ class TestAgencyPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/agency_photos')
+        response = api_client.get(medias_urls.path('agency_photos'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -1003,7 +1004,7 @@ class TestAgencyPhotoViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/agency_photos',
+            medias_urls.path('agency_photos'),
             data,
             format='multipart'
         )
@@ -1019,7 +1020,7 @@ class TestAgencyPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get(f'/api/v1/medias/agency_photos/{agency_image.id}')
+        response = api_client.get(medias_urls.path('agency_photos', agency_image.id))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -1035,7 +1036,7 @@ class TestAgencyPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/agency_photos/{agency_image.id}',
+            medias_urls.path('agency_photos', agency_image.id),
             data,
             format='json'
         )
@@ -1053,7 +1054,7 @@ class TestAgencyPhotoViews:
         
         # Act
         response = api_client.put(
-            f'/api/v1/medias/agency_photos/{agency_image.id}',
+            medias_urls.path('agency_photos', agency_image.id),
             data,
             format='json'
         )
@@ -1070,7 +1071,7 @@ class TestAgencyPhotoViews:
         image_id = agency_image.id
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/agency_photos/{image_id}')
+        response = api_client.delete(medias_urls.path('agency_photos', image_id))
         
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -1084,7 +1085,7 @@ class TestAgencyPhotoViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.delete(f'/api/v1/medias/agency_photos/{agency_image.id}')
+        response = api_client.delete(medias_urls.path('agency_photos', agency_image.id))
         
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -1101,7 +1102,7 @@ class TestProjectDocumentPDFViews:
         api_client.force_authenticate(user=user)
         
         # Act
-        response = api_client.get('/api/v1/medias/project_document_pdfs')
+        response = api_client.get(medias_urls.path('project_document_pdfs'))
         
         # Assert
         assert response.status_code == status.HTTP_200_OK
@@ -1121,7 +1122,7 @@ class TestProjectDocumentPDFViews:
         
         # Act
         response = api_client.post(
-            '/api/v1/medias/project_document_pdfs',
+            medias_urls.path('project_document_pdfs'),
             data,
             format='multipart'
         )

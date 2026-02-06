@@ -1,6 +1,7 @@
 """
 Pytest fixtures for contacts app tests
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -15,8 +16,8 @@ User = get_user_model()
 def user(db):
     """Provide a regular user"""
     return UserFactory(
-        username='testuser',
-        email='test@example.com',
+        username="testuser",
+        email="test@example.com",
     )
 
 
@@ -24,7 +25,7 @@ def user(db):
 def agency(db, user):
     """Provide an agency"""
     return Agency.objects.create(
-        name='Test Agency',
+        name="Test Agency",
         key_stakeholder=user,
         is_active=True,
     )
@@ -34,9 +35,8 @@ def agency(db, user):
 def branch(db, agency):
     """Provide a branch"""
     return Branch.objects.create(
-        name='Test Branch',
+        name="Test Branch",
         agency=agency,
-        old_id=1,
     )
 
 
@@ -45,12 +45,12 @@ def address_for_agency(db, agency):
     """Provide an address for an agency"""
     return Address.objects.create(
         agency=agency,
-        street='123 Test St',
-        suburb='Test Suburb',
-        city='Test City',
+        street="123 Test St",
+        suburb="Test Suburb",
+        city="Test City",
         zipcode=12345,
-        state='Test State',
-        country='Test Country',
+        state="Test State",
+        country="Test Country",
     )
 
 
@@ -59,12 +59,12 @@ def address_for_branch(db, branch):
     """Provide an address for a branch"""
     return Address.objects.create(
         branch=branch,
-        street='456 Branch St',
-        suburb='Branch Suburb',
-        city='Branch City',
+        street="456 Branch St",
+        suburb="Branch Suburb",
+        city="Branch City",
         zipcode=67890,
-        state='Branch State',
-        country='Branch Country',
+        state="Branch State",
+        country="Branch Country",
     )
 
 
@@ -73,10 +73,10 @@ def user_contact(db, user):
     """Provide a user contact"""
     return UserContact.objects.create(
         user=user,
-        email='user@example.com',
-        phone='1234567890',
-        alt_phone='0987654321',
-        fax='1112223333',
+        email="user@example.com",
+        phone="1234567890",
+        alt_phone="0987654321",
+        fax="1112223333",
     )
 
 
@@ -85,10 +85,10 @@ def agency_contact(db, agency, address_for_agency):
     """Provide an agency contact"""
     return AgencyContact.objects.create(
         agency=agency,
-        email='agency@example.com',
-        phone='1234567890',
-        alt_phone='0987654321',
-        fax='1112223333',
+        email="agency@example.com",
+        phone="1234567890",
+        alt_phone="0987654321",
+        fax="1112223333",
         address=address_for_agency,
     )
 
@@ -98,10 +98,10 @@ def branch_contact(db, branch, address_for_branch):
     """Provide a branch contact"""
     return BranchContact.objects.create(
         branch=branch,
-        email='branch@example.com',
-        phone='1234567890',
-        alt_phone='0987654321',
-        fax='1112223333',
+        email="branch@example.com",
+        phone="1234567890",
+        alt_phone="0987654321",
+        fax="1112223333",
         address=address_for_branch,
     )
 

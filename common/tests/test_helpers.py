@@ -15,20 +15,20 @@ def api_url(app_name: str, path: str = '', versioned: bool = True) -> str:
         versioned: Whether to include /api/v1/ prefix (default: True)
         
     Returns:
-        Full URL with optional /api/v1/ prefix and trailing slash
+        Full URL with optional /api/v1/ prefix and NO trailing slash
         
     Examples:
         >>> api_url('documents')
-        '/api/v1/documents/'
+        '/api/v1/documents/list'
         
         >>> api_url('documents', 'conceptplans')
-        '/api/v1/documents/conceptplans/'
+        '/api/v1/documents/conceptplans'
         
         >>> api_url('admin', versioned=False)
-        '/admin/'
+        '/admin'
         
         >>> api_url('health', versioned=False)
-        '/health/'
+        '/health'
     """
     if versioned:
         base = f'/api/v1/{app_name}'
@@ -36,37 +36,33 @@ def api_url(app_name: str, path: str = '', versioned: bool = True) -> str:
         base = f'/{app_name}'
     
     if not path:
-        return f'{base}/'
+        return f'{base}/list'
     
     # Remove leading/trailing slashes from path
     path = path.strip('/')
     
-    # Build URL
+    # Build URL - NO trailing slash
     url = f'{base}/{path}'
-    
-    # Add trailing slash if not a file
-    if '.' not in path.split('/')[-1]:
-        url = f'{url}/'
     
     return url
 
 
 def url(path: str) -> str:
     """
-    Construct a simple URL (for non-API endpoints like /admin/, /health/).
+    Construct a simple URL (for non-API endpoints like /admin, /health).
     
     Args:
         path: URL path (e.g., 'admin', 'health', 'files/test.pdf')
         
     Returns:
-        Full URL with leading slash
+        Full URL with leading slash and NO trailing slash
         
     Examples:
         >>> url('admin')
-        '/admin/'
+        '/admin'
         
         >>> url('health')
-        '/health/'
+        '/health'
         
         >>> url('files/test.pdf')
         '/files/test.pdf'
@@ -74,9 +70,8 @@ def url(path: str) -> str:
     # Remove leading slash if present
     path = path.lstrip('/')
     
-    # Add trailing slash if not present and no file extension
-    if '.' not in path.split('/')[-1] and not path.endswith('/'):
-        return f'/{path}/'
+    # Remove trailing slash if present
+    path = path.rstrip('/')
     
     return f'/{path}'
 
@@ -91,7 +86,7 @@ class APIUrlBuilder:
     Example:
         >>> urls = APIUrlBuilder('documents')
         >>> urls.list()
-        '/api/v1/documents/'
+        '/api/v1/documents/list'
         
         >>> urls.detail(123)
         '/api/v1/documents/123'
@@ -105,7 +100,7 @@ class APIUrlBuilder:
         >>> # Non-versioned URLs
         >>> admin_urls = APIUrlBuilder('admin', versioned=False)
         >>> admin_urls.list()
-        '/admin/'
+        '/admin/list'
     """
     
     def __init__(self, app_name: str, versioned: bool = True):
@@ -126,11 +121,11 @@ class APIUrlBuilder:
     
     def list(self) -> str:
         """Get list endpoint URL."""
-        return f'{self.base}/'
+        return f'{self.base}/list'
     
     def detail(self, pk: int) -> str:
         """Get detail endpoint URL."""
-        return f'{self.base}/{pk}/'
+        return f'{self.base}/{pk}'
     
     def path(self, *parts) -> str:
         """
@@ -140,18 +135,18 @@ class APIUrlBuilder:
             *parts: Path parts to join (strings or integers)
             
         Returns:
-            Full URL with path parts joined and trailing slash
+            Full URL with path parts joined and NO trailing slash
             
         Examples:
             >>> urls = APIUrlBuilder('documents')
             >>> urls.path('conceptplans')
-            '/api/v1/documents/conceptplans/'
+            '/api/v1/documents/conceptplans'
             
             >>> urls.path('conceptplans', 123)
-            '/api/v1/documents/conceptplans/123/'
+            '/api/v1/documents/conceptplans/123'
             
             >>> urls.path('reports', 'download')
-            '/api/v1/documents/reports/download/'
+            '/api/v1/documents/reports/download'
             
             >>> # Non-versioned URLs
             >>> files_urls = APIUrlBuilder('files', versioned=False)
@@ -159,20 +154,19 @@ class APIUrlBuilder:
             '/files/test.pdf'
         """
         path_str = '/'.join(str(part) for part in parts)
-        # Add trailing slash unless it's a file (has extension)
-        if '.' in str(parts[-1]) if parts else False:
-            return f'{self.base}/{path_str}'
-        return f'{self.base}/{path_str}/'
+        return f'{self.base}/{path_str}'
 
 
 # Convenience instances for common apps
-documents_urls = APIUrlBuilder('documents')
-projects_urls = APIUrlBuilder('projects')
-users_urls = APIUrlBuilder('users')
+adminoptions_urls = APIUrlBuilder('adminoptions')
 agencies_urls = APIUrlBuilder('agencies')
-contacts_urls = APIUrlBuilder('contacts')
-communications_urls = APIUrlBuilder('communications')
-medias_urls = APIUrlBuilder('medias')
-quotes_urls = APIUrlBuilder('quotes')
-locations_urls = APIUrlBuilder('locations')
 caretakers_urls = APIUrlBuilder('caretakers')
+categories_urls = APIUrlBuilder('categories')
+communications_urls = APIUrlBuilder('communications')
+contacts_urls = APIUrlBuilder('contacts')
+documents_urls = APIUrlBuilder('documents')
+locations_urls = APIUrlBuilder('locations')
+medias_urls = APIUrlBuilder('medias')
+projects_urls = APIUrlBuilder('projects')
+quotes_urls = APIUrlBuilder('quotes')
+users_urls = APIUrlBuilder('users')

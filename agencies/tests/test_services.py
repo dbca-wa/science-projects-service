@@ -125,7 +125,6 @@ class TestAffiliationService:
         external_details = ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with=f"{affiliation.name}; Other Org",
-            old_id=1,
         )
         
         # Act
@@ -149,7 +148,6 @@ class TestAffiliationService:
         student_details = StudentProjectDetails.objects.create(
             project=project,
             organisation=f"{affiliation.name}; Other Org",
-            old_id=1,
         )
         
         # Act
@@ -173,14 +171,12 @@ class TestAffiliationService:
         external_details = ExternalProjectDetails.objects.create(
             project=project1,
             collaboration_with=affiliation.name,
-            old_id=1,
         )
         
         project2 = ProjectFactory()
         student_details = StudentProjectDetails.objects.create(
             project=project2,
             organisation=affiliation.name,
-            old_id=2,
         )
         
         # Act
@@ -205,7 +201,6 @@ class TestAffiliationService:
         ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with=affiliation.name,
-            old_id=1,
         )
         
         # Act
@@ -373,7 +368,6 @@ class TestBranchService:
         """Test creating branch"""
         # Arrange
         data = {
-            "old_id": 2,
             "agency": agency,
             "name": "New Branch",
             "manager": user,
@@ -563,7 +557,6 @@ class TestDivisionService:
         """Test creating division"""
         # Arrange
         data = {
-            "old_id": 2,
             "name": "New Division",
             "slug": "new-division",
             "director": user,
@@ -629,7 +622,6 @@ class TestDepartmentalServiceService:
         """Test creating departmental service"""
         # Arrange
         data = {
-            "old_id": 2,
             "name": "New Service",
             "director": user,
         }
