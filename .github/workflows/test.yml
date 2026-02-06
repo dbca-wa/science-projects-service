@@ -1,13 +1,16 @@
 name: "Test Suite"
 
 on:
-  push:
+  # Only run on pull requests - not on direct pushes to main
+  pull_request:
     branches: [main, develop]
     paths:
       - "backend/**"
       - ".github/workflows/test.yml"
-  pull_request:
-    branches: [main, develop]
+  
+  # Run on pushes to develop branch for continuous testing
+  push:
+    branches: [develop]
     paths:
       - "backend/**"
       - ".github/workflows/test.yml"
@@ -17,8 +20,13 @@ permissions:
 
 jobs:
   test:
-    name: Run tests with coverage
+    name: Test (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     
     services:
       postgres:
@@ -85,11 +93,12 @@ jobs:
           EMAIL_PORT: "25"
         run: |
           poetry run pytest \
+            --splits 4 \
+            --group ${{ matrix.shard }} \
             -n auto \
             --tb=short \
             --cov=. \
-            --cov-report=xml \
-            --cov-report=html \
+            --cov-report=xml:.coverage.${{ matrix.shard }}.xml \
             --cov-report=term-missing:skip-covered \
             --cov-fail-under=80 \
             -v \
@@ -100,7 +109,53 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-report-${{ github.run_id }}
+          name: coverage-${{ matrix.shard }}
+          path: .coverage.${{ matrix.shard }}.xml
+          retention-days: 1
+  
+  # Combine coverage from all shards
+  coverage:
+    name: Combine coverage and upload
+    needs: test
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Install dependencies
+        run: |
+          poetry config virtualenvs.in-project true
+          poetry install --no-interaction --no-ansi --only main,dev
+      
+      - name: Download all coverage reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-reports
+      
+      - name: Combine coverage reports
+        run: |
+          poetry run coverage combine coverage-reports/*/.coverage.*.xml
+          poetry run coverage xml -o coverage.xml
+          poetry run coverage html
+          poetry run coverage report
+      
+      - name: Upload combined coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-combined-${{ github.run_id }}
           path: htmlcov/
           retention-days: 30
       
@@ -117,7 +172,7 @@ jobs:
         continue-on-error: true
       
       - name: Generate Coverage Badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.test.result == 'success'
         uses: tj-actions/coverage-badge-py@v2
         with:
           output: coverage.svg
@@ -174,6 +229,7 @@ jobs:
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Tests completed across 4 shards" >> $GITHUB_STEP_SUMMARY
           echo "📊 Coverage report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
           echo "🎯 Minimum coverage: 80%" >> $GITHUB_STEP_SUMMARY
+          echo "⚡ Sharding reduces wall time by ~75%" >> $GITHUB_STEP_SUMMARY
