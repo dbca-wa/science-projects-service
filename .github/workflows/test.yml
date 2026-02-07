@@ -6,7 +6,7 @@ on:
     branches: [main, develop]
 
   # Run on pushes to main and develop branches
-  # main: for badge generation after merge
+  # main: for Codecov upload after merge
   # develop: for continuous testing
   push:
     branches: [main, develop]
@@ -78,6 +78,22 @@ jobs:
           restore-keys: |
             test-durations-combined-
             test-durations-
+        continue-on-error: true
+
+      - name: Validate test durations file
+        if: always()
+        run: |
+          if [ -f ".test_durations" ]; then
+            echo "=== Checking test durations file ==="
+            if python3 -c "import json; json.load(open('.test_durations'))" 2>/dev/null; then
+              echo "✅ Test durations file is valid JSON"
+            else
+              echo "⚠️ Test durations file is corrupted, removing it"
+              rm -f .test_durations
+            fi
+          else
+            echo "ℹ️ No test durations file found (first run or cache miss)"
+          fi
 
       - name: Run tests with coverage
         env:
@@ -124,50 +140,38 @@ jobs:
       - name: Prepare coverage file for upload
         if: always()
         run: |
-          # Create directory for artifacts
           mkdir -p coverage-output
 
-          # Look for both .coverage and .coverage.* files
-          # pytest-cov with xdist creates a single .coverage file (already combined from workers)
-          # We need to rename it to avoid conflicts when combining from multiple shards
-          coverage_files=$(find . -maxdepth 1 \( -name '.coverage' -o -name '.coverage.*' \) -type f ! -name '.coveragerc')
+          # Handle .coverage file
+          if [ -f ".coverage" ]; then
+            echo "✅ Found .coverage file"
+            cp .coverage "coverage-output/.coverage.${{ matrix.shard }}"
+            echo "Copied .coverage as .coverage.${{ matrix.shard }}"
+          fi
 
-          if [ -n "$coverage_files" ]; then
-            echo "✅ Found coverage files:"
-            echo "$coverage_files"
+          # Handle .coverage.* files (use nullglob to handle no matches)
+          shopt -s nullglob
+          coverage_dotfiles=(.coverage.*)
+          shopt -u nullglob
 
-            # Copy coverage files to output directory
-            # Rename .coverage to .coverage.SHARD to avoid conflicts
-            for file in .coverage .coverage.*; do
-              if [ -f "$file" ] && [ "$file" != ".coveragerc" ]; then
-                if [ "$file" = ".coverage" ]; then
-                  # Rename single .coverage file to shard-specific name
-                  cp "$file" "coverage-output/.coverage.${{ matrix.shard }}"
-                  echo "Copied $file as .coverage.${{ matrix.shard }}"
-                else
-                  # Copy .coverage.* files as-is
-                  cp "$file" "coverage-output/"
-                  echo "Copied $file"
-                fi
-              fi
-            done
-
-            echo ""
-            echo "=== Files in coverage-output/ ==="
-            ls -la coverage-output/
-
-            # Verify at least one file was copied
-            if [ -n "$(ls -A coverage-output/)" ]; then
-              echo "✅ Successfully prepared coverage files for upload"
-            else
-              echo "❌ No files copied to coverage-output/"
-              exit 1
+          for file in "${coverage_dotfiles[@]}"; do
+            if [ "$file" != ".coveragerc" ] && [ -f "$file" ]; then
+              cp "$file" coverage-output/
+              echo "Copied $file"
             fi
-          else
-            echo "❌ No coverage files found"
-            echo "This indicates coverage collection failed"
+          done
+
+          echo ""
+          echo "=== Files in coverage-output/ ==="
+          ls -la coverage-output/
+
+          # Verify at least one file was copied
+          if [ -z "$(ls -A coverage-output/)" ]; then
+            echo "❌ ERROR: No coverage files were copied"
             exit 1
           fi
+
+          echo "✅ Successfully prepared coverage files for upload"
 
       - name: Save test durations cache
         if: always()
@@ -254,12 +258,39 @@ jobs:
       - name: Combine test durations
         if: always()
         run: |
-          # Combine all test duration files into one
           if [ -d "test-durations-reports" ]; then
             echo "=== Combining test durations from all shards ==="
-            cat test-durations-reports/*/.test_durations > .test_durations 2>/dev/null || echo "No test durations to combine"
 
-            # Save combined durations to cache for next run
+            # Merge JSON files properly using Python
+            python3 << 'EOF'
+          import json
+          import os
+          from pathlib import Path
+
+          combined = {}
+          reports_dir = Path("test-durations-reports")
+
+          # Find all .test_durations files
+          for duration_file in reports_dir.rglob(".test_durations"):
+              try:
+                  with open(duration_file, 'r') as f:
+                      data = json.load(f)
+                      combined.update(data)
+                      print(f"✅ Merged {duration_file}")
+              except json.JSONDecodeError as e:
+                  print(f"⚠️ Skipping corrupted file {duration_file}: {e}")
+              except Exception as e:
+                  print(f"⚠️ Error reading {duration_file}: {e}")
+
+          # Write combined durations
+          if combined:
+              with open(".test_durations", 'w') as f:
+                  json.dump(combined, f)
+              print(f"✅ Combined {len(combined)} test durations")
+          else:
+              print("⚠️ No test durations found to combine")
+          EOF
+
             if [ -f ".test_durations" ]; then
               echo "✅ Combined test durations file created"
               wc -l .test_durations
