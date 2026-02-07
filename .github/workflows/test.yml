@@ -376,7 +376,8 @@ jobs:
           NEW_BADGE="![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})"
 
           # Update README.md (replace the coverage badge line)
-          sed -i "s|!\[Coverage\](https://img.shields.io/badge/coverage-[0-9]*%25-[a-z]*)|${NEW_BADGE}|g" README.md
+          # Pattern matches both integer (84) and decimal (84.52) percentages
+          sed -i "s|!\[Coverage\](https://img.shields.io/badge/coverage-[0-9.]*%25-[a-z]*)|${NEW_BADGE}|g" README.md
 
           echo "Updated coverage badge to: ${NEW_BADGE}"
 
