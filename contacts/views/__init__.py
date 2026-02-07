@@ -1,23 +1,24 @@
 """
 Contact views
 """
-from .addresses import Addresses, AddressDetail
+
+from .addresses import AddressDetail, Addresses
 from .contacts import (
-    AgencyContacts,
     AgencyContactDetail,
-    BranchContacts,
+    AgencyContacts,
     BranchContactDetail,
-    UserContacts,
+    BranchContacts,
     UserContactDetail,
+    UserContacts,
 )
 
 __all__ = [
-    'Addresses',
-    'AddressDetail',
-    'AgencyContacts',
-    'AgencyContactDetail',
-    'BranchContacts',
-    'BranchContactDetail',
-    'UserContacts',
-    'UserContactDetail',
+    "Addresses",
+    "AddressDetail",
+    "AgencyContacts",
+    "AgencyContactDetail",
+    "BranchContacts",
+    "BranchContactDetail",
+    "UserContacts",
+    "UserContactDetail",
 ]

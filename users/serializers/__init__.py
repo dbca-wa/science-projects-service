@@ -1,75 +1,76 @@
 """
 User serializers
 """
+
 from .base import (
-    UserSerializer,
-    TinyUserSerializer,
-    PrivateTinyUserSerializer,
-    MiniUserSerializer,
     BasicUserSerializer,
+    MiniUserSerializer,
+    PrivateTinyUserSerializer,
     StaffProfileEmailListSerializer,
+    TinyUserSerializer,
     TinyUserWorkSerializer,
-    UserWorkSerializer,
     UserMeSerializer,
+    UserSerializer,
+    UserWorkSerializer,
+)
+from .entries import (
+    EducationEntryCreationSerializer,
+    EducationEntrySerializer,
+    EmploymentEntryCreationSerializer,
+    EmploymentEntrySerializer,
 )
 from .profile import (
+    ProfilePageSerializer,
     TinyUserProfileSerializer,
     UserProfileSerializer,
-    ProfilePageSerializer,
 )
 from .staff_profile import (
     KeywordTagSerializer,
-    TinyStaffProfileSerializer,
     StaffProfileCreationSerializer,
+    StaffProfileCVSerializer,
     StaffProfileHeroSerializer,
     StaffProfileOverviewSerializer,
-    StaffProfileCVSerializer,
     StaffProfileSerializer,
-)
-from .entries import (
-    EmploymentEntrySerializer,
-    EmploymentEntryCreationSerializer,
-    EducationEntrySerializer,
-    EducationEntryCreationSerializer,
+    TinyStaffProfileSerializer,
 )
 from .update import (
+    UpdateMembershipSerializer,
     UpdatePISerializer,
     UpdateProfileSerializer,
-    UpdateMembershipSerializer,
     UserWorkAffiliationUpdateSerializer,
 )
 
 __all__ = [
     # Base
-    'UserSerializer',
-    'TinyUserSerializer',
-    'PrivateTinyUserSerializer',
-    'MiniUserSerializer',
-    'BasicUserSerializer',
-    'StaffProfileEmailListSerializer',
-    'TinyUserWorkSerializer',
-    'UserWorkSerializer',
-    'UserMeSerializer',
+    "UserSerializer",
+    "TinyUserSerializer",
+    "PrivateTinyUserSerializer",
+    "MiniUserSerializer",
+    "BasicUserSerializer",
+    "StaffProfileEmailListSerializer",
+    "TinyUserWorkSerializer",
+    "UserWorkSerializer",
+    "UserMeSerializer",
     # Profile
-    'TinyUserProfileSerializer',
-    'UserProfileSerializer',
-    'ProfilePageSerializer',
+    "TinyUserProfileSerializer",
+    "UserProfileSerializer",
+    "ProfilePageSerializer",
     # Staff Profile
-    'KeywordTagSerializer',
-    'TinyStaffProfileSerializer',
-    'StaffProfileCreationSerializer',
-    'StaffProfileHeroSerializer',
-    'StaffProfileOverviewSerializer',
-    'StaffProfileCVSerializer',
-    'StaffProfileSerializer',
+    "KeywordTagSerializer",
+    "TinyStaffProfileSerializer",
+    "StaffProfileCreationSerializer",
+    "StaffProfileHeroSerializer",
+    "StaffProfileOverviewSerializer",
+    "StaffProfileCVSerializer",
+    "StaffProfileSerializer",
     # Entries
-    'EmploymentEntrySerializer',
-    'EmploymentEntryCreationSerializer',
-    'EducationEntrySerializer',
-    'EducationEntryCreationSerializer',
+    "EmploymentEntrySerializer",
+    "EmploymentEntryCreationSerializer",
+    "EducationEntrySerializer",
+    "EducationEntryCreationSerializer",
     # Update
-    'UpdatePISerializer',
-    'UpdateProfileSerializer',
-    'UpdateMembershipSerializer',
-    'UserWorkAffiliationUpdateSerializer',
+    "UpdatePISerializer",
+    "UpdateProfileSerializer",
+    "UpdateMembershipSerializer",
+    "UserWorkAffiliationUpdateSerializer",
 ]

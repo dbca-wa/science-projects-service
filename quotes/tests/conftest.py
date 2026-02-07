@@ -1,6 +1,7 @@
 """
 Pytest fixtures for quotes app tests
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -14,8 +15,8 @@ User = get_user_model()
 def user(db):
     """Provide a regular user"""
     return UserFactory(
-        username='testuser',
-        email='test@example.com',
+        username="testuser",
+        email="test@example.com",
     )
 
 
@@ -23,8 +24,8 @@ def user(db):
 def quote(db):
     """Provide a quote"""
     return Quote.objects.create(
-        text='Test quote text',
-        author='Test Author',
+        text="Test quote text",
+        author="Test Author",
     )
 
 
@@ -32,8 +33,8 @@ def quote(db):
 def quote2(db):
     """Provide a second quote"""
     return Quote.objects.create(
-        text='Another test quote',
-        author='Another Author',
+        text="Another test quote",
+        author="Another Author",
     )
 
 

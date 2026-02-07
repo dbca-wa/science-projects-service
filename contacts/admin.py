@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import AgencyContact, BranchContact, UserContact, Address
+
+from .models import Address, AgencyContact, BranchContact, UserContact
 
 
 @admin.register(Address)
@@ -46,12 +47,11 @@ class BranchContactAdmin(admin.ModelAdmin):
 
     ordering = ["branch__name"]
 
+    @admin.display(description="Address")
     def display_address(self, obj):
         if obj.address:
             return f"{obj.address.street}"
         return None
-
-    display_address.short_description = "Address"
 
 
 @admin.register(AgencyContact)

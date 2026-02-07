@@ -6,13 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('medias', '0006_alter_useravatar_user'),
+        ("medias", "0006_alter_useravatar_user"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='annualreportmedia',
-            name='kind',
-            field=models.CharField(choices=[('cover', 'Cover'), ('rear_cover', 'Rear Cover'), ('sdchart', 'Service Delivery Chart'), ('service_delivery', 'Service Delivery'), ('research', 'Research'), ('partnerships', 'Partnerships'), ('collaborations', 'Collaborations'), ('student_projects', 'Student Projects'), ('publications', 'Publications'), ('dbca_image', 'DBCA Image'), ('dbca_banner', 'DBCA Banner')], max_length=140),
+            model_name="annualreportmedia",
+            name="kind",
+            field=models.CharField(
+                choices=[
+                    ("cover", "Cover"),
+                    ("rear_cover", "Rear Cover"),
+                    ("sdchart", "Service Delivery Chart"),
+                    ("service_delivery", "Service Delivery"),
+                    ("research", "Research"),
+                    ("partnerships", "Partnerships"),
+                    ("collaborations", "Collaborations"),
+                    ("student_projects", "Student Projects"),
+                    ("publications", "Publications"),
+                    ("dbca_image", "DBCA Image"),
+                    ("dbca_banner", "DBCA Banner"),
+                ],
+                max_length=140,
+            ),
         ),
     ]

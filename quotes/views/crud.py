@@ -1,9 +1,8 @@
 """
 Quote CRUD views
 """
-from rest_framework.views import APIView
+
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -11,10 +10,11 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from common.utils import paginate_queryset
+from quotes.serializers import QuoteDetailSerializer, QuoteListSerializer
 from quotes.services import QuoteService
-from quotes.serializers import QuoteListSerializer, QuoteDetailSerializer
 
 
 class Quotes(APIView):
@@ -24,22 +24,21 @@ class Quotes(APIView):
         """List quotes with pagination"""
         quotes = QuoteService.list_quotes()
         paginated = paginate_queryset(quotes, request)
-        
-        serializer = QuoteListSerializer(paginated['items'], many=True)
+
+        serializer = QuoteListSerializer(paginated["items"], many=True)
         return Response(serializer.data, status=HTTP_200_OK)
 
     def post(self, request):
         """Create new quote"""
         if not request.user.is_authenticated:
             return Response(
-                {"error": "Authentication required"},
-                status=HTTP_400_BAD_REQUEST
+                {"error": "Authentication required"}, status=HTTP_400_BAD_REQUEST
             )
-        
+
         serializer = QuoteListSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         quote = QuoteService.create_quote(serializer.validated_data)
         result = QuoteListSerializer(quote)
         return Response(result.data, status=HTTP_201_CREATED)
@@ -58,14 +57,13 @@ class QuoteDetail(APIView):
         """Update quote"""
         if not request.user.is_authenticated:
             return Response(
-                {"error": "Authentication required"},
-                status=HTTP_400_BAD_REQUEST
+                {"error": "Authentication required"}, status=HTTP_400_BAD_REQUEST
             )
-        
+
         serializer = QuoteDetailSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         quote = QuoteService.update_quote(pk, serializer.validated_data)
         result = QuoteDetailSerializer(quote)
         return Response(result.data, status=HTTP_202_ACCEPTED)
@@ -74,10 +72,9 @@ class QuoteDetail(APIView):
         """Delete quote"""
         if not request.user.is_authenticated:
             return Response(
-                {"error": "Authentication required"},
-                status=HTTP_400_BAD_REQUEST
+                {"error": "Authentication required"}, status=HTTP_400_BAD_REQUEST
             )
-        
+
         QuoteService.delete_quote(pk)
         return Response(status=HTTP_204_NO_CONTENT)
 

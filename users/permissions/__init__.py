@@ -1,22 +1,23 @@
 """
 User permissions
 """
+
 from .user_permissions import (
-    CanManageUser,
-    CanManageProfile,
-    CanViewProfile,
-    CanManageStaffProfile,
     CanExportData,
-    CanManageEmploymentEntry,
     CanManageEducationEntry,
+    CanManageEmploymentEntry,
+    CanManageProfile,
+    CanManageStaffProfile,
+    CanManageUser,
+    CanViewProfile,
 )
 
 __all__ = [
-    'CanManageUser',
-    'CanManageProfile',
-    'CanViewProfile',
-    'CanManageStaffProfile',
-    'CanExportData',
-    'CanManageEmploymentEntry',
-    'CanManageEducationEntry',
+    "CanManageUser",
+    "CanManageProfile",
+    "CanViewProfile",
+    "CanManageStaffProfile",
+    "CanExportData",
+    "CanManageEmploymentEntry",
+    "CanManageEducationEntry",
 ]

@@ -8,95 +8,241 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0004_alter_projectmember_role'),
-        ('users', '0002_alter_userprofile_expertise'),
+        ("projects", "0004_alter_projectmember_role"),
+        ("users", "0002_alter_userprofile_expertise"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AdditionalPublicationEntry',
+            name="AdditionalPublicationEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('year_published', models.PositiveIntegerField()),
-                ('entry', models.TextField()),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("year_published", models.PositiveIntegerField()),
+                ("entry", models.TextField()),
             ],
         ),
         migrations.CreateModel(
-            name='EducationEntry',
+            name="EducationEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('qualification_field', models.CharField(max_length=200)),
-                ('with_honours', models.BooleanField(default=False)),
-                ('qualification_kind', models.CharField(choices=[('Postdoctoral in', 'Postdoctoral in'), ('Doctor of', 'Doctor of'), ('Master of', 'Master of'), ('Graduate Diploma in', 'Graduate Diploma in'), ('Bachelor of', 'Bachelor of'), ('Associate Degree in', 'Associate Degree in'), ('Diploma in', 'Diploma in'), ('Certificate in', 'Certificate in'), ('Nanodegree in', 'Nanodegree in')], max_length=50)),
-                ('qualification_name', models.CharField(max_length=200)),
-                ('start_year', models.PositiveIntegerField(blank=True, null=True)),
-                ('end_year', models.PositiveIntegerField()),
-                ('institution', models.CharField(max_length=200)),
-                ('city', models.CharField(max_length=100)),
-                ('country', models.CharField(max_length=100)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("qualification_field", models.CharField(max_length=200)),
+                ("with_honours", models.BooleanField(default=False)),
+                (
+                    "qualification_kind",
+                    models.CharField(
+                        choices=[
+                            ("Postdoctoral in", "Postdoctoral in"),
+                            ("Doctor of", "Doctor of"),
+                            ("Master of", "Master of"),
+                            ("Graduate Diploma in", "Graduate Diploma in"),
+                            ("Bachelor of", "Bachelor of"),
+                            ("Associate Degree in", "Associate Degree in"),
+                            ("Diploma in", "Diploma in"),
+                            ("Certificate in", "Certificate in"),
+                            ("Nanodegree in", "Nanodegree in"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                ("qualification_name", models.CharField(max_length=200)),
+                ("start_year", models.PositiveIntegerField(blank=True, null=True)),
+                ("end_year", models.PositiveIntegerField()),
+                ("institution", models.CharField(max_length=200)),
+                ("city", models.CharField(max_length=100)),
+                ("country", models.CharField(max_length=100)),
             ],
         ),
         migrations.CreateModel(
-            name='EmploymentEntry',
+            name="EmploymentEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('position_title', models.CharField(max_length=200)),
-                ('start_year', models.PositiveIntegerField()),
-                ('end_year', models.PositiveIntegerField(blank=True, null=True)),
-                ('section', models.CharField(blank=True, max_length=200, null=True)),
-                ('employer', models.CharField(blank=True, max_length=200, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("position_title", models.CharField(max_length=200)),
+                ("start_year", models.PositiveIntegerField()),
+                ("end_year", models.PositiveIntegerField(blank=True, null=True)),
+                ("section", models.CharField(blank=True, max_length=200, null=True)),
+                ("employer", models.CharField(blank=True, max_length=200, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='PublicStaffProfile',
+            name="PublicStaffProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('is_hidden', models.BooleanField(default=False, help_text='Indicates if the profile is hidden from public view.')),
-                ('aucode', models.CharField(blank=True, help_text='AU code for internal use.', max_length=50)),
-                ('dbca_position_title', models.CharField(help_text='Position title within DBCA.', max_length=200)),
-                ('keyword_tags', models.TextField(blank=True, help_text='Comma-separated tags describing areas of expertise.')),
-                ('about_me', models.TextField(blank=True, help_text='Short biography or personal statement.')),
-                ('expertise', models.TextField(blank=True, help_text='Areas of expertise or specializations.')),
-                ('education', models.ManyToManyField(help_text='Educational qualifications for this staff member.', related_name='staff_profiles', to='users.educationentry')),
-                ('employment', models.ManyToManyField(help_text='Employment history for this staff member.', related_name='staff_profiles', to='users.employmententry')),
-                ('project_memberships', models.ManyToManyField(help_text='Projects associated with this staff member.', related_name='staff_profiles', to='projects.projectmember')),
-                ('publications', models.ManyToManyField(help_text='Publications associated with this staff member.', related_name='staff_profiles', to='users.additionalpublicationentry')),
-                ('user', models.OneToOneField(help_text='Linked user account for this staff profile.', on_delete=django.db.models.deletion.CASCADE, related_name='public_profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "is_hidden",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Indicates if the profile is hidden from public view.",
+                    ),
+                ),
+                (
+                    "aucode",
+                    models.CharField(
+                        blank=True, help_text="AU code for internal use.", max_length=50
+                    ),
+                ),
+                (
+                    "dbca_position_title",
+                    models.CharField(
+                        help_text="Position title within DBCA.", max_length=200
+                    ),
+                ),
+                (
+                    "keyword_tags",
+                    models.TextField(
+                        blank=True,
+                        help_text="Comma-separated tags describing areas of expertise.",
+                    ),
+                ),
+                (
+                    "about_me",
+                    models.TextField(
+                        blank=True, help_text="Short biography or personal statement."
+                    ),
+                ),
+                (
+                    "expertise",
+                    models.TextField(
+                        blank=True, help_text="Areas of expertise or specializations."
+                    ),
+                ),
+                (
+                    "education",
+                    models.ManyToManyField(
+                        help_text="Educational qualifications for this staff member.",
+                        related_name="staff_profiles",
+                        to="users.educationentry",
+                    ),
+                ),
+                (
+                    "employment",
+                    models.ManyToManyField(
+                        help_text="Employment history for this staff member.",
+                        related_name="staff_profiles",
+                        to="users.employmententry",
+                    ),
+                ),
+                (
+                    "project_memberships",
+                    models.ManyToManyField(
+                        help_text="Projects associated with this staff member.",
+                        related_name="staff_profiles",
+                        to="projects.projectmember",
+                    ),
+                ),
+                (
+                    "publications",
+                    models.ManyToManyField(
+                        help_text="Publications associated with this staff member.",
+                        related_name="staff_profiles",
+                        to="users.additionalpublicationentry",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        help_text="Linked user account for this staff profile.",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="public_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Staff Profile',
-                'verbose_name_plural': 'Staff Profiles',
+                "verbose_name": "Staff Profile",
+                "verbose_name_plural": "Staff Profiles",
             },
         ),
         migrations.AddField(
-            model_name='employmententry',
-            name='public_profile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='employment_entries', to='users.publicstaffprofile'),
+            model_name="employmententry",
+            name="public_profile",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="employment_entries",
+                to="users.publicstaffprofile",
+            ),
         ),
         migrations.AddField(
-            model_name='educationentry',
-            name='public_profile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='education_entries', to='users.publicstaffprofile'),
+            model_name="educationentry",
+            name="public_profile",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="education_entries",
+                to="users.publicstaffprofile",
+            ),
         ),
         migrations.AddField(
-            model_name='additionalpublicationentry',
-            name='public_profile',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='additional_publications', to='users.publicstaffprofile'),
+            model_name="additionalpublicationentry",
+            name="public_profile",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="additional_publications",
+                to="users.publicstaffprofile",
+            ),
         ),
         migrations.CreateModel(
-            name='StaffProfileProjectEntry',
+            name="StaffProfileProjectEntry",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('flavour_text', models.TextField()),
-                ('project_membership', models.ManyToManyField(to='projects.projectmember')),
-                ('public_profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_entries', to='users.publicstaffprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("flavour_text", models.TextField()),
+                (
+                    "project_membership",
+                    models.ManyToManyField(to="projects.projectmember"),
+                ),
+                (
+                    "public_profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="project_entries",
+                        to="users.publicstaffprofile",
+                    ),
+                ),
             ],
             options={
-                'abstract': False,
+                "abstract": False,
             },
         ),
     ]

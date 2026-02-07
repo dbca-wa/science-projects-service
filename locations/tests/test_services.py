@@ -6,8 +6,8 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import NotFound
 
-from locations.services.area_service import AreaService
 from locations.models import Area
+from locations.services.area_service import AreaService
 
 User = get_user_model()
 

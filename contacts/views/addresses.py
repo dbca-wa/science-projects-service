@@ -1,9 +1,9 @@
 """
 Address views
 """
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -11,13 +11,15 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
-from contacts.services import ContactService
 from contacts.serializers import AddressSerializer, TinyAddressSerializer
+from contacts.services import ContactService
 
 
 class Addresses(APIView):
     """List and create addresses"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -31,7 +33,7 @@ class Addresses(APIView):
         serializer = AddressSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         address = ContactService.create_address(request.user, serializer.validated_data)
         result = TinyAddressSerializer(address)
         return Response(result.data, status=HTTP_201_CREATED)
@@ -39,6 +41,7 @@ class Addresses(APIView):
 
 class AddressDetail(APIView):
     """Get, update, and delete address"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -52,8 +55,10 @@ class AddressDetail(APIView):
         serializer = AddressSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        address = ContactService.update_address(pk, request.user, serializer.validated_data)
+
+        address = ContactService.update_address(
+            pk, request.user, serializer.validated_data
+        )
         result = TinyAddressSerializer(address)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 

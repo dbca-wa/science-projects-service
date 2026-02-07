@@ -6,27 +6,40 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0008_keywordtag_alter_publicstaffprofile_aucode_and_more'),
+        ("users", "0008_keywordtag_alter_publicstaffprofile_aucode_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='educationentry',
-            name='city',
+            model_name="educationentry",
+            name="city",
         ),
         migrations.RemoveField(
-            model_name='educationentry',
-            name='country',
+            model_name="educationentry",
+            name="country",
         ),
         migrations.AddField(
-            model_name='educationentry',
-            name='location',
-            field=models.CharField(default='Perth, Australia', max_length=200),
+            model_name="educationentry",
+            name="location",
+            field=models.CharField(default="Perth, Australia", max_length=200),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='educationentry',
-            name='qualification_kind',
-            field=models.CharField(choices=[('postdoc', 'Postdoctoral in'), ('doc', 'Doctor of'), ('master', 'Master of'), ('graddip', 'Graduate Diploma in'), ('bachelor', 'Bachelor of'), ('assdegree', 'Associate Degree in'), ('diploma', 'Diploma in'), ('cert', 'Certificate in'), ('nano', 'Nanodegree in')], max_length=50),
+            model_name="educationentry",
+            name="qualification_kind",
+            field=models.CharField(
+                choices=[
+                    ("postdoc", "Postdoctoral in"),
+                    ("doc", "Doctor of"),
+                    ("master", "Master of"),
+                    ("graddip", "Graduate Diploma in"),
+                    ("bachelor", "Bachelor of"),
+                    ("assdegree", "Associate Degree in"),
+                    ("diploma", "Diploma in"),
+                    ("cert", "Certificate in"),
+                    ("nano", "Nanodegree in"),
+                ],
+                max_length=50,
+            ),
         ),
     ]

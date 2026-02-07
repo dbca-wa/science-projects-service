@@ -1,6 +1,7 @@
 """
 Pytest fixtures for locations app tests
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -14,8 +15,8 @@ User = get_user_model()
 def user(db):
     """Provide a regular user"""
     return UserFactory(
-        username='testuser',
-        email='test@example.com',
+        username="testuser",
+        email="test@example.com",
     )
 
 
@@ -23,7 +24,7 @@ def user(db):
 def dbca_region(db):
     """Provide a DBCA region area"""
     return Area.objects.create(
-        name='Test DBCA Region',
+        name="Test DBCA Region",
         area_type=Area.AreaTypeChoices.AREA_TYPE_DBCA_REGION,
     )
 
@@ -32,7 +33,7 @@ def dbca_region(db):
 def dbca_district(db):
     """Provide a DBCA district area"""
     return Area.objects.create(
-        name='Test DBCA District',
+        name="Test DBCA District",
         area_type=Area.AreaTypeChoices.AREA_TYPE_DBCA_DISTRICT,
     )
 
@@ -41,7 +42,7 @@ def dbca_district(db):
 def ibra_region(db):
     """Provide an IBRA region area"""
     return Area.objects.create(
-        name='Test IBRA Region',
+        name="Test IBRA Region",
         area_type=Area.AreaTypeChoices.AREA_TYPE_IBRA_REGION,
     )
 

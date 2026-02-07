@@ -1,6 +1,7 @@
 # region IMPORTS ====================================================================================================
 from django.db import models
 from django.forms import ValidationError
+
 from common.models import CommonModel
 
 # endregion  =================================================================================================

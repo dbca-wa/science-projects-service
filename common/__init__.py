@@ -14,4 +14,4 @@ Usage:
     from common.utils import paginate_queryset, apply_search_filter
 """
 
-__version__ = '1.0.0'
+__version__ = "1.0.0"

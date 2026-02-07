@@ -6,48 +6,48 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('medias', '0003_projectphoto_size'),
+        ("medias", "0003_projectphoto_size"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='aecendorsementpdf',
-            name='size',
+            model_name="aecendorsementpdf",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='agencyimage',
-            name='size',
+            model_name="agencyimage",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='annualreportmedia',
-            name='size',
+            model_name="annualreportmedia",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='annualreportpdf',
-            name='size',
+            model_name="annualreportpdf",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='businessareaphoto',
-            name='size',
+            model_name="businessareaphoto",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='projectdocumentpdf',
-            name='size',
+            model_name="projectdocumentpdf",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='projectplanmethodologyphoto',
-            name='size',
+            model_name="projectplanmethodologyphoto",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
         migrations.AddField(
-            model_name='useravatar',
-            name='size',
+            model_name="useravatar",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
     ]

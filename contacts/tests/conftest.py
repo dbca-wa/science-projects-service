@@ -5,9 +5,9 @@ Pytest fixtures for contacts app tests
 import pytest
 from django.contrib.auth import get_user_model
 
-from common.tests.factories import UserFactory
 from agencies.models import Agency, Branch
-from contacts.models import Address, UserContact, AgencyContact, BranchContact
+from common.tests.factories import UserFactory
+from contacts.models import Address, AgencyContact, BranchContact, UserContact
 
 User = get_user_model()
 

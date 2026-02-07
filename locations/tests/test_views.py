@@ -3,12 +3,11 @@ Tests for locations views
 """
 
 import pytest
-from rest_framework.test import APIClient
 from rest_framework import status
-from django.urls import reverse
+from rest_framework.test import APIClient
 
-from locations.models import Area
 from common.tests.test_helpers import locations_urls
+from locations.models import Area
 
 
 @pytest.fixture

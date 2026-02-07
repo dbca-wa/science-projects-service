@@ -7,14 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agencies', '0003_businessarea_caretaker'),
+        ("agencies", "0003_businessarea_caretaker"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='division',
-            name='directorate_email_list',
-            field=models.ManyToManyField(blank=True, help_text='Users who should receive email communications for this division', related_name='email_lists', to=settings.AUTH_USER_MODEL),
+            model_name="division",
+            name="directorate_email_list",
+            field=models.ManyToManyField(
+                blank=True,
+                help_text="Users who should receive email communications for this division",
+                related_name="email_lists",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

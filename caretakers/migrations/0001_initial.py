@@ -15,22 +15,73 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Caretaker',
+            name="Caretaker",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('end_date', models.DateTimeField(blank=True, help_text='When caretaker relationship expires', null=True)),
-                ('reason', models.TextField(blank=True, help_text='Reason for caretaker request', null=True)),
-                ('notes', models.TextField(blank=True, help_text='Additional notes', null=True)),
-                ('caretaker', models.ForeignKey(help_text='The user acting as caretaker', on_delete=django.db.models.deletion.CASCADE, related_name='caretaking_for', to=settings.AUTH_USER_MODEL)),
-                ('user', models.ForeignKey(help_text='The user being caretaken for', on_delete=django.db.models.deletion.CASCADE, related_name='caretakers', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "end_date",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="When caretaker relationship expires",
+                        null=True,
+                    ),
+                ),
+                (
+                    "reason",
+                    models.TextField(
+                        blank=True, help_text="Reason for caretaker request", null=True
+                    ),
+                ),
+                (
+                    "notes",
+                    models.TextField(
+                        blank=True, help_text="Additional notes", null=True
+                    ),
+                ),
+                (
+                    "caretaker",
+                    models.ForeignKey(
+                        help_text="The user acting as caretaker",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="caretaking_for",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        help_text="The user being caretaken for",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="caretakers",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Caretaker',
-                'verbose_name_plural': 'Caretakers',
-                'indexes': [models.Index(fields=['user'], name='caretakers__user_id_93e489_idx'), models.Index(fields=['caretaker'], name='caretakers__caretak_d9c941_idx'), models.Index(fields=['end_date'], name='caretakers__end_dat_b4d6b9_idx')],
-                'unique_together': {('user', 'caretaker')},
+                "verbose_name": "Caretaker",
+                "verbose_name_plural": "Caretakers",
+                "indexes": [
+                    models.Index(
+                        fields=["user"], name="caretakers__user_id_93e489_idx"
+                    ),
+                    models.Index(
+                        fields=["caretaker"], name="caretakers__caretak_d9c941_idx"
+                    ),
+                    models.Index(
+                        fields=["end_date"], name="caretakers__end_dat_b4d6b9_idx"
+                    ),
+                ],
+                "unique_together": {("user", "caretaker")},
             },
         ),
     ]

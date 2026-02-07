@@ -5,7 +5,7 @@ Serializer mixins for common patterns
 
 class TeamMemberMixin:
     """Mixin for serializers that need to include team members from a document's project"""
-    
+
     def get_team_members(self, obj):
         from projects.models import ProjectMember
         from projects.serializers import MiniProjectMemberSerializer
@@ -30,7 +30,7 @@ class TeamMemberMixin:
 
 class ProjectTeamMemberMixin:
     """Mixin for serializers that need to include team members from a project"""
-    
+
     def get_team_members(self, project):
         from projects.models import ProjectMember
         from projects.serializers import MiniProjectMemberSerializer

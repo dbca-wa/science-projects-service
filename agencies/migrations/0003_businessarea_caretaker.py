@@ -8,14 +8,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agencies', '0002_initial'),
+        ("agencies", "0002_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='businessarea',
-            name='caretaker',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='business_areas_caretaker', to=settings.AUTH_USER_MODEL),
+            model_name="businessarea",
+            name="caretaker",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="business_areas_caretaker",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

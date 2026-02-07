@@ -104,21 +104,21 @@ echo ""
 if $CMD 2>&1 | tee test_results/last_run.log; then
     echo ""
     echo -e "${GREEN}✓ All tests passed!${NC}"
-    
+
     # Extract and show summary
     if [ "$COVERAGE" = true ]; then
         echo ""
         echo -e "${YELLOW}Coverage Summary:${NC}"
         tail -20 test_results/last_run.log | grep -A 20 "TOTAL" || true
     fi
-    
+
     # Show skipped tests if any
     if grep -q "SKIPPED\|skipped" test_results/last_run.log; then
         echo ""
         echo -e "${YELLOW}Skipped Tests:${NC}"
         grep -E "SKIPPED|skipped" test_results/last_run.log | grep -v "files skipped" || true
     fi
-    
+
     exit 0
 else
     EXIT_CODE=$?
@@ -127,23 +127,23 @@ else
     echo ""
     echo -e "${YELLOW}Failed tests saved to: test_results/last_run.log${NC}"
     echo ""
-    
+
     # Extract and show failures
     echo -e "${RED}Failures:${NC}"
     grep -A 10 "FAILED\|ERROR" test_results/last_run.log | head -50 || true
-    
+
     # Extract and show skipped tests
     if grep -q "SKIPPED" test_results/last_run.log; then
         echo ""
         echo -e "${YELLOW}Skipped Tests:${NC}"
         grep "SKIPPED" test_results/last_run.log | head -20 || true
     fi
-    
+
     # Save failures to separate file
     grep -A 10 "FAILED\|ERROR" test_results/last_run.log > test_results/failures.log 2>/dev/null || true
-    
+
     # Save skipped to separate file
     grep "SKIPPED" test_results/last_run.log > test_results/skipped.log 2>/dev/null || true
-    
+
     exit $EXIT_CODE
 fi

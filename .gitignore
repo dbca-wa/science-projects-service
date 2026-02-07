@@ -1,5 +1,6 @@
 *.lnk
 .docs/
+docs
 .vscode/
 
 publish-ghcr.yaml
@@ -15,9 +16,26 @@ SMB_Mosaic_2023.tif
 *.DS_Store
 *.dump
 *.sql
-*.env
+
+# Images in root (should be in media/)
+/*.jpg
+/*.jpeg
+/*.png
+/*.gif
+
+# Wrong package managers (using Poetry)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files (but keep .env.example)
+.env
+.env.local
+.env.*.local
 *.production
 *.staging
+
+# Other
 *.tex
 *.out
 *.toc
@@ -151,6 +169,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.local
+.env.*.local
 .venv
 env/
 venv/
@@ -181,6 +201,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# pre-commit
+.pre-commit-cache/
 
 # PyCharm
 #  JetBrains specific template is maintainted in a separate JetBrains.gitignore that can

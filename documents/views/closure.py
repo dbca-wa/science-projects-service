@@ -1,11 +1,11 @@
 """
 Project closure views
 """
+
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -13,17 +13,15 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from ..models import ProjectClosure
-from ..serializers import (
-    ProjectClosureSerializer,
-    TinyProjectClosureSerializer,
-)
+from ..serializers import ProjectClosureSerializer, TinyProjectClosureSerializer
 
 
 class ProjectClosures(APIView):
     """List and create project closures"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -40,11 +38,11 @@ class ProjectClosures(APIView):
         """Create a new project closure"""
         settings.LOGGER.info(f"{request.user} is creating new project closure")
         serializer = ProjectClosureSerializer(data=request.data)
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         project_closure = serializer.save()
         return Response(
             TinyProjectClosureSerializer(project_closure).data,
@@ -54,7 +52,7 @@ class ProjectClosures(APIView):
 
 class ProjectClosureDetail(APIView):
     """Get, update, and delete project closures"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -63,7 +61,7 @@ class ProjectClosureDetail(APIView):
             project_closure = ProjectClosure.objects.get(pk=pk)
         except ProjectClosure.DoesNotExist:
             raise NotFound
-        
+
         serializer = ProjectClosureSerializer(
             project_closure,
             context={"request": request},
@@ -76,25 +74,25 @@ class ProjectClosureDetail(APIView):
             project_closure = ProjectClosure.objects.get(pk=pk)
         except ProjectClosure.DoesNotExist:
             raise NotFound
-        
+
         settings.LOGGER.info(
             f"{request.user} is updating project closure {project_closure}"
         )
-        
+
         serializer = ProjectClosureSerializer(
             project_closure,
             data=request.data,
             partial=True,
         )
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         updated_project_closure = serializer.save()
         updated_project_closure.document.modifier = request.user
         updated_project_closure.document.save()
-        
+
         return Response(
             TinyProjectClosureSerializer(updated_project_closure).data,
             status=HTTP_202_ACCEPTED,
@@ -103,11 +101,11 @@ class ProjectClosureDetail(APIView):
     def delete(self, request, pk):
         """Delete project closure"""
         settings.LOGGER.info(f"{request.user} is deleting project closure {pk}")
-        
+
         try:
             project_closure = ProjectClosure.objects.get(pk=pk)
         except ProjectClosure.DoesNotExist:
             raise NotFound
-        
+
         project_closure.delete()
         return Response(status=HTTP_204_NO_CONTENT)

@@ -1,6 +1,7 @@
 """
 Student report serializers
 """
+
 from rest_framework import serializers
 
 from ..models import StudentReport
@@ -9,6 +10,7 @@ from .base import TinyProjectDocumentSerializer
 
 class TinyStudentReportSerializer(serializers.ModelSerializer):
     """Minimal student report serializer"""
+
     document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
@@ -23,6 +25,7 @@ class TinyStudentReportSerializer(serializers.ModelSerializer):
 
 class StudentReportSerializer(serializers.ModelSerializer):
     """Standard student report serializer"""
+
     document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
@@ -32,7 +35,7 @@ class StudentReportSerializer(serializers.ModelSerializer):
 
 class StudentReportCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating student reports"""
-    
+
     class Meta:
         model = StudentReport
         fields = [
@@ -44,7 +47,7 @@ class StudentReportCreateSerializer(serializers.ModelSerializer):
 
 class StudentReportUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating student reports"""
-    
+
     class Meta:
         model = StudentReport
         fields = [

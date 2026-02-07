@@ -1,19 +1,20 @@
 """
 Tests for medias models
 """
+
 import pytest
 from django.core.exceptions import ValidationError
 
 from medias.models import (
-    ProjectDocumentPDF,
+    AECEndorsementPDF,
+    AgencyImage,
     AnnualReportMedia,
     AnnualReportPDF,
+    BusinessAreaPhoto,
     LegacyAnnualReportPDF,
-    AECEndorsementPDF,
+    ProjectDocumentPDF,
     ProjectPhoto,
     ProjectPlanMethodologyPhoto,
-    BusinessAreaPhoto,
-    AgencyImage,
     UserAvatar,
 )
 
@@ -21,14 +22,16 @@ from medias.models import (
 class TestProjectDocumentPDF:
     """Tests for ProjectDocumentPDF model"""
 
-    def test_create_project_document_pdf(self, project, project_document, mock_file, db):
+    def test_create_project_document_pdf(
+        self, project, project_document, mock_file, db
+    ):
         """Test creating project document PDF"""
         pdf = ProjectDocumentPDF.objects.create(
             file=mock_file,
             document=project_document,
             project=project,
         )
-        
+
         assert pdf.id is not None
         assert pdf.document == project_document
         assert pdf.project == project
@@ -41,7 +44,9 @@ class TestProjectDocumentPDF:
         assert project_document_pdf.document.kind in result
         assert project_document_pdf.project.title in result
 
-    def test_project_document_pdf_size_auto_calculation(self, project, project_document, mock_file, db):
+    def test_project_document_pdf_size_auto_calculation(
+        self, project, project_document, mock_file, db
+    ):
         """Test size field is auto-calculated on save"""
         pdf = ProjectDocumentPDF(
             file=mock_file,
@@ -49,7 +54,7 @@ class TestProjectDocumentPDF:
             project=project,
         )
         assert pdf.size == 0  # Before save
-        
+
         pdf.save()
         assert pdf.size == mock_file.size  # After save
 
@@ -65,7 +70,7 @@ class TestAnnualReportMedia:
             report=annual_report,
             uploader=user,
         )
-        
+
         assert media.id is not None
         assert media.kind == AnnualReportMedia.MediaTypes.COVER
         assert media.report == annual_report
@@ -78,7 +83,9 @@ class TestAnnualReportMedia:
         assert str(annual_report_media.report.year) in result
         assert "Annual Report Media" in result
 
-    def test_annual_report_media_unique_constraint(self, annual_report, user, mock_image, db):
+    def test_annual_report_media_unique_constraint(
+        self, annual_report, user, mock_image, db
+    ):
         """Test unique constraint - one media per kind per report"""
         # Create first cover
         AnnualReportMedia.objects.create(
@@ -87,9 +94,10 @@ class TestAnnualReportMedia:
             report=annual_report,
             uploader=user,
         )
-        
+
         # Try to create second cover for same report
         from django.db import IntegrityError
+
         with pytest.raises(IntegrityError):
             AnnualReportMedia.objects.create(
                 file=mock_image,
@@ -98,7 +106,9 @@ class TestAnnualReportMedia:
                 uploader=user,
             )
 
-    def test_annual_report_media_size_auto_calculation(self, annual_report, user, mock_image, db):
+    def test_annual_report_media_size_auto_calculation(
+        self, annual_report, user, mock_image, db
+    ):
         """Test size field is auto-calculated on save"""
         media = AnnualReportMedia(
             file=mock_image,
@@ -107,7 +117,7 @@ class TestAnnualReportMedia:
             uploader=user,
         )
         assert media.size == 0  # Before save
-        
+
         media.save()
         assert media.size == mock_image.size  # After save
 
@@ -122,7 +132,7 @@ class TestAnnualReportPDF:
             report=annual_report,
             creator=user,
         )
-        
+
         assert pdf.id is not None
         assert pdf.report == annual_report
         assert pdf.creator == user
@@ -134,7 +144,9 @@ class TestAnnualReportPDF:
         assert str(annual_report_pdf.report.year) in result
         assert "Annual Report PDF" in result
 
-    def test_annual_report_pdf_size_auto_calculation(self, annual_report, user, mock_file, db):
+    def test_annual_report_pdf_size_auto_calculation(
+        self, annual_report, user, mock_file, db
+    ):
         """Test size field is auto-calculated on save"""
         pdf = AnnualReportPDF(
             file=mock_file,
@@ -142,7 +154,7 @@ class TestAnnualReportPDF:
             creator=user,
         )
         assert pdf.size == 0  # Before save
-        
+
         pdf.save()
         assert pdf.size == mock_file.size  # After save
 
@@ -157,7 +169,7 @@ class TestLegacyAnnualReportPDF:
             year=2015,
             creator=user,
         )
-        
+
         assert pdf.id is not None
         assert pdf.year == 2015
         assert pdf.creator == user
@@ -178,7 +190,7 @@ class TestLegacyAnnualReportPDF:
             creator=user,
         )
         assert pdf.year == 2010
-        
+
         # Invalid year (too early)
         with pytest.raises(ValidationError):
             pdf = LegacyAnnualReportPDF(
@@ -187,7 +199,7 @@ class TestLegacyAnnualReportPDF:
                 creator=user,
             )
             pdf.full_clean()
-        
+
         # Invalid year (too late)
         with pytest.raises(ValidationError):
             pdf = LegacyAnnualReportPDF(
@@ -205,7 +217,7 @@ class TestLegacyAnnualReportPDF:
             creator=user,
         )
         assert pdf.size == 0  # Before save
-        
+
         pdf.save()
         assert pdf.size == mock_file.size  # After save
 
@@ -220,7 +232,7 @@ class TestAECEndorsementPDF:
             endorsement=endorsement,
             creator=user,
         )
-        
+
         assert pdf.id is not None
         assert pdf.endorsement == endorsement
         assert pdf.creator == user
@@ -231,7 +243,9 @@ class TestAECEndorsementPDF:
         result = str(aec_endorsement_pdf)
         assert "AEC PDF" in result
 
-    def test_aec_endorsement_pdf_size_auto_calculation(self, endorsement, user, mock_file, db):
+    def test_aec_endorsement_pdf_size_auto_calculation(
+        self, endorsement, user, mock_file, db
+    ):
         """Test size field is auto-calculated on save - COVERS LINES 195-197"""
         pdf = AECEndorsementPDF(
             file=mock_file,
@@ -239,7 +253,7 @@ class TestAECEndorsementPDF:
             creator=user,
         )
         assert pdf.size == 0  # Before save
-        
+
         pdf.save()  # Lines 195-197 executed here
         assert pdf.size == mock_file.size  # After save
 
@@ -254,7 +268,7 @@ class TestProjectPhoto:
             project=project,
             uploader=user,
         )
-        
+
         assert photo.id is not None
         assert photo.project == project
         assert photo.uploader == user
@@ -273,7 +287,7 @@ class TestProjectPhoto:
             uploader=user,
         )
         assert photo.size == 0  # Before save
-        
+
         photo.save()
         assert photo.size == mock_image.size  # After save
 
@@ -288,7 +302,7 @@ class TestProjectPlanMethodologyPhoto:
             project_plan=project_plan,
             uploader=user,
         )
-        
+
         assert photo.id is not None
         assert photo.project_plan == project_plan
         assert photo.uploader == user
@@ -299,7 +313,9 @@ class TestProjectPlanMethodologyPhoto:
         result = str(methodology_photo)
         assert "Methodology Image File" in result
 
-    def test_methodology_photo_size_auto_calculation(self, project_plan, user, mock_image, db):
+    def test_methodology_photo_size_auto_calculation(
+        self, project_plan, user, mock_image, db
+    ):
         """Test size field is auto-calculated on save"""
         photo = ProjectPlanMethodologyPhoto(
             file=mock_image,
@@ -307,7 +323,7 @@ class TestProjectPlanMethodologyPhoto:
             uploader=user,
         )
         assert photo.size == 0  # Before save
-        
+
         photo.save()
         assert photo.size == mock_image.size  # After save
 
@@ -322,7 +338,7 @@ class TestBusinessAreaPhoto:
             business_area=business_area,
             uploader=user,
         )
-        
+
         assert photo.id is not None
         assert photo.business_area == business_area
         assert photo.uploader == user
@@ -333,7 +349,9 @@ class TestBusinessAreaPhoto:
         result = str(business_area_photo)
         assert "Business Area Photo File" in result
 
-    def test_business_area_photo_size_auto_calculation(self, business_area, user, mock_image, db):
+    def test_business_area_photo_size_auto_calculation(
+        self, business_area, user, mock_image, db
+    ):
         """Test size field is auto-calculated on save"""
         photo = BusinessAreaPhoto(
             file=mock_image,
@@ -341,7 +359,7 @@ class TestBusinessAreaPhoto:
             uploader=user,
         )
         assert photo.size == 0  # Before save
-        
+
         photo.save()
         assert photo.size == mock_image.size  # After save
 
@@ -355,7 +373,7 @@ class TestAgencyImage:
             file=mock_image,
             agency=agency,
         )
-        
+
         assert image.id is not None
         assert image.agency == agency
         assert image.size > 0
@@ -372,7 +390,7 @@ class TestAgencyImage:
             agency=agency,
         )
         assert image.size == 0  # Before save
-        
+
         image.save()
         assert image.size == mock_image.size  # After save
 
@@ -386,7 +404,7 @@ class TestUserAvatar:
             file=mock_image,
             user=user,
         )
-        
+
         assert avatar.id is not None
         assert avatar.user == user
         assert avatar.size > 0
@@ -404,6 +422,6 @@ class TestUserAvatar:
             user=user,
         )
         assert avatar.size == 0  # Before save
-        
+
         avatar.save()
         assert avatar.size == mock_image.size  # After save

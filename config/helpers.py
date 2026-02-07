@@ -1,10 +1,8 @@
-import mimetypes
-import base64, os
-from django.contrib.staticfiles import finders
+import base64
+import os
+
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
-from email.mime.image import MIMEImage
-
 
 # def get_encoded_image():
 #     """

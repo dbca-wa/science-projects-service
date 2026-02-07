@@ -42,7 +42,7 @@ color: #333;
 font-size: 22px;
 color: #62a0f2;
     margin-bottom: 8px;
-    position: relative; 
+    position: relative;
 }
 
 .editor-project-title-traditional {
@@ -62,7 +62,7 @@ text-decoration: none;
 .editor-project-title-card {
 font-size: 17px;
 color: #ffffff;
-position: relative; 
+position: relative;
 display: -webkit-box;
 -webkit-line-clamp: 2;
 -webkit-box-orient: vertical;
@@ -320,7 +320,7 @@ border-radius: 5px;
 padding: 5px;
 position: absolute;
 z-index: 1;
-bottom: 115%; 
+bottom: 115%;
 left: 50%;
 transform: translateX(-50%);
 opacity: 0;
@@ -813,38 +813,38 @@ margin-left: 5px;
 }
 
 ul.editor-ul1 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }ul.editor-ul2 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 ul.editor-ul3 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 
 ol.editor-ol1 li {
-margin-left: 15px;  
+margin-left: 15px;
 padding-left: 10px;
 }
 ol.editor-ol1 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 ol.editor-ol2 li {
-margin-left: 15px;  
+margin-left: 15px;
 padding-left: 6px;
 }
 
 ol.editor-ol2 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 
 
 ol.editor-ol3 li {
-margin-left: 15px;  
+margin-left: 15px;
 padding-left: 6px;
 }
 
 ol.editor-ol3 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 
 
@@ -897,7 +897,7 @@ color: #333;
 font-size: 22px;
 color: #62a0f2;
     margin-bottom: 8px;
-    position: relative; 
+    position: relative;
 }
 
 .editor-project-title-traditional {
@@ -917,7 +917,7 @@ text-decoration: none;
 .editor-project-title-card {
 font-size: 17px;
 color: #ffffff;
-position: relative; 
+position: relative;
 display: -webkit-box;
 -webkit-line-clamp: 2;
 -webkit-box-orient: vertical;
@@ -1175,7 +1175,7 @@ border-radius: 5px;
 padding: 5px;
 position: absolute;
 z-index: 1;
-bottom: 115%; 
+bottom: 115%;
 left: 50%;
 transform: translateX(-50%);
 opacity: 0;
@@ -1205,7 +1205,7 @@ border: 1px black solid;
 }
 
 .table-light th,
-.table-light td, 
+.table-light td,
 .table-light tr {
   border: 1px solid black !important;
 }
@@ -1213,7 +1213,7 @@ border: 1px black solid;
 .table-cell-light {
   border: 1px solid #575757;
   background-color: #ffffff;
-  
+
   width: 75px;
   word-wrap: break-word;
   vertical-align: top;
@@ -1227,10 +1227,10 @@ border: 1px black solid;
     background-color: rgb(245, 245, 245);
     text-align: start;
     }
-    
 
-  
-    
+
+
+
 
 .table-selection-light *::selection {
 background-color: transparent;
@@ -1683,38 +1683,38 @@ margin-left: 5px;
 }
 
 ul.editor-ul1 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }ul.editor-ul2 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 ul.editor-ul3 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 
 ol.editor-ol1 li {
-margin-left: 15px;  
+margin-left: 15px;
 padding-left: 10px;
 }
 ol.editor-ol1 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 ol.editor-ol2 li {
-margin-left: 15px;  
+margin-left: 15px;
 padding-left: 6px;
 }
 
 ol.editor-ol2 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 
 
 ol.editor-ol3 li {
-margin-left: 15px;  
+margin-left: 15px;
 padding-left: 6px;
 }
 
 ol.editor-ol3 li::marker {
-font-weight: bold; 
+font-weight: bold;
 }
 
 

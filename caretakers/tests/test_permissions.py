@@ -3,8 +3,10 @@ Tests for caretaker permissions
 
 Tests authorization logic for caretaker operations.
 """
-import pytest
+
 from unittest.mock import Mock
+
+import pytest
 
 from caretakers.models import Caretaker
 from caretakers.permissions.caretaker_permissions import (
@@ -28,13 +30,13 @@ class TestCanManageCaretaker:
             user=user,
             caretaker=caretaker,
         )
-        
+
         request = Mock(user=superuser)
         permission = CanManageCaretaker()
-        
+
         # Act
         result = permission.has_object_permission(request, None, relationship)
-        
+
         # Assert
         assert result is True
 
@@ -48,13 +50,13 @@ class TestCanManageCaretaker:
             user=user,
             caretaker=caretaker,
         )
-        
+
         request = Mock(user=caretaker)
         permission = CanManageCaretaker()
-        
+
         # Act
         result = permission.has_object_permission(request, None, relationship)
-        
+
         # Assert
         assert result is True
 
@@ -68,13 +70,13 @@ class TestCanManageCaretaker:
             user=user,
             caretaker=caretaker,
         )
-        
+
         request = Mock(user=user)
         permission = CanManageCaretaker()
-        
+
         # Act
         result = permission.has_object_permission(request, None, relationship)
-        
+
         # Assert
         assert result is True
 
@@ -89,13 +91,13 @@ class TestCanManageCaretaker:
             user=user,
             caretaker=caretaker,
         )
-        
+
         request = Mock(user=other_user)
         permission = CanManageCaretaker()
-        
+
         # Act
         result = permission.has_object_permission(request, None, relationship)
-        
+
         # Assert
         assert result is False
 
@@ -110,13 +112,13 @@ class TestCanManageCaretaker:
             user=user1,
             caretaker=caretaker,
         )
-        
+
         request = Mock(user=user2)
         permission = CanManageCaretaker()
-        
+
         # Act
         result = permission.has_object_permission(request, None, relationship)
-        
+
         # Assert
         assert result is False
 
@@ -131,13 +133,13 @@ class TestCanManageCaretaker:
             user=user,
             caretaker=caretaker,
         )
-        
+
         request = Mock(user=staff_user)
         permission = CanManageCaretaker()
-        
+
         # Act
         result = permission.has_object_permission(request, None, relationship)
-        
+
         # Assert
         assert result is False
 
@@ -150,17 +152,17 @@ class TestCanRespondToCaretakerRequest:
         """Test superuser can respond to any caretaker request"""
         # Arrange
         superuser = UserFactory(is_superuser=True)
-        
+
         # Mock AdminTask object
         admin_task = Mock()
         admin_task.secondary_users = [123, 456]
-        
+
         request = Mock(user=superuser)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is True
 
@@ -169,17 +171,17 @@ class TestCanRespondToCaretakerRequest:
         """Test requested caretaker can respond to request"""
         # Arrange
         caretaker = UserFactory()
-        
+
         # Mock AdminTask object with caretaker in secondary_users
         admin_task = Mock()
         admin_task.secondary_users = [caretaker.pk, 456]
-        
+
         request = Mock(user=caretaker)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is True
 
@@ -188,17 +190,17 @@ class TestCanRespondToCaretakerRequest:
         """Test non-requested user cannot respond to request"""
         # Arrange
         user = UserFactory()
-        
+
         # Mock AdminTask object without user in secondary_users
         admin_task = Mock()
         admin_task.secondary_users = [123, 456]
-        
+
         request = Mock(user=user)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is False
 
@@ -208,17 +210,17 @@ class TestCanRespondToCaretakerRequest:
         # Arrange
         user1 = UserFactory()
         user2 = UserFactory()
-        
+
         # Mock AdminTask object with different users
         admin_task = Mock()
         admin_task.secondary_users = [user2.pk]
-        
+
         request = Mock(user=user1)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is False
 
@@ -227,17 +229,17 @@ class TestCanRespondToCaretakerRequest:
         """Test empty secondary_users list denies access"""
         # Arrange
         user = UserFactory()
-        
+
         # Mock AdminTask object with empty secondary_users
         admin_task = Mock()
         admin_task.secondary_users = []
-        
+
         request = Mock(user=user)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is False
 
@@ -246,16 +248,16 @@ class TestCanRespondToCaretakerRequest:
         """Test missing secondary_users attribute denies access"""
         # Arrange
         user = UserFactory()
-        
+
         # Mock AdminTask object without secondary_users attribute
         admin_task = Mock(spec=[])  # No attributes
-        
+
         request = Mock(user=user)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is False
 
@@ -264,17 +266,17 @@ class TestCanRespondToCaretakerRequest:
         """Test staff user without superuser cannot respond"""
         # Arrange
         staff_user = UserFactory(is_staff=True, is_superuser=False)
-        
+
         # Mock AdminTask object without staff user in secondary_users
         admin_task = Mock()
         admin_task.secondary_users = [123, 456]
-        
+
         request = Mock(user=staff_user)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is False
 
@@ -285,16 +287,16 @@ class TestCanRespondToCaretakerRequest:
         user1 = UserFactory()
         user2 = UserFactory()
         user3 = UserFactory()
-        
+
         # Mock AdminTask object with multiple users
         admin_task = Mock()
         admin_task.secondary_users = [user1.pk, user2.pk, user3.pk]
-        
+
         request = Mock(user=user2)
         permission = CanRespondToCaretakerRequest()
-        
+
         # Act
         result = permission.has_object_permission(request, None, admin_task)
-        
+
         # Assert
         assert result is True

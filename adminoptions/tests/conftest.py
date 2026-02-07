@@ -1,17 +1,14 @@
 """
 Pytest fixtures for adminoptions app tests
 """
+
 import pytest
 from django.contrib.auth import get_user_model
-from adminoptions.models import (
-    AdminOptions,
-    AdminTask,
-    ContentField,
-    GuideSection,
-)
+
+from adminoptions.models import AdminOptions, AdminTask, ContentField, GuideSection
+from agencies.models import Agency, BusinessArea
 from caretakers.models import Caretaker  # Use caretakers app model, not adminoptions
-from projects.models import Project, ProjectMember
-from agencies.models import BusinessArea, Agency
+from projects.models import Project
 
 User = get_user_model()
 

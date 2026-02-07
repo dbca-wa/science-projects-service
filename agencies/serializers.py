@@ -1,14 +1,16 @@
 # region IMPORTS ====================================================================================================
 from rest_framework import serializers
+
 from contacts.models import Address
 from medias.models import BusinessAreaPhoto
 from users.models import User
+
 from .models import (
+    Affiliation,
+    Agency,
     Branch,
     BusinessArea,
     DepartmentalService,
-    Agency,
-    Affiliation,
     Division,
 )
 
@@ -25,7 +27,7 @@ class UserPkOnly(serializers.ModelSerializer):
 
 
 class UserInEmailListSerializer(serializers.Serializer):
-    id = serializers.IntegerField(source='pk', read_only=True)
+    id = serializers.IntegerField(source="pk", read_only=True)
     name = serializers.CharField()
     email = serializers.EmailField()
 
@@ -138,6 +140,10 @@ class TinyAgencySerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
     def get_image(self, obj):
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         try:
             agency_image = obj.image
             if agency_image and agency_image.file:
@@ -145,9 +151,9 @@ class TinyAgencySerializer(serializers.ModelSerializer):
                     "id": agency_image.pk,
                     "file": agency_image.file.url,
                 }
-        except AttributeError:
+        except AttributeError as e:
             # Agency model doesn't have image relationship
-            pass
+            logger.debug(f"Agency {obj.pk} has no image relationship: {e}")
         return None
 
     class Meta:
@@ -211,33 +217,45 @@ class MiniBASerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BusinessArea
-        fields = ["id", "name", "leader", "caretaker", "image", "project_count", "division"]
-    
+        fields = [
+            "id",
+            "name",
+            "leader",
+            "caretaker",
+            "image",
+            "project_count",
+            "division",
+        ]
+
     def get_image(self, obj):
         """Get the business area image file URL"""
+        import logging
+
+        logger = logging.getLogger(__name__)
+
         try:
             if obj.image and obj.image.file:
                 return obj.image.file.url
-        except:
-            pass
+        except Exception as e:
+            logger.debug(f"Failed to get image for business area {obj.pk}: {e}")
         return None
-    
+
     def get_project_count(self, obj):
         """Get the count of projects in this business area"""
         try:
             # Count all projects in this business area, not just active ones
             # since we want to show the total scope of the BA
             return obj.project_set.count()
-        except:
+        except Exception:
             return 0
-    
+
     def get_division(self, obj):
         """Get division info"""
         if obj.division:
             return {
                 "id": obj.division.id,
                 "name": obj.division.name,
-                "slug": obj.division.slug
+                "slug": obj.division.slug,
             }
         return None
 

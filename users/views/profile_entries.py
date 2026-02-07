@@ -1,28 +1,29 @@
 """
 Profile entry views (employment and education)
 """
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
-    HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_202_ACCEPTED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
-from users.services import EmploymentService, EducationService
 from users.serializers import (
-    EmploymentEntrySerializer,
-    EmploymentEntryCreationSerializer,
-    EducationEntrySerializer,
     EducationEntryCreationSerializer,
+    EducationEntrySerializer,
+    EmploymentEntryCreationSerializer,
+    EmploymentEntrySerializer,
 )
+from users.services import EducationService, EmploymentService
 
 
 class StaffProfileEmploymentEntries(APIView):
     """List and create employment entries"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, profile_id):
@@ -36,10 +37,9 @@ class StaffProfileEmploymentEntries(APIView):
         serializer = EmploymentEntryCreationSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         entry = EmploymentService.create_employment(
-            profile_id,
-            serializer.validated_data
+            profile_id, serializer.validated_data
         )
         result = EmploymentEntrySerializer(entry)
         return Response(result.data, status=HTTP_201_CREATED)
@@ -47,6 +47,7 @@ class StaffProfileEmploymentEntries(APIView):
 
 class StaffProfileEmploymentEntryDetail(APIView):
     """Get, update, and delete employment entry"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -60,7 +61,7 @@ class StaffProfileEmploymentEntryDetail(APIView):
         serializer = EmploymentEntrySerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         entry = EmploymentService.update_employment(pk, serializer.validated_data)
         result = EmploymentEntrySerializer(entry)
         return Response(result.data, status=HTTP_202_ACCEPTED)
@@ -73,6 +74,7 @@ class StaffProfileEmploymentEntryDetail(APIView):
 
 class StaffProfileEducationEntries(APIView):
     """List and create education entries"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, profile_id):
@@ -86,17 +88,15 @@ class StaffProfileEducationEntries(APIView):
         serializer = EducationEntryCreationSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        entry = EducationService.create_education(
-            profile_id,
-            serializer.validated_data
-        )
+
+        entry = EducationService.create_education(profile_id, serializer.validated_data)
         result = EducationEntrySerializer(entry)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class StaffProfileEducationEntryDetail(APIView):
     """Get, update, and delete education entry"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -110,7 +110,7 @@ class StaffProfileEducationEntryDetail(APIView):
         serializer = EducationEntrySerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         entry = EducationService.update_education(pk, serializer.validated_data)
         result = EducationEntrySerializer(entry)
         return Response(result.data, status=HTTP_202_ACCEPTED)
@@ -123,14 +123,16 @@ class StaffProfileEducationEntryDetail(APIView):
 
 class UserStaffEmploymentEntries(APIView):
     """List user's employment entries"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
         from users.services import ProfileService
+
         profile = ProfileService.get_staff_profile_by_user(user_id)
         if not profile:
             return Response({"error": "No staff profile found"}, status=404)
-        
+
         entries = EmploymentService.list_employment(profile.id)
         serializer = EmploymentEntrySerializer(entries, many=True)
         return Response(serializer.data)
@@ -138,14 +140,16 @@ class UserStaffEmploymentEntries(APIView):
 
 class UserStaffEducationEntries(APIView):
     """List user's education entries"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, user_id):
         from users.services import ProfileService
+
         profile = ProfileService.get_staff_profile_by_user(user_id)
         if not profile:
             return Response({"error": "No staff profile found"}, status=404)
-        
+
         entries = EducationService.list_education(profile.id)
         serializer = EducationEntrySerializer(entries, many=True)
         return Response(serializer.data)

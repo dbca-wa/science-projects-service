@@ -1,17 +1,17 @@
 """
 Tests for contact admin
 """
-import pytest
+
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 
 from contacts.admin import (
     AddressAdmin,
-    UserContactAdmin,
-    BranchContactAdmin,
     AgencyContactAdmin,
+    BranchContactAdmin,
+    UserContactAdmin,
 )
-from contacts.models import Address, UserContact, BranchContact, AgencyContact
+from contacts.models import Address, AgencyContact, BranchContact, UserContact
 
 
 class TestAddressAdmin:
@@ -21,7 +21,7 @@ class TestAddressAdmin:
         """Test list_display configuration"""
         # Arrange
         admin_instance = AddressAdmin(Address, AdminSite())
-        
+
         # Assert
         assert admin_instance.list_display == [
             "street",
@@ -35,7 +35,7 @@ class TestAddressAdmin:
         """Test search_fields configuration"""
         # Arrange
         admin_instance = AddressAdmin(Address, AdminSite())
-        
+
         # Assert
         assert admin_instance.search_fields == ["street", "branch__name"]
 
@@ -52,7 +52,7 @@ class TestUserContactAdmin:
         """Test list_display configuration"""
         # Arrange
         admin_instance = UserContactAdmin(UserContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.list_display == [
             "user",
@@ -64,7 +64,7 @@ class TestUserContactAdmin:
         """Test search_fields configuration"""
         # Arrange
         admin_instance = UserContactAdmin(UserContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.search_fields == [
             "user_id__first_name",
@@ -75,7 +75,7 @@ class TestUserContactAdmin:
         """Test ordering configuration"""
         # Arrange
         admin_instance = UserContactAdmin(UserContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.ordering == ["user__first_name"]
 
@@ -92,7 +92,7 @@ class TestBranchContactAdmin:
         """Test list_display configuration"""
         # Arrange
         admin_instance = BranchContactAdmin(BranchContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.list_display == [
             "branch",
@@ -105,7 +105,7 @@ class TestBranchContactAdmin:
         """Test search_fields configuration"""
         # Arrange
         admin_instance = BranchContactAdmin(BranchContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.search_fields == [
             "branch__name",
@@ -115,7 +115,7 @@ class TestBranchContactAdmin:
         """Test ordering configuration"""
         # Arrange
         admin_instance = BranchContactAdmin(BranchContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.ordering == ["branch__name"]
 
@@ -123,10 +123,10 @@ class TestBranchContactAdmin:
         """Test display_address method with address"""
         # Arrange
         admin_instance = BranchContactAdmin(BranchContact, AdminSite())
-        
+
         # Act
         result = admin_instance.display_address(branch_contact)
-        
+
         # Assert
         assert result == "456 Branch St"
 
@@ -136,12 +136,12 @@ class TestBranchContactAdmin:
         admin_instance = BranchContactAdmin(BranchContact, AdminSite())
         contact = BranchContact.objects.create(
             branch=branch,
-            email='noaddress@example.com',
+            email="noaddress@example.com",
         )
-        
+
         # Act
         result = admin_instance.display_address(contact)
-        
+
         # Assert
         assert result is None
 
@@ -149,7 +149,7 @@ class TestBranchContactAdmin:
         """Test display_address has short_description"""
         # Arrange
         admin_instance = BranchContactAdmin(BranchContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.display_address.short_description == "Address"
 
@@ -166,7 +166,7 @@ class TestAgencyContactAdmin:
         """Test list_display configuration"""
         # Arrange
         admin_instance = AgencyContactAdmin(AgencyContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.list_display == [
             "agency",
@@ -179,7 +179,7 @@ class TestAgencyContactAdmin:
         """Test search_fields configuration"""
         # Arrange
         admin_instance = AgencyContactAdmin(AgencyContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.search_fields == [
             "agency__name",
@@ -189,7 +189,7 @@ class TestAgencyContactAdmin:
         """Test ordering configuration"""
         # Arrange
         admin_instance = AgencyContactAdmin(AgencyContact, AdminSite())
-        
+
         # Assert
         assert admin_instance.ordering == ["agency__name"]
 

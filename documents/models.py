@@ -1,14 +1,15 @@
 # region Imports ===================================
-from django.db import models
-from common.models import CommonModel
-from django.core.validators import MinValueValidator
 from bs4 import BeautifulSoup
+from django.core.validators import MinValueValidator
+from django.db import models
 from rest_framework import serializers
+
+from common.models import CommonModel
 from documents.utils.html_tables import (
-    default_staff_time_allocation,
     default_concept_plan_budget,
-    default_internal_budget,
     default_external_budget,
+    default_internal_budget,
+    default_staff_time_allocation,
 )
 
 # endregion ==================================

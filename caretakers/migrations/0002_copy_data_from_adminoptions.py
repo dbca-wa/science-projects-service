@@ -12,20 +12,18 @@ def noop_forward(apps, schema_editor):
     No-op: Data migration is handled by management command.
     Run: python manage.py migrate_caretaker_data
     """
-    pass
 
 
 def noop_backward(apps, schema_editor):
     """
     No-op: Cannot reverse data migration.
     """
-    pass
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('caretakers', '0001_initial'),
+        ("caretakers", "0001_initial"),
     ]
 
     operations = [

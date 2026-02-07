@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('medias', '0002_initial'),
+        ("medias", "0002_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='projectphoto',
-            name='size',
+            model_name="projectphoto",
+            name="size",
             field=models.PositiveIntegerField(default=0),
         ),
     ]

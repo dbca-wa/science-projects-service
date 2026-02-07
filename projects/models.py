@@ -1,12 +1,12 @@
 # region IMPORTS ==============================================
 
 from datetime import datetime as dt
-from bs4 import BeautifulSoup
 
-from django.db import models
-from django.forms import ValidationError
+from bs4 import BeautifulSoup
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import models
+from django.forms import ValidationError
 
 from adminoptions.models import AdminTask
 from common.models import CommonModel
@@ -424,6 +424,7 @@ class StudentProjectDetails(models.Model):
         Removes affiliation names that no longer exist in the Affiliation table.
         """
         from django.conf import settings
+
         from agencies.models import Affiliation
 
         if self.organisation:
@@ -434,9 +435,7 @@ class StudentProjectDetails(models.Model):
 
             if affiliations:
                 # Get all valid affiliation names
-                valid_names = set(
-                    Affiliation.objects.values_list("name", flat=True)
-                )
+                valid_names = set(Affiliation.objects.values_list("name", flat=True))
 
                 # Filter out non-existent affiliations
                 original_count = len(affiliations)
@@ -445,7 +444,9 @@ class StudentProjectDetails(models.Model):
                 # Update field if any were removed
                 if len(valid_affiliations) < original_count:
                     removed_count = original_count - len(valid_affiliations)
-                    self.organisation = "; ".join(valid_affiliations) if valid_affiliations else ""
+                    self.organisation = (
+                        "; ".join(valid_affiliations) if valid_affiliations else ""
+                    )
 
                     settings.LOGGER.info(
                         f"Cleaned {removed_count} stale affiliation(s) from "
@@ -497,6 +498,7 @@ class ExternalProjectDetails(models.Model):
         Removes affiliation names that no longer exist in the Affiliation table.
         """
         from django.conf import settings
+
         from agencies.models import Affiliation
 
         if self.collaboration_with:
@@ -507,9 +509,7 @@ class ExternalProjectDetails(models.Model):
 
             if affiliations:
                 # Get all valid affiliation names
-                valid_names = set(
-                    Affiliation.objects.values_list("name", flat=True)
-                )
+                valid_names = set(Affiliation.objects.values_list("name", flat=True))
 
                 # Filter out non-existent affiliations
                 original_count = len(affiliations)
@@ -518,7 +518,9 @@ class ExternalProjectDetails(models.Model):
                 # Update field if any were removed
                 if len(valid_affiliations) < original_count:
                     removed_count = original_count - len(valid_affiliations)
-                    self.collaboration_with = "; ".join(valid_affiliations) if valid_affiliations else ""
+                    self.collaboration_with = (
+                        "; ".join(valid_affiliations) if valid_affiliations else ""
+                    )
 
                     settings.LOGGER.info(
                         f"Cleaned {removed_count} stale affiliation(s) from "

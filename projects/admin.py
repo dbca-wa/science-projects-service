@@ -1,13 +1,15 @@
 # region IMPORTS ==============================================
 
 from django.contrib import admin
+
 from locations.models import Area
+
 from .models import (
     ExternalProjectDetails,
     Project,
     ProjectArea,
-    ProjectMember,
     ProjectDetail,
+    ProjectMember,
     StudentProjectDetails,
 )
 
@@ -210,6 +212,7 @@ class ProjectAreaAdmin(admin.ModelAdmin):
     def project_id(self, obj):
         return obj.project.id
 
+    @admin.display(description="Areas")
     def formatted_areas(self, obj):
         areas = obj.areas  # Access the list of area IDs directly
         area_info = []
@@ -220,8 +223,6 @@ class ProjectAreaAdmin(admin.ModelAdmin):
             except Area.DoesNotExist:
                 pass
         return ", ".join(area_info)
-
-    formatted_areas.short_description = "Areas"  # Custom column header
 
     search_fields = [
         "project__title",

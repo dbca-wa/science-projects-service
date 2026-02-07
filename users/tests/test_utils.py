@@ -1,24 +1,25 @@
 """
 Tests for user utilities
 """
+
 import pytest
 from rest_framework.exceptions import ValidationError
 
-from users.utils.filters import apply_user_filters, apply_profile_filters
+from users.models import PublicStaffProfile, User
+from users.utils.filters import apply_profile_filters, apply_user_filters
 from users.utils.helpers import (
-    search_users,
-    search_profiles,
     format_user_name,
     get_user_avatar_url,
     get_user_business_area,
+    search_profiles,
+    search_users,
 )
 from users.utils.validators import (
     validate_email_unique,
-    validate_username_unique,
-    validate_profile_data,
     validate_password_strength,
+    validate_profile_data,
+    validate_username_unique,
 )
-from users.models import User, PublicStaffProfile
 
 
 class TestUserFilters:
@@ -28,11 +29,11 @@ class TestUserFilters:
         """Test filtering users by is_active"""
         # Arrange
         queryset = User.objects.all()
-        filters = {'is_active': True}
-        
+        filters = {"is_active": True}
+
         # Act
         result = apply_user_filters(queryset, filters)
-        
+
         # Assert
         assert user in result
         assert result.filter(is_active=True).count() == result.count()
@@ -41,11 +42,11 @@ class TestUserFilters:
         """Test filtering users by is_staff"""
         # Arrange
         queryset = User.objects.all()
-        filters = {'is_staff': True}
-        
+        filters = {"is_staff": True}
+
         # Act
         result = apply_user_filters(queryset, filters)
-        
+
         # Assert
         assert staff_user in result
         assert result.filter(is_staff=True).count() == result.count()
@@ -54,11 +55,11 @@ class TestUserFilters:
         """Test filtering users by is_superuser"""
         # Arrange
         queryset = User.objects.all()
-        filters = {'is_superuser': True}
-        
+        filters = {"is_superuser": True}
+
         # Act
         result = apply_user_filters(queryset, filters)
-        
+
         # Assert
         assert superuser in result
         assert result.filter(is_superuser=True).count() == result.count()
@@ -67,11 +68,11 @@ class TestUserFilters:
         """Test filtering users by business area"""
         # Arrange
         queryset = User.objects.all()
-        filters = {'business_area': business_area.id}
-        
+        filters = {"business_area": business_area.id}
+
         # Act
         result = apply_user_filters(queryset, filters)
-        
+
         # Assert
         assert user in result
 
@@ -80,13 +81,13 @@ class TestUserFilters:
         # Arrange
         queryset = User.objects.all()
         filters = {
-            'is_active': True,
-            'is_staff': False,
+            "is_active": True,
+            "is_staff": False,
         }
-        
+
         # Act
         result = apply_user_filters(queryset, filters)
-        
+
         # Assert
         assert user in result
         assert result.filter(is_active=True, is_staff=False).count() == result.count()
@@ -96,22 +97,24 @@ class TestUserFilters:
         # Arrange
         queryset = User.objects.all()
         filters = {}
-        
+
         # Act
         result = apply_user_filters(queryset, filters)
-        
+
         # Assert
         assert result.count() == queryset.count()
 
-    def test_apply_profile_filters_business_area(self, staff_profile, user_work, business_area, db):
+    def test_apply_profile_filters_business_area(
+        self, staff_profile, user_work, business_area, db
+    ):
         """Test filtering profiles by business area"""
         # Arrange
         queryset = PublicStaffProfile.objects.all()
-        filters = {'business_area': business_area.id}
-        
+        filters = {"business_area": business_area.id}
+
         # Act
         result = apply_profile_filters(queryset, filters)
-        
+
         # Assert
         assert staff_profile in result
 
@@ -119,11 +122,11 @@ class TestUserFilters:
         """Test filtering profiles by user"""
         # Arrange
         queryset = PublicStaffProfile.objects.all()
-        filters = {'user': staff_profile.user.id}
-        
+        filters = {"user": staff_profile.user.id}
+
         # Act
         result = apply_profile_filters(queryset, filters)
-        
+
         # Assert
         assert staff_profile in result
         assert result.count() == 1
@@ -137,10 +140,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = user.username[:5]
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert user in result
 
@@ -149,10 +152,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = user.email[:5]
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert user in result
 
@@ -161,10 +164,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = user.first_name[:3]
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert user in result
 
@@ -173,10 +176,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = user.last_name[:3]
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert user in result
 
@@ -185,10 +188,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = f"{user.first_name} {user.last_name}"
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert user in result
 
@@ -197,10 +200,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = ""
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert result.count() == queryset.count()
 
@@ -209,10 +212,10 @@ class TestUserHelpers:
         # Arrange
         queryset = User.objects.all()
         search_term = "a"
-        
+
         # Act
         result = search_users(queryset, search_term)
-        
+
         # Assert
         assert result.count() == queryset.count()
 
@@ -221,10 +224,10 @@ class TestUserHelpers:
         # Arrange
         queryset = PublicStaffProfile.objects.all()
         search_term = staff_profile.user.first_name[:3]
-        
+
         # Act
         result = search_profiles(queryset, search_term)
-        
+
         # Assert
         assert staff_profile in result
 
@@ -233,10 +236,10 @@ class TestUserHelpers:
         # Arrange
         queryset = PublicStaffProfile.objects.all()
         search_term = staff_profile.user.email[:5]
-        
+
         # Act
         result = search_profiles(queryset, search_term)
-        
+
         # Assert
         assert staff_profile in result
 
@@ -247,10 +250,10 @@ class TestUserHelpers:
         staff_profile.save()
         queryset = PublicStaffProfile.objects.all()
         search_term = "Python"
-        
+
         # Act
         result = search_profiles(queryset, search_term)
-        
+
         # Assert
         assert staff_profile in result
 
@@ -261,10 +264,10 @@ class TestUserHelpers:
         staff_profile.save()
         queryset = PublicStaffProfile.objects.all()
         search_term = "Django"
-        
+
         # Act
         result = search_profiles(queryset, search_term)
-        
+
         # Assert
         assert staff_profile in result
 
@@ -273,10 +276,10 @@ class TestUserHelpers:
         # Arrange
         queryset = PublicStaffProfile.objects.all()
         search_term = ""
-        
+
         # Act
         result = search_profiles(queryset, search_term)
-        
+
         # Assert
         assert result.count() == queryset.count()
 
@@ -284,7 +287,7 @@ class TestUserHelpers:
         """Test formatting user name"""
         # Act
         result = format_user_name(user)
-        
+
         # Assert
         assert result == f"{user.display_first_name} {user.display_last_name}"
 
@@ -292,7 +295,7 @@ class TestUserHelpers:
         """Test getting avatar URL when user has no avatar"""
         # Act
         result = get_user_avatar_url(user)
-        
+
         # Assert
         assert result is None
 
@@ -300,7 +303,7 @@ class TestUserHelpers:
         """Test getting user business area when work exists"""
         # Act
         result = get_user_business_area(user)
-        
+
         # Assert
         assert result == business_area
 
@@ -308,10 +311,10 @@ class TestUserHelpers:
         """Test getting user business area when no work"""
         # Arrange
         user = user_factory()
-        
+
         # Act
         result = get_user_business_area(user)
-        
+
         # Assert
         assert result is None
 
@@ -323,7 +326,7 @@ class TestUserValidators:
         """Test validating unique email for new user"""
         # Arrange
         email = "newemail@example.com"
-        
+
         # Act & Assert - should not raise
         validate_email_unique(email)
 
@@ -331,7 +334,7 @@ class TestUserValidators:
         """Test validating email that already exists"""
         # Arrange
         email = user.email
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="Email already exists"):
             validate_email_unique(email)
@@ -340,7 +343,7 @@ class TestUserValidators:
         """Test validating email excluding specific user"""
         # Arrange
         email = user.email
-        
+
         # Act & Assert - should not raise
         validate_email_unique(email, exclude_user_id=user.id)
 
@@ -348,7 +351,7 @@ class TestUserValidators:
         """Test validating unique username for new user"""
         # Arrange
         username = "newusername"
-        
+
         # Act & Assert - should not raise
         validate_username_unique(username)
 
@@ -356,7 +359,7 @@ class TestUserValidators:
         """Test validating username that already exists"""
         # Arrange
         username = user.username
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="Username already exists"):
             validate_username_unique(username)
@@ -365,7 +368,7 @@ class TestUserValidators:
         """Test validating username excluding specific user"""
         # Arrange
         username = user.username
-        
+
         # Act & Assert - should not raise
         validate_username_unique(username, exclude_user_id=user.id)
 
@@ -373,10 +376,10 @@ class TestUserValidators:
         """Test validating valid profile data"""
         # Arrange
         data = {
-            'about': 'Short bio',
-            'expertise': 'Python, Django',
+            "about": "Short bio",
+            "expertise": "Python, Django",
         }
-        
+
         # Act & Assert - should not raise
         validate_profile_data(data)
 
@@ -384,9 +387,9 @@ class TestUserValidators:
         """Test validating profile with about section too long"""
         # Arrange
         data = {
-            'about': 'x' * 5001,
+            "about": "x" * 5001,
         }
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="About section too long"):
             validate_profile_data(data)
@@ -395,9 +398,9 @@ class TestUserValidators:
         """Test validating profile with expertise section too long"""
         # Arrange
         data = {
-            'expertise': 'x' * 2001,
+            "expertise": "x" * 2001,
         }
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="Expertise section too long"):
             validate_profile_data(data)
@@ -406,7 +409,7 @@ class TestUserValidators:
         """Test validating strong password"""
         # Arrange
         password = "StrongPass123"
-        
+
         # Act & Assert - should not raise
         validate_password_strength(password)
 
@@ -414,7 +417,7 @@ class TestUserValidators:
         """Test validating password that is too short"""
         # Arrange
         password = "Short1"
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="at least 8 characters"):
             validate_password_strength(password)
@@ -423,7 +426,7 @@ class TestUserValidators:
         """Test validating password without digit"""
         # Arrange
         password = "NoDigitPass"
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="at least one digit"):
             validate_password_strength(password)
@@ -432,7 +435,7 @@ class TestUserValidators:
         """Test validating password without uppercase"""
         # Arrange
         password = "nouppercase123"
-        
+
         # Act & Assert
         with pytest.raises(ValidationError, match="at least one uppercase letter"):
             validate_password_strength(password)

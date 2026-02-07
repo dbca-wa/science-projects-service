@@ -1,7 +1,12 @@
 # region Imports ===============================================================================
-import logging, os, sentry_sdk, dj_database_url, environ
+import logging
+import os
 from logging import LogRecord
 from pathlib import Path
+
+import dj_database_url
+import environ
+import sentry_sdk
 
 # endregion ========================================================================================
 
@@ -95,7 +100,14 @@ STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/files/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "files")
-DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 
 # endregion ========================================================================================
 
@@ -332,22 +344,21 @@ class ColoredFormatter(logging.Formatter):
     def format(self, record: LogRecord) -> str:
         log_message = super().format(record)
         level = ""
-        message = ""
         time = self.formatTime(record, "%d-%m-%Y @ %H:%M:%S")
         traceback = ""
         # time = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
 
         if record.levelname == "DEBUG" or record.levelname == "INFO":
             level = self.color_string(f"[{record.levelname}] {record.message}", "white")
-            message = self.color_string(log_message, "white")
+            self.color_string(log_message, "white")
         elif record.levelname == "WARNING":
             level = self.color_string(
                 f"[{record.levelname}] {record.message}", "yellow"
             )
-            message = self.color_string(log_message, "white")
+            self.color_string(log_message, "white")
         elif record.levelname == "ERROR":
             level = self.color_string(f"[{record.levelname}] {record.message}", "red")
-            message = self.color_string(log_message, "white")
+            self.color_string(log_message, "white")
 
         if record.levelname == "ERROR":
             traceback += f"{record.exc_text}"

@@ -2,6 +2,6 @@ from django.apps import AppConfig
 
 
 class CaretakersConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'caretakers'
-    verbose_name = 'Caretakers'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "caretakers"
+    verbose_name = "Caretakers"

@@ -1,9 +1,9 @@
 """
 Contact views - Agency, Branch, and User contacts
 """
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -11,23 +11,25 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
-from contacts.services import ContactService
 from contacts.serializers import (
-    AgencyContactSerializer,
     AgencyContactCreateSerializer,
-    TinyAgencyContactSerializer,
-    BranchContactSerializer,
+    AgencyContactSerializer,
     BranchContactCreateSerializer,
+    BranchContactSerializer,
+    TinyAgencyContactSerializer,
     TinyBranchContactSerializer,
-    UserContactSerializer,
-    UserContactCreateSerializer,
     TinyUserContactSerializer,
+    UserContactCreateSerializer,
+    UserContactSerializer,
 )
+from contacts.services import ContactService
 
 
 class AgencyContacts(APIView):
     """List and create agency contacts"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -41,14 +43,17 @@ class AgencyContacts(APIView):
         serializer = AgencyContactCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        contact = ContactService.create_agency_contact(request.user, serializer.validated_data)
+
+        contact = ContactService.create_agency_contact(
+            request.user, serializer.validated_data
+        )
         result = AgencyContactSerializer(contact)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class AgencyContactDetail(APIView):
     """Get, update, and delete agency contact"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -60,10 +65,12 @@ class AgencyContactDetail(APIView):
     def put(self, request, pk):
         """Update agency contact"""
         contact = ContactService.get_agency_contact(pk)
-        serializer = AgencyContactCreateSerializer(contact, data=request.data, partial=True)
+        serializer = AgencyContactCreateSerializer(
+            contact, data=request.data, partial=True
+        )
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         contact = serializer.save()
         result = AgencyContactSerializer(contact)
         return Response(result.data, status=HTTP_202_ACCEPTED)
@@ -76,6 +83,7 @@ class AgencyContactDetail(APIView):
 
 class BranchContacts(APIView):
     """List and create branch contacts"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -89,14 +97,17 @@ class BranchContacts(APIView):
         serializer = BranchContactCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        contact = ContactService.create_branch_contact(request.user, serializer.validated_data)
+
+        contact = ContactService.create_branch_contact(
+            request.user, serializer.validated_data
+        )
         result = BranchContactSerializer(contact)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class BranchContactDetail(APIView):
     """Get, update, and delete branch contact"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -108,10 +119,12 @@ class BranchContactDetail(APIView):
     def put(self, request, pk):
         """Update branch contact"""
         contact = ContactService.get_branch_contact(pk)
-        serializer = BranchContactCreateSerializer(contact, data=request.data, partial=True)
+        serializer = BranchContactCreateSerializer(
+            contact, data=request.data, partial=True
+        )
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         contact = serializer.save()
         result = BranchContactSerializer(contact)
         return Response(result.data, status=HTTP_202_ACCEPTED)
@@ -124,6 +137,7 @@ class BranchContactDetail(APIView):
 
 class UserContacts(APIView):
     """List and create user contacts"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -137,14 +151,17 @@ class UserContacts(APIView):
         serializer = UserContactCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        contact = ContactService.create_user_contact(request.user, serializer.validated_data)
+
+        contact = ContactService.create_user_contact(
+            request.user, serializer.validated_data
+        )
         result = UserContactSerializer(contact)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class UserContactDetail(APIView):
     """Get, update, and delete user contact"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -156,10 +173,12 @@ class UserContactDetail(APIView):
     def put(self, request, pk):
         """Update user contact"""
         contact = ContactService.get_user_contact(pk)
-        serializer = UserContactCreateSerializer(contact, data=request.data, partial=True)
+        serializer = UserContactCreateSerializer(
+            contact, data=request.data, partial=True
+        )
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         contact = serializer.save()
         result = UserContactSerializer(contact)
         return Response(result.data, status=HTTP_202_ACCEPTED)

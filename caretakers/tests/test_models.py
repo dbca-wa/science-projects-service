@@ -3,6 +3,7 @@ Tests for caretaker models
 
 Tests model creation, relationships, and methods.
 """
+
 import pytest
 from django.core.cache import cache
 from django.db import IntegrityError
@@ -20,38 +21,38 @@ class TestCaretakerModel:
         # Arrange
         user = UserFactory()
         caretaker = UserFactory()
-        
+
         # Act
         relationship = Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
-            reason='Going on leave',
+            reason="Going on leave",
         )
-        
+
         # Assert
         assert relationship.id is not None
         assert relationship.user == user
         assert relationship.caretaker == caretaker
-        assert relationship.reason == 'Going on leave'
+        assert relationship.reason == "Going on leave"
 
     @pytest.mark.django_db
     def test_caretaker_str_representation(self):
         """Test string representation of caretaker"""
         # Arrange
-        user = UserFactory(username='john')
-        caretaker = UserFactory(username='jane')
+        user = UserFactory(username="john")
+        caretaker = UserFactory(username="jane")
         relationship = Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
         )
-        
+
         # Act
         str_repr = str(relationship)
-        
+
         # Assert
-        assert 'jane' in str_repr
-        assert 'john' in str_repr
-        assert 'caretaking for' in str_repr
+        assert "jane" in str_repr
+        assert "john" in str_repr
+        assert "caretaking for" in str_repr
 
     @pytest.mark.django_db
     def test_caretaker_unique_together_constraint(self):
@@ -62,15 +63,15 @@ class TestCaretakerModel:
         Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
-            reason='First relationship',
+            reason="First relationship",
         )
-        
+
         # Act & Assert
         with pytest.raises(IntegrityError):
             Caretaker.objects.create(
                 user=user,
                 caretaker=caretaker,
-                reason='Duplicate relationship',
+                reason="Duplicate relationship",
             )
 
     @pytest.mark.django_db
@@ -83,11 +84,11 @@ class TestCaretakerModel:
             user=user,
             caretaker=caretaker,
         )
-        
+
         # Act & Assert - Forward relationships
         assert relationship.user == user
         assert relationship.caretaker == caretaker
-        
+
         # Act & Assert - Reverse relationships
         assert relationship in user.caretakers.all()
         assert relationship in caretaker.caretaking_for.all()
@@ -98,14 +99,14 @@ class TestCaretakerModel:
         # Arrange
         user = UserFactory()
         caretaker = UserFactory()
-        
+
         # Act
         relationship = Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
             # No reason, notes, or end_date
         )
-        
+
         # Assert
         assert relationship.reason is None
         assert relationship.notes is None
@@ -115,20 +116,21 @@ class TestCaretakerModel:
     def test_caretaker_with_end_date(self):
         """Test caretaker with end_date"""
         # Arrange
-        from django.utils import timezone
         from datetime import timedelta
-        
+
+        from django.utils import timezone
+
         user = UserFactory()
         caretaker = UserFactory()
         end_date = timezone.now() + timedelta(days=30)
-        
+
         # Act
         relationship = Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
             end_date=end_date,
         )
-        
+
         # Assert
         assert relationship.end_date == end_date
 
@@ -138,15 +140,15 @@ class TestCaretakerModel:
         # Arrange
         user = UserFactory()
         caretaker = UserFactory()
-        notes = 'Additional information about this caretaker relationship'
-        
+        notes = "Additional information about this caretaker relationship"
+
         # Act
         relationship = Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
             notes=notes,
         )
-        
+
         # Assert
         assert relationship.notes == notes
 
@@ -156,19 +158,19 @@ class TestCaretakerModel:
         # Arrange
         user = UserFactory()
         caretaker = UserFactory()
-        
+
         # Set cache values
         cache.set(f"caretakers_{user.pk}", "test_value")
         cache.set(f"caretaking_{user.pk}", "test_value")
         cache.set(f"caretakers_{caretaker.pk}", "test_value")
         cache.set(f"caretaking_{caretaker.pk}", "test_value")
-        
+
         # Act
-        relationship = Caretaker.objects.create(
+        Caretaker.objects.create(
             user=user,
             caretaker=caretaker,
         )
-        
+
         # Assert - Cache should be cleared
         assert cache.get(f"caretakers_{user.pk}") is None
         assert cache.get(f"caretaking_{user.pk}") is None
@@ -185,16 +187,16 @@ class TestCaretakerModel:
             user=user,
             caretaker=caretaker,
         )
-        
+
         # Set cache values
         cache.set(f"caretakers_{user.pk}", "test_value")
         cache.set(f"caretaking_{user.pk}", "test_value")
         cache.set(f"caretakers_{caretaker.pk}", "test_value")
         cache.set(f"caretaking_{caretaker.pk}", "test_value")
-        
+
         # Act
         relationship.delete()
-        
+
         # Assert - Cache should be cleared
         assert cache.get(f"caretakers_{user.pk}") is None
         assert cache.get(f"caretaking_{user.pk}") is None
@@ -211,10 +213,10 @@ class TestCaretakerModel:
             user=user,
             caretaker=caretaker,
         )
-        
+
         # Act
         user.delete()
-        
+
         # Assert
         assert not Caretaker.objects.filter(pk=relationship.pk).exists()
 
@@ -228,10 +230,10 @@ class TestCaretakerModel:
             user=user,
             caretaker=caretaker,
         )
-        
+
         # Act
         caretaker.delete()
-        
+
         # Assert
         assert not Caretaker.objects.filter(pk=relationship.pk).exists()
 
@@ -242,7 +244,7 @@ class TestCaretakerModel:
         user = UserFactory()
         caretaker1 = UserFactory()
         caretaker2 = UserFactory()
-        
+
         # Act
         relationship1 = Caretaker.objects.create(
             user=user,
@@ -252,7 +254,7 @@ class TestCaretakerModel:
             user=user,
             caretaker=caretaker2,
         )
-        
+
         # Assert
         assert user.caretakers.count() == 2
         assert relationship1 in user.caretakers.all()
@@ -265,7 +267,7 @@ class TestCaretakerModel:
         user1 = UserFactory()
         user2 = UserFactory()
         caretaker = UserFactory()
-        
+
         # Act
         relationship1 = Caretaker.objects.create(
             user=user1,
@@ -275,7 +277,7 @@ class TestCaretakerModel:
             user=user2,
             caretaker=caretaker,
         )
-        
+
         # Assert
         assert caretaker.caretaking_for.count() == 2
         assert relationship1 in caretaker.caretaking_for.all()
@@ -293,8 +295,8 @@ class TestCaretakerModel:
         """Test model has correct indexes"""
         # Arrange
         indexes = [index.fields for index in Caretaker._meta.indexes]
-        
+
         # Assert
-        assert ['user'] in indexes
-        assert ['caretaker'] in indexes
-        assert ['end_date'] in indexes
+        assert ["user"] in indexes
+        assert ["caretaker"] in indexes
+        assert ["end_date"] in indexes

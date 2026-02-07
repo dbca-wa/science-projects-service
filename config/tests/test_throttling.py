@@ -5,10 +5,9 @@ These tests verify that rate limiting is properly configured and working
 to protect the API from abuse.
 """
 
-from django.test import TestCase, override_settings
 from django.contrib.auth import get_user_model
+from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
-from rest_framework import status
 
 User = get_user_model()
 
@@ -30,12 +29,8 @@ class RateLimitingTestCase(TestCase):
         from django.conf import settings
 
         # Verify throttle classes are configured
-        self.assertIn(
-            "DEFAULT_THROTTLE_CLASSES", settings.REST_FRAMEWORK
-        )
-        self.assertIn(
-            "DEFAULT_THROTTLE_RATES", settings.REST_FRAMEWORK
-        )
+        self.assertIn("DEFAULT_THROTTLE_CLASSES", settings.REST_FRAMEWORK)
+        self.assertIn("DEFAULT_THROTTLE_RATES", settings.REST_FRAMEWORK)
 
         # Verify throttle rates are set
         rates = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
@@ -54,9 +49,7 @@ class RateLimitingTestCase(TestCase):
         # Verify classes exist and have correct scope
         self.assertEqual(BurstRateThrottle.scope, "burst")
         self.assertEqual(LoginRateThrottle.scope, "login")
-        self.assertEqual(
-            PasswordResetRateThrottle.scope, "password_reset"
-        )
+        self.assertEqual(PasswordResetRateThrottle.scope, "password_reset")
 
     @override_settings(
         REST_FRAMEWORK={
@@ -71,7 +64,7 @@ class RateLimitingTestCase(TestCase):
     def test_anonymous_rate_limit_enforced(self):
         """
         Test that anonymous users are rate limited.
-        
+
         Note: This test verifies configuration is correct.
         Actual enforcement testing requires a persistent cache backend.
         In production with Redis, rate limiting will work as expected.
@@ -101,7 +94,7 @@ class RateLimitingTestCase(TestCase):
     def test_authenticated_rate_limit_enforced(self):
         """
         Test that authenticated users are rate limited.
-        
+
         Note: This test verifies configuration is correct.
         Actual enforcement testing requires a persistent cache backend.
         In production with Redis, rate limiting will work as expected.
@@ -121,19 +114,15 @@ class RateLimitingTestCase(TestCase):
     def test_throttle_response_format(self):
         """
         Test that throttle configuration is correct.
-        
+
         Note: Actual 429 response testing requires a persistent cache backend.
         This test verifies the configuration is in place.
         """
         from django.conf import settings
 
         # Verify throttle classes are configured
-        self.assertIn(
-            "DEFAULT_THROTTLE_CLASSES", settings.REST_FRAMEWORK
-        )
-        self.assertIn(
-            "DEFAULT_THROTTLE_RATES", settings.REST_FRAMEWORK
-        )
+        self.assertIn("DEFAULT_THROTTLE_CLASSES", settings.REST_FRAMEWORK)
+        self.assertIn("DEFAULT_THROTTLE_RATES", settings.REST_FRAMEWORK)
 
 
 class CustomThrottleClassesTestCase(TestCase):

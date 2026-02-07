@@ -6,17 +6,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('adminoptions', '0009_alter_admintask_status'),
+        ("adminoptions", "0009_alter_admintask_status"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='caretaker',
-            name='start_date',
+            model_name="caretaker",
+            name="start_date",
         ),
         migrations.AlterField(
-            model_name='caretaker',
-            name='end_date',
-            field=models.DateTimeField(blank=True, help_text='The date at which caretaker status ends', null=True),
+            model_name="caretaker",
+            name="end_date",
+            field=models.DateTimeField(
+                blank=True,
+                help_text="The date at which caretaker status ends",
+                null=True,
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
 """
 Project area serializers
 """
+
 from rest_framework import serializers
 
 from locations.models import Area
@@ -11,7 +12,7 @@ from ..models import ProjectArea
 
 class ProjectAreaSerializer(serializers.ModelSerializer):
     """Project area serializer with location details"""
-    
+
     class Meta:
         model = ProjectArea
         fields = "__all__"
@@ -19,7 +20,7 @@ class ProjectAreaSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         areas = instance.areas
-        
+
         if areas:
             try:
                 area_objects = Area.objects.filter(pk__in=areas)
@@ -29,5 +30,5 @@ class ProjectAreaSerializer(serializers.ModelSerializer):
                 representation["areas"] = []
         else:
             representation["areas"] = []
-        
+
         return representation

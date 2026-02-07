@@ -7,126 +7,249 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='AECEndorsementPDF',
+            name="AECEndorsementPDF",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.FileField(blank=True, null=True, upload_to='aec_endorsements/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.FileField(
+                        blank=True, null=True, upload_to="aec_endorsements/"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'AEC PDF',
-                'verbose_name_plural': 'AEC PDFs',
+                "verbose_name": "AEC PDF",
+                "verbose_name_plural": "AEC PDFs",
             },
         ),
         migrations.CreateModel(
-            name='AgencyImage',
+            name="AgencyImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.ImageField(upload_to='agencies/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("file", models.ImageField(upload_to="agencies/")),
             ],
             options={
-                'verbose_name': 'Agency Image',
-                'verbose_name_plural': 'Agency Images',
+                "verbose_name": "Agency Image",
+                "verbose_name_plural": "Agency Images",
             },
         ),
         migrations.CreateModel(
-            name='AnnualReportMedia',
+            name="AnnualReportMedia",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.ImageField(blank=True, null=True, upload_to='annual_reports/images/')),
-                ('kind', models.CharField(choices=[('cover', 'Cover'), ('rear_cover', 'Rear Cover'), ('sdchart', 'Service Delivery Chart'), ('service_delivery', 'Service Delivery'), ('research', 'Research'), ('partnerships', 'Partnerships'), ('collaborations', 'Collaborations'), ('student_projects', 'Student Projects'), ('publications', 'Publications')], max_length=140)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="annual_reports/images/"
+                    ),
+                ),
+                (
+                    "kind",
+                    models.CharField(
+                        choices=[
+                            ("cover", "Cover"),
+                            ("rear_cover", "Rear Cover"),
+                            ("sdchart", "Service Delivery Chart"),
+                            ("service_delivery", "Service Delivery"),
+                            ("research", "Research"),
+                            ("partnerships", "Partnerships"),
+                            ("collaborations", "Collaborations"),
+                            ("student_projects", "Student Projects"),
+                            ("publications", "Publications"),
+                        ],
+                        max_length=140,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Annual Report Image',
-                'verbose_name_plural': 'Annual Report Images',
+                "verbose_name": "Annual Report Image",
+                "verbose_name_plural": "Annual Report Images",
             },
         ),
         migrations.CreateModel(
-            name='AnnualReportPDF',
+            name="AnnualReportPDF",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.FileField(blank=True, null=True, upload_to='annual_reports/pdfs/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.FileField(
+                        blank=True, null=True, upload_to="annual_reports/pdfs/"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Annual Report PDF',
-                'verbose_name_plural': 'Annual Report PDFs',
+                "verbose_name": "Annual Report PDF",
+                "verbose_name_plural": "Annual Report PDFs",
             },
         ),
         migrations.CreateModel(
-            name='BusinessAreaPhoto',
+            name="BusinessAreaPhoto",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.ImageField(blank=True, null=True, upload_to='business_areas/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="business_areas/"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Business Area Image',
-                'verbose_name_plural': 'Business Area Images',
+                "verbose_name": "Business Area Image",
+                "verbose_name_plural": "Business Area Images",
             },
         ),
         migrations.CreateModel(
-            name='ProjectDocumentPDF',
+            name="ProjectDocumentPDF",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.FileField(blank=True, null=True, upload_to='project_documents/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.FileField(
+                        blank=True, null=True, upload_to="project_documents/"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Project Document PDF',
-                'verbose_name_plural': 'Project Document PDFs',
+                "verbose_name": "Project Document PDF",
+                "verbose_name_plural": "Project Document PDFs",
             },
         ),
         migrations.CreateModel(
-            name='ProjectPhoto',
+            name="ProjectPhoto",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.ImageField(blank=True, null=True, upload_to='projects/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.ImageField(blank=True, null=True, upload_to="projects/"),
+                ),
             ],
             options={
-                'verbose_name': 'Project Image',
-                'verbose_name_plural': 'Project Images',
+                "verbose_name": "Project Image",
+                "verbose_name_plural": "Project Images",
             },
         ),
         migrations.CreateModel(
-            name='ProjectPlanMethodologyPhoto',
+            name="ProjectPlanMethodologyPhoto",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.ImageField(blank=True, null=True, upload_to='methodology_images/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.ImageField(
+                        blank=True, null=True, upload_to="methodology_images/"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Methodology Image File',
-                'verbose_name_plural': 'Methodology Image Files',
+                "verbose_name": "Methodology Image File",
+                "verbose_name_plural": "Methodology Image Files",
             },
         ),
         migrations.CreateModel(
-            name='UserAvatar',
+            name="UserAvatar",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('file', models.ImageField(blank=True, null=True, upload_to='user_avatars/')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "file",
+                    models.ImageField(blank=True, null=True, upload_to="user_avatars/"),
+                ),
             ],
             options={
-                'verbose_name': 'User Avatar Image',
-                'verbose_name_plural': 'User Avatar Images',
+                "verbose_name": "User Avatar Image",
+                "verbose_name_plural": "User Avatar Images",
             },
         ),
     ]

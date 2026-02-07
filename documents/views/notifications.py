@@ -2,15 +2,16 @@
 Notification views - Admin notification operations
 """
 
+from datetime import timedelta
+
+import requests
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
 from django.template.loader import render_to_string
-from django.core.cache import cache
-from datetime import timedelta
-from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_202_ACCEPTED,
@@ -19,28 +20,29 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
-import requests
+from rest_framework.views import APIView
+
+from agencies.models import BusinessArea
+from config.helpers import send_email_with_embedded_image
+from projects.models import Project
+from users.models import PublicStaffProfile, User
 
 from ..models import (
-    ProjectDocument,
     AnnualReport,
-    ProgressReport,
-    StudentReport,
     CustomPublication,
+    ProgressReport,
+    ProjectDocument,
+    StudentReport,
 )
-from projects.models import Project
-from agencies.models import BusinessArea
-from users.models import User, PublicStaffProfile
 from ..serializers import (
-    ProjectDocumentCreateSerializer,
-    ProgressReportCreateSerializer,
-    StudentReportCreateSerializer,
     CustomPublicationSerializer,
     LibraryPublicationResponseSerializer,
+    ProgressReportCreateSerializer,
+    ProjectDocumentCreateSerializer,
     PublicationResponseSerializer,
+    StudentReportCreateSerializer,
 )
 from ..utils.helpers import get_current_maintainer_id, get_encoded_image
-from config.helpers import send_email_with_embedded_image
 
 
 class NewCycleOpen(APIView):
@@ -296,7 +298,7 @@ class NewCycleOpen(APIView):
         if should_email:
             settings.LOGGER.info("Sending cycle opened emails")
             maintainer_id = get_current_maintainer_id()
-            from_email = settings.DEFAULT_FROM_EMAIL
+            settings.DEFAULT_FROM_EMAIL
             template_path = "./email_templates/new_cycle_open_email.html"
 
             actioning_user = User.objects.get(pk=request.user.pk)
@@ -600,7 +602,13 @@ class UserPublications(APIView):
         token = settings.LIBRARY_BEARER_TOKEN.replace("Bearer ", "")
         headers = {"Authorization": f"Bearer {token}"}
 
-        response = requests.get(api_url, headers=headers)
+        try:
+            response = requests.get(api_url, headers=headers, timeout=30)
+        except requests.Timeout:
+            settings.LOGGER.error(
+                f"Request to library API timed out for employee {employee_id}"
+            )
+            raise Exception("Library API request timed out")
 
         if response.status_code != 200:
             settings.LOGGER.error(

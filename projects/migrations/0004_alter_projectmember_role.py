@@ -6,13 +6,26 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0003_alter_projectmember_role'),
+        ("projects", "0003_alter_projectmember_role"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='projectmember',
-            name='role',
-            field=models.CharField(choices=[('supervising', 'Project Leader'), ('research', 'Science Support'), ('technical', 'Technical Support'), ('externalcol', 'External Collaborator'), ('externalpeer', 'External Peer'), ('academicsuper', 'Academic Supervisor'), ('student', 'Supervised Student'), ('consulted', 'Consulted Peer'), ('group', 'Involved Group')], max_length=50),
+            model_name="projectmember",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("supervising", "Project Leader"),
+                    ("research", "Science Support"),
+                    ("technical", "Technical Support"),
+                    ("externalcol", "External Collaborator"),
+                    ("externalpeer", "External Peer"),
+                    ("academicsuper", "Academic Supervisor"),
+                    ("student", "Supervised Student"),
+                    ("consulted", "Consulted Peer"),
+                    ("group", "Involved Group"),
+                ],
+                max_length=50,
+            ),
         ),
     ]

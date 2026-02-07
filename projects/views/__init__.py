@@ -1,45 +1,46 @@
 """
 Project views
 """
-from .crud import Projects, ProjectDetails
-from .map import ProjectMap
-from .search import SmallProjectSearch, MyProjects
+
+from .admin import (
+    ProblematicProjects,
+    RemedyExternalLeaderProjects,
+    RemedyMemberlessProjects,
+    RemedyMultipleLeaderProjects,
+    RemedyNoLeaderProjects,
+    RemedyOpenClosed,
+    UnapprovedThisFY,
+)
+from .areas import AreasForProject, ProjectAreaDetail, ProjectAreas
+from .crud import ProjectDetails, Projects
 from .details import (
-    ProjectAdditional,
-    ProjectAdditionalDetail,
-    StudentProjectAdditional,
-    StudentProjectAdditionalDetail,
     ExternalProjectAdditional,
     ExternalProjectAdditionalDetail,
+    ProjectAdditional,
+    ProjectAdditionalDetail,
     SelectedProjectAdditionalDetail,
-)
-from .members import (
-    ProjectMembers,
-    ProjectMemberDetail,
-    ProjectLeaderDetail,
-    MembersForProject,
-    PromoteToLeader,
-)
-from .areas import ProjectAreas, ProjectAreaDetail, AreasForProject
-from .admin import (
-    UnapprovedThisFY,
-    ProblematicProjects,
-    RemedyOpenClosed,
-    RemedyMemberlessProjects,
-    RemedyNoLeaderProjects,
-    RemedyMultipleLeaderProjects,
-    RemedyExternalLeaderProjects,
+    StudentProjectAdditional,
+    StudentProjectAdditionalDetail,
 )
 from .export import DownloadAllProjectsAsCSV, DownloadARProjectsAsCSV
+from .map import ProjectMap
+from .members import (
+    MembersForProject,
+    ProjectLeaderDetail,
+    ProjectMemberDetail,
+    ProjectMembers,
+    PromoteToLeader,
+)
+from .search import MyProjects, SmallProjectSearch
 from .utils import (
-    ProjectYears,
-    SuspendProject,
-    ProjectDocs,
-    ToggleUserProfileVisibilityForProject,
     CoreFunctionProjects,
+    ExternalProjects,
+    ProjectDocs,
+    ProjectYears,
     ScienceProjects,
     StudentProjects,
-    ExternalProjects,
+    SuspendProject,
+    ToggleUserProfileVisibilityForProject,
 )
 
 __all__ = [

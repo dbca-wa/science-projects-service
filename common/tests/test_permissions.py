@@ -1,7 +1,7 @@
 """
 Tests for common permission classes
 """
-import pytest
+
 from unittest.mock import Mock
 
 from common.permissions.base import IsAdminUser, IsOwnerOrAdmin
@@ -15,10 +15,10 @@ class TestIsAdminUser:
         # Arrange
         request = Mock(user=superuser)
         permission = IsAdminUser()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is True
 
@@ -27,10 +27,10 @@ class TestIsAdminUser:
         # Arrange
         request = Mock(user=user)
         permission = IsAdminUser()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -39,10 +39,10 @@ class TestIsAdminUser:
         # Arrange
         request = Mock(user=None)
         permission = IsAdminUser()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -52,10 +52,10 @@ class TestIsAdminUser:
         request = Mock(user=superuser)
         permission = IsAdminUser()
         obj = Mock()
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is True
 
@@ -65,10 +65,10 @@ class TestIsAdminUser:
         request = Mock(user=user)
         permission = IsAdminUser()
         obj = Mock()
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is False
 
@@ -78,10 +78,10 @@ class TestIsAdminUser:
         request = Mock(user=None)
         permission = IsAdminUser()
         obj = Mock()
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is False
 
@@ -95,10 +95,10 @@ class TestIsOwnerOrAdmin:
         request = Mock(user=superuser)
         permission = IsOwnerOrAdmin()
         obj = Mock(user=user)  # Object owned by different user
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is True
 
@@ -108,10 +108,10 @@ class TestIsOwnerOrAdmin:
         request = Mock(user=user)
         permission = IsOwnerOrAdmin()
         obj = Mock(user=user)
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is True
 
@@ -120,15 +120,15 @@ class TestIsOwnerOrAdmin:
         # Arrange
         request = Mock(user=user)
         permission = IsOwnerOrAdmin()
-        obj = Mock(spec=['owner'])
+        obj = Mock(spec=["owner"])
         obj.owner = user
         # Remove user attribute to test owner fallback
-        if hasattr(obj, 'user'):
-            delattr(obj, 'user')
-        
+        if hasattr(obj, "user"):
+            delattr(obj, "user")
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is True
 
@@ -136,15 +136,16 @@ class TestIsOwnerOrAdmin:
         """Test non-owner does not have permission"""
         # Arrange
         from common.tests.factories import UserFactory
+
         other_user = UserFactory()
-        
+
         request = Mock(user=user)
         permission = IsOwnerOrAdmin()
         obj = Mock(user=other_user)
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is False
 
@@ -154,10 +155,10 @@ class TestIsOwnerOrAdmin:
         request = Mock(user=user)
         permission = IsOwnerOrAdmin()
         obj = Mock(spec=[])  # Object with no user or owner attribute
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is False
 
@@ -165,14 +166,15 @@ class TestIsOwnerOrAdmin:
         """Test user attribute is checked before owner attribute"""
         # Arrange
         from common.tests.factories import UserFactory
+
         other_user = UserFactory()
-        
+
         request = Mock(user=user)
         permission = IsOwnerOrAdmin()
         obj = Mock(user=user, owner=other_user)  # user matches, owner doesn't
-        
+
         # Act
         result = permission.has_object_permission(request, None, obj)
-        
+
         # Assert
         assert result is True  # Should match on user attribute

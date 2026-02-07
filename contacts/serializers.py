@@ -1,10 +1,12 @@
 # region IMPORTS ====================================================================================================
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
+
 from agencies.models import Agency, Branch
-from agencies.serializers import TinyBranchSerializer, TinyAgencySerializer
-from .models import Address, AgencyContact, UserContact, BranchContact
+from agencies.serializers import TinyAgencySerializer, TinyBranchSerializer
 from users.serializers import TinyUserSerializer
+
+from .models import Address, AgencyContact, BranchContact, UserContact
 
 User = get_user_model()
 
@@ -105,13 +107,12 @@ class UserContactSerializer(serializers.ModelSerializer):
 
 class UserContactCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating user contacts"""
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all()
-    )
-    
+
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
     class Meta:
         model = UserContact
-        fields = ['id', 'user', 'email', 'phone', 'alt_phone', 'fax']
+        fields = ["id", "user", "email", "phone", "alt_phone", "fax"]
 
 
 class TinyAgencyContactSerializer(serializers.ModelSerializer):
@@ -139,13 +140,12 @@ class AgencyContactSerializer(serializers.ModelSerializer):
 
 class AgencyContactCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating agency contacts"""
-    agency = serializers.PrimaryKeyRelatedField(
-        queryset=Agency.objects.all()
-    )
-    
+
+    agency = serializers.PrimaryKeyRelatedField(queryset=Agency.objects.all())
+
     class Meta:
         model = AgencyContact
-        fields = ['id', 'agency', 'email', 'phone', 'alt_phone', 'fax', 'address']
+        fields = ["id", "agency", "email", "phone", "alt_phone", "fax", "address"]
 
 
 class TinyBranchContactSerializer(serializers.ModelSerializer):
@@ -173,13 +173,12 @@ class BranchContactSerializer(serializers.ModelSerializer):
 
 class BranchContactCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating branch contacts"""
-    branch = serializers.PrimaryKeyRelatedField(
-        queryset=Branch.objects.all()
-    )
-    
+
+    branch = serializers.PrimaryKeyRelatedField(queryset=Branch.objects.all())
+
     class Meta:
         model = BranchContact
-        fields = ['id', 'branch', 'email', 'phone', 'alt_phone', 'fax', 'address']
+        fields = ["id", "branch", "email", "phone", "alt_phone", "fax", "address"]
 
 
 # endregion  =================================================================================================

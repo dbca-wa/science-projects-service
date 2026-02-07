@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0019_publicstaffprofile_custom_title'),
+        ("users", "0019_publicstaffprofile_custom_title"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='publicstaffprofile',
-            name='custom_title_on',
-            field=models.BooleanField(default=False, help_text='Whether to display the custom title on the public profile.'),
+            model_name="publicstaffprofile",
+            name="custom_title_on",
+            field=models.BooleanField(
+                default=False,
+                help_text="Whether to display the custom title on the public profile.",
+            ),
         ),
     ]

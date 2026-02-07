@@ -44,8 +44,67 @@ factory-boy = "^3.3.0"
 faker = "^40.0.0"
 pytest-mock = "^3.12.0"
 pytest-split = "^0.11.0"
+pre-commit = "^4.0.0"
+black = "^24.10.0"
+isort = "^5.13.2"
+flake8 = "^7.1.1"
+bandit = "^1.8.0"
+autoflake = "^2.3.1"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+# Black configuration
+[tool.black]
+line-length = 88
+target-version = ['py313']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+skip_glob = ["*/migrations/*", "*/venv/*", "*/.venv/*"]
+
+# Bandit configuration
+[tool.bandit]
+exclude_dirs = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/migrations/*",
+    "*/.venv/*",
+    "*/venv/*",
+    "_refactor_archive"  # Exclude old archived code
+]
+# Skip low-priority warnings and false positives:
+# B101: assert_used (common in Django/tests)
+# B601: shell_injection (parameterized shell calls are safe)
+# B404: subprocess import (legitimate use for PDF generation)
+# B607: partial executable path (prince PDF generator is trusted)
+# B603: subprocess without shell (safe usage without shell=True)
+# B105: hardcoded password (false positive for rate limit strings like '3/hour')
+skips = ["B101", "B601", "B404", "B607", "B603", "B105"]

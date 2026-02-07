@@ -1,77 +1,75 @@
 """
 Project serializers
 """
+
+# Project area serializers
+from .areas import ProjectAreaSerializer
+
 # Base project serializers
 from .base import (
     CreateProjectSerializer,
+    PkAndKindOnlyProjectSerializer,
+    ProblematicProjectSerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
     TinyProjectSerializer,
-    ProblematicProjectSerializer,
     UserProfileProjectSerializer,
-    PkAndKindOnlyProjectSerializer,
 )
 
 # Project details serializers
 from .details import (
+    ExternalProjectDetailSerializer,
     ProjectDetailSerializer,
     ProjectDetailViewSerializer,
-    TinyProjectDetailSerializer,
     StudentProjectDetailSerializer,
-    TinyStudentProjectDetailSerializer,
-    ExternalProjectDetailSerializer,
     TinyExternalProjectDetailSerializer,
-)
-
-# Project member serializers
-from .members import (
-    ProjectMemberSerializer,
-    TinyProjectMemberSerializer,
-    MiniProjectMemberSerializer,
-    MiniUserSerializer,
-)
-
-# Project area serializers
-from .areas import (
-    ProjectAreaSerializer,
+    TinyProjectDetailSerializer,
+    TinyStudentProjectDetailSerializer,
 )
 
 # Export serializers
 from .export import (
-    ARProjectSerializer,
     ARExternalProjectSerializer,
-    TinyStudentProjectARSerializer,
+    ARProjectSerializer,
     ProjectDataTableSerializer,
+    TinyStudentProjectARSerializer,
+)
+
+# Project member serializers
+from .members import (
+    MiniProjectMemberSerializer,
+    MiniUserSerializer,
+    ProjectMemberSerializer,
+    TinyProjectMemberSerializer,
 )
 
 __all__ = [
     # Base
-    'CreateProjectSerializer',
-    'ProjectSerializer',
-    'ProjectUpdateSerializer',
-    'TinyProjectSerializer',
-    'ProblematicProjectSerializer',
-    'UserProfileProjectSerializer',
-    'PkAndKindOnlyProjectSerializer',
+    "CreateProjectSerializer",
+    "ProjectSerializer",
+    "ProjectUpdateSerializer",
+    "TinyProjectSerializer",
+    "ProblematicProjectSerializer",
+    "UserProfileProjectSerializer",
+    "PkAndKindOnlyProjectSerializer",
     # Details
-    'ProjectDetailSerializer',
-    'ProjectDetailViewSerializer',
-    'TinyProjectDetailSerializer',
-    'StudentProjectDetailSerializer',
-    'TinyStudentProjectDetailSerializer',
-    'ExternalProjectDetailSerializer',
-    'TinyExternalProjectDetailSerializer',
+    "ProjectDetailSerializer",
+    "ProjectDetailViewSerializer",
+    "TinyProjectDetailSerializer",
+    "StudentProjectDetailSerializer",
+    "TinyStudentProjectDetailSerializer",
+    "ExternalProjectDetailSerializer",
+    "TinyExternalProjectDetailSerializer",
     # Members
-    'ProjectMemberSerializer',
-    'TinyProjectMemberSerializer',
-    'MiniProjectMemberSerializer',
-    'MiniUserSerializer',
+    "ProjectMemberSerializer",
+    "TinyProjectMemberSerializer",
+    "MiniProjectMemberSerializer",
+    "MiniUserSerializer",
     # Areas
-    'ProjectAreaSerializer',
+    "ProjectAreaSerializer",
     # Export
-    'ARProjectSerializer',
-    'ARExternalProjectSerializer',
-    'TinyStudentProjectARSerializer',
-    'ProjectDataTableSerializer',
+    "ARProjectSerializer",
+    "ARExternalProjectSerializer",
+    "TinyStudentProjectARSerializer",
+    "ProjectDataTableSerializer",
 ]
-

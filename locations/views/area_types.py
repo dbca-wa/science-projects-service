@@ -1,17 +1,19 @@
 """
 Area type views - List areas by type
 """
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.status import HTTP_200_OK
 
-from locations.services import AreaService
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK
+from rest_framework.views import APIView
+
 from locations.serializers import TinyAreaSerializer
+from locations.services import AreaService
 
 
 class DBCADistricts(APIView):
     """List DBCA districts"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -23,6 +25,7 @@ class DBCADistricts(APIView):
 
 class DBCARegions(APIView):
     """List DBCA regions"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -34,6 +37,7 @@ class DBCARegions(APIView):
 
 class Imcras(APIView):
     """List IMCRA areas"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -45,6 +49,7 @@ class Imcras(APIView):
 
 class Ibras(APIView):
     """List IBRA areas"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -56,6 +61,7 @@ class Ibras(APIView):
 
 class Nrms(APIView):
     """List NRM areas"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

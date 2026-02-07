@@ -1,9 +1,7 @@
 # region IMPORTS ====================================================================================================
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -11,8 +9,10 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from users.models import User
+
 from ..models import Division
 from ..serializers import DivisionSerializer, TinyDivisionSerializer
 from ..services.agency_service import AgencyService
@@ -22,7 +22,7 @@ from ..services.agency_service import AgencyService
 
 class Divisions(APIView):
     """List and create divisions"""
-    
+
     def get(self, request):
         divisions = Division.objects.all()
         serializer = TinyDivisionSerializer(divisions, many=True)
@@ -31,7 +31,7 @@ class Divisions(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a division")
         serializer = DivisionSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             division = serializer.save()
             return Response(
@@ -45,7 +45,7 @@ class Divisions(APIView):
 
 class DivisionDetail(APIView):
     """Retrieve, update, and delete division"""
-    
+
     def get(self, request, pk):
         division = AgencyService.get_division(pk)
         serializer = DivisionSerializer(division)
@@ -54,13 +54,13 @@ class DivisionDetail(APIView):
     def put(self, request, pk):
         division = AgencyService.get_division(pk)
         settings.LOGGER.info(f"{request.user} is updating division {division}")
-        
+
         serializer = DivisionSerializer(
             division,
             data=request.data,
             partial=True,
         )
-        
+
         if serializer.is_valid():
             updated_division = serializer.save()
             return Response(
@@ -80,7 +80,7 @@ class DivisionDetail(APIView):
 
 class DivisionEmailList(APIView):
     """Manage division email list"""
-    
+
     def get_user(self, pk):
         try:
             return User.objects.get(pk=pk)

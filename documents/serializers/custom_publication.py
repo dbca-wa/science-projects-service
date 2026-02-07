@@ -1,14 +1,17 @@
 """
 Custom publication serializers
 """
+
 from rest_framework import serializers
 
-from ..models import CustomPublication
 from users.serializers import TinyUserSerializer
+
+from ..models import CustomPublication
 
 
 class TinyCustomPublicationSerializer(serializers.ModelSerializer):
     """Minimal custom publication serializer"""
+
     creator = TinyUserSerializer(read_only=True)
 
     class Meta:
@@ -23,6 +26,7 @@ class TinyCustomPublicationSerializer(serializers.ModelSerializer):
 
 class CustomPublicationSerializer(serializers.ModelSerializer):
     """Standard custom publication serializer"""
+
     creator = TinyUserSerializer(read_only=True)
 
     class Meta:
@@ -32,7 +36,7 @@ class CustomPublicationSerializer(serializers.ModelSerializer):
 
 class CustomPublicationCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating custom publications"""
-    
+
     class Meta:
         model = CustomPublication
         fields = [
@@ -44,7 +48,7 @@ class CustomPublicationCreateSerializer(serializers.ModelSerializer):
 
 class CustomPublicationUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating custom publications"""
-    
+
     class Meta:
         model = CustomPublication
         fields = [
@@ -56,6 +60,7 @@ class CustomPublicationUpdateSerializer(serializers.ModelSerializer):
 
 class PublicationDocSerializer(serializers.Serializer):
     """Serializer for library publication documents"""
+
     DocId = serializers.CharField(allow_blank=True, required=False, default="")
     BiblioText = serializers.CharField(allow_blank=True, required=False, default="")
     staff_only = serializers.BooleanField(required=False, default=False)
@@ -90,6 +95,7 @@ class PublicationDocSerializer(serializers.Serializer):
 
 class LibraryPublicationResponseSerializer(serializers.Serializer):
     """Serializer for library publication API response"""
+
     numFound = serializers.IntegerField(required=False, default=0)
     start = serializers.IntegerField(required=False, default=0)
     numFoundExact = serializers.BooleanField(required=False, default=True)
@@ -100,6 +106,7 @@ class LibraryPublicationResponseSerializer(serializers.Serializer):
 
 class PublicationResponseSerializer(serializers.Serializer):
     """Serializer for combined publication response (library + custom)"""
+
     staffProfilePk = serializers.IntegerField()
     libraryData = LibraryPublicationResponseSerializer()
     customPublications = CustomPublicationSerializer(many=True)

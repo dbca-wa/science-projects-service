@@ -6,28 +6,42 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0005_alter_project_title'),
+        ("projects", "0005_alter_project_title"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='externalprojectdetails',
-            name='aims',
-            field=models.CharField(blank=True, default='<p>NO AIMS SET</p>', max_length=5000, null=True),
+            model_name="externalprojectdetails",
+            name="aims",
+            field=models.CharField(
+                blank=True, default="<p>NO AIMS SET</p>", max_length=5000, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='externalprojectdetails',
-            name='budget',
-            field=models.CharField(blank=True, default='<p>NO BUDGET SET</p>', max_length=1000, null=True),
+            model_name="externalprojectdetails",
+            name="budget",
+            field=models.CharField(
+                blank=True, default="<p>NO BUDGET SET</p>", max_length=1000, null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='externalprojectdetails',
-            name='collaboration_with',
-            field=models.CharField(blank=True, default='<p>NO COLLABORATOR SET</p>', max_length=1500, null=True),
+            model_name="externalprojectdetails",
+            name="collaboration_with",
+            field=models.CharField(
+                blank=True,
+                default="<p>NO COLLABORATOR SET</p>",
+                max_length=1500,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='externalprojectdetails',
-            name='description',
-            field=models.CharField(blank=True, default='<p>NO DESCRIPTION SET</p>', max_length=10000, null=True),
+            model_name="externalprojectdetails",
+            name="description",
+            field=models.CharField(
+                blank=True,
+                default="<p>NO DESCRIPTION SET</p>",
+                max_length=10000,
+                null=True,
+            ),
         ),
     ]

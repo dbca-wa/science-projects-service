@@ -85,40 +85,40 @@
             border-top: 0.25pt solid #666;
 
         }
-        
+
         @page main_pages:left {
             @bottom-left {
                 content: counter(page, decimal);
-                padding: 0;   
+                padding: 0;
                 padding-bottom: 20px;
 
             }
             @bottom-right {
                 content: string(ch_title);
-                padding: 0;    
+                padding: 0;
                 padding-bottom: 20px;
                 font-weight: bold;
                 font-size: 12px;
             }
 
         }
-        
+
         @page main_pages:right {
             @bottom-right {
                 content: counter(page, decimal);
-                padding: 0;   
-                padding-bottom: 20px;            
+                padding: 0;
+                padding-bottom: 20px;
             }
 
             @bottom-left {
-                padding: 0;   
+                padding: 0;
                 padding-bottom: 20px;
-                content: string(ch_title); 
+                content: string(ch_title);
                 font-weight: bold;
                 font-size: 12px;
             }
 
-                        
+
             @top-left {
                 font-weight: bold;
                 font-size: 14px;
@@ -126,10 +126,10 @@
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
             }
-            
+
         }
 
-        
+
         {% comment %} TOC PAGES {% endcomment %}
         @page toc_pages {
             @bottom-right {
@@ -154,14 +154,14 @@
         @page toc_pages:left {
             @bottom-left {
                 content: counter(page, lower-roman);
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
             @bottom-right {
                 content: "Table of Contents";
                 font-weight: bold;
                 font-size: 12px;
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
             @top-left {
@@ -179,7 +179,7 @@
         @page toc_pages:right {
             @bottom-right {
                 content: counter(page, lower-roman);
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
 
@@ -187,7 +187,7 @@
                 content: "Table of Contents";
                 font-weight: bold;
                 font-size: 12px;
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
             @top-left {
@@ -201,7 +201,7 @@
             padding-top: 1.4cm;
         }
 
-        
+
         {% comment %} SDS {% endcomment %}
         @page sds {
             @bottom-left {
@@ -224,14 +224,14 @@
         @page sds:left {
             @bottom-left {
                 content: counter(page, decimal);
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
             @bottom-right {
                 content: "Service Delivery Structure";
                 font-weight: bold;
                 font-size: 12px;
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
         }
@@ -239,14 +239,14 @@
         @page sds:right {
             @bottom-right {
                 content: counter(page, decimal);
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
             @bottom-left {
                 content: "Service Delivery Structure";
                 font-weight: bold;
                 font-size: 12px;
-                padding: 0;        
+                padding: 0;
                 padding-bottom: 20px;
             }
         }
@@ -311,25 +311,25 @@
                 padding-bottom: 20px;
             }
             @bottom-right {
-                content: string(ch_title); 
+                content: string(ch_title);
                 font-size: 12px;
-                font-weight: bold;       
-                padding: 0;   
-                padding-bottom: 20px;      
+                font-weight: bold;
+                padding: 0;
+                padding-bottom: 20px;
             }
-            
+
             @top-right {
                 font-weight: bold;
                 font-size: 14px;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
                 padding-top: 0.2cm !important;
-                padding-bottom: 0cm !important;      
+                padding-bottom: 0cm !important;
             }
             @top-left {
                 content: flow(header-logo-left);
                 padding-top: 0cm !important;
-                padding-bottom: 0cm !important;            
+                padding-bottom: 0cm !important;
             }
         }
 
@@ -347,26 +347,26 @@
             }
 
             @bottom-left {
-                content: string(ch_title); 
+                content: string(ch_title);
                 font-size: 12px;
-                font-weight: bold;    
-                padding: 0;        
+                font-weight: bold;
+                padding: 0;
                 padding-bottom: 20px;
             }
-            
+
             @top-left {
                 font-weight: bold;
                 font-size: 14px;
                 z-index: 2;
                 content: "Annual Report {{financial_year_string}}";
                 padding-top: 0.2cm !important;
-                padding-bottom: 0cm !important;      
-            }         
+                padding-bottom: 0cm !important;
+            }
             @top-right {
                 content: flow(header-logo-right);
                 padding-top: 0cm !important;
-                padding-bottom: 0cm !important;         
-            }  
+                padding-bottom: 0cm !important;
+            }
         }
 
         @page ba_pages:first-of-group,
@@ -374,7 +374,7 @@
         student_projects_summary:first-of-group,
         sr_pages:first-of-group,
         publications:first-of-group,
-        research_projects_summary:first-of-group 
+        research_projects_summary:first-of-group
         {
             @top-right {
                 font-weight: bold;
@@ -383,10 +383,10 @@
                 z-index: 2;
                 color: orange;
                 content: " ";
-                background-image: none; 
-                background-size: contain; 
-                background-repeat: no-repeat; 
-                background-position: center; 
+                background-image: none;
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
                 height: 0%;
                 width: 0%;
             }
@@ -397,10 +397,10 @@
                 z-index: 2;
                 color: orange;
                 content: " ";
-                background-image: none; 
-                background-size: contain; 
-                background-repeat: no-repeat; 
-                background-position: center; 
+                background-image: none;
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
                 height: 0%;
                 width: 0%;
             }
@@ -410,7 +410,7 @@
             border-bottom: none !important;
             border-top: none !important;
         }
-       
+
         .track-page-number {
             position: absolute;
             top: 0;
@@ -455,7 +455,7 @@
 
         return subheadings;
     }
-    
+
     // Function to generate the table of contents
     function generateTableOfContents(elementType) {
         // Get the toc container
@@ -504,7 +504,7 @@
             tocList.appendChild(listItem);
 
             const subheadings = findSubheadingsFollowing(headings, i)
-            
+
             // If subheadings exist, create subitems for them
             if (subheadings.length > 0) {
                 const subList = document.createElement("ul");
@@ -514,7 +514,7 @@
                     const subheading = subheadings[j];
                     const subItem = document.createElement("li");
                     subItem.classList.add("toc_sub_list_item");
-    
+
                     const subcontentContainer = document.createElement("div");
                     subcontentContainer.classList.add("toc_li_content_container");
                     const subTextContainer = document.createElement("div");
@@ -541,11 +541,11 @@
                     subPageContainer.appendChild(subPageAnchor);
                     subcontentContainer.appendChild(subPageContainer);
 
-                
+
                     subItem.appendChild(subcontentContainer);
                     subList.appendChild(subItem);
                 }
-    
+
                 // Append the sublist to the current list item
                 const sublistContainer = document.createElement("li");
                 sublistContainer.classList.add("toc_sublist_container");
@@ -573,7 +573,7 @@
     } {% endcomment %}
     function removeInlineStyles(htmlContent) {
         if (!htmlContent) return "";
-        
+
         // Remove all HTML tags using regex
         return htmlContent
             .replace(/<[^>]*>/g, '') // Remove all HTML tags
@@ -596,7 +596,7 @@
         }
     }
 
-    
+
     function generateResearchSummaryPageNumbers() {
         // Establish dictionary for storing id links to jump to
         var pageNumbers = {};
@@ -618,14 +618,14 @@
             }
             pageNumbers[projectTitle] = pageNumberHref;
         })
-        
-        
+
+
         // Get the tables
         const tableBodies = Array.from(document.querySelectorAll('.ba_table_body'));
         // Loop through each table
         tableBodies.forEach(el => {
-            
-            const rows = Array.from(el.querySelectorAll('tr')); 
+
+            const rows = Array.from(el.querySelectorAll('tr'));
             rows.forEach(row => {
                 const titleCell = row.querySelector('.project_title_td');
                 const projectTitle = titleCell.textContent.trim();
@@ -650,30 +650,30 @@
         const studentTableBodies = Array.from(document.querySelectorAll('.student_table_body'));
             // Loop through each table
             studentTableBodies.forEach(el => {
-            
-                const rows = Array.from(el.querySelectorAll('tr')); 
+
+                const rows = Array.from(el.querySelectorAll('tr'));
                 rows.forEach(row => {
                     const titleCell = row.querySelector('.student_project_title_td');
                     const projectTitle = titleCell.textContent.trim();
                     // Establish the cell for page numbers (its a td with the class page_td)
                     const pageCell = row.querySelector('.page_td');
                     const pageNumberHref = pageNumbers[projectTitle];
-    
+
                     // Create and set the content for the pageCell
                     const textContainer = document.createElement("div");
                     textContainer.classList.add("table_page_number_text_container");
-    
+
                     const pagedAnchor = document.createElement("a");
                     pagedAnchor.classList.add("table_page_number")
                     pagedAnchor.href = '#' + pageNumberHref;
-    
+
                     textContainer.appendChild(pagedAnchor);
                     pageCell.appendChild(textContainer);
                 })
-    
+
             })
     }
-    
+
     function runLoad() {
         generateTableOfContents('h1');
         adjustBaFirstPage();
@@ -682,7 +682,7 @@
 </script>
 
 
-<body class="page_body" onload="runLoad()"> 
+<body class="page_body" onload="runLoad()">
     <img class="header-logo-left" src="{{dbca_image_path}}" alt="Header Logo Left" />
     <img class="header-logo-right" src="{{dbca_image_path}}" alt="Header Logo Right" />
 
@@ -704,10 +704,10 @@
                 <p class="cover_dept_text_1">Department of </p>
                 <p class="cover_dept_text_2">Biodiversity, Conservation and Attractions</p>
                 <p class="cover_dept_text_3">Biodiversity and Conservation Science<br/>Annual Report</p>
-                <p class="cover_year_text">{{financial_year_string}}</p>    
+                <p class="cover_year_text">{{financial_year_string}}</p>
             </div>
             <div class="cover_logo_container">
-                <img class="cover_logo" alt="DBCA BCS Image" 
+                <img class="cover_logo" alt="DBCA BCS Image"
                 src="{{dbca_image_path}}"/>
             </div>
         </div>
@@ -741,8 +741,8 @@
                 </ol>
                 {% comment %} TOC HERE {% endcomment %}
             </div>
-        </div> 
-    
+        </div>
+
     </div>
 
     {% comment %} MAIN PAGINATION {% endcomment %}
@@ -750,13 +750,13 @@
 
     {% comment %} SDS CHAPTER {% endcomment %}
         <div class="section_container sds">
-            
+
             <div class="chapter_container">
                 <div class="chapter_title_container">
                     <div class="generic_chapter_image_container">
-                        <img 
+                        <img
                             class="generic_chapter_image"
-                            alt="Service Delivery Structure Chapter Image" 
+                            alt="Service Delivery Structure Chapter Image"
                             src="{{sds_data.chapter_image}}"
                         />
                     </div>
@@ -764,10 +764,10 @@
                         <h1 id="sdschaptertext" class="chapter_title_text">Service Delivery Structure</h1>
                     </div>
                 </div>
-                <div class="section_content_container"> 
+                <div class="section_content_container">
                     {% comment %} SDS CHART {% endcomment %}
                     <div class="sds_chart_image_container">
-                        <img class="sds_chart_image" alt="BCS SDS Chart Image" 
+                        <img class="sds_chart_image" alt="BCS SDS Chart Image"
                         src="{{server_url}}{{sds_data.chart}}"/>
                     </div>
                     {% comment %} SDS INTRO {% endcomment %}
@@ -792,9 +792,9 @@
 
                     <div class="ba_chapter_title_container ">
                         <div class="chapter_image_container">
-                            <img 
+                            <img
                                 class="chapter_image"
-                                alt="{{ba_item.ba_name}} Image" 
+                                alt="{{ba_item.ba_name}} Image"
                                 src="{{server_url}}{{ba_item.ba_image.file}}"
                             />
                         </div>
@@ -803,7 +803,7 @@
                         </div>
                     </div>
 
-                    <div class="section_content_container"> 
+                    <div class="section_content_container">
                         <div class="ba_lead_text_container">
                             <span>
                                 <p class="ba_leader_text">Program Leader: {{ba_item.ba_leader}}</p>
@@ -837,7 +837,7 @@
                                                 <p class="pr_member_string">{% for item in report.team_members|dictsort:"position" %}{% if item.role == "supervising" or item.role == "research" or item.role == "technical" %}{% if not forloop.first %}, {% endif %}{{ item.user.display_first_name|slice:":1" }} {{ item.user.display_last_name }}{% endif %}{% endfor %}</p>
                                             </div>
                                         </div>
-                                    </div> 
+                                    </div>
                                     {% comment %} <div class="pr_top_filler"> {% endcomment %}
                                         {% comment %} <p class="small_text">spacer</p>
                                         <p class="small_text">spacer</p> {% endcomment %}
@@ -909,9 +909,9 @@
 
                 <div class="chapter_title_container">
                     <div class="generic_chapter_image_container">
-                        <img 
+                        <img
                             class="generic_chapter_image"
-                            alt="Service Delivery Structure Chapter Image" 
+                            alt="Service Delivery Structure Chapter Image"
                             src="{{sds_data.chapter_image}}"
                         />
                     </div>
@@ -920,7 +920,7 @@
                     </div>
                 </div>
 
-                <div class="section_content_container"> 
+                <div class="section_content_container">
                     <div class="ext_table_section_container">
                         <div class="ext_table_container">
                             <table class="ext_table">
@@ -964,9 +964,9 @@
 
                 <div class="chapter_title_container">
                     <div class="generic_chapter_image_container">
-                        <img 
+                        <img
                             class="generic_chapter_image"
-                            alt="Student Projects Image" 
+                            alt="Student Projects Image"
                             src="{{generic_chapter_image_path}}"
                         />
                     </div>
@@ -974,7 +974,7 @@
                         <h1 id="studentprojects" class="chapter_title_text">Student Projects</h1>
                     </div>
                 </div>
-                <div class="section_content_container"> 
+                <div class="section_content_container">
                         <div class="sr_table_section_container">
                             <div class="sr_table_container">
                                 <table class="sr_table">
@@ -1014,9 +1014,9 @@
             <div class="ba_chapter_container">
                 <div class="chapter_title_container">
                     <div class="generic_chapter_image_container">
-                        <img 
+                        <img
                             class="generic_chapter_image"
-                            alt="Student Project Reports" 
+                            alt="Student Project Reports"
                             src="{{generic_chapter_image_path}}"
                         />
                     </div>
@@ -1024,7 +1024,7 @@
                         <h1 id="studentreports" class="chapter_title_text">Student Project Reports</h1>
                     </div>
                 </div>
-                <div class="section_content_container"> 
+                <div class="section_content_container">
                     {% for report in sorted_student_report_array %}
                         <div class="progress_report_container">
                             <div class="progress_report_top_container">
@@ -1095,9 +1095,9 @@
 
                 <div class="chapter_title_container">
                     <div class="generic_chapter_image_container">
-                        <img 
+                        <img
                             class="generic_chapter_image"
-                            alt="Publications Image" 
+                            alt="Publications Image"
                             src="{{generic_chapter_image_path}}"
                         />
                     </div>
@@ -1105,7 +1105,7 @@
                         <h1 id="publications" class="chapter_title_text">Publications and Reports</h1>
                     </div>
                 </div>
-                <div class="section_content_container publications_div"> 
+                <div class="section_content_container publications_div">
                     {{publications_data | safe}}
                 </div>
             </div>
@@ -1117,9 +1117,9 @@
             <div class="chapter_container">
                 <div class="chapter_title_container">
                     <div class="generic_chapter_image_container">
-                        <img 
+                        <img
                             class="generic_chapter_image"
-                            alt="Research Projects Image" 
+                            alt="Research Projects Image"
                             src="{{generic_chapter_image_path}}"
                         />
                     </div>
@@ -1128,7 +1128,7 @@
                     </div>
                 </div>
 
-                <div class="section_content_container"> 
+                <div class="section_content_container">
                     {% for ba_item in sorted_ba_data_and_pr_dict %}
                         <div class="ba_table_section_container">
                             <h3 class="ba_table_title">{{ba_item.ba_name}}</h3>
@@ -1148,7 +1148,7 @@
                                     {% for report in ba_item.progress_reports %}
                                         <tr class="ba_table_tr">
                                             <td class="project_title_td ba_table_td">{{report.document.project.title | extract_text_content | safe}}</td>
-                                           
+
                                             <td class="dbca_region_td ba_table_td">
                                                 {% with filtered_areas=report.project_areas.data.areas|filter_by_area:"dbcaregion" %}
                                                     {% for area in filtered_areas %}

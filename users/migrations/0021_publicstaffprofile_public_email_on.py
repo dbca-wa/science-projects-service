@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0020_publicstaffprofile_custom_title_on'),
+        ("users", "0020_publicstaffprofile_custom_title_on"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='publicstaffprofile',
-            name='public_email_on',
-            field=models.BooleanField(default=False, help_text='Whether to display the public email on the public profile.'),
+            model_name="publicstaffprofile",
+            name="public_email_on",
+            field=models.BooleanField(
+                default=False,
+                help_text="Whether to display the public email on the public profile.",
+            ),
         ),
     ]

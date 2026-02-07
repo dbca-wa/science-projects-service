@@ -6,12 +6,12 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('adminoptions', '0005_alter_admintask_options_admintask_end_date_and_more'),
+        ("adminoptions", "0005_alter_admintask_options_admintask_end_date_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='admintask',
-            name='reasoning',
+            model_name="admintask",
+            name="reasoning",
         ),
     ]

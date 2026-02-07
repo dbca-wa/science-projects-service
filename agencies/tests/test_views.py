@@ -1,12 +1,12 @@
 """
 Tests for agencies views
 """
+
 import pytest
-from rest_framework.test import APIClient
 from rest_framework import status
+from rest_framework.test import APIClient
 
 from agencies.models import Affiliation, Agency
-from agencies.services.agency_service import AgencyService
 from common.tests.test_helpers import agencies_urls
 
 
@@ -23,20 +23,20 @@ class TestAffiliations:
         """Test listing all affiliations"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('affiliations'))
-        
+        response = api_client.get(agencies_urls.path("affiliations"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == affiliation.name
+        assert response.data[0]["name"] == affiliation.name
 
     def test_list_affiliations_unauthenticated(self, api_client, db):
         """Test listing affiliations without authentication"""
         # Act
-        response = api_client.get(agencies_urls.path('affiliations'))
-        
+        response = api_client.get(agencies_urls.path("affiliations"))
+
         # Assert
         # DRF returns 403 (Forbidden) when no authentication is provided
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -47,17 +47,19 @@ class TestAffiliations:
         Affiliation.objects.create(name="Test Affiliation")
         Affiliation.objects.create(name="Another Affiliation")
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(f"{agencies_urls.path('affiliations')}?searchTerm=Test")
-        
+        response = api_client.get(
+            f"{agencies_urls.path('affiliations')}?searchTerm=Test"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'affiliations' in response.data
-        assert 'total_results' in response.data
-        assert 'total_pages' in response.data
-        assert response.data['total_results'] == 1
-        assert response.data['affiliations'][0]['name'] == "Test Affiliation"
+        assert "affiliations" in response.data
+        assert "total_results" in response.data
+        assert "total_pages" in response.data
+        assert response.data["total_results"] == 1
+        assert response.data["affiliations"][0]["name"] == "Test Affiliation"
 
     def test_list_affiliations_with_search_pagination(self, api_client, user, db):
         """Test listing affiliations with search and pagination"""
@@ -65,27 +67,31 @@ class TestAffiliations:
         for i in range(15):
             Affiliation.objects.create(name=f"Test Affiliation {i}")
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(f"{agencies_urls.path('affiliations')}?searchTerm=Test&page=2")
-        
+        response = api_client.get(
+            f"{agencies_urls.path('affiliations')}?searchTerm=Test&page=2"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'affiliations' in response.data
-        assert response.data['total_results'] == 15
+        assert "affiliations" in response.data
+        assert response.data["total_results"] == 15
 
     def test_create_affiliation(self, api_client, user, db):
         """Test creating affiliation"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "New Affiliation"}
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('affiliations'), data, format='json')
-        
+        response = api_client.post(
+            agencies_urls.path("affiliations"), data, format="json"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['name'] == "New Affiliation"
+        assert response.data["name"] == "New Affiliation"
         assert Affiliation.objects.filter(name="New Affiliation").exists()
 
     def test_create_affiliation_invalid_data(self, api_client, user, db):
@@ -93,10 +99,12 @@ class TestAffiliations:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {}  # Missing required 'name' field
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('affiliations'), data, format='json')
-        
+        response = api_client.post(
+            agencies_urls.path("affiliations"), data, format="json"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -108,22 +116,22 @@ class TestAffiliationDetail:
         """Test getting affiliation detail"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('affiliations', affiliation.id))
-        
+        response = api_client.get(agencies_urls.path("affiliations", affiliation.id))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == affiliation.name
+        assert response.data["name"] == affiliation.name
 
     def test_get_affiliation_pk_zero(self, api_client, user, db):
         """Test getting affiliation with pk=0"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('affiliations', 0))
-        
+        response = api_client.get(agencies_urls.path("affiliations", 0))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
 
@@ -131,10 +139,10 @@ class TestAffiliationDetail:
         """Test getting non-existent affiliation"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('affiliations', 999))
-        
+        response = api_client.get(agencies_urls.path("affiliations", 999))
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -143,17 +151,15 @@ class TestAffiliationDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "Updated Affiliation"}
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('affiliations', affiliation.id),
-            data,
-            format='json'
+            agencies_urls.path("affiliations", affiliation.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['name'] == "Updated Affiliation"
+        assert response.data["name"] == "Updated Affiliation"
         affiliation.refresh_from_db()
         assert affiliation.name == "Updated Affiliation"
 
@@ -162,14 +168,12 @@ class TestAffiliationDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": ""}  # Empty name
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('affiliations', affiliation.id),
-            data,
-            format='json'
+            agencies_urls.path("affiliations", affiliation.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -178,13 +182,13 @@ class TestAffiliationDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         affiliation_id = affiliation.id
-        
+
         # Act
-        response = api_client.delete(agencies_urls.path('affiliations', affiliation_id))
-        
+        response = api_client.delete(agencies_urls.path("affiliations", affiliation_id))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'message' in response.data
+        assert "message" in response.data
         assert not Affiliation.objects.filter(id=affiliation_id).exists()
 
 
@@ -195,29 +199,31 @@ class TestAffiliationsMerge:
         """Test merging affiliations"""
         # Arrange
         from users.models import UserWork
-        
+
         primary = Affiliation.objects.create(name="Primary Affiliation")
         secondary = Affiliation.objects.create(name="Secondary Affiliation")
-        
+
         # Create UserWork with secondary affiliation
         UserWork.objects.create(
             user=user,
             affiliation=secondary,  # Use the object, not the ID
             role="Test Role",
         )
-        
+
         api_client.force_authenticate(user=user)
         data = {
             "primaryAffiliation": {"pk": primary.id},
-            "secondaryAffiliations": [{"pk": secondary.id}]
+            "secondaryAffiliations": [{"pk": secondary.id}],
         }
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('affiliations', 'merge'), data, format='json')
-        
+        response = api_client.post(
+            agencies_urls.path("affiliations", "merge"), data, format="json"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['message'] == "Merged!"
+        assert response.data["message"] == "Merged!"
         assert not Affiliation.objects.filter(id=secondary.id).exists()
 
 
@@ -230,14 +236,14 @@ class TestAffiliationsCleanOrphaned:
         Affiliation.objects.create(name="Orphan 1")
         Affiliation.objects.create(name="Orphan 2")
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('affiliations', 'clean_orphaned'))
-        
+        response = api_client.post(agencies_urls.path("affiliations", "clean_orphaned"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'deleted_count' in response.data
-        assert response.data['deleted_count'] == 2
+        assert "deleted_count" in response.data
+        assert response.data["deleted_count"] == 2
 
 
 class TestAgencies:
@@ -247,20 +253,20 @@ class TestAgencies:
         """Test listing all agencies"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(agencies_urls.list())
-        
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == agency.name
+        assert response.data[0]["name"] == agency.name
 
     def test_list_agencies_unauthenticated(self, api_client, db):
         """Test listing agencies without authentication"""
         # Act
         response = api_client.get(agencies_urls.list())
-        
+
         # Assert
         # DRF returns 403 (Forbidden) when no authentication is provided
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -274,13 +280,13 @@ class TestAgencies:
             "key_stakeholder": user.id,
             "is_active": True,
         }
-        
+
         # Act
-        response = api_client.post(agencies_urls.list(), data, format='json')
-        
+        response = api_client.post(agencies_urls.list(), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['name'] == "New Agency"
+        assert response.data["name"] == "New Agency"
         assert Agency.objects.filter(name="New Agency").exists()
 
     def test_create_agency_invalid_data(self, api_client, user, db):
@@ -288,10 +294,10 @@ class TestAgencies:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {}  # Missing required 'name' field
-        
+
         # Act
-        response = api_client.post(agencies_urls.list(), data, format='json')
-        
+        response = api_client.post(agencies_urls.list(), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -303,22 +309,22 @@ class TestAgencyDetail:
         """Test getting agency detail"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(agencies_urls.detail(agency.id))
-        
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == agency.name
+        assert response.data["name"] == agency.name
 
     def test_get_agency_not_found(self, api_client, user, db):
         """Test getting non-existent agency"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(agencies_urls.detail(999))
-        
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -327,17 +333,13 @@ class TestAgencyDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "Updated Agency"}
-        
+
         # Act
-        response = api_client.put(
-            agencies_urls.detail(agency.id),
-            data,
-            format='json'
-        )
-        
+        response = api_client.put(agencies_urls.detail(agency.id), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['name'] == "Updated Agency"
+        assert response.data["name"] == "Updated Agency"
         agency.refresh_from_db()
         assert agency.name == "Updated Agency"
 
@@ -346,14 +348,10 @@ class TestAgencyDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": ""}  # Empty name
-        
+
         # Act
-        response = api_client.put(
-            agencies_urls.detail(agency.id),
-            data,
-            format='json'
-        )
-        
+        response = api_client.put(agencies_urls.detail(agency.id), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -362,10 +360,10 @@ class TestAgencyDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         agency_id = agency.id
-        
+
         # Act
         response = api_client.delete(agencies_urls.detail(agency_id))
-        
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Agency.objects.filter(id=agency_id).exists()
@@ -378,33 +376,34 @@ class TestBranches:
         """Test listing all branches"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('branches'))
-        
+        response = api_client.get(agencies_urls.path("branches"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == branch.name
+        assert response.data[0]["name"] == branch.name
 
     def test_list_branches_with_search(self, api_client, user, db):
         """Test listing branches with search term"""
         # Arrange
         from agencies.models import Branch
+
         Branch.objects.create(name="Test Branch")
         Branch.objects.create(name="Another Branch")
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(f"{agencies_urls.path('branches')}?searchTerm=Test")
-        
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'branches' in response.data
-        assert 'total_results' in response.data
-        assert 'total_pages' in response.data
-        assert response.data['total_results'] == 1
-        assert response.data['branches'][0]['name'] == "Test Branch"
+        assert "branches" in response.data
+        assert "total_results" in response.data
+        assert "total_pages" in response.data
+        assert response.data["total_results"] == 1
+        assert response.data["branches"][0]["name"] == "Test Branch"
 
     def test_create_branch(self, api_client, user, agency, db):
         """Test creating branch"""
@@ -414,23 +413,23 @@ class TestBranches:
             "name": "New Branch",
             "agency": agency.id,
         }
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('branches'), data, format='json')
-        
+        response = api_client.post(agencies_urls.path("branches"), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['name'] == "New Branch"
+        assert response.data["name"] == "New Branch"
 
     def test_create_branch_invalid_data(self, api_client, user, db):
         """Test creating branch with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {}  # Missing required fields
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('branches'), data, format='json')
-        
+        response = api_client.post(agencies_urls.path("branches"), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -442,22 +441,22 @@ class TestBranchDetail:
         """Test getting branch detail"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('branches', branch.id))
-        
+        response = api_client.get(agencies_urls.path("branches", branch.id))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == branch.name
+        assert response.data["name"] == branch.name
 
     def test_get_branch_not_found(self, api_client, user, db):
         """Test getting non-existent branch"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('branches', 999))
-        
+        response = api_client.get(agencies_urls.path("branches", 999))
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -466,17 +465,15 @@ class TestBranchDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "Updated Branch"}
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('branches', branch.id),
-            data,
-            format='json'
+            agencies_urls.path("branches", branch.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['name'] == "Updated Branch"
+        assert response.data["name"] == "Updated Branch"
         branch.refresh_from_db()
         assert branch.name == "Updated Branch"
 
@@ -485,14 +482,12 @@ class TestBranchDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": ""}  # Empty name
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('branches', branch.id),
-            data,
-            format='json'
+            agencies_urls.path("branches", branch.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -501,13 +496,14 @@ class TestBranchDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         branch_id = branch.id
-        
+
         # Act
-        response = api_client.delete(agencies_urls.path('branches', branch_id))
-        
+        response = api_client.delete(agencies_urls.path("branches", branch_id))
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         from agencies.models import Branch
+
         assert not Branch.objects.filter(id=branch_id).exists()
 
 
@@ -518,14 +514,14 @@ class TestBusinessAreas:
         """Test listing all business areas"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('business_areas'))
-        
+        response = api_client.get(agencies_urls.path("business_areas"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == business_area.name
+        assert response.data[0]["name"] == business_area.name
 
     def test_create_business_area(self, api_client, user, agency, db):
         """Test creating business area"""
@@ -537,23 +533,27 @@ class TestBusinessAreas:
             "focus": "Test focus",
             "introduction": "Test introduction",
         }
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('business_areas'), data, format='json')
-        
+        response = api_client.post(
+            agencies_urls.path("business_areas"), data, format="json"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['name'] == "New Business Area"
+        assert response.data["name"] == "New Business Area"
 
     def test_create_business_area_invalid_data(self, api_client, user, db):
         """Test creating business area with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {}  # Missing required fields
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('business_areas'), data, format='json')
-        
+        response = api_client.post(
+            agencies_urls.path("business_areas"), data, format="json"
+        )
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -565,22 +565,24 @@ class TestBusinessAreaDetail:
         """Test getting business area detail"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('business_areas', business_area.id))
-        
+        response = api_client.get(
+            agencies_urls.path("business_areas", business_area.id)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == business_area.name
+        assert response.data["name"] == business_area.name
 
     def test_get_business_area_not_found(self, api_client, user, db):
         """Test getting non-existent business area"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('business_areas', 999))
-        
+        response = api_client.get(agencies_urls.path("business_areas", 999))
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -589,33 +591,31 @@ class TestBusinessAreaDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "Updated Business Area"}
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('business_areas', business_area.id),
-            data,
-            format='json'
+            agencies_urls.path("business_areas", business_area.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['name'] == "Updated Business Area"
+        assert response.data["name"] == "Updated Business Area"
         business_area.refresh_from_db()
         assert business_area.name == "Updated Business Area"
 
-    def test_update_business_area_invalid_data(self, api_client, user, business_area, db):
+    def test_update_business_area_invalid_data(
+        self, api_client, user, business_area, db
+    ):
         """Test updating business area with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": ""}  # Empty name
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('business_areas', business_area.id),
-            data,
-            format='json'
+            agencies_urls.path("business_areas", business_area.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -624,13 +624,16 @@ class TestBusinessAreaDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         business_area_id = business_area.id
-        
+
         # Act
-        response = api_client.delete(agencies_urls.path('business_areas', business_area_id))
-        
+        response = api_client.delete(
+            agencies_urls.path("business_areas", business_area_id)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         from agencies.models import BusinessArea
+
         assert not BusinessArea.objects.filter(id=business_area_id).exists()
 
 
@@ -643,23 +646,23 @@ class TestMyBusinessAreas:
         business_area.leader = user
         business_area.save()
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('business_areas', 'mine'))
-        
+        response = api_client.get(agencies_urls.path("business_areas", "mine"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == business_area.name
+        assert response.data[0]["name"] == business_area.name
 
     def test_get_my_business_areas_empty(self, api_client, user, db):
         """Test getting business areas when user leads none"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('business_areas', 'mine'))
-        
+        response = api_client.get(agencies_urls.path("business_areas", "mine"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 0
@@ -673,10 +676,12 @@ class TestSetBusinessAreaActive:
         # Arrange
         api_client.force_authenticate(user=user)
         original_status = business_area.is_active
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('business_areas', 'setactive', business_area.id))
-        
+        response = api_client.post(
+            agencies_urls.path("business_areas", "setactive", business_area.id)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
         business_area.refresh_from_db()
@@ -690,14 +695,14 @@ class TestDivisions:
         """Test listing all divisions"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('divisions'))
-        
+        response = api_client.get(agencies_urls.path("divisions"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == division.name
+        assert response.data[0]["name"] == division.name
 
     def test_create_division(self, api_client, user, db):
         """Test creating division"""
@@ -709,23 +714,23 @@ class TestDivisions:
             "director": user.id,
             "approver": user.id,
         }
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('divisions'), data, format='json')
-        
+        response = api_client.post(agencies_urls.path("divisions"), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['name'] == "New Division"
+        assert response.data["name"] == "New Division"
 
     def test_create_division_invalid_data(self, api_client, user, db):
         """Test creating division with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {}  # Missing required fields
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('divisions'), data, format='json')
-        
+        response = api_client.post(agencies_urls.path("divisions"), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -737,22 +742,22 @@ class TestDivisionDetail:
         """Test getting division detail"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('divisions', division.id))
-        
+        response = api_client.get(agencies_urls.path("divisions", division.id))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == division.name
+        assert response.data["name"] == division.name
 
     def test_get_division_not_found(self, api_client, user, db):
         """Test getting non-existent division"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('divisions', 999))
-        
+        response = api_client.get(agencies_urls.path("divisions", 999))
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -761,17 +766,15 @@ class TestDivisionDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "Updated Division"}
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('divisions', division.id),
-            data,
-            format='json'
+            agencies_urls.path("divisions", division.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['name'] == "Updated Division"
+        assert response.data["name"] == "Updated Division"
         division.refresh_from_db()
         assert division.name == "Updated Division"
 
@@ -780,14 +783,12 @@ class TestDivisionDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": ""}  # Empty name
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('divisions', division.id),
-            data,
-            format='json'
+            agencies_urls.path("divisions", division.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -796,13 +797,14 @@ class TestDivisionDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         division_id = division.id
-        
+
         # Act
-        response = api_client.delete(agencies_urls.path('divisions', division_id))
-        
+        response = api_client.delete(agencies_urls.path("divisions", division_id))
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         from agencies.models import Division
+
         assert not Division.objects.filter(id=division_id).exists()
 
 
@@ -813,48 +815,53 @@ class TestDivisionEmailList:
         """Test getting division email list"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('divisions', division.id, 'email_list'))
-        
+        response = api_client.get(
+            agencies_urls.path("divisions", division.id, "email_list")
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == division.name
+        assert response.data["name"] == division.name
 
     def test_update_division_email_list(self, api_client, user, division, db):
         """Test updating division email list"""
         # Arrange
         from common.tests.factories import UserFactory
+
         user1 = UserFactory()
         user2 = UserFactory()
         api_client.force_authenticate(user=user)
         data = {"usersList": [user1.id, user2.id]}
-        
+
         # Act
         response = api_client.post(
-            agencies_urls.path('divisions', division.id, 'email_list'),
+            agencies_urls.path("divisions", division.id, "email_list"),
             data,
-            format='json'
+            format="json",
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
         division.refresh_from_db()
         assert division.directorate_email_list.count() == 2
 
-    def test_update_division_email_list_invalid_user(self, api_client, user, division, db):
+    def test_update_division_email_list_invalid_user(
+        self, api_client, user, division, db
+    ):
         """Test updating division email list with invalid user ID"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"usersList": [999999]}  # Non-existent user
-        
+
         # Act
         response = api_client.post(
-            agencies_urls.path('divisions', division.id, 'email_list'),
+            agencies_urls.path("divisions", division.id, "email_list"),
             data,
-            format='json'
+            format="json",
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -866,14 +873,14 @@ class TestDepartmentalServices:
         """Test listing all departmental services"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('services'))
-        
+        response = api_client.get(agencies_urls.path("services"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
-        assert response.data[0]['name'] == departmental_service.name
+        assert response.data[0]["name"] == departmental_service.name
 
     def test_create_service(self, api_client, user, db):
         """Test creating departmental service"""
@@ -882,23 +889,23 @@ class TestDepartmentalServices:
         data = {
             "name": "New Service",
         }
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('services'), data, format='json')
-        
+        response = api_client.post(agencies_urls.path("services"), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['name'] == "New Service"
+        assert response.data["name"] == "New Service"
 
     def test_create_service_invalid_data(self, api_client, user, db):
         """Test creating departmental service with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {}  # Missing required fields
-        
+
         # Act
-        response = api_client.post(agencies_urls.path('services'), data, format='json')
-        
+        response = api_client.post(agencies_urls.path("services"), data, format="json")
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -910,22 +917,24 @@ class TestDepartmentalServiceDetail:
         """Test getting departmental service detail"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('services', departmental_service.id))
-        
+        response = api_client.get(
+            agencies_urls.path("services", departmental_service.id)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['name'] == departmental_service.name
+        assert response.data["name"] == departmental_service.name
 
     def test_get_service_not_found(self, api_client, user, db):
         """Test getting non-existent departmental service"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(agencies_urls.path('services', 999))
-        
+        response = api_client.get(agencies_urls.path("services", 999))
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -934,33 +943,31 @@ class TestDepartmentalServiceDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": "Updated Service"}
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('services', departmental_service.id),
-            data,
-            format='json'
+            agencies_urls.path("services", departmental_service.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
-        assert response.data['name'] == "Updated Service"
+        assert response.data["name"] == "Updated Service"
         departmental_service.refresh_from_db()
         assert departmental_service.name == "Updated Service"
 
-    def test_update_service_invalid_data(self, api_client, user, departmental_service, db):
+    def test_update_service_invalid_data(
+        self, api_client, user, departmental_service, db
+    ):
         """Test updating departmental service with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         data = {"name": ""}  # Empty name
-        
+
         # Act
         response = api_client.put(
-            agencies_urls.path('services', departmental_service.id),
-            data,
-            format='json'
+            agencies_urls.path("services", departmental_service.id), data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -969,11 +976,12 @@ class TestDepartmentalServiceDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         service_id = departmental_service.id
-        
+
         # Act
-        response = api_client.delete(agencies_urls.path('services', service_id))
-        
+        response = api_client.delete(agencies_urls.path("services", service_id))
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         from agencies.models import DepartmentalService
+
         assert not DepartmentalService.objects.filter(id=service_id).exists()

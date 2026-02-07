@@ -7,22 +7,42 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('documents', '0006_annualreport_dm_sign'),
-        ('users', '0018_alter_publicstaffprofile_employee_id'),
+        ("documents", "0006_annualreport_dm_sign"),
+        ("users", "0018_alter_publicstaffprofile_employee_id"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='CustomPublication',
+            name="CustomPublication",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('year', models.PositiveIntegerField(help_text='Year of publication')),
-                ('title', models.CharField(help_text='Title of the publication', max_length=1000)),
-                ('public_profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='custom_publications', to='users.publicstaffprofile')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("year", models.PositiveIntegerField(help_text="Year of publication")),
+                (
+                    "title",
+                    models.CharField(
+                        help_text="Title of the publication", max_length=1000
+                    ),
+                ),
+                (
+                    "public_profile",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="custom_publications",
+                        to="users.publicstaffprofile",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Publication',
-                'verbose_name_plural': 'Publications',
+                "verbose_name": "Publication",
+                "verbose_name_plural": "Publications",
             },
         ),
     ]

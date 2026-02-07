@@ -1,5 +1,6 @@
-from . import views
 from django.urls import path
+
+from . import views
 
 urlpatterns = [
     # Main - Using "list" instead of "" to avoid trailing slash

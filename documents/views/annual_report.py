@@ -1,14 +1,15 @@
 """
 Annual report views
 """
+
 import json
+
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Q, Max
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from django.db.models import Max, Q
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -17,12 +18,14 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
 )
+from rest_framework.views import APIView
 
 from medias.models import AnnualReportPDF, LegacyAnnualReportPDF
 from medias.serializers import (
     AnnualReportPDFSerializer,
     TinyLegacyAnnualReportPDFSerializer,
 )
+
 from ..models import AnnualReport, ProgressReport, StudentReport
 from ..serializers import (
     AnnualReportSerializer,
@@ -35,7 +38,7 @@ from ..serializers import (
 
 class Reports(APIView):
     """List and create annual reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -45,7 +48,7 @@ class Reports(APIView):
         serializer = TinyAnnualReportSerializer(
             all_reports,
             many=True,
-            context={'request': request},
+            context={"request": request},
         )
         return Response(serializer.data, status=HTTP_200_OK)
 
@@ -53,21 +56,20 @@ class Reports(APIView):
         """Create annual report"""
         settings.LOGGER.info(f"{request.user} is creating a report")
         serializer = AnnualReportSerializer(data=request.data)
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         report = serializer.save()
         return Response(
-            TinyAnnualReportSerializer(report).data,
-            status=HTTP_201_CREATED
+            TinyAnnualReportSerializer(report).data, status=HTTP_201_CREATED
         )
 
 
 class ReportDetail(APIView):
     """Get, update, and delete annual reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -76,8 +78,8 @@ class ReportDetail(APIView):
             report = AnnualReport.objects.get(pk=pk)
         except AnnualReport.DoesNotExist:
             raise NotFound
-        
-        serializer = AnnualReportSerializer(report, context={'request': request})
+
+        serializer = AnnualReportSerializer(report, context={"request": request})
         return Response(serializer.data, status=HTTP_200_OK)
 
     def put(self, request, pk):
@@ -86,22 +88,21 @@ class ReportDetail(APIView):
             report = AnnualReport.objects.get(pk=pk)
         except AnnualReport.DoesNotExist:
             raise NotFound
-        
+
         settings.LOGGER.info(f"{request.user} is updating report {report}")
         serializer = AnnualReportSerializer(
             report,
             data=request.data,
             partial=True,
         )
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         updated_report = serializer.save()
         return Response(
-            TinyAnnualReportSerializer(updated_report).data,
-            status=HTTP_202_ACCEPTED
+            TinyAnnualReportSerializer(updated_report).data, status=HTTP_202_ACCEPTED
         )
 
     def delete(self, request, pk):
@@ -110,26 +111,26 @@ class ReportDetail(APIView):
             report = AnnualReport.objects.get(pk=pk)
         except AnnualReport.DoesNotExist:
             raise NotFound
-        
+
         settings.LOGGER.info(f"{request.user} is deleting report {report}")
-        
+
         # Delete associated progress reports
         progress_reports = ProgressReport.objects.filter(report=report).all()
         for pr in progress_reports:
             pr.document.delete()
-        
+
         # Delete associated student reports
         student_reports = StudentReport.objects.filter(report=report).all()
         for sr in student_reports:
             sr.document.delete()
-        
+
         report.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
 
 class GetLatestReportYear(APIView):
     """Get the latest annual report year"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -148,7 +149,7 @@ class GetLatestReportYear(APIView):
 
 class GetAvailableReportYearsForStudentReport(APIView):
     """Get available report years for student reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):
@@ -184,7 +185,7 @@ class GetAvailableReportYearsForStudentReport(APIView):
 
 class GetAvailableReportYearsForProgressReport(APIView):
     """Get available report years for progress reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, project_id):
@@ -220,7 +221,7 @@ class GetAvailableReportYearsForProgressReport(APIView):
 
 class GetWithoutPDFs(APIView):
     """Get annual reports without PDFs"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -239,7 +240,7 @@ class GetWithoutPDFs(APIView):
 
 class GetReportPDF(APIView):
     """Get annual report PDF"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -247,12 +248,12 @@ class GetReportPDF(APIView):
             report_pdf_obj = AnnualReportPDF.objects.get(report=pk)
         except AnnualReportPDF.DoesNotExist:
             raise NotFound
-        
+
         serializer = AnnualReportPDFSerializer(report_pdf_obj)
-        
+
         # Convert serialized data to dictionary
         serialized_data = json.loads(json.dumps(serializer.data, cls=DjangoJSONEncoder))
-        
+
         # Include PDF data in response
         serialized_data["pdf_data"] = serializer.data.get("pdf_data")
         return Response(serialized_data, status=HTTP_200_OK)
@@ -260,7 +261,7 @@ class GetReportPDF(APIView):
 
 class GetWithPDFs(APIView):
     """Get annual reports with PDFs"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -275,7 +276,7 @@ class GetWithPDFs(APIView):
 
 class GetLegacyPDFs(APIView):
     """Get legacy annual report PDFs"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -290,7 +291,7 @@ class GetLegacyPDFs(APIView):
 
 class GetCompletedReports(APIView):
     """Get completed (published) annual reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -308,15 +309,15 @@ class GetCompletedReports(APIView):
 
 class BeginAnnualReportDocGeneration(APIView):
     """Begin annual report document generation"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
         try:
-            report = AnnualReport.objects.get(pk=pk)
+            AnnualReport.objects.get(pk=pk)
         except AnnualReport.DoesNotExist:
             raise NotFound
-        
+
         # Placeholder for PDF generation logic
         # This will be implemented when PDF service is fully integrated
         return Response({"status": "generation_started"}, status=HTTP_200_OK)
@@ -324,7 +325,7 @@ class BeginAnnualReportDocGeneration(APIView):
 
 class LatestYearsProgressReports(APIView):
     """Get latest year's approved progress reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -341,7 +342,7 @@ class LatestYearsProgressReports(APIView):
                     project__business_area__division__name="Biodiversity and Conservation Science"
                 )
             ).exclude(Q(project__business_area__division__name__isnull=True))
-            
+
             serializer = ProgressReportSerializer(
                 active_docs, many=True, context={"request": request}
             )
@@ -352,7 +353,7 @@ class LatestYearsProgressReports(APIView):
 
 class LatestYearsStudentReports(APIView):
     """Get latest year's approved student reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -369,7 +370,7 @@ class LatestYearsStudentReports(APIView):
                     project__business_area__division__name="Biodiversity and Conservation Science"
                 )
             ).exclude(Q(project__business_area__division__name__isnull=True))
-            
+
             serializer = StudentReportSerializer(
                 active_docs, many=True, context={"request": request}
             )
@@ -380,7 +381,7 @@ class LatestYearsStudentReports(APIView):
 
 class LatestYearsInactiveReports(APIView):
     """Get latest year's inactive (non-approved) reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -399,7 +400,7 @@ class LatestYearsInactiveReports(APIView):
                 .exclude(Q(project__business_area__division__name__isnull=True))
                 .all()
             )
-            
+
             # Get non-approved progress reports
             inactive_prs = (
                 ProgressReport.objects.filter(
@@ -433,7 +434,7 @@ class LatestYearsInactiveReports(APIView):
 
 class FullLatestReport(APIView):
     """Get full details of latest annual report"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

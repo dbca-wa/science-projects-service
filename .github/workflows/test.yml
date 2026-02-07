@@ -7,7 +7,7 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/test.yml"
-  
+
   # Run on pushes to main and develop branches
   # main: for badge generation after merge
   # develop: for continuous testing
@@ -24,12 +24,12 @@ jobs:
   test:
     name: Test (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
-    
+
     services:
       postgres:
         image: postgres:17
@@ -44,23 +44,23 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Cache Poetry dependencies
         uses: actions/cache@v4
         with:
@@ -70,12 +70,12 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
-      
+
       - name: Install dependencies
         run: |
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi
-      
+
       - name: Restore test durations cache
         uses: actions/cache/restore@v4
         with:
@@ -84,7 +84,7 @@ jobs:
           restore-keys: |
             test-durations-combined-
             test-durations-
-      
+
       - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
@@ -114,7 +114,7 @@ jobs:
             -v \
             -ra \
             --maxfail=5
-      
+
       - name: Debug coverage files
         if: always()
         run: |
@@ -126,22 +126,22 @@ jobs:
           echo ""
           echo "=== Current working directory ==="
           pwd
-      
+
       - name: Prepare coverage file for upload
         if: always()
         run: |
           # Create directory for artifacts
           mkdir -p coverage-output
-          
+
           # Look for both .coverage and .coverage.* files
           # pytest-cov with xdist creates a single .coverage file (already combined from workers)
           # We need to rename it to avoid conflicts when combining from multiple shards
           coverage_files=$(find . -maxdepth 1 \( -name '.coverage' -o -name '.coverage.*' \) -type f ! -name '.coveragerc')
-          
+
           if [ -n "$coverage_files" ]; then
             echo "✅ Found coverage files:"
             echo "$coverage_files"
-            
+
             # Copy coverage files to output directory
             # Rename .coverage to .coverage.SHARD to avoid conflicts
             for file in .coverage .coverage.*; do
@@ -157,11 +157,11 @@ jobs:
                 fi
               fi
             done
-            
+
             echo ""
             echo "=== Files in coverage-output/ ==="
             ls -la coverage-output/
-            
+
             # Verify at least one file was copied
             if [ -n "$(ls -A coverage-output/)" ]; then
               echo "✅ Successfully prepared coverage files for upload"
@@ -174,14 +174,14 @@ jobs:
             echo "This indicates coverage collection failed"
             exit 1
           fi
-      
+
       - name: Save test durations cache
         if: always()
         uses: actions/cache/save@v4
         with:
           path: .test_durations
           key: test-durations-${{ github.sha }}-${{ matrix.shard }}
-      
+
       - name: Debug paths before upload
         if: always()
         run: |
@@ -197,7 +197,7 @@ jobs:
           echo ""
           echo "=== Finding all coverage-output directories ==="
           find "${{ github.workspace }}" -type d -name "coverage-output" -exec ls -la {} \;
-      
+
       - name: Upload test durations
         if: always()
         uses: actions/upload-artifact@v4
@@ -207,7 +207,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           include-hidden-files: true
-      
+
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         if: always()
@@ -217,46 +217,46 @@ jobs:
           retention-days: 1
           if-no-files-found: error
           include-hidden-files: true
-  
+
   # Combine coverage from all shards
   coverage:
     name: Combine coverage and upload
     needs: test
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi --only main,dev
-      
+
       - name: Download all coverage reports
         uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
           path: coverage-reports
-      
+
       - name: Download all test durations
         uses: actions/download-artifact@v4
         with:
           pattern: test-durations-*
           path: test-durations-reports
         continue-on-error: true
-      
+
       - name: Combine test durations
         if: always()
         run: |
@@ -264,7 +264,7 @@ jobs:
           if [ -d "test-durations-reports" ]; then
             echo "=== Combining test durations from all shards ==="
             cat test-durations-reports/*/.test_durations > .test_durations 2>/dev/null || echo "No test durations to combine"
-            
+
             # Save combined durations to cache for next run
             if [ -f ".test_durations" ]; then
               echo "✅ Combined test durations file created"
@@ -272,7 +272,7 @@ jobs:
             fi
           fi
         continue-on-error: true
-      
+
       - name: Save combined test durations cache
         if: always()
         uses: actions/cache/save@v4
@@ -280,7 +280,7 @@ jobs:
           path: .test_durations
           key: test-durations-combined-${{ github.sha }}
         continue-on-error: true
-      
+
       - name: Debug coverage files
         run: |
           echo "=== Downloaded artifacts structure ==="
@@ -291,43 +291,43 @@ jobs:
           echo ""
           echo "=== File count ==="
           find coverage-reports -name '.coverage.*' -type f | wc -l
-      
+
       - name: Combine coverage data
         run: |
           # Move all coverage files to current directory for combining
           echo "=== Moving coverage files to current directory ==="
           find coverage-reports -name '.coverage.*' -type f -exec mv {} . \;
-          
+
           # List files in current directory
           echo "=== Coverage files in current directory ==="
           ls -la .coverage.* 2>/dev/null || echo "No coverage files found"
-          
+
           # Count coverage files
           coverage_count=$(find . -maxdepth 1 -name '.coverage.*' -type f | wc -l)
           echo "Found $coverage_count coverage file(s)"
-          
+
           if [ "$coverage_count" -eq 0 ]; then
             echo "❌ ERROR: No coverage files found to combine"
             exit 1
           fi
-          
+
           # Combine binary coverage files
           echo "=== Combining coverage data ==="
           poetry run coverage combine
-          
+
           # Generate reports from combined data
           echo "=== Generating coverage reports ==="
           poetry run coverage xml -o coverage.xml
           poetry run coverage html
           poetry run coverage report --fail-under=80
-      
+
       - name: Upload combined coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-combined-${{ github.run_id }}
           path: htmlcov/
           retention-days: 30
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         if: github.event_name == 'push' || github.event_name == 'pull_request'
@@ -339,7 +339,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
-      
+
       - name: Test Summary
         if: always()
         run: |

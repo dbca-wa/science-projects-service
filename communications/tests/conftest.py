@@ -1,15 +1,12 @@
 """
 Pytest fixtures for communications app tests
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 
-from common.tests.factories import (
-    UserFactory,
-    ProjectFactory,
-    ProjectDocumentFactory,
-)
-from communications.models import ChatRoom, DirectMessage, Comment, Reaction
+from common.tests.factories import ProjectDocumentFactory, ProjectFactory, UserFactory
+from communications.models import ChatRoom, Comment, DirectMessage, Reaction
 
 User = get_user_model()
 
@@ -18,8 +15,8 @@ User = get_user_model()
 def user(db):
     """Provide a regular user"""
     return UserFactory(
-        username='testuser',
-        email='test@example.com',
+        username="testuser",
+        email="test@example.com",
     )
 
 
@@ -27,8 +24,8 @@ def user(db):
 def other_user(db):
     """Provide another user for multi-user tests"""
     return UserFactory(
-        username='otheruser',
-        email='other@example.com',
+        username="otheruser",
+        email="other@example.com",
     )
 
 
@@ -36,8 +33,8 @@ def other_user(db):
 def superuser(db):
     """Provide a superuser"""
     return UserFactory(
-        username='admin',
-        email='admin@example.com',
+        username="admin",
+        email="admin@example.com",
         is_superuser=True,
         is_staff=True,
     )
@@ -69,10 +66,10 @@ def chat_room(db, user, other_user):
 def direct_message(db, user, chat_room):
     """Provide a direct message"""
     return DirectMessage.objects.create(
-        text='Test message',
+        text="Test message",
         user=user,
         chat_room=chat_room,
-        ip_address='127.0.0.1',
+        ip_address="127.0.0.1",
         is_public=True,
         is_removed=False,
     )
@@ -84,8 +81,8 @@ def comment(db, user, project_document):
     return Comment.objects.create(
         user=user,
         document=project_document,
-        text='Test comment',
-        ip_address='127.0.0.1',
+        text="Test comment",
+        ip_address="127.0.0.1",
         is_public=True,
         is_removed=False,
     )

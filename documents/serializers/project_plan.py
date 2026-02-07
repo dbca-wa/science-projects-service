@@ -1,15 +1,18 @@
 """
 Project plan serializers
 """
+
 from rest_framework import serializers
 
-from ..models import ProjectPlan, Endorsement
-from .base import TinyProjectDocumentSerializer
 from medias.serializers import AECPDFSerializer
+
+from ..models import Endorsement, ProjectPlan
+from .base import TinyProjectDocumentSerializer
 
 
 class TinyProjectPlanSerializer(serializers.ModelSerializer):
     """Minimal project plan serializer"""
+
     document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
@@ -30,6 +33,7 @@ class TinyProjectPlanSerializer(serializers.ModelSerializer):
 
 class ProjectPlanSerializer(serializers.ModelSerializer):
     """Standard project plan serializer"""
+
     document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
@@ -39,7 +43,7 @@ class ProjectPlanSerializer(serializers.ModelSerializer):
 
 class ProjectPlanCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating project plans"""
-    
+
     class Meta:
         model = ProjectPlan
         fields = [
@@ -57,7 +61,7 @@ class ProjectPlanCreateSerializer(serializers.ModelSerializer):
 
 class ProjectPlanUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating project plans"""
-    
+
     class Meta:
         model = ProjectPlan
         fields = [
@@ -74,6 +78,7 @@ class ProjectPlanUpdateSerializer(serializers.ModelSerializer):
 
 class TinyEndorsementSerializer(serializers.ModelSerializer):
     """Minimal endorsement serializer"""
+
     project_plan = TinyProjectPlanSerializer(read_only=True)
     aec_pdf = AECPDFSerializer(read_only=True)
 
@@ -92,6 +97,7 @@ class TinyEndorsementSerializer(serializers.ModelSerializer):
 
 class MiniEndorsementSerializer(serializers.ModelSerializer):
     """Mini endorsement serializer with minimal fields"""
+
     project_plan = TinyProjectPlanSerializer(read_only=True)
 
     class Meta:
@@ -104,6 +110,7 @@ class MiniEndorsementSerializer(serializers.ModelSerializer):
 
 class EndorsementSerializer(serializers.ModelSerializer):
     """Standard endorsement serializer"""
+
     project_plan = TinyProjectPlanSerializer(read_only=True)
     aec_pdf = AECPDFSerializer(read_only=True)
 
@@ -114,7 +121,7 @@ class EndorsementSerializer(serializers.ModelSerializer):
 
 class EndorsementCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating endorsements"""
-    
+
     class Meta:
         model = Endorsement
         fields = [
@@ -128,7 +135,7 @@ class EndorsementCreateSerializer(serializers.ModelSerializer):
 
 class EndorsementUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating endorsements"""
-    
+
     class Meta:
         model = Endorsement
         fields = [

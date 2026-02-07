@@ -1,7 +1,8 @@
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
-from .serializers import ProjectCategorySerializer
+from rest_framework.viewsets import ModelViewSet
+
 from .models import ProjectCategory
+from .serializers import ProjectCategorySerializer
 
 
 class ProjectCategoryViewSet(ModelViewSet):

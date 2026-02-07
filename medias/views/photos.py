@@ -1,9 +1,8 @@
 # region IMPORTS ==================================================================================================
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -11,26 +10,21 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
-from ..models import (
-    BusinessAreaPhoto,
-    ProjectPhoto,
-    ProjectPlanMethodologyPhoto,
-    AgencyImage,
-)
 from ..serializers import (
-    BusinessAreaPhotoSerializer,
+    AgencyPhotoCreateSerializer,
+    AgencyPhotoSerializer,
     BusinessAreaPhotoCreateSerializer,
-    ProjectPhotoSerializer,
-    ProjectPhotoCreateSerializer,
+    BusinessAreaPhotoSerializer,
     MethodologyImageCreateSerializer,
     MethodologyImageSerializer,
-    AgencyPhotoSerializer,
-    AgencyPhotoCreateSerializer,
-    TinyBusinessAreaPhotoSerializer,
-    TinyProjectPhotoSerializer,
-    TinyMethodologyImageSerializer,
+    ProjectPhotoCreateSerializer,
+    ProjectPhotoSerializer,
     TinyAgencyPhotoSerializer,
+    TinyBusinessAreaPhotoSerializer,
+    TinyMethodologyImageSerializer,
+    TinyProjectPhotoSerializer,
 )
 from ..services.media_service import MediaService
 
@@ -39,6 +33,7 @@ from ..services.media_service import MediaService
 
 class BusinessAreaPhotos(APIView):
     """List and create business area photos"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -51,7 +46,7 @@ class BusinessAreaPhotos(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a business area photo")
         serializer = BusinessAreaPhotoCreateSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             photo = serializer.save()
             return Response(
@@ -65,6 +60,7 @@ class BusinessAreaPhotos(APIView):
 
 class BusinessAreaPhotoDetail(APIView):
     """Retrieve, update, and delete business area photo"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -75,13 +71,13 @@ class BusinessAreaPhotoDetail(APIView):
     def put(self, request, pk):
         photo = MediaService.get_business_area_photo(pk)
         settings.LOGGER.info(f"{request.user} is updating business area photo {photo}")
-        
+
         if not (photo.uploader == request.user or request.user.is_superuser):
             settings.LOGGER.warning(
                 f"{request.user} doesn't have permission to update {photo}"
             )
             raise PermissionDenied
-        
+
         serializer = BusinessAreaPhotoSerializer(photo, data=request.data, partial=True)
         if serializer.is_valid():
             updated_photo = serializer.save()
@@ -95,19 +91,20 @@ class BusinessAreaPhotoDetail(APIView):
 
     def delete(self, request, pk):
         photo = MediaService.get_business_area_photo(pk)
-        
+
         if not (photo.uploader == request.user or request.user.is_superuser):
             settings.LOGGER.warning(
                 f"{request.user} doesn't have permission to delete {photo}"
             )
             raise PermissionDenied
-        
+
         MediaService.delete_business_area_photo(pk, request.user)
         return Response(status=HTTP_204_NO_CONTENT)
 
 
 class ProjectPhotos(APIView):
     """List and create project photos"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -120,7 +117,7 @@ class ProjectPhotos(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a project photo")
         serializer = ProjectPhotoCreateSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             photo = serializer.save()
             return Response(
@@ -134,6 +131,7 @@ class ProjectPhotos(APIView):
 
 class ProjectPhotoDetail(APIView):
     """Retrieve, update, and delete project photo"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -144,13 +142,13 @@ class ProjectPhotoDetail(APIView):
     def put(self, request, pk):
         photo = MediaService.get_project_photo(pk)
         settings.LOGGER.info(f"{request.user} is updating project photo {photo}")
-        
+
         if not (photo.uploader == request.user or request.user.is_superuser):
             settings.LOGGER.warning(
                 f"{request.user} is not allowed to update project photo {photo}"
             )
             raise PermissionDenied
-        
+
         serializer = ProjectPhotoSerializer(photo, data=request.data, partial=True)
         if serializer.is_valid():
             updated_photo = serializer.save()
@@ -164,19 +162,20 @@ class ProjectPhotoDetail(APIView):
 
     def delete(self, request, pk):
         photo = MediaService.get_project_photo(pk)
-        
+
         if not (photo.uploader == request.user or request.user.is_superuser):
             settings.LOGGER.warning(
                 f"{request.user} is not allowed to delete project photo {photo}"
             )
             raise PermissionDenied
-        
+
         MediaService.delete_project_photo(pk, request.user)
         return Response(status=HTTP_204_NO_CONTENT)
 
 
 class MethodologyPhotos(APIView):
     """List and create methodology photos"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -188,7 +187,7 @@ class MethodologyPhotos(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is uploading a new methodology photo")
-        
+
         project_plan = request.data["pk"]
         file = request.data["file"]
         data = {
@@ -196,7 +195,7 @@ class MethodologyPhotos(APIView):
             "file": file,
             "uploader": request.user.pk,
         }
-        
+
         serializer = MethodologyImageCreateSerializer(data=data)
         if serializer.is_valid():
             photo = serializer.save()
@@ -211,6 +210,7 @@ class MethodologyPhotos(APIView):
 
 class MethodologyPhotoDetail(APIView):
     """Retrieve, update, and delete methodology photo"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -221,13 +221,13 @@ class MethodologyPhotoDetail(APIView):
     def put(self, request, pk):
         photo = MediaService.get_methodology_photo_by_project_plan(pk)
         settings.LOGGER.info(f"{request.user} is updating methodology photo {photo}")
-        
+
         if not (photo.uploader == request.user or request.user.is_superuser):
             settings.LOGGER.warning(
                 f"{request.user} is not allowed to update methodology photo {photo}"
             )
             raise PermissionDenied
-        
+
         serializer = MethodologyImageSerializer(photo, data=request.data, partial=True)
         if serializer.is_valid():
             updated_photo = serializer.save()
@@ -241,19 +241,20 @@ class MethodologyPhotoDetail(APIView):
 
     def delete(self, request, pk):
         photo = MediaService.get_methodology_photo_by_project_plan(pk)
-        
+
         if not (photo.uploader == request.user or request.user.is_superuser):
             settings.LOGGER.warning(
                 f"{request.user} is not allowed to delete project photo {photo}"
             )
             raise PermissionDenied
-        
+
         MediaService.delete_methodology_photo(pk, request.user)
         return Response(status=HTTP_204_NO_CONTENT)
 
 
 class AgencyPhotos(APIView):
     """List and create agency photos"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -266,7 +267,7 @@ class AgencyPhotos(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting an agency photo")
         serializer = AgencyPhotoCreateSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             photo = serializer.save()
             return Response(
@@ -280,6 +281,7 @@ class AgencyPhotos(APIView):
 
 class AgencyPhotoDetail(APIView):
     """Retrieve, update, and delete agency photo"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -290,13 +292,13 @@ class AgencyPhotoDetail(APIView):
     def put(self, request, pk):
         photo = MediaService.get_agency_image(pk)
         settings.LOGGER.info(f"{request.user} is updating agency photo {photo}")
-        
+
         if not request.user.is_superuser:
             settings.LOGGER.warning(
                 f"{request.user} cannot update {photo} as they are not a superuser"
             )
             raise PermissionDenied
-        
+
         serializer = AgencyPhotoSerializer(photo, data=request.data, partial=True)
         if serializer.is_valid():
             updated_photo = serializer.save()
@@ -315,6 +317,6 @@ class AgencyPhotoDetail(APIView):
                 f"{request.user} cannot delete {photo} as they are not a superuser"
             )
             raise PermissionDenied
-        
+
         MediaService.delete_agency_image(pk, request.user)
         return Response(status=HTTP_204_NO_CONTENT)

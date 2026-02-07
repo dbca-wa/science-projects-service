@@ -1,10 +1,11 @@
 """
 Communication service - Business logic for communication operations
 """
+
 from django.conf import settings
 from rest_framework.exceptions import NotFound, PermissionDenied
 
-from communications.models import ChatRoom, DirectMessage, Comment, Reaction
+from communications.models import ChatRoom, Comment, DirectMessage, Reaction
 from documents.templatetags.custom_filters import extract_text_content
 
 
@@ -36,11 +37,11 @@ class CommunicationService:
         """Update chat room"""
         chat_room = CommunicationService.get_chat_room(pk)
         settings.LOGGER.info(f"{user} is updating a chat room {chat_room}")
-        
+
         for field, value in data.items():
             setattr(chat_room, field, value)
         chat_room.save()
-        
+
         return chat_room
 
     @staticmethod
@@ -75,11 +76,11 @@ class CommunicationService:
         """Update direct message"""
         dm = CommunicationService.get_direct_message(pk)
         settings.LOGGER.info(f"{user} is updating a dm {dm}")
-        
+
         for field, value in data.items():
             setattr(dm, field, value)
         dm.save()
-        
+
         return dm
 
     @staticmethod
@@ -114,27 +115,27 @@ class CommunicationService:
         """Update comment"""
         comment = CommunicationService.get_comment(pk)
         settings.LOGGER.info(f"{user} is updating a comment detail {comment}")
-        
+
         for field, value in data.items():
             setattr(comment, field, value)
         comment.save()
-        
+
         return comment
 
     @staticmethod
     def delete_comment(pk, user):
         """
         Delete comment
-        
+
         Raises:
             PermissionDenied: If user is not superuser or comment creator
         """
         comment = CommunicationService.get_comment(pk)
-        
+
         # Block deletion by non superusers/non-creators
         if not user.is_superuser and user != comment.user:
             raise PermissionDenied("You do not have permission to delete this comment.")
-        
+
         settings.LOGGER.info(
             f"{user} is deleting a comment from {comment.document}:\n{comment}"
         )
@@ -158,26 +159,26 @@ class CommunicationService:
     def toggle_comment_reaction(user_id, comment_id):
         """
         Toggle thumbs up reaction on a comment
-        
+
         Returns:
             tuple: (reaction_object or None, was_deleted: bool)
         """
         comment = CommunicationService.get_comment(comment_id)
-        
+
         # Check if reaction already exists
         existing = Reaction.objects.filter(
             user=user_id,
             reaction=Reaction.ReactionChoices.THUMBUP,
             comment=comment_id,
         ).first()
-        
+
         if existing:
             settings.LOGGER.info(
                 f"User {user_id} removed their reaction to:\n{extract_text_content(comment.text)}"
             )
             existing.delete()
             return None, True
-        
+
         # Create new reaction
         reaction = Reaction.objects.create(
             comment=comment,
@@ -185,7 +186,7 @@ class CommunicationService:
             reaction=Reaction.ReactionChoices.THUMBUP,
             direct_message=None,
         )
-        
+
         settings.LOGGER.info(
             f"User {user_id} reacted to comment ({comment_id}):\n{extract_text_content(comment.text)}"
         )
@@ -196,11 +197,11 @@ class CommunicationService:
         """Update reaction"""
         reaction = CommunicationService.get_reaction(pk)
         settings.LOGGER.info(f"{user} is updating a reaction detail {reaction}")
-        
+
         for field, value in data.items():
             setattr(reaction, field, value)
         reaction.save()
-        
+
         return reaction
 
     @staticmethod

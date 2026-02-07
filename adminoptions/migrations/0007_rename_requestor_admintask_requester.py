@@ -6,13 +6,13 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('adminoptions', '0006_remove_admintask_reasoning'),
+        ("adminoptions", "0006_remove_admintask_reasoning"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='admintask',
-            old_name='requestor',
-            new_name='requester',
+            model_name="admintask",
+            old_name="requestor",
+            new_name="requester",
         ),
     ]

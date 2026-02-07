@@ -1,13 +1,13 @@
 """
 Tests for project permissions
 """
-import pytest
+
 from unittest.mock import Mock
 
 from projects.permissions.project_permissions import (
-    CanViewProject,
     CanEditProject,
     CanManageProjectMembers,
+    CanViewProject,
     IsProjectLeader,
     IsProjectMember,
 )
@@ -21,10 +21,10 @@ class TestCanViewProject:
         # Arrange
         request = Mock(user=user)
         permission = CanViewProject()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is True
 
@@ -34,10 +34,10 @@ class TestCanViewProject:
         user = Mock(is_authenticated=False)
         request = Mock(user=user)
         permission = CanViewProject()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -46,10 +46,10 @@ class TestCanViewProject:
         # Arrange
         request = Mock(user=user)
         permission = CanViewProject()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is True
 
@@ -59,10 +59,10 @@ class TestCanViewProject:
         user = Mock(is_authenticated=False)
         request = Mock(user=user)
         permission = CanViewProject()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is False
 
@@ -75,10 +75,10 @@ class TestCanEditProject:
         # Arrange
         request = Mock(user=user)
         permission = CanEditProject()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is True
 
@@ -88,10 +88,10 @@ class TestCanEditProject:
         user = Mock(is_authenticated=False)
         request = Mock(user=user)
         permission = CanEditProject()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -100,10 +100,10 @@ class TestCanEditProject:
         # Arrange
         request = Mock(user=superuser)
         permission = CanEditProject()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is True
 
@@ -112,24 +112,26 @@ class TestCanEditProject:
         # Arrange
         request = Mock(user=project_lead)
         permission = CanEditProject()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_lead)
-        
+
         # Assert
         assert result is True
 
-    def test_non_leader_member_cannot_edit(self, project_with_members, user_factory, db):
+    def test_non_leader_member_cannot_edit(
+        self, project_with_members, user_factory, db
+    ):
         """Test non-leader member cannot edit project"""
         # Arrange
         # Get a non-leader member
         non_leader_member = project_with_members.members.filter(is_leader=False).first()
         request = Mock(user=non_leader_member.user)
         permission = CanEditProject()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_members)
-        
+
         # Assert
         assert result is False
 
@@ -139,10 +141,10 @@ class TestCanEditProject:
         other_user = user_factory()
         request = Mock(user=other_user)
         permission = CanEditProject()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is False
 
@@ -155,10 +157,10 @@ class TestCanManageProjectMembers:
         # Arrange
         request = Mock(user=user)
         permission = CanManageProjectMembers()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is True
 
@@ -168,10 +170,10 @@ class TestCanManageProjectMembers:
         user = Mock(is_authenticated=False)
         request = Mock(user=user)
         permission = CanManageProjectMembers()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -180,22 +182,24 @@ class TestCanManageProjectMembers:
         # Arrange
         request = Mock(user=superuser)
         permission = CanManageProjectMembers()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is True
 
-    def test_project_leader_can_manage_members(self, project_with_lead, project_lead, db):
+    def test_project_leader_can_manage_members(
+        self, project_with_lead, project_lead, db
+    ):
         """Test project leader can manage members"""
         # Arrange
         request = Mock(user=project_lead)
         permission = CanManageProjectMembers()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_lead)
-        
+
         # Assert
         assert result is True
 
@@ -205,10 +209,10 @@ class TestCanManageProjectMembers:
         non_leader_member = project_with_members.members.filter(is_leader=False).first()
         request = Mock(user=non_leader_member.user)
         permission = CanManageProjectMembers()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_members)
-        
+
         # Assert
         assert result is False
 
@@ -218,10 +222,10 @@ class TestCanManageProjectMembers:
         other_user = user_factory()
         request = Mock(user=other_user)
         permission = CanManageProjectMembers()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is False
 
@@ -234,10 +238,10 @@ class TestIsProjectLeader:
         # Arrange
         request = Mock(user=user)
         permission = IsProjectLeader()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is True
 
@@ -247,10 +251,10 @@ class TestIsProjectLeader:
         user = Mock(is_authenticated=False)
         request = Mock(user=user)
         permission = IsProjectLeader()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -259,10 +263,10 @@ class TestIsProjectLeader:
         # Arrange
         request = Mock(user=superuser)
         permission = IsProjectLeader()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is True
 
@@ -271,10 +275,10 @@ class TestIsProjectLeader:
         # Arrange
         request = Mock(user=project_lead)
         permission = IsProjectLeader()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_lead)
-        
+
         # Assert
         assert result is True
 
@@ -284,10 +288,10 @@ class TestIsProjectLeader:
         non_leader_member = project_with_members.members.filter(is_leader=False).first()
         request = Mock(user=non_leader_member.user)
         permission = IsProjectLeader()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_members)
-        
+
         # Assert
         assert result is False
 
@@ -297,10 +301,10 @@ class TestIsProjectLeader:
         other_user = user_factory()
         request = Mock(user=other_user)
         permission = IsProjectLeader()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is False
 
@@ -313,10 +317,10 @@ class TestIsProjectMember:
         # Arrange
         request = Mock(user=user)
         permission = IsProjectMember()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is True
 
@@ -326,10 +330,10 @@ class TestIsProjectMember:
         user = Mock(is_authenticated=False)
         request = Mock(user=user)
         permission = IsProjectMember()
-        
+
         # Act
         result = permission.has_permission(request, None)
-        
+
         # Assert
         assert result is False
 
@@ -338,10 +342,10 @@ class TestIsProjectMember:
         # Arrange
         request = Mock(user=superuser)
         permission = IsProjectMember()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is True
 
@@ -350,10 +354,10 @@ class TestIsProjectMember:
         # Arrange
         request = Mock(user=project_lead)
         permission = IsProjectMember()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_lead)
-        
+
         # Assert
         assert result is True
 
@@ -363,10 +367,10 @@ class TestIsProjectMember:
         non_leader_member = project_with_members.members.filter(is_leader=False).first()
         request = Mock(user=non_leader_member.user)
         permission = IsProjectMember()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project_with_members)
-        
+
         # Assert
         assert result is True
 
@@ -376,9 +380,9 @@ class TestIsProjectMember:
         other_user = user_factory()
         request = Mock(user=other_user)
         permission = IsProjectMember()
-        
+
         # Act
         result = permission.has_object_permission(request, None, project)
-        
+
         # Assert
         assert result is False

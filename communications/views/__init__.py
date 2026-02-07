@@ -1,24 +1,25 @@
 """
 Communication views
 """
+
 from .crud import (
-    ChatRooms,
     ChatRoomDetail,
-    DirectMessages,
-    DirectMessageDetail,
-    Comments,
+    ChatRooms,
     CommentDetail,
-    Reactions,
+    Comments,
+    DirectMessageDetail,
+    DirectMessages,
     ReactionDetail,
+    Reactions,
 )
 
 __all__ = [
-    'ChatRooms',
-    'ChatRoomDetail',
-    'DirectMessages',
-    'DirectMessageDetail',
-    'Comments',
-    'CommentDetail',
-    'Reactions',
-    'ReactionDetail',
+    "ChatRooms",
+    "ChatRoomDetail",
+    "DirectMessages",
+    "DirectMessageDetail",
+    "Comments",
+    "CommentDetail",
+    "Reactions",
+    "ReactionDetail",
 ]

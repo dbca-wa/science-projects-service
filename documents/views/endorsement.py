@@ -1,35 +1,37 @@
 """
 Endorsement views
 """
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_202_ACCEPTED,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from medias.models import AECEndorsementPDF
 from medias.serializers import AECPDFCreateSerializer
 from projects.models import Project
+
 from ..models import Endorsement, ProjectPlan
 from ..serializers import (
-    EndorsementSerializer,
     EndorsementCreateSerializer,
-    TinyEndorsementSerializer,
+    EndorsementSerializer,
     MiniEndorsementSerializer,
+    TinyEndorsementSerializer,
 )
 
 
 class Endorsements(APIView):
     """List and create endorsements"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -46,11 +48,11 @@ class Endorsements(APIView):
         """Create a new endorsement"""
         settings.LOGGER.info(f"{request.user} is posting an endorsement")
         serializer = EndorsementCreateSerializer(data=request.data)
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         new_endorsement = serializer.save()
         return Response(
             TinyEndorsementSerializer(new_endorsement).data,
@@ -60,7 +62,7 @@ class Endorsements(APIView):
 
 class EndorsementDetail(APIView):
     """Get and update endorsements"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -69,7 +71,7 @@ class EndorsementDetail(APIView):
             endorsement = Endorsement.objects.get(pk=pk)
         except Endorsement.DoesNotExist:
             raise NotFound
-        
+
         serializer = EndorsementSerializer(
             endorsement,
             context={"request": request},
@@ -79,22 +81,22 @@ class EndorsementDetail(APIView):
     def put(self, request, pk):
         """Update endorsement"""
         settings.LOGGER.info(f"{request.user} is updating endorsement for {pk}")
-        
+
         try:
             endorsement = Endorsement.objects.get(pk=pk)
         except Endorsement.DoesNotExist:
             raise NotFound
-        
+
         serializer = EndorsementSerializer(
             endorsement,
             data=request.data,
             partial=True,
         )
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         updated_endorsement = serializer.save()
         return Response(
             TinyEndorsementSerializer(updated_endorsement).data,
@@ -104,7 +106,7 @@ class EndorsementDetail(APIView):
 
 class EndorsementsPendingMyAction(APIView):
     """Get endorsements pending user's action"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -149,7 +151,7 @@ class EndorsementsPendingMyAction(APIView):
 
 class SeekEndorsement(APIView):
     """Seek endorsement for a project plan"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
@@ -158,9 +160,9 @@ class SeekEndorsement(APIView):
             project_plan = ProjectPlan.objects.get(pk=pk)
         except ProjectPlan.DoesNotExist:
             raise NotFound
-        
+
         endorsement = Endorsement.objects.filter(project_plan=project_plan).first()
-        
+
         if not endorsement:
             raise NotFound("Endorsement not found for this project plan")
 
@@ -168,7 +170,7 @@ class SeekEndorsement(APIView):
             f"{request.user} is seeking an endorsement for project plan {project_plan} "
             f"with db object {endorsement}"
         )
-        
+
         end_serializer = EndorsementSerializer(
             endorsement,
             data=request.data,
@@ -176,9 +178,11 @@ class SeekEndorsement(APIView):
         )
 
         if not end_serializer.is_valid():
-            settings.LOGGER.error(f"Endorsement serializer invalid: {end_serializer.errors}")
+            settings.LOGGER.error(
+                f"Endorsement serializer invalid: {end_serializer.errors}"
+            )
             return Response(end_serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         with transaction.atomic():
             updated = end_serializer.save()
 
@@ -189,7 +193,7 @@ class SeekEndorsement(APIView):
                 existing_pdf = AECEndorsementPDF.objects.filter(
                     endorsement=updated
                 ).first()
-                
+
                 if existing_pdf:
                     # Update existing PDF
                     existing_pdf.file = pdf_file
@@ -209,10 +213,9 @@ class SeekEndorsement(APIView):
                     if not new_instance_serializer.is_valid():
                         settings.LOGGER.error(f"{new_instance_serializer.errors}")
                         return Response(
-                            new_instance_serializer.errors,
-                            status=HTTP_400_BAD_REQUEST
+                            new_instance_serializer.errors, status=HTTP_400_BAD_REQUEST
                         )
-                    
+
                     new_instance_serializer.save()
                     settings.LOGGER.info("Saved new valid pdf instance")
 
@@ -222,7 +225,7 @@ class SeekEndorsement(APIView):
 
 class DeleteAECEndorsement(APIView):
     """Delete AEC endorsement and associated PDF"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
@@ -231,12 +234,12 @@ class DeleteAECEndorsement(APIView):
             project_plan = ProjectPlan.objects.get(pk=pk)
         except ProjectPlan.DoesNotExist:
             raise NotFound
-        
+
         endorsement = Endorsement.objects.filter(project_plan=project_plan).first()
-        
+
         if not endorsement:
             raise NotFound("Endorsement not found for this project plan")
-        
+
         settings.LOGGER.info(
             f"{request.user} is deleting aec endorsement and pdf for project plan "
             f"{project_plan} with db object {endorsement}"
@@ -250,13 +253,15 @@ class DeleteAECEndorsement(APIView):
         )
 
         if not end_serializer.is_valid():
-            settings.LOGGER.error(f"Endorsement serializer invalid: {end_serializer.errors}")
+            settings.LOGGER.error(
+                f"Endorsement serializer invalid: {end_serializer.errors}"
+            )
             return Response(end_serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         with transaction.atomic():
             # Update endorsement
             updated = end_serializer.save()
-            
+
             # Delete associated PDF
             pdf_obj = AECEndorsementPDF.objects.filter(endorsement=endorsement).first()
             if pdf_obj:

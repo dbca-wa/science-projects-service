@@ -1,18 +1,20 @@
 """
 Project export serializers (for annual reports and data tables)
 """
+
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
-from documents.templatetags.custom_filters import extract_text_content
 
 from agencies.serializers import TinyBusinessAreaSerializer
-from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
 from common.utils import ProjectTeamMemberMixin
+from documents.templatetags.custom_filters import extract_text_content
+from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
 
 from ..models import Project
 
 
 class ARProjectSerializer(ModelSerializer):
     """Annual report project serializer"""
+
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     team_members = SerializerMethodField
@@ -24,6 +26,7 @@ class ARProjectSerializer(ModelSerializer):
 
 class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
     """Annual report external project serializer"""
+
     team_members = SerializerMethodField()
     partners = SerializerMethodField()
     funding = SerializerMethodField()
@@ -32,7 +35,7 @@ class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
         try:
             ext = project.external_project_info
             return ext.collaboration_with
-        except:
+        except Exception:
             print(
                 "\nEXCEPTION (NO PARTNERS):",
                 extract_text_content(project.title),
@@ -43,7 +46,7 @@ class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
         try:
             ext = project.external_project_info
             return ext.budget
-        except:
+        except Exception:
             print(
                 "\nEXCEPTION (NO FUNDING):",
                 extract_text_content(project.title),
@@ -57,6 +60,7 @@ class ARExternalProjectSerializer(ProjectTeamMemberMixin, ModelSerializer):
 
 class TinyStudentProjectARSerializer(ModelSerializer):
     """Tiny student project serializer for annual reports"""
+
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     student_level = SerializerMethodField()
@@ -83,6 +87,7 @@ class TinyStudentProjectARSerializer(ModelSerializer):
 
 class ProjectDataTableSerializer(ModelSerializer):
     """Project serializer for data tables"""
+
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     role = SerializerMethodField()

@@ -1,8 +1,7 @@
 # region IMPORTS ====================================================================================================
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -10,6 +9,7 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from ..models import Agency
 from ..serializers import AgencySerializer, TinyAgencySerializer
@@ -20,6 +20,7 @@ from ..services.agency_service import AgencyService
 
 class Agencies(APIView):
     """List and create agencies"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -30,7 +31,7 @@ class Agencies(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting an agency")
         serializer = AgencySerializer(data=request.data)
-        
+
         if serializer.is_valid():
             agency = serializer.save()
             return Response(
@@ -44,6 +45,7 @@ class Agencies(APIView):
 
 class AgencyDetail(APIView):
     """Retrieve, update, and delete agency"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -54,13 +56,13 @@ class AgencyDetail(APIView):
     def put(self, request, pk):
         agency = AgencyService.get_agency(pk)
         settings.LOGGER.info(f"{request.user} is updating {agency}")
-        
+
         serializer = AgencySerializer(
             agency,
             data=request.data,
             partial=True,
         )
-        
+
         if serializer.is_valid():
             updated_agency = serializer.save()
             return Response(

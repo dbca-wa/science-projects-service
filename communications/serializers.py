@@ -3,13 +3,9 @@
 from rest_framework.serializers import ModelSerializer
 
 from documents.serializers import TinyProjectDocumentSerializer
-from .models import (
-    ChatRoom,
-    Comment,
-    Reaction,
-    DirectMessage,
-)
 from users.serializers import TinyUserSerializer
+
+from .models import ChatRoom, Comment, DirectMessage, Reaction
 
 # endregion ====================================================================================================
 
@@ -83,6 +79,7 @@ class TinyCommentCreateSerializer(ModelSerializer):
 
 class CommentCreateSerializer(ModelSerializer):
     """Serializer for creating comments with writable foreign keys"""
+
     class Meta:
         model = Comment
         fields = [
@@ -123,6 +120,7 @@ class TinyChatRoomSerializer(ModelSerializer):
 
 class DirectMessageCreateSerializer(ModelSerializer):
     """Serializer for creating direct messages with writable foreign keys"""
+
     class Meta:
         model = DirectMessage
         fields = [

@@ -2,38 +2,33 @@
 Tests for documents admin
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
 from django.contrib.admin.sites import AdminSite
 
+from common.tests.factories import ProjectDocumentFactory
 from documents.admin import (
-    UserFilterWidget,
-    CustomPublicationAdmin,
-    AnnualReportAdmin,
-    ProjectDocumentAdmin,
     ConceptPlanAdmin,
-    ProjectPlanAdmin,
-    ProgressReportAdmin,
-    StudentReportAdmin,
-    ProjectClosureAdmin,
     EndorsementAdmin,
+    ProgressReportAdmin,
+    ProjectClosureAdmin,
+    ProjectDocumentAdmin,
+    ProjectPlanAdmin,
+    StudentReportAdmin,
+    UserFilterWidget,
     delete_unlinked_docs,
-    provide_final_approval_for_docs_if_next_exist,
     populate_aims_and_context,
+    provide_final_approval_for_docs_if_next_exist,
 )
 from documents.models import (
-    CustomPublication,
-    AnnualReport,
-    ProjectDocument,
     ConceptPlan,
-    ProjectPlan,
-    ProgressReport,
-    StudentReport,
-    ProjectClosure,
     Endorsement,
+    ProgressReport,
+    ProjectClosure,
+    ProjectDocument,
+    ProjectPlan,
+    StudentReport,
 )
-from common.tests.factories import ProjectDocumentFactory
-
 
 # ============================================================================
 # WIDGET TESTS
@@ -286,7 +281,7 @@ class TestProvideFinalApprovalForDocsIfNextExist:
         concept_doc.save()
 
         # Create project plan for same project
-        project_plan_doc = ProjectDocumentFactory(
+        ProjectDocumentFactory(
             project=project_with_lead,
             kind="projectplan",
             status="new",
@@ -324,8 +319,9 @@ class TestPopulateAimsAndContext:
     def test_action_populates_from_previous_year(self, project_with_lead, db):
         """Test action populates aims and context from previous year"""
         # Create annual reports for different years
-        from documents.models import AnnualReport
         from datetime import date
+
+        from documents.models import AnnualReport
 
         prev_year_report = AnnualReport.objects.create(
             year=2022,
@@ -347,7 +343,7 @@ class TestPopulateAimsAndContext:
             kind="progressreport",
             status="new",
         )
-        prev_report = ProgressReport.objects.create(
+        ProgressReport.objects.create(
             document=prev_doc,
             report=prev_year_report,
             project=project_with_lead,

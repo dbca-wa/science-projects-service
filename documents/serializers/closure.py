@@ -1,6 +1,7 @@
 """
 Project closure serializers
 """
+
 from rest_framework import serializers
 
 from ..models import ProjectClosure
@@ -9,6 +10,7 @@ from .base import TinyProjectDocumentSerializer
 
 class TinyProjectClosureSerializer(serializers.ModelSerializer):
     """Minimal project closure serializer"""
+
     document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
@@ -26,6 +28,7 @@ class TinyProjectClosureSerializer(serializers.ModelSerializer):
 
 class ProjectClosureSerializer(serializers.ModelSerializer):
     """Standard project closure serializer"""
+
     document = TinyProjectDocumentSerializer(read_only=True)
 
     class Meta:
@@ -35,7 +38,7 @@ class ProjectClosureSerializer(serializers.ModelSerializer):
 
 class ProjectClosureCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating project closures"""
-    
+
     class Meta:
         model = ProjectClosure
         fields = [
@@ -50,7 +53,7 @@ class ProjectClosureCreateSerializer(serializers.ModelSerializer):
 
 class ProjectClosureUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating project closures"""
-    
+
     class Meta:
         model = ProjectClosure
         fields = [

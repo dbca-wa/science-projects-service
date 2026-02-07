@@ -1,15 +1,12 @@
 """
 Tests for adminoptions models
 """
+
 import pytest
-from django.core.exceptions import ValidationError
 from django.core.cache import cache
-from adminoptions.models import (
-    AdminOptions,
-    AdminTask,
-    ContentField,
-    GuideSection,
-)
+from django.core.exceptions import ValidationError
+
+from adminoptions.models import AdminOptions, AdminTask, ContentField, GuideSection
 from caretakers.models import Caretaker
 
 
@@ -240,7 +237,9 @@ class TestAdminTaskModel:
         """Test AdminTask status choices"""
         for status in AdminTask.TaskStatus:
             task = AdminTask.objects.create(
-                action=AdminTask.ActionTypes.DELETEPROJECT, status=status, requester=user
+                action=AdminTask.ActionTypes.DELETEPROJECT,
+                status=status,
+                requester=user,
             )
             assert task.status == status
             task.delete()
@@ -261,7 +260,7 @@ class TestCaretakerModel:
 
     def test_caretaker_str_method(self, caretaker, db):
         """Test Caretaker __str__ method
-        
+
         NOTE: Using caretakers app model, not adminoptions model.
         The caretakers app model has a different __str__ format.
         """
@@ -278,9 +277,7 @@ class TestCaretakerModel:
         cache.set(f"caretaking_{secondary_user.pk}", "test_value")
 
         # Create caretaker (triggers save)
-        Caretaker.objects.create(
-            user=user, caretaker=secondary_user, reason="Test"
-        )
+        Caretaker.objects.create(user=user, caretaker=secondary_user, reason="Test")
 
         # Verify cache was cleared
         assert cache.get(f"caretakers_{user.pk}") is None
@@ -310,8 +307,9 @@ class TestCaretakerModel:
 
     def test_caretaker_with_end_date(self, user, secondary_user, db):
         """Test creating Caretaker with end_date"""
-        from django.utils import timezone
         from datetime import timedelta
+
+        from django.utils import timezone
 
         end_date = timezone.now() + timedelta(days=30)
         caretaker = Caretaker.objects.create(

@@ -6,11 +6,12 @@ Provides fixtures for testing document-related functionality.
 
 import pytest
 from django.contrib.auth import get_user_model
+
 from common.tests.factories import (
-    UserFactory,
-    ProjectFactory,
     BusinessAreaFactory,
     ProjectDocumentFactory,
+    ProjectFactory,
+    UserFactory,
 )
 
 User = get_user_model()
@@ -267,6 +268,7 @@ def annual_report(db):
         AnnualReport: Annual report instance
     """
     from datetime import date
+
     from documents.models import AnnualReport
 
     return AnnualReport.objects.create(
@@ -524,8 +526,9 @@ def user_with_avatar(db):
     Returns:
         User: User instance with avatar attached
     """
-    from medias.models import UserAvatar
     from django.core.files.uploadedfile import SimpleUploadedFile
+
+    from medias.models import UserAvatar
 
     user = UserFactory(
         username="user_with_avatar",

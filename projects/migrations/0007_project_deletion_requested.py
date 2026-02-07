@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0006_alter_externalprojectdetails_aims_and_more'),
+        ("projects", "0006_alter_externalprojectdetails_aims_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='deletion_requested',
-            field=models.BooleanField(default=False, help_text='Request for deletion of project'),
+            model_name="project",
+            name="deletion_requested",
+            field=models.BooleanField(
+                default=False, help_text="Request for deletion of project"
+            ),
         ),
     ]

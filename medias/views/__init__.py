@@ -2,29 +2,29 @@
 Views for media management
 """
 
-from .project_docs import ProjectDocPDFS
 from .annual_reports import (
-    AnnualReportPDFs,
-    AnnualReportPDFDetail,
-    LegacyAnnualReportPDFs,
-    LegacyAnnualReportPDFDetail,
-    AnnualReportMedias,
-    AnnualReportMediaDetail,
-    LatestReportMedia,
-    AnnualReportMediaUpload,
     AnnualReportMediaDelete,
+    AnnualReportMediaDetail,
+    AnnualReportMedias,
+    AnnualReportMediaUpload,
+    AnnualReportPDFDetail,
+    AnnualReportPDFs,
+    LatestReportMedia,
+    LegacyAnnualReportPDFDetail,
+    LegacyAnnualReportPDFs,
 )
+from .avatars import UserAvatarDetail, UserAvatars
 from .photos import (
-    BusinessAreaPhotos,
-    BusinessAreaPhotoDetail,
-    ProjectPhotos,
-    ProjectPhotoDetail,
-    MethodologyPhotos,
-    MethodologyPhotoDetail,
-    AgencyPhotos,
     AgencyPhotoDetail,
+    AgencyPhotos,
+    BusinessAreaPhotoDetail,
+    BusinessAreaPhotos,
+    MethodologyPhotoDetail,
+    MethodologyPhotos,
+    ProjectPhotoDetail,
+    ProjectPhotos,
 )
-from .avatars import UserAvatars, UserAvatarDetail
+from .project_docs import ProjectDocPDFS
 
 __all__ = [
     # Project documents

@@ -1,12 +1,13 @@
 """
 Quote views
 """
-from .crud import Quotes, QuoteDetail, QuoteRandom
+
 from .admin import AddQuotesFromUniques
+from .crud import QuoteDetail, QuoteRandom, Quotes
 
 __all__ = [
-    'Quotes',
-    'QuoteDetail',
-    'QuoteRandom',
-    'AddQuotesFromUniques',
+    "Quotes",
+    "QuoteDetail",
+    "QuoteRandom",
+    "AddQuotesFromUniques",
 ]

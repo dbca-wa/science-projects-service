@@ -2,12 +2,11 @@
 Member service - Project team management
 """
 
-from django.db import transaction, IntegrityError
 from django.conf import settings
+from django.db import IntegrityError, transaction
 from rest_framework.exceptions import NotFound, ValidationError
 
-from ..models import ProjectMember, Project
-from users.models import User
+from ..models import Project, ProjectMember
 
 
 class MemberService:

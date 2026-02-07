@@ -7,13 +7,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0010_alter_project_year'),
+        ("projects", "0010_alter_project_year"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='hidden_from_staff_profiles',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.PositiveIntegerField(), blank=True, default=list, size=None),
+            model_name="project",
+            name="hidden_from_staff_profiles",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.PositiveIntegerField(),
+                blank=True,
+                default=list,
+                size=None,
+            ),
         ),
     ]

@@ -1,26 +1,24 @@
 # region IMPORTS ======================================
-import csv, requests
+import csv
 from datetime import datetime
-from operator import is_
-import os
-import pandas as pd
+
+import requests
 from django.conf import settings
-from django.db.models import Q
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.forms import model_to_dict
 from django.http import HttpResponse
 
-# Project Imports --------------------
-from .models import KeywordTag, PublicStaffProfile, User, UserWork, UserProfile
 from agencies.serializers import (
+    TinyAgencySerializer,
     TinyBranchSerializer,
     TinyBusinessAreaSerializer,
-    TinyAgencySerializer,
 )
 from projects.models import ProjectMember
 from users.serializers import TinyUserSerializer
-from users.views import StaffProfiles, Users
+
+# Project Imports --------------------
+from .models import KeywordTag, PublicStaffProfile, User, UserProfile, UserWork
 
 # endregion ===========================================
 
@@ -135,6 +133,7 @@ def generate_active_staff_csv(model_admin, request, selected):
         response_it = requests.get(
             settings.IT_ASSETS_URL,
             auth=(settings.IT_ASSETS_USER, settings.IT_ASSETS_ACCESS_TOKEN),
+            timeout=30,
         )
 
         if response_it.status_code == 200:
@@ -206,18 +205,23 @@ def set_it_assets_id(model_admin, req, selected):
 
     # Call the API to retrieve the list of users
     api_url = settings.IT_ASSETS_URL
-    response = requests.get(
-        api_url,
-        auth=(
-            settings.IT_ASSETS_USER,
-            settings.IT_ASSETS_ACCESS_TOKEN,
-        ),
-    )
+    try:
+        response = requests.get(
+            api_url,
+            auth=(
+                settings.IT_ASSETS_USER,
+                settings.IT_ASSETS_ACCESS_TOKEN,
+            ),
+            timeout=30,
+        )
+    except requests.Timeout:
+        settings.LOGGER.error("Request to IT Assets API timed out")
+        return
 
     if response.status_code != 200:
-        if settings.IT_ASSETS_USER == None:
+        if settings.IT_ASSETS_USER is None:
             settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
-        if settings.IT_ASSETS_ACCESS_TOKEN == None:
+        if settings.IT_ASSETS_ACCESS_TOKEN is None:
             settings.LOGGER.warning("No IT_ASSETS_ACCESS_TOKEN found in settings/env")
         settings.LOGGER.error(
             f"Failed to retrieve data from API:\n{response.status_code}: {response.text}"

@@ -1,9 +1,10 @@
 # region IMPORTS =====================================================================================================
 
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from common.models import CommonModel
 from django.db.models import UniqueConstraint
-from django.core.validators import MinValueValidator, MaxValueValidator
+
+from common.models import CommonModel
 
 # endregion ===========================================================================================================
 
@@ -129,7 +130,7 @@ class LegacyAnnualReportPDF(CommonModel):
         verbose_name_plural = "Legacy Annual Report PDFs"
 
 
-class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
+class AnnualReportPDF(CommonModel):  # The latest pdf for a given annual report
     """
     PDF for Report Media
     """
@@ -168,7 +169,7 @@ class AnnualReportPDF(CommonModel):  #  The latest pdf for a given annual report
 # region PROJECT MODELS ======================================================================================================
 
 
-class AECEndorsementPDF(CommonModel):  #  The latest pdf for a given annual report
+class AECEndorsementPDF(CommonModel):  # The latest pdf for a given annual report
     """
     PDF for AEC Endorsements
     """

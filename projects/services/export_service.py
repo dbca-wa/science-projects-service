@@ -1,14 +1,17 @@
 """
 Export service - CSV export functionality
 """
-import csv
-from django.http import HttpResponse
-from django.conf import settings
-from bs4 import BeautifulSoup
 
-from ..models import Project
+import csv
+
+from bs4 import BeautifulSoup
+from django.conf import settings
+from django.http import HttpResponse
+
 from documents.models import AnnualReport
 from users.models import User
+
+from ..models import Project
 
 
 class ExportService:
@@ -26,29 +29,29 @@ class ExportService:
     def export_all_projects_csv(user):
         """
         Export all projects to CSV
-        
+
         Args:
             user: User requesting the export
-            
+
         Returns:
             HttpResponse with CSV content
         """
         settings.LOGGER.info(f"{user} is generating a csv of all projects...")
-        
+
         try:
             # Retrieve projects with optimization
-            projects = Project.objects.select_related(
-                'business_area'
-            ).prefetch_related(
-                'members__user'
-            ).all()
-            
+            projects = (
+                Project.objects.select_related("business_area")
+                .prefetch_related("members__user")
+                .all()
+            )
+
             # Create CSV response
             response = HttpResponse(content_type="text/csv")
             response["Content-Disposition"] = 'attachment; filename="projects-full.csv"'
-            
+
             writer = csv.writer(response)
-            
+
             # CSV headers
             headers = [
                 "ID",
@@ -65,7 +68,7 @@ class ExportService:
                 "End Date",
             ]
             writer.writerow(headers)
-            
+
             # Write project rows
             for project in projects:
                 # Get business area leader
@@ -77,9 +80,11 @@ class ExportService:
                         ).first()
                         if leader_user:
                             ba_leader = str(leader_user)
-                    except Exception:
-                        ba_leader = ""
-                
+                    except Exception as e:
+                        settings.LOGGER.warning(
+                            f"Failed to get business area leader for project {project.pk}: {e}"
+                        )
+
                 # Get team members
                 team_members = []
                 for project_member in project.members.all():
@@ -88,9 +93,12 @@ class ExportService:
                             team_members.append(
                                 f"{project_member.user.first_name} {project_member.user.last_name}"
                             )
-                    except Exception:
+                    except Exception as e:
+                        settings.LOGGER.warning(
+                            f"Failed to get team member for project {project.pk}: {e}"
+                        )
                         continue
-                
+
                 row = [
                     project.pk,
                     project.get_project_tag(),
@@ -106,9 +114,9 @@ class ExportService:
                     project.end_date,
                 ]
                 writer.writerow(row)
-            
+
             return response
-            
+
         except Exception as e:
             settings.LOGGER.error(f"{e}")
             return HttpResponse(status=500, content="Error generating CSV")
@@ -117,47 +125,45 @@ class ExportService:
     def export_annual_report_projects_csv(user):
         """
         Export annual report projects to CSV
-        
+
         Args:
             user: User requesting the export
-            
+
         Returns:
             HttpResponse with CSV content
         """
-        settings.LOGGER.info(
-            f"{user} is generating a csv of annual report projects..."
-        )
-        
+        settings.LOGGER.info(f"{user} is generating a csv of annual report projects...")
+
         try:
             # Get latest annual report
             latest_annual_report = AnnualReport.objects.order_by("-year").first()
-            
+
             if not latest_annual_report:
                 return HttpResponse(status=404, content="No annual reports found")
-            
+
             # Get projects in progress reports
             progress_report_projects = Project.objects.filter(
                 progress_reports__report=latest_annual_report
             ).distinct()
-            
+
             # Get projects in student reports
             student_report_projects = Project.objects.filter(
                 student_reports__report=latest_annual_report
             ).distinct()
-            
+
             # Combine and remove duplicates
             annual_report_projects = (
                 progress_report_projects | student_report_projects
             ).distinct()
-            
+
             # Create CSV response
             response = HttpResponse(content_type="text/csv")
             response["Content-Disposition"] = (
                 f'attachment; filename="projects-annual-report-{latest_annual_report.year}.csv"'
             )
-            
+
             writer = csv.writer(response)
-            
+
             # CSV headers
             headers = [
                 "ID",
@@ -175,7 +181,7 @@ class ExportService:
                 "Report Type",
             ]
             writer.writerow(headers)
-            
+
             # Write project rows
             for project in annual_report_projects:
                 # Determine report type
@@ -185,7 +191,7 @@ class ExportService:
                 has_student_report = project.student_reports.filter(
                     report=latest_annual_report
                 ).exists()
-                
+
                 if has_progress_report and has_student_report:
                     report_type = "Progress & Student"
                 elif has_progress_report:
@@ -194,7 +200,7 @@ class ExportService:
                     report_type = "Student"
                 else:
                     report_type = "Unknown"
-                
+
                 # Get business area leader
                 ba_leader = ""
                 if project.business_area and project.business_area.leader_id:
@@ -204,9 +210,11 @@ class ExportService:
                         ).first()
                         if leader_user:
                             ba_leader = str(leader_user)
-                    except Exception:
-                        ba_leader = ""
-                
+                    except Exception as e:
+                        settings.LOGGER.warning(
+                            f"Failed to get business area leader for project {project.pk}: {e}"
+                        )
+
                 # Get team members
                 team_members = []
                 for project_member in project.members.all():
@@ -215,9 +223,12 @@ class ExportService:
                             team_members.append(
                                 f"{project_member.user.first_name} {project_member.user.last_name}"
                             )
-                    except Exception:
+                    except Exception as e:
+                        settings.LOGGER.warning(
+                            f"Failed to get team member for project {project.pk}: {e}"
+                        )
                         continue
-                
+
                 row = [
                     project.pk,
                     project.get_project_tag(),
@@ -234,9 +245,9 @@ class ExportService:
                     report_type,
                 ]
                 writer.writerow(row)
-            
+
             return response
-            
+
         except Exception as e:
             settings.LOGGER.error(f"{e}")
             return HttpResponse(status=500, content="Error generating CSV")

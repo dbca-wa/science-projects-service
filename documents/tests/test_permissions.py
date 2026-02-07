@@ -2,9 +2,14 @@
 Tests for document permissions
 """
 
-import pytest
 from unittest.mock import Mock
 
+from documents.permissions.annual_report_permissions import (
+    CanEditAnnualReport,
+    CanGenerateAnnualReportPDF,
+    CanPublishAnnualReport,
+    CanViewAnnualReport,
+)
 from documents.permissions.document_permissions import (
     CanApproveDocument,
     CanDeleteDocument,
@@ -13,13 +18,6 @@ from documents.permissions.document_permissions import (
     CanRecallDocument,
     CanViewDocument,
 )
-from documents.permissions.annual_report_permissions import (
-    CanEditAnnualReport,
-    CanGenerateAnnualReportPDF,
-    CanPublishAnnualReport,
-    CanViewAnnualReport,
-)
-
 
 # ============================================================================
 # DOCUMENT PERMISSION TESTS
@@ -466,7 +464,7 @@ class TestCanPublishAnnualReport:
         from agencies.models import Division
 
         # Create a division with director
-        division = Division.objects.create(
+        Division.objects.create(
             name="Test Division",
             director=director,
         )

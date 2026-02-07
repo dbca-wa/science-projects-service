@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 urlpatterns = [
@@ -28,7 +29,9 @@ urlpatterns = [
     path("latest_inactive_reports", views.LatestYearsInactiveReports.as_view()),
     path("reports/latest", views.FullLatestReport.as_view()),
     # Annual Report Gen ========================================================
-    path("reports/<int:pk>/generate_pdf", views.BeginAnnualReportDocGeneration.as_view()),
+    path(
+        "reports/<int:pk>/generate_pdf", views.BeginAnnualReportDocGeneration.as_view()
+    ),
     path(
         "reports/<int:pk>/cancel_doc_gen",
         views.CancelReportDocGeneration.as_view(),

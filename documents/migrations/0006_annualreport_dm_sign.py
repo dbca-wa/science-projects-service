@@ -6,13 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('documents', '0005_delete_publication'),
+        ("documents", "0005_delete_publication"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='annualreport',
-            name='dm_sign',
-            field=models.TextField(blank=True, help_text='Sign off', null=True, verbose_name="Director's Message Sign off"),
+            model_name="annualreport",
+            name="dm_sign",
+            field=models.TextField(
+                blank=True,
+                help_text="Sign off",
+                null=True,
+                verbose_name="Director's Message Sign off",
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
 """
 Area service - Business logic for area operations
 """
+
 from django.conf import settings
 from rest_framework.exceptions import NotFound
 
@@ -14,10 +15,10 @@ class AreaService:
     def list_areas(area_type=None):
         """
         List all areas, optionally filtered by type
-        
+
         Args:
             area_type: Optional area type filter
-            
+
         Returns:
             QuerySet of Area objects
         """
@@ -30,13 +31,13 @@ class AreaService:
     def get_area(pk):
         """
         Get area by ID
-        
+
         Args:
             pk: Area primary key
-            
+
         Returns:
             Area instance
-            
+
         Raises:
             NotFound: If area doesn't exist
         """
@@ -49,11 +50,11 @@ class AreaService:
     def create_area(user, data):
         """
         Create new area
-        
+
         Args:
             user: User creating the area
             data: Validated area data
-            
+
         Returns:
             Created Area instance
         """
@@ -64,29 +65,29 @@ class AreaService:
     def update_area(pk, user, data):
         """
         Update area
-        
+
         Args:
             pk: Area primary key
             user: User updating the area
             data: Validated area data
-            
+
         Returns:
             Updated Area instance
         """
         area = AreaService.get_area(pk)
         settings.LOGGER.info(f"{user} is updating area {area}")
-        
+
         for field, value in data.items():
             setattr(area, field, value)
         area.save()
-        
+
         return area
 
     @staticmethod
     def delete_area(pk, user):
         """
         Delete area
-        
+
         Args:
             pk: Area primary key
             user: User deleting the area
