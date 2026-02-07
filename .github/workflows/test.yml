@@ -344,7 +344,46 @@ jobs:
           echo "=== Generating coverage reports ==="
           poetry run coverage xml -o coverage.xml
           poetry run coverage html
+
+          # Get coverage percentage and save to file
+          COVERAGE=$(poetry run coverage report | grep TOTAL | awk '{print $4}' | sed 's/%//')
+          echo "Coverage: ${COVERAGE}%"
+          echo "${COVERAGE}" > coverage-percentage.txt
+
+          # Verify minimum coverage
           poetry run coverage report --fail-under=80
+
+      - name: Generate coverage badge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Read coverage percentage
+          COVERAGE=$(cat coverage-percentage.txt)
+
+          # Determine badge colour
+          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
+            COLOR="brightgreen"
+          elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+            COLOR="green"
+          elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then
+            COLOR="yellow"
+          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+
+          # Create badge URL
+          BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
+          echo "Badge URL: ${BADGE_URL}"
+          echo "${BADGE_URL}" > coverage-badge-url.txt
+
+      - name: Upload coverage badge URL
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-badge-url
+          path: coverage-badge-url.txt
+          retention-days: 1
 
       - name: Upload combined coverage report
         uses: actions/upload-artifact@v4
@@ -353,33 +392,17 @@ jobs:
           path: htmlcov/
           retention-days: 30
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        with:
-          file: coverage.xml
-          flags: backend
-          name: backend-coverage
-          fail_ci_if_error: false
-        continue-on-error: true
-        id: codecov-upload
-
-      - name: Check Codecov upload outcome
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-          if [ "${{ steps.codecov-upload.outcome }}" == "failure" ]; then
-            echo "::warning::Codecov upload failed - coverage.xml may be invalid or Codecov service unavailable"
-          elif [ "${{ steps.codecov-upload.outcome }}" == "success" ]; then
-            echo "✅ Coverage uploaded to Codecov successfully"
-          else
-            echo "::warning::Codecov upload was skipped"
-          fi
-
       - name: Test Summary
         if: always()
         run: |
           echo "## Test Results" >> $GITHUB_STEP_SUMMARY
           echo "✅ Tests completed across 4 shards" >> $GITHUB_STEP_SUMMARY
           echo "📊 Coverage report uploaded as artifact" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "coverage-percentage.txt" ]; then
+            COVERAGE=$(cat coverage-percentage.txt)
+            echo "📈 Coverage: ${COVERAGE}%" >> $GITHUB_STEP_SUMMARY
+          fi
+
           echo "🎯 Minimum coverage: 80%" >> $GITHUB_STEP_SUMMARY
           echo "⚡ Sharding reduces wall time by ~75%" >> $GITHUB_STEP_SUMMARY

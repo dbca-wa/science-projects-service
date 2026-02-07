@@ -1,7 +1,7 @@
 # Science Projects Management System (SPMS) Backend
 
 [![Tests](https://github.com/dbca-wa/science-projects-service/actions/workflows/test.yml/badge.svg)](https://github.com/dbca-wa/science-projects-service/actions/workflows/test.yml)
-[![Coverage](https://codecov.io/gh/dbca-wa/science-projects-service/graph/badge.svg)](https://codecov.io/gh/dbca-wa/science-projects-service)
+![Coverage](https://img.shields.io/badge/coverage-84%25-green)
 [![CodeQL](https://github.com/dbca-wa/science-projects-service/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/dbca-wa/science-projects-service/actions/workflows/github-code-scanning/codeql)
 [![Issues](https://img.shields.io/static/v1?label=docs&message=Issues&color=brightgreen)](https://github.com/dbca-wa/science-projects-service/issues)
 
