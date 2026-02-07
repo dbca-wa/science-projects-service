@@ -353,7 +353,7 @@ jobs:
           # Verify minimum coverage
           poetry run coverage report --fail-under=80
 
-      - name: Generate coverage badge
+      - name: Update README with coverage badge
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           # Read coverage percentage
@@ -372,18 +372,38 @@ jobs:
             COLOR="red"
           fi
 
-          # Create badge URL
-          BADGE_URL="https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR}"
-          echo "Badge URL: ${BADGE_URL}"
-          echo "${BADGE_URL}" > coverage-badge-url.txt
+          # Create new badge markdown
+          NEW_BADGE="![Coverage](https://img.shields.io/badge/coverage-${COVERAGE}%25-${COLOR})"
 
-      - name: Upload coverage badge URL
+          # Update README.md (replace the coverage badge line)
+          sed -i "s|!\[Coverage\](https://img.shields.io/badge/coverage-[0-9]*%25-[a-z]*)|${NEW_BADGE}|g" README.md
+
+          echo "Updated coverage badge to: ${NEW_BADGE}"
+
+          # Check if there are changes
+          if git diff --quiet README.md; then
+            echo "No changes to README.md"
+          else
+            echo "README.md updated with new coverage badge"
+          fi
+
+      - name: Commit and push README changes
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-badge-url
-          path: coverage-badge-url.txt
-          retention-days: 1
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Check if there are changes to commit
+          if git diff --quiet README.md; then
+            echo "✅ No changes to commit"
+          else
+            # Commit and push
+            git add README.md
+            git commit -m "chore: update coverage badge to $(cat coverage-percentage.txt)% [skip ci]"
+            git push origin main
+            echo "✅ Coverage badge updated in README"
+          fi
 
       - name: Upload combined coverage report
         uses: actions/upload-artifact@v4
