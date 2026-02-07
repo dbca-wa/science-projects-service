@@ -330,15 +330,25 @@ jobs:
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           file: coverage.xml
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
+        id: codecov-upload
+
+      - name: Check Codecov upload outcome
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          if [ "${{ steps.codecov-upload.outcome }}" == "failure" ]; then
+            echo "::warning::Codecov upload failed - coverage.xml may be invalid or Codecov service unavailable"
+          elif [ "${{ steps.codecov-upload.outcome }}" == "success" ]; then
+            echo "✅ Coverage uploaded to Codecov successfully"
+          else
+            echo "::warning::Codecov upload was skipped"
+          fi
 
       - name: Test Summary
         if: always()
