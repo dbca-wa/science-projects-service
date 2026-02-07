@@ -1,12 +1,13 @@
 # region IMPORTS ====================================================================================================
 
-from operator import is_, le
-from re import A
-from tracemalloc import start
+
 from django.conf import settings
-from rest_framework.exceptions import (
-    NotFound,
-)
+from django.db import transaction
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -15,17 +16,9 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
 )
-from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from django.db import transaction
 
-from adminoptions.models import (
-    AdminOptions,
-    AdminTask,
-    ContentField,
-    GuideSection,
-)
+from adminoptions.models import AdminOptions, AdminTask, ContentField, GuideSection
 from adminoptions.serializers import (
     AdminOptionsCreateSerializer,
     AdminOptionsMaintainerSerializer,
@@ -37,19 +30,10 @@ from adminoptions.serializers import (
     GuideSectionSerializer,
 )
 from caretakers.models import Caretaker
-from caretakers.serializers import CaretakerSerializer
-from agencies.models import BusinessArea
-from documents.models import ProjectDocument
-from documents.serializers import (
-    TinyProjectDocumentSerializer,
-    TinyProjectDocumentSerializerWithUserDocsBelongTo,
-)
-from projects.models import Project, ProjectMember
 from communications.models import Comment
-import users
+from documents.models import ProjectDocument
+from projects.models import Project, ProjectMember
 from users.models import User
-from rest_framework import viewsets
-from rest_framework.decorators import action
 
 # endregion  =================================================================================================
 
@@ -388,9 +372,7 @@ class AdminTasks(APIView):
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting all admin tasks")
         # Only return pending tasks (filter out cancelled, rejected, fulfilled)
-        pending_tasks = AdminTask.objects.filter(
-            status=AdminTask.TaskStatus.PENDING
-        )
+        pending_tasks = AdminTask.objects.filter(status=AdminTask.TaskStatus.PENDING)
         ser = AdminTaskSerializer(
             pending_tasks,
             many=True,
@@ -441,7 +423,7 @@ class AdminTasks(APIView):
         except Exception as e:
             settings.LOGGER.error(msg=f"Error in creating task: {e}")
             return Response(
-                {'error': str(e)},
+                {"error": str(e)},
                 status=HTTP_400_BAD_REQUEST,
             )
 
@@ -453,7 +435,7 @@ class AdminTasks(APIView):
             # First check if there is already a pending deletion request for this project
             if self.check_existing_deletion_task(data):
                 settings.LOGGER.error(
-                    msg=f"Error in setting project deletion requested: Project already has a pending deletion request"
+                    msg="Error in setting project deletion requested: Project already has a pending deletion request"
                 )
                 return Response(
                     "Project already has a pending deletion request",
@@ -461,7 +443,7 @@ class AdminTasks(APIView):
                 )
             # Check the project specifically if the flag is set to true
             res = self.set_project_deletion_requested(data)
-            if res != True:
+            if res is not True:
                 settings.LOGGER.error(
                     msg=f"Error in setting project deletion requested: {res}"
                 )
@@ -473,7 +455,7 @@ class AdminTasks(APIView):
             # First check if there is already a pending merge user request for these users
             if self.check_existing_merge_user_task(data):
                 settings.LOGGER.error(
-                    msg=f"Error in setting merge user requested: Users already have a pending merge user request"
+                    msg="Error in setting merge user requested: Users already have a pending merge user request"
                 )
                 return Response(
                     "Users already have a pending merge user request",
@@ -483,37 +465,38 @@ class AdminTasks(APIView):
         elif data["action"] == AdminTask.ActionTypes.SETCARETAKER:
             # Validate end_date is not in the past
             if data.get("end_date"):
-                from django.utils import timezone
                 from datetime import datetime
-                
+
+                from django.utils import timezone
+
                 # Parse the end_date
                 try:
                     if isinstance(data["end_date"], str):
-                        end_date = datetime.fromisoformat(data["end_date"].replace('Z', '+00:00')).date()
+                        end_date = datetime.fromisoformat(
+                            data["end_date"].replace("Z", "+00:00")
+                        ).date()
                     else:
                         end_date = data["end_date"]
-                    
+
                     if end_date < timezone.now().date():
                         settings.LOGGER.error(
-                            msg=f"Error in setting caretaker: End date cannot be in the past"
+                            msg="Error in setting caretaker: End date cannot be in the past"
                         )
                         return Response(
                             "End date cannot be in the past",
                             status=HTTP_400_BAD_REQUEST,
                         )
                 except (ValueError, AttributeError) as e:
-                    settings.LOGGER.error(
-                        msg=f"Error parsing end_date: {e}"
-                    )
+                    settings.LOGGER.error(msg=f"Error parsing end_date: {e}")
                     return Response(
                         "Invalid end date format",
                         status=HTTP_400_BAD_REQUEST,
                     )
-            
+
             # First check if there is already a pending caretaker request for this user
             if self.check_existing_caretaker_task(data):
                 settings.LOGGER.error(
-                    msg=f"Error in setting caretaker: User already has a pending caretaker request"
+                    msg="Error in setting caretaker: User already has a pending caretaker request"
                 )
                 return Response(
                     "User already has a pending caretaker request",
@@ -521,7 +504,7 @@ class AdminTasks(APIView):
                 )
             if self.check_existing_caretaker_object(data):
                 settings.LOGGER.error(
-                    msg=f"Error in setting caretaker: User already has a caretaker"
+                    msg="Error in setting caretaker: User already has a caretaker"
                 )
                 return Response(
                     "User already has a caretaker",
@@ -555,16 +538,16 @@ class PendingTasks(APIView):
 
     def get(self, req):
         settings.LOGGER.info(msg=f"{req.user} is getting all pending admin tasks")
-        
+
         # Auto-cancel expired pending caretaker requests before returning
         from django.utils import timezone
-        
+
         expired_caretaker_requests = AdminTask.objects.filter(
             status=AdminTask.TaskStatus.PENDING,
             action=AdminTask.ActionTypes.SETCARETAKER,
-            end_date__lt=timezone.now()  # Compare datetime to datetime
+            end_date__lt=timezone.now(),  # Compare datetime to datetime
         )
-        
+
         if expired_caretaker_requests.exists():
             count = expired_caretaker_requests.count()
             settings.LOGGER.info(
@@ -572,9 +555,11 @@ class PendingTasks(APIView):
             )
             for request in expired_caretaker_requests:
                 request.status = AdminTask.TaskStatus.CANCELLED
-                request.notes = (request.notes or "") + "\n[Auto-cancelled: end date passed while request was pending]"
+                request.notes = (
+                    request.notes or ""
+                ) + "\n[Auto-cancelled: end date passed while request was pending]"
                 request.save()
-        
+
         # Get all remaining pending tasks
         all = AdminTask.objects.filter(status=AdminTask.TaskStatus.PENDING)
         ser = AdminTaskSerializer(
@@ -611,32 +596,35 @@ class GetPendingCaretakerRequestsForUser(APIView):
     Returns requests where someone wants THIS user to become THEIR caretaker
     (i.e., where THIS user is in the secondary_users array)
     """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, req):
-        user_id = req.query_params.get('user_id')
-        
+        user_id = req.query_params.get("user_id")
+
         if not user_id:
             return Response(
                 {"error": "user_id query parameter is required"},
                 status=HTTP_400_BAD_REQUEST,
             )
-        
+
         settings.LOGGER.info(
             msg=f"{req.user} is getting pending caretaker requests for user {user_id}"
         )
-        
+
         # Get all pending caretaker requests where THIS user is being asked to be the caretaker
         # The user_id should be in the secondary_users array
         pending_requests = AdminTask.objects.filter(
             action=AdminTask.ActionTypes.SETCARETAKER,
             status=AdminTask.TaskStatus.PENDING,
-            secondary_users__contains=[int(user_id)],  # User is in the secondary_users array
+            secondary_users__contains=[
+                int(user_id)
+            ],  # User is in the secondary_users array
         )
-        
+
         # Serialize the requests
         serializer = AdminTaskSerializer(pending_requests, many=True)
-        
+
         return Response(
             serializer.data,
             status=HTTP_200_OK,
@@ -823,13 +811,17 @@ class ApproveTask(APIView):
 
                         # ========= HANDLE DOCUMENTS AND COMMENTS =========
                         # Update documents created by merging user
-                        user_created_documents = ProjectDocument.objects.filter(creator=merging_user)
+                        user_created_documents = ProjectDocument.objects.filter(
+                            creator=merging_user
+                        )
                         user_created_documents.update(creator=user_to_merge_into)
-                        
+
                         # Update documents modified by merging user
-                        user_modified_documents = ProjectDocument.objects.filter(modifier=merging_user)
+                        user_modified_documents = ProjectDocument.objects.filter(
+                            modifier=merging_user
+                        )
                         user_modified_documents.update(modifier=user_to_merge_into)
-                        
+
                         # Update comments by merging user
                         user_comments = Comment.objects.filter(user=merging_user)
                         user_comments.update(user=user_to_merge_into)
@@ -1106,6 +1098,7 @@ class RespondToCaretakerRequest(APIView):
     Allow a user to approve or reject a caretaker request where they are the requested caretaker.
     This reduces admin burden by allowing users to self-manage caretaker requests.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get_task(self, pk):
@@ -1158,9 +1151,7 @@ class RespondToCaretakerRequest(APIView):
                 status=HTTP_400_BAD_REQUEST,
             )
 
-        settings.LOGGER.info(
-            msg=f"{req.user} is {action}ing caretaker request {task}"
-        )
+        settings.LOGGER.info(msg=f"{req.user} is {action}ing caretaker request {task}")
 
         if action == "approve":
             # Approve and fulfill the task

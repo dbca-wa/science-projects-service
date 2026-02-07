@@ -1,6 +1,7 @@
 """
 Project permissions
 """
+
 from .project_permissions import (
     CanEditProject,
     CanManageProjectMembers,
@@ -10,9 +11,9 @@ from .project_permissions import (
 )
 
 __all__ = [
-    'CanEditProject',
-    'CanManageProjectMembers',
-    'CanViewProject',
-    'IsProjectLeader',
-    'IsProjectMember',
+    "CanEditProject",
+    "CanManageProjectMembers",
+    "CanViewProject",
+    "IsProjectLeader",
+    "IsProjectMember",
 ]

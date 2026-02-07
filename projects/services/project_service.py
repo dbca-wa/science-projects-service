@@ -2,17 +2,17 @@
 Project service - Core project operations
 """
 
-from django.db import transaction
-from django.db.models import Q, Case, When, Value, IntegerField, CharField
-from django.db.models.functions import Cast
+import os
+
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import Case, CharField, IntegerField, Q, Value, When
+from django.db.models.functions import Cast
 from rest_framework.exceptions import NotFound
-import os
 
-from ..models import Project, ProjectDetail, ProjectArea
-from medias.models import ProjectPhoto
+from ..models import Project
 
 
 class ProjectService:

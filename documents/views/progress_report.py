@@ -1,11 +1,11 @@
 """
 Progress report views
 """
+
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -13,17 +13,15 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from ..models import ProgressReport
-from ..serializers import (
-    ProgressReportSerializer,
-    TinyProgressReportSerializer,
-)
+from ..serializers import ProgressReportSerializer, TinyProgressReportSerializer
 
 
 class ProgressReports(APIView):
     """List and create progress reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -40,11 +38,11 @@ class ProgressReports(APIView):
         """Create a new progress report"""
         settings.LOGGER.info(f"{request.user} is posting a new progress report")
         serializer = ProgressReportSerializer(data=request.data)
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         progress_report = serializer.save()
         return Response(
             TinyProgressReportSerializer(progress_report).data,
@@ -54,7 +52,7 @@ class ProgressReports(APIView):
 
 class ProgressReportDetail(APIView):
     """Get, update, and delete progress reports"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -63,7 +61,7 @@ class ProgressReportDetail(APIView):
             progress_report = ProgressReport.objects.get(pk=pk)
         except ProgressReport.DoesNotExist:
             raise NotFound
-        
+
         serializer = ProgressReportSerializer(
             progress_report,
             context={"request": request},
@@ -76,21 +74,21 @@ class ProgressReportDetail(APIView):
             progress_report = ProgressReport.objects.get(pk=pk)
         except ProgressReport.DoesNotExist:
             raise NotFound
-        
+
         settings.LOGGER.info(
             f"{request.user} is updating progress report {progress_report}"
         )
-        
+
         serializer = ProgressReportSerializer(
             progress_report,
             data=request.data,
             partial=True,
         )
-        
+
         if not serializer.is_valid():
             settings.LOGGER.error(f"{serializer.errors}")
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         updated_progress_report = serializer.save()
         updated_progress_report.document.modifier = request.user
         updated_progress_report.document.save()
@@ -106,18 +104,18 @@ class ProgressReportDetail(APIView):
             progress_report = ProgressReport.objects.get(pk=pk)
         except ProgressReport.DoesNotExist:
             raise NotFound
-        
+
         settings.LOGGER.info(
             f"{request.user} is deleting progress report {progress_report}"
         )
-        
+
         progress_report.delete()
         return Response(status=HTTP_204_NO_CONTENT)
 
 
 class UpdateProgressReport(APIView):
     """Update specific section of progress report"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -128,10 +126,10 @@ class UpdateProgressReport(APIView):
             ).first()
         except ProgressReport.DoesNotExist:
             raise NotFound
-        
+
         if not report:
             raise NotFound
-        
+
         section = request.data["section"]
         html_data = request.data["html"]
 
@@ -140,10 +138,10 @@ class UpdateProgressReport(APIView):
             data={f"{section}": html_data},
             partial=True,
         )
-        
+
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         updated = serializer.save()
         result_serializer = ProgressReportSerializer(updated)
         return Response(result_serializer.data, status=HTTP_202_ACCEPTED)
@@ -151,7 +149,7 @@ class UpdateProgressReport(APIView):
 
 class ProgressReportByYear(APIView):
     """Get progress report by project and year"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, project, year):
@@ -193,7 +191,7 @@ class ProgressReportByYear(APIView):
             )
         except ProgressReport.DoesNotExist:
             raise NotFound
-        
+
         serializer = ProgressReportSerializer(
             progress_report,
             context={"request": request},

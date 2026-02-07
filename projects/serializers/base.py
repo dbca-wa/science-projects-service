@@ -1,19 +1,24 @@
 """
 Base project serializers
 """
-from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from agencies.serializers import TinyBusinessAreaSerializer, BusinessAreaNameViewSerializer
-from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
-from locations.serializers import TinyAreaSerializer
+from rest_framework import serializers
+from rest_framework.serializers import ModelSerializer
+
+from agencies.serializers import (
+    BusinessAreaNameViewSerializer,
+    TinyBusinessAreaSerializer,
+)
 from locations.models import Area
+from locations.serializers import TinyAreaSerializer
+from medias.serializers import ProjectPhotoSerializer, TinyProjectPhotoSerializer
 
 from ..models import Project
 
 
 class CreateProjectSerializer(ModelSerializer):
     """Serializer for creating projects"""
+
     image = ProjectPhotoSerializer(read_only=True)
 
     class Meta:
@@ -23,6 +28,7 @@ class CreateProjectSerializer(ModelSerializer):
 
 class ProjectSerializer(ModelSerializer):
     """Full project serializer with all related data"""
+
     image = ProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
     deletion_request_id = serializers.SerializerMethodField()
@@ -45,6 +51,7 @@ class ProjectSerializer(ModelSerializer):
 
 class ProjectUpdateSerializer(ModelSerializer):
     """Serializer for updating projects"""
+
     image = ProjectPhotoSerializer(read_only=True)
 
     class Meta:
@@ -54,6 +61,7 @@ class ProjectUpdateSerializer(ModelSerializer):
 
 class TinyProjectSerializer(ModelSerializer):
     """Minimal project serializer"""
+
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = TinyBusinessAreaSerializer(read_only=True)
 
@@ -73,6 +81,7 @@ class TinyProjectSerializer(ModelSerializer):
 
 class ProblematicProjectSerializer(ModelSerializer):
     """Serializer for problematic projects view"""
+
     tag = serializers.SerializerMethodField()
     image = TinyProjectPhotoSerializer(read_only=True)
     business_area = BusinessAreaNameViewSerializer(read_only=True)
@@ -96,6 +105,7 @@ class ProblematicProjectSerializer(ModelSerializer):
 
 class UserProfileProjectSerializer(ModelSerializer):
     """Serializer for projects on user profiles"""
+
     tag = serializers.SerializerMethodField()
     image = TinyProjectPhotoSerializer(read_only=True)
 
@@ -109,6 +119,7 @@ class UserProfileProjectSerializer(ModelSerializer):
 
 class PkAndKindOnlyProjectSerializer(ModelSerializer):
     """Minimal serializer with only ID and kind"""
+
     class Meta:
         model = Project
         fields = ["id", "kind"]

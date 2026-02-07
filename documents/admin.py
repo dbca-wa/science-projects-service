@@ -1,20 +1,22 @@
 # region IMPORTS ========================================================================================================
 
 import ast
+
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.db.models import Max
+
 from .models import (
     AnnualReport,
-    CustomPublication,
-    ProjectDocument,
     ConceptPlan,
-    ProjectPlan,
+    CustomPublication,
     Endorsement,
     ProgressReport,
-    StudentReport,
     ProjectClosure,
+    ProjectDocument,
+    ProjectPlan,
+    StudentReport,
 )
 
 # endregion ========================================================================================================
@@ -88,7 +90,7 @@ def provide_final_approval_for_docs_if_next_exist(model_admin, req, selected):
             else:
                 next_exists = False
 
-            if next_exists and doc.directorate_approval_granted == False:
+            if next_exists and doc.directorate_approval_granted is False:
                 doc.project_lead_approval_granted = True
                 doc.business_area_lead_approval_granted = True
                 doc.directorate_approval_granted = True
@@ -114,7 +116,7 @@ def delete_unlinked_docs(model_admin, req, selected):
         doc_process_count = 0
         for doc in all_docs:
             doc_process_count += 1
-            if doc.has_project_document_data() == False:
+            if doc.has_project_document_data() is False:
                 doc.delete()
                 doc_deletion_count += 1
         print(
@@ -189,10 +191,9 @@ class ProjectDocumentAdmin(admin.ModelAdmin):
         "pdf",
     )
 
+    @admin.display(description="Created Year")
     def display_year(self, obj):
         return obj.created_at.year
-
-    display_year.short_description = "Created Year"
 
     class YearFilter(admin.SimpleListFilter):
         title = "Year"
@@ -247,10 +248,9 @@ class ConceptPlanAdmin(admin.ModelAdmin):
 
     ordering = ["-document__created_at"]
 
+    @admin.display(description="Document Status")
     def doc_status(self, obj):
         return obj.document.get_status_display()
-
-    doc_status.short_description = "Document Status"
 
 
 @admin.register(ProjectPlan)
@@ -263,10 +263,9 @@ class ProjectPlanAdmin(admin.ModelAdmin):
 
     ordering = ["-document__created_at"]
 
+    @admin.display(description="Document Status")
     def doc_status(self, obj):
         return obj.document.get_status_display()
-
-    doc_status.short_description = "Document Status"
 
 
 @admin.register(ProgressReport)
@@ -279,10 +278,10 @@ class ProgressReportAdmin(admin.ModelAdmin):
 
     ordering = ["-document__created_at"]
 
+    @admin.display(description="Document Status")
     def doc_status(self, obj):
         return obj.document.get_status_display()
 
-    doc_status.short_description = "Document Status"
     actions = [populate_aims_and_context]
 
 
@@ -296,10 +295,9 @@ class StudentReportAdmin(admin.ModelAdmin):
 
     ordering = ["-document__created_at"]
 
+    @admin.display(description="Document Status")
     def doc_status(self, obj):
         return obj.document.get_status_display()
-
-    doc_status.short_description = "Document Status"
 
 
 @admin.register(ProjectClosure)
@@ -317,15 +315,13 @@ class ProjectClosureAdmin(admin.ModelAdmin):
 
     ordering = ["-document__created_at"]
 
+    @admin.display(description="Created At")
     def doc_created_data(self, obj):
         return obj.document.created_at
 
-    doc_created_data.short_description = "Created At"
-
+    @admin.display(description="Document Status")
     def doc_status(self, obj):
         return obj.document.get_status_display()
-
-    doc_status.short_description = "Document Status"
 
 
 @admin.register(Endorsement)
@@ -340,6 +336,7 @@ class EndorsementAdmin(admin.ModelAdmin):
         "no_specimens",
     )
 
+    @admin.display(description="Data Management")
     def display_data_management(self, obj):
         if obj.data_management:
             return (
@@ -348,8 +345,6 @@ class EndorsementAdmin(admin.ModelAdmin):
                 else obj.data_management
             )
         return None
-
-    display_data_management.short_description = "Data Management"
 
     list_filter = (
         "ae_endorsement_required",

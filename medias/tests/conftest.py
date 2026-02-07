@@ -2,21 +2,21 @@
 Medias app pytest fixtures
 """
 
-import pytest
 import datetime
-from unittest.mock import Mock
+
+import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from medias.models import (
-    ProjectDocumentPDF,
+    AECEndorsementPDF,
+    AgencyImage,
     AnnualReportMedia,
     AnnualReportPDF,
+    BusinessAreaPhoto,
     LegacyAnnualReportPDF,
-    AECEndorsementPDF,
+    ProjectDocumentPDF,
     ProjectPhoto,
     ProjectPlanMethodologyPhoto,
-    BusinessAreaPhoto,
-    AgencyImage,
     UserAvatar,
 )
 
@@ -32,8 +32,9 @@ def mock_file():
 @pytest.fixture
 def mock_image():
     """Provide a mock image for testing"""
-    from PIL import Image
     from io import BytesIO
+
+    from PIL import Image
 
     # Create a simple 10x10 red image
     image = Image.new("RGB", (10, 10), color="red")

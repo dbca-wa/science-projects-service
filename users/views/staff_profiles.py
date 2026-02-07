@@ -1,9 +1,17 @@
 """
 Staff profile views
 """
-from rest_framework.views import APIView
+
+from django.conf import settings
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from rest_framework.exceptions import NotFound
+from rest_framework.permissions import (
+    AllowAny,
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -11,58 +19,56 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
-from rest_framework.exceptions import NotFound
-from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
+from rest_framework.views import APIView
 
 from common.utils import paginate_queryset
-from users.models import PublicStaffProfile
 from projects.models import ProjectMember
-from users.services import ProfileService, ExportService
+from projects.serializers import ProjectDataTableSerializer
+from users.models import PublicStaffProfile
 from users.serializers import (
-    StaffProfileSerializer,
-    TinyStaffProfileSerializer,
     StaffProfileCreationSerializer,
     StaffProfileEmailListSerializer,
+    StaffProfileSerializer,
+    TinyStaffProfileSerializer,
 )
-from projects.serializers import ProjectDataTableSerializer
-
+from users.services import ExportService, ProfileService
 
 
 class StaffProfiles(APIView):
     """List and create staff profiles"""
+
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         """List staff profiles with pagination"""
-        search = request.query_params.get('search')
+        search = request.query_params.get("search")
         filters = {
-            'is_active': request.query_params.get('is_active'),
-            'public': request.query_params.get('public'),
-            'business_area': request.query_params.get('business_area'),
+            "is_active": request.query_params.get("is_active"),
+            "public": request.query_params.get("public"),
+            "business_area": request.query_params.get("business_area"),
         }
         filters = {k: v for k, v in filters.items() if v is not None}
-        
+
         profiles = ProfileService.list_staff_profiles(filters=filters, search=search)
         paginated = paginate_queryset(profiles, request)
-        
-        serializer = TinyStaffProfileSerializer(paginated['items'], many=True)
-        return Response({
-            'profiles': serializer.data,
-            'total_results': paginated['total_results'],
-            'total_pages': paginated['total_pages'],
-        })
+
+        serializer = TinyStaffProfileSerializer(paginated["items"], many=True)
+        return Response(
+            {
+                "profiles": serializer.data,
+                "total_results": paginated["total_results"],
+                "total_pages": paginated["total_pages"],
+            }
+        )
 
     def post(self, request):
         """Create staff profile"""
         serializer = StaffProfileCreationSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         profile = ProfileService.create_staff_profile(
-            request.user.id,
-            serializer.validated_data
+            request.user.id, serializer.validated_data
         )
         result = StaffProfileSerializer(profile)
         return Response(result.data, status=HTTP_201_CREATED)
@@ -70,6 +76,7 @@ class StaffProfiles(APIView):
 
 class StaffProfileDetail(APIView):
     """Get, update, and delete staff profile"""
+
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
@@ -83,7 +90,7 @@ class StaffProfileDetail(APIView):
         serializer = StaffProfileSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
+
         profile = ProfileService.update_staff_profile(pk, serializer.validated_data)
         result = StaffProfileSerializer(profile)
         return Response(result.data, status=HTTP_202_ACCEPTED)
@@ -96,6 +103,7 @@ class StaffProfileDetail(APIView):
 
 class MyStaffProfile(APIView):
     """Get current user's staff profile"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -108,6 +116,7 @@ class MyStaffProfile(APIView):
 
 class TogglePublicVisibility(APIView):
     """Toggle staff profile public visibility"""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request, pk):
@@ -118,43 +127,49 @@ class TogglePublicVisibility(APIView):
 
 class ActiveStaffProfileEmails(APIView):
     """Get active staff profile emails"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         profiles = ProfileService.get_active_staff_emails()
         serializer = StaffProfileEmailListSerializer(
-            [p.user for p in profiles],
-            many=True
+            [p.user for p in profiles], many=True
         )
         return Response(serializer.data)
 
 
 class CheckStaffProfileAndReturnDataAndActiveState(APIView):
     """Check if staff profile exists and return data"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        user_id = request.query_params.get('user_id')
+        user_id = request.query_params.get("user_id")
         if not user_id:
             return Response({"error": "User ID required"}, status=400)
-        
+
         result = ProfileService.check_staff_profile_exists(user_id)
-        if result['exists']:
-            serializer = StaffProfileSerializer(result['profile'])
-            return Response({
-                'exists': True,
-                'is_active': result['is_active'],
-                'profile': serializer.data,
-            })
-        return Response({
-            'exists': False,
-            'is_active': False,
-            'profile': None,
-        })
+        if result["exists"]:
+            serializer = StaffProfileSerializer(result["profile"])
+            return Response(
+                {
+                    "exists": True,
+                    "is_active": result["is_active"],
+                    "profile": serializer.data,
+                }
+            )
+        return Response(
+            {
+                "exists": False,
+                "is_active": False,
+                "profile": None,
+            }
+        )
 
 
 class DownloadBCSStaffCSV(APIView):
     """Download staff profiles as CSV"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -163,6 +178,7 @@ class DownloadBCSStaffCSV(APIView):
 
 class StaffProfileProjects(APIView):
     """Get staff profile projects"""
+
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
@@ -206,6 +222,7 @@ class StaffProfileProjects(APIView):
 
 class PublicEmailStaffMember(APIView):
     """Send public email to staff member"""
+
     permission_classes = [AllowAny]
 
     def post(self, request, pk):
@@ -217,11 +234,12 @@ class PublicEmailStaffMember(APIView):
         try:
             staff_profile = PublicStaffProfile.objects.get(user__pk=pk)
             recipient_name = f"{staff_profile.user.display_first_name} {staff_profile.user.display_last_name}"
-            
+
             # Use public email if available, otherwise use IT asset email
             recipient_email = (
                 staff_profile.public_email
-                if staff_profile.public_email_on and staff_profile.public_email not in [None, ""]
+                if staff_profile.public_email_on
+                and staff_profile.public_email not in [None, ""]
                 else staff_profile.get_it_asset_email()
             )
 
@@ -263,7 +281,9 @@ class PublicEmailStaffMember(APIView):
             else:
                 # Development/staging - don't actually send
                 settings.LOGGER.info(msg=f"DEV: Would send email to {recipient_email}")
-                return Response({"ok": "Email would be sent (dev mode)"}, status=HTTP_200_OK)
+                return Response(
+                    {"ok": "Email would be sent (dev mode)"}, status=HTTP_200_OK
+                )
 
         except PublicStaffProfile.DoesNotExist:
             return Response({"error": "Staff profile not found"}, status=404)

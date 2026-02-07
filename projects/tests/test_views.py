@@ -1,12 +1,11 @@
 """
 Tests for project views
 """
-import pytest
-from rest_framework import status
-from rest_framework.test import APIClient
 
-from projects.models import Project, ProjectMember
+from rest_framework import status
+
 from common.tests.test_helpers import projects_urls
+from projects.models import Project, ProjectMember
 
 
 class TestProjects:
@@ -16,21 +15,21 @@ class TestProjects:
         """Test listing projects as authenticated user"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(projects_urls.list())
-        
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'projects' in response.data
-        assert 'total_results' in response.data
-        assert 'total_pages' in response.data
+        assert "projects" in response.data
+        assert "total_results" in response.data
+        assert "total_pages" in response.data
 
     def test_list_projects_unauthenticated(self, api_client, db):
         """Test listing projects without authentication"""
         # Act
         response = api_client.get(projects_urls.list())
-        
+
         # Assert
         # DRF returns 403 for unauthenticated requests with IsAuthenticated permission
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -41,13 +40,13 @@ class TestProjects:
         project.title = "Test Project Title"
         project.save()
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.list(), {'searchTerm': 'Test'})
-        
+        response = api_client.get(projects_urls.list(), {"searchTerm": "Test"})
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert len(response.data['projects']) >= 0
+        assert len(response.data["projects"]) >= 0
 
 
 class TestProjectDetails:
@@ -57,23 +56,23 @@ class TestProjectDetails:
         """Test getting project details as authenticated user"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(projects_urls.detail(project.pk))
-        
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'project' in response.data
-        assert response.data['project']['id'] == project.pk
-        assert 'details' in response.data
-        assert 'documents' in response.data
-        assert 'members' in response.data
+        assert "project" in response.data
+        assert response.data["project"]["id"] == project.pk
+        assert "details" in response.data
+        assert "documents" in response.data
+        assert "members" in response.data
 
     def test_get_project_unauthenticated(self, api_client, project, db):
         """Test getting project without authentication"""
         # Act
         response = api_client.get(projects_urls.detail(project.pk))
-        
+
         # Assert
         # DRF returns 403 for unauthenticated requests with IsAuthenticated permission
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -82,61 +81,63 @@ class TestProjectDetails:
         """Test getting non-existent project"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(projects_urls.detail(99999))
-        
+
         # Assert
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_update_project_as_leader(self, api_client, project_with_lead, project_lead, db):
+    def test_update_project_as_leader(
+        self, api_client, project_with_lead, project_lead, db
+    ):
         """Test updating project as project leader"""
         # Arrange
         api_client.force_authenticate(user=project_lead)
         update_data = {
-            'title': 'Updated Project Title',
+            "title": "Updated Project Title",
         }
-        
+
         # Act
         response = api_client.put(
-            projects_urls.detail(project_with_lead.pk),
-            update_data,
-            format='json'
+            projects_urls.detail(project_with_lead.pk), update_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
         project_with_lead.refresh_from_db()
-        assert project_with_lead.title == 'Updated Project Title'
+        assert project_with_lead.title == "Updated Project Title"
 
-    def test_update_project_as_non_leader(self, api_client, project_with_members, user_factory, db):
+    def test_update_project_as_non_leader(
+        self, api_client, project_with_members, user_factory, db
+    ):
         """Test updating project as non-leader member fails"""
         # Arrange
         non_leader = project_with_members.members.filter(is_leader=False).first().user
         api_client.force_authenticate(user=non_leader)
         update_data = {
-            'title': 'Updated Title',
+            "title": "Updated Title",
         }
-        
+
         # Act
         response = api_client.put(
-            projects_urls.detail(project_with_members.pk),
-            update_data,
-            format='json'
+            projects_urls.detail(project_with_members.pk), update_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_delete_project_as_leader(self, api_client, project_with_lead, project_lead, db):
+    def test_delete_project_as_leader(
+        self, api_client, project_with_lead, project_lead, db
+    ):
         """Test deleting project as project leader"""
         # Arrange
         api_client.force_authenticate(user=project_lead)
         project_id = project_with_lead.pk
-        
+
         # Act
         response = api_client.delete(projects_urls.detail(project_id))
-        
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Project.objects.filter(pk=project_id).exists()
@@ -146,10 +147,10 @@ class TestProjectDetails:
         # Arrange
         non_leader = project_with_members.members.filter(is_leader=False).first().user
         api_client.force_authenticate(user=non_leader)
-        
+
         # Act
         response = api_client.delete(projects_urls.detail(project_with_members.pk))
-        
+
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -161,39 +162,38 @@ class TestProjectMembers:
         """Test listing all project members"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('project_members'))
-        
+        response = api_client.get(projects_urls.path("project_members"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
         assert len(response.data) >= 4  # 1 leader + 3 members
 
-    def test_add_member_to_project(self, api_client, user, project_with_lead, user_factory, db):
+    def test_add_member_to_project(
+        self, api_client, user, project_with_lead, user_factory, db
+    ):
         """Test adding a member to a project"""
         # Arrange
         api_client.force_authenticate(user=user)
         new_user = user_factory()
         member_data = {
-            'project': project_with_lead.pk,
-            'user': new_user.pk,
-            'is_leader': False,
-            'role': 'research',
+            "project": project_with_lead.pk,
+            "user": new_user.pk,
+            "is_leader": False,
+            "role": "research",
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('project_members'),
-            member_data,
-            format='json'
+            projects_urls.path("project_members"), member_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
         assert ProjectMember.objects.filter(
-            project=project_with_lead,
-            user=new_user
+            project=project_with_lead, user=new_user
         ).exists()
 
     def test_add_member_invalid_data(self, api_client, user, db):
@@ -201,17 +201,15 @@ class TestProjectMembers:
         # Arrange
         api_client.force_authenticate(user=user)
         invalid_data = {
-            'project': 99999,  # Non-existent project
-            'user': 99999,  # Non-existent user
+            "project": 99999,  # Non-existent project
+            "user": 99999,  # Non-existent user
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('project_members'),
-            invalid_data,
-            format='json'
+            projects_urls.path("project_members"), invalid_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -223,15 +221,15 @@ class TestProjectMemberDetail:
         """Test getting specific project member"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
         response = api_client.get(
-            projects_urls.path('project_members', project_with_lead.pk, project_lead.pk)
+            projects_urls.path("project_members", project_with_lead.pk, project_lead.pk)
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['user']['id'] == project_lead.pk
+        assert response.data["user"]["id"] == project_lead.pk
 
     def test_update_member(self, api_client, user, project_with_members, db):
         """Test updating project member"""
@@ -239,22 +237,24 @@ class TestProjectMemberDetail:
         api_client.force_authenticate(user=user)
         member = project_with_members.members.filter(is_leader=False).first()
         update_data = {
-            'role': 'technical',
+            "role": "technical",
         }
-        
+
         # Act
         response = api_client.put(
-            projects_urls.path('project_members', project_with_members.pk, member.user.pk),
+            projects_urls.path(
+                "project_members", project_with_members.pk, member.user.pk
+            ),
             update_data,
-            format='json'
+            format="json",
         )
-        
+
         # Assert
         if response.status_code != status.HTTP_202_ACCEPTED:
             print(f"ERROR: {response.data}")
         assert response.status_code == status.HTTP_202_ACCEPTED
         member.refresh_from_db()
-        assert member.role == 'technical'
+        assert member.role == "technical"
 
     def test_remove_member(self, api_client, user, project_with_members, db):
         """Test removing member from project"""
@@ -262,17 +262,16 @@ class TestProjectMemberDetail:
         api_client.force_authenticate(user=user)
         member = project_with_members.members.filter(is_leader=False).first()
         member_id = member.user.pk
-        
+
         # Act
         response = api_client.delete(
-            projects_urls.path('project_members', project_with_members.pk, member_id)
+            projects_urls.path("project_members", project_with_members.pk, member_id)
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not ProjectMember.objects.filter(
-            project=project_with_members,
-            user_id=member_id
+            project=project_with_members, user_id=member_id
         ).exists()
 
 
@@ -283,10 +282,10 @@ class TestMembersForProject:
         """Test getting all members for a specific project"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path(project_with_members.pk, 'team'))
-        
+        response = api_client.get(projects_urls.path(project_with_members.pk, "team"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -296,23 +295,29 @@ class TestMembersForProject:
 class TestProjectLeaderDetail:
     """Tests for ProjectLeaderDetail view"""
 
-    def test_get_project_leader(self, api_client, user, project_with_lead, project_lead, db):
+    def test_get_project_leader(
+        self, api_client, user, project_with_lead, project_lead, db
+    ):
         """Test getting project leader"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Verify the fixture setup is correct
         leader_member = project_with_lead.members.filter(is_leader=True).first()
         assert leader_member is not None, "No leader found in project"
-        assert leader_member.user == project_lead, f"Leader is {leader_member.user.username}, expected {project_lead.username}"
-        
+        assert (
+            leader_member.user == project_lead
+        ), f"Leader is {leader_member.user.username}, expected {project_lead.username}"
+
         # Act
-        response = api_client.get(projects_urls.path('project_members', project_with_lead.pk, 'leader'))
-        
+        response = api_client.get(
+            projects_urls.path("project_members", project_with_lead.pk, "leader")
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['user']['username'] == project_lead.username
-        assert response.data['is_leader'] is True
+        assert response.data["user"]["username"] == project_lead.username
+        assert response.data["is_leader"] is True
 
 
 class TestPromoteToLeader:
@@ -324,17 +329,15 @@ class TestPromoteToLeader:
         api_client.force_authenticate(user=user)
         member = project_with_members.members.filter(is_leader=False).first()
         promote_data = {
-            'user_id': member.user.pk,
-            'project_id': project_with_members.pk,
+            "user_id": member.user.pk,
+            "project_id": project_with_members.pk,
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('promote'),
-            promote_data,
-            format='json'
+            projects_urls.path("promote"), promote_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
         member.refresh_from_db()
@@ -345,17 +348,15 @@ class TestPromoteToLeader:
         # Arrange
         api_client.force_authenticate(user=user)
         incomplete_data = {
-            'user_id': 1,
+            "user_id": 1,
             # Missing project_id
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('promote'),
-            incomplete_data,
-            format='json'
+            projects_urls.path("promote"), incomplete_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -367,10 +368,10 @@ class TestProjectAdditional:
         """Test listing all project details"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('project_details'))
-        
+        response = api_client.get(projects_urls.path("project_details"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -380,19 +381,17 @@ class TestProjectAdditional:
         # Arrange
         api_client.force_authenticate(user=user)
         detail_data = {
-            'project': project.pk,
-            'creator': user.pk,
-            'modifier': user.pk,
-            'owner': user.pk,
+            "project": project.pk,
+            "creator": user.pk,
+            "modifier": user.pk,
+            "owner": user.pk,
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('project_details'),
-            detail_data,
-            format='json'
+            projects_urls.path("project_details"), detail_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -405,13 +404,13 @@ class TestProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         detail = project_with_lead.project_detail
-        
+
         # Act
-        response = api_client.get(projects_urls.path('project_details', detail.pk))
-        
+        response = api_client.get(projects_urls.path("project_details", detail.pk))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['id'] == detail.pk
+        assert response.data["id"] == detail.pk
 
     def test_update_project_detail(self, api_client, project_with_lead, user, db):
         """Test updating project detail"""
@@ -419,16 +418,14 @@ class TestProjectAdditionalDetail:
         api_client.force_authenticate(user=user)
         detail = project_with_lead.project_detail
         update_data = {
-            'modifier': user.pk,
+            "modifier": user.pk,
         }
-        
+
         # Act
         response = api_client.put(
-            projects_urls.path('project_details', detail.pk),
-            update_data,
-            format='json'
+            projects_urls.path("project_details", detail.pk), update_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
 
@@ -438,10 +435,10 @@ class TestProjectAdditionalDetail:
         api_client.force_authenticate(user=user)
         detail = project_with_lead.project_detail
         detail_id = detail.pk
-        
+
         # Act
-        response = api_client.delete(projects_urls.path('project_details', detail_id))
-        
+        response = api_client.delete(projects_urls.path("project_details", detail_id))
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -453,17 +450,17 @@ class TestSelectedProjectAdditionalDetail:
         """Test getting project detail by project ID"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path(project_with_lead.pk, 'details'))
-        
+        response = api_client.get(projects_urls.path(project_with_lead.pk, "details"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['project']['id'] == project_with_lead.pk
-
+        assert response.data["project"]["id"] == project_with_lead.pk
 
 
 # Additional tests for Projects.post() - CREATE project endpoint
+
 
 class TestProjectsCreate:
     """Tests for Projects.post() - creating projects"""
@@ -473,54 +470,50 @@ class TestProjectsCreate:
         # Arrange
         api_client.force_authenticate(user=user)
         project_data = {
-            'kind': 'science',
-            'year': '2023',
-            'title': 'New Science Project',
-            'description': 'Project description',
-            'businessArea': business_area.pk,
-            'projectLead': user.pk,
-            'creator': user.pk,
-            'keywords': '[]',
-            'locations': [],
+            "kind": "science",
+            "year": "2023",
+            "title": "New Science Project",
+            "description": "Project description",
+            "businessArea": business_area.pk,
+            "projectLead": user.pk,
+            "creator": user.pk,
+            "keywords": "[]",
+            "locations": [],
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.list(),
-            project_data,
-            format='multipart'
+            projects_urls.list(), project_data, format="multipart"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['title'] == 'New Science Project'
-        assert response.data['kind'] == 'science'
+        assert response.data["title"] == "New Science Project"
+        assert response.data["kind"] == "science"
 
     def test_create_project_with_dates(self, api_client, user, business_area, db):
         """Test creating project with start and end dates"""
         # Arrange
         api_client.force_authenticate(user=user)
         project_data = {
-            'kind': 'core_function',
-            'year': '2023',
-            'title': 'Project with Dates',
-            'description': 'Test',
-            'businessArea': business_area.pk,
-            'projectLead': user.pk,
-            'creator': user.pk,
-            'keywords': '[]',
-            'locations': [],
-            'startDate': '2023-01-01T00:00:00.000Z',
-            'endDate': '2023-12-31T00:00:00.000Z',
+            "kind": "core_function",
+            "year": "2023",
+            "title": "Project with Dates",
+            "description": "Test",
+            "businessArea": business_area.pk,
+            "projectLead": user.pk,
+            "creator": user.pk,
+            "keywords": "[]",
+            "locations": [],
+            "startDate": "2023-01-01T00:00:00.000Z",
+            "endDate": "2023-12-31T00:00:00.000Z",
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.list(),
-            project_data,
-            format='multipart'
+            projects_urls.list(), project_data, format="multipart"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -529,44 +522,40 @@ class TestProjectsCreate:
         # Arrange
         api_client.force_authenticate(user=user)
         project_data = {
-            'kind': 'science',
-            'year': '2023',
-            'title': 'Project with Keywords',
-            'description': 'Test',
-            'businessArea': business_area.pk,
-            'projectLead': user.pk,
-            'creator': user.pk,
-            'keywords': '["keyword1","keyword2","keyword3"]',
-            'locations': [],
+            "kind": "science",
+            "year": "2023",
+            "title": "Project with Keywords",
+            "description": "Test",
+            "businessArea": business_area.pk,
+            "projectLead": user.pk,
+            "creator": user.pk,
+            "keywords": '["keyword1","keyword2","keyword3"]',
+            "locations": [],
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.list(),
-            project_data,
-            format='multipart'
+            projects_urls.list(), project_data, format="multipart"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert 'keyword1' in response.data['keywords']
+        assert "keyword1" in response.data["keywords"]
 
     def test_create_project_invalid_data(self, api_client, user, db):
         """Test creating project with invalid data"""
         # Arrange
         api_client.force_authenticate(user=user)
         invalid_data = {
-            'kind': 'science',
+            "kind": "science",
             # Missing required fields
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.list(),
-            invalid_data,
-            format='multipart'
+            projects_urls.list(), invalid_data, format="multipart"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -575,63 +564,60 @@ class TestProjectsCreate:
         # Arrange
         api_client.force_authenticate(user=user)
         project_data = {
-            'kind': 'student',
-            'year': '2023',
-            'title': 'Student Project',
-            'description': 'Test',
-            'businessArea': business_area.pk,
-            'projectLead': user.pk,
-            'creator': user.pk,
-            'keywords': '[]',
-            'locations': [],
-            'organisation': 'Test University',
-            'level': 'undergrad',
+            "kind": "student",
+            "year": "2023",
+            "title": "Student Project",
+            "description": "Test",
+            "businessArea": business_area.pk,
+            "projectLead": user.pk,
+            "creator": user.pk,
+            "keywords": "[]",
+            "locations": [],
+            "organisation": "Test University",
+            "level": "undergrad",
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.list(),
-            project_data,
-            format='multipart'
+            projects_urls.list(), project_data, format="multipart"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['kind'] == 'student'
+        assert response.data["kind"] == "student"
 
     def test_create_external_project(self, api_client, user, business_area, db):
         """Test creating external project with external details"""
         # Arrange
         api_client.force_authenticate(user=user)
         project_data = {
-            'kind': 'external',
-            'year': '2023',
-            'title': 'External Project',
-            'description': 'Test',
-            'businessArea': business_area.pk,
-            'projectLead': user.pk,
-            'creator': user.pk,
-            'keywords': '[]',
-            'locations': [],
-            'externalDescription': '<p>External description</p>',
-            'aims': '<p>Project aims</p>',
-            'budget': '<p>$10,000</p>',
-            'collaborationWith': '<p>Partner org</p>',
+            "kind": "external",
+            "year": "2023",
+            "title": "External Project",
+            "description": "Test",
+            "businessArea": business_area.pk,
+            "projectLead": user.pk,
+            "creator": user.pk,
+            "keywords": "[]",
+            "locations": [],
+            "externalDescription": "<p>External description</p>",
+            "aims": "<p>Project aims</p>",
+            "budget": "<p>$10,000</p>",
+            "collaborationWith": "<p>Partner org</p>",
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.list(),
-            project_data,
-            format='multipart'
+            projects_urls.list(), project_data, format="multipart"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data['kind'] == 'external'
+        assert response.data["kind"] == "external"
 
 
 # Additional tests for admin views
+
 
 class TestUnapprovedThisFY:
     """Tests for UnapprovedThisFY view"""
@@ -641,19 +627,20 @@ class TestUnapprovedThisFY:
         # Arrange
         api_client.force_authenticate(user=user)
         from datetime import date
+
         today = date.today()
         if today.month >= 7:
             fy_year = today.year
         else:
             fy_year = today.year - 1
-        
+
         project.year = fy_year
-        project.status = 'new'
+        project.status = "new"
         project.save()
-        
+
         # Act
-        response = api_client.get(projects_urls.path('unapprovedFY'))
-        
+        response = api_client.get(projects_urls.path("unapprovedFY"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -666,17 +653,17 @@ class TestProblematicProjects:
         """Test getting projects with various issues"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('problematic'))
-        
+        response = api_client.get(projects_urls.path("problematic"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'open_with_closure' in response.data
-        assert 'memberless' in response.data
-        assert 'leaderless' in response.data
-        assert 'multiple_leaders' in response.data
-        assert 'external_leaders' in response.data
+        assert "open_with_closure" in response.data
+        assert "memberless" in response.data
+        assert "leaderless" in response.data
+        assert "multiple_leaders" in response.data
+        assert "external_leaders" in response.data
 
 
 class TestRemedyViews:
@@ -686,10 +673,10 @@ class TestRemedyViews:
         """Test getting open projects with approved closures"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('remedy', 'open_closed'))
-        
+        response = api_client.get(projects_urls.path("remedy", "open_closed"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -698,10 +685,10 @@ class TestRemedyViews:
         """Test getting projects with no members"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('remedy', 'memberless'))
-        
+        response = api_client.get(projects_urls.path("remedy", "memberless"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -710,10 +697,10 @@ class TestRemedyViews:
         """Test getting projects with no leader"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('remedy', 'leaderless'))
-        
+        response = api_client.get(projects_urls.path("remedy", "leaderless"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -722,10 +709,10 @@ class TestRemedyViews:
         """Test getting projects with multiple leaders"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('remedy', 'multiple_leaders'))
-        
+        response = api_client.get(projects_urls.path("remedy", "multiple_leaders"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -734,16 +721,17 @@ class TestRemedyViews:
         """Test getting projects with external leaders"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('remedy', 'external_leaders'))
-        
+        response = api_client.get(projects_urls.path("remedy", "external_leaders"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
 
 
 # Additional tests for detail views
+
 
 class TestStudentProjectAdditional:
     """Tests for StudentProjectAdditional view"""
@@ -752,10 +740,10 @@ class TestStudentProjectAdditional:
         """Test listing all student project details"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('student_project_details'))
-        
+        response = api_client.get(projects_urls.path("student_project_details"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -765,18 +753,16 @@ class TestStudentProjectAdditional:
         # Arrange
         api_client.force_authenticate(user=user)
         detail_data = {
-            'project': project.pk,
-            'organisation': 'Test University',
-            'level': 'phd',
+            "project": project.pk,
+            "organisation": "Test University",
+            "level": "phd",
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('student_project_details'),
-            detail_data,
-            format='json'
+            projects_urls.path("student_project_details"), detail_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -789,15 +775,16 @@ class TestStudentProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         from projects.services.details_service import DetailsService
+
         detail = DetailsService.create_student_details(
-            project.pk,
-            {'organisation': 'Test Uni', 'level': 'undergrad'},
-            user
+            project.pk, {"organisation": "Test Uni", "level": "undergrad"}, user
         )
-        
+
         # Act
-        response = api_client.get(projects_urls.path('student_project_details', detail.pk))
-        
+        response = api_client.get(
+            projects_urls.path("student_project_details", detail.pk)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
 
@@ -806,20 +793,19 @@ class TestStudentProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         from projects.services.details_service import DetailsService
+
         detail = DetailsService.create_student_details(
-            project.pk,
-            {'organisation': 'Test Uni', 'level': 'undergrad'},
-            user
+            project.pk, {"organisation": "Test Uni", "level": "undergrad"}, user
         )
-        update_data = {'level': 'phd'}
-        
+        update_data = {"level": "phd"}
+
         # Act
         response = api_client.put(
-            projects_urls.path('student_project_details', detail.pk),
+            projects_urls.path("student_project_details", detail.pk),
             update_data,
-            format='json'
+            format="json",
         )
-        
+
         # Assert
         if response.status_code != status.HTTP_202_ACCEPTED:
             print(f"ERROR: {response.data}")
@@ -830,16 +816,17 @@ class TestStudentProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         from projects.services.details_service import DetailsService
+
         detail = DetailsService.create_student_details(
-            project.pk,
-            {'organisation': 'Test Uni', 'level': 'undergrad'},
-            user
+            project.pk, {"organisation": "Test Uni", "level": "undergrad"}, user
         )
         detail_id = detail.pk
-        
+
         # Act
-        response = api_client.delete(projects_urls.path('student_project_details', detail_id))
-        
+        response = api_client.delete(
+            projects_urls.path("student_project_details", detail_id)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -851,10 +838,10 @@ class TestExternalProjectAdditional:
         """Test listing all external project details"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('external_project_details'))
-        
+        response = api_client.get(projects_urls.path("external_project_details"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -864,18 +851,16 @@ class TestExternalProjectAdditional:
         # Arrange
         api_client.force_authenticate(user=user)
         detail_data = {
-            'project': project.pk,
-            'collaboration_with': '<p>Partner</p>',
-            'budget': '<p>$5000</p>',
+            "project": project.pk,
+            "collaboration_with": "<p>Partner</p>",
+            "budget": "<p>$5000</p>",
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('external_project_details'),
-            detail_data,
-            format='json'
+            projects_urls.path("external_project_details"), detail_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_201_CREATED
 
@@ -888,15 +873,16 @@ class TestExternalProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         from projects.services.details_service import DetailsService
+
         detail = DetailsService.create_external_details(
-            project.pk,
-            {'collaboration_with': '<p>Partner</p>'},
-            user
+            project.pk, {"collaboration_with": "<p>Partner</p>"}, user
         )
-        
+
         # Act
-        response = api_client.get(projects_urls.path('external_project_details', detail.pk))
-        
+        response = api_client.get(
+            projects_urls.path("external_project_details", detail.pk)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
 
@@ -905,20 +891,19 @@ class TestExternalProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         from projects.services.details_service import DetailsService
+
         detail = DetailsService.create_external_details(
-            project.pk,
-            {'collaboration_with': '<p>Partner</p>'},
-            user
+            project.pk, {"collaboration_with": "<p>Partner</p>"}, user
         )
-        update_data = {'budget': '<p>$10000</p>'}
-        
+        update_data = {"budget": "<p>$10000</p>"}
+
         # Act
         response = api_client.put(
-            projects_urls.path('external_project_details', detail.pk),
+            projects_urls.path("external_project_details", detail.pk),
             update_data,
-            format='json'
+            format="json",
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
 
@@ -927,21 +912,23 @@ class TestExternalProjectAdditionalDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         from projects.services.details_service import DetailsService
+
         detail = DetailsService.create_external_details(
-            project.pk,
-            {'collaboration_with': '<p>Partner</p>'},
-            user
+            project.pk, {"collaboration_with": "<p>Partner</p>"}, user
         )
         detail_id = detail.pk
-        
+
         # Act
-        response = api_client.delete(projects_urls.path('external_project_details', detail_id))
-        
+        response = api_client.delete(
+            projects_urls.path("external_project_details", detail_id)
+        )
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 # Tests for areas views
+
 
 class TestProjectAreas:
     """Tests for ProjectAreas view (list and create)"""
@@ -950,10 +937,10 @@ class TestProjectAreas:
         """Test listing all project areas"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('project_areas'))
-        
+        response = api_client.get(projects_urls.path("project_areas"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -965,17 +952,15 @@ class TestProjectAreas:
         # Create a new project without ProjectArea
         new_project = project_factory()
         area_data = {
-            'project': new_project.pk,
-            'areas': [area.pk],
+            "project": new_project.pk,
+            "areas": [area.pk],
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('project_areas'),
-            area_data,
-            format='json'
+            projects_urls.path("project_areas"), area_data, format="json"
         )
-        
+
         # Assert
         if response.status_code != status.HTTP_201_CREATED:
             print(f"ERROR: {response.data}")
@@ -986,16 +971,14 @@ class TestProjectAreas:
         # Arrange
         api_client.force_authenticate(user=user)
         invalid_data = {
-            'project': 99999,  # Non-existent project
+            "project": 99999,  # Non-existent project
         }
-        
+
         # Act
         response = api_client.post(
-            projects_urls.path('project_areas'),
-            invalid_data,
-            format='json'
+            projects_urls.path("project_areas"), invalid_data, format="json"
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -1007,29 +990,29 @@ class TestProjectAreaDetail:
         """Test getting project area by ID"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('project_areas', project_area.pk))
-        
+        response = api_client.get(projects_urls.path("project_areas", project_area.pk))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['id'] == project_area.pk
+        assert response.data["id"] == project_area.pk
 
     def test_update_project_area(self, api_client, user, project_area, area, db):
         """Test updating project area"""
         # Arrange
         api_client.force_authenticate(user=user)
         update_data = {
-            'areas': [area.pk],
+            "areas": [area.pk],
         }
-        
+
         # Act
         response = api_client.put(
-            projects_urls.path('project_areas', project_area.pk),
+            projects_urls.path("project_areas", project_area.pk),
             update_data,
-            format='json'
+            format="json",
         )
-        
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
 
@@ -1038,10 +1021,10 @@ class TestProjectAreaDetail:
         # Arrange
         api_client.force_authenticate(user=user)
         area_id = project_area.pk
-        
+
         # Act
-        response = api_client.delete(projects_urls.path('project_areas', area_id))
-        
+        response = api_client.delete(projects_urls.path("project_areas", area_id))
+
         # Assert
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -1053,16 +1036,17 @@ class TestAreasForProject:
         """Test getting areas for a specific project"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path(project_area.project.pk, 'areas'))
-        
+        response = api_client.get(projects_urls.path(project_area.project.pk, "areas"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response.data['id'] == project_area.pk
+        assert response.data["id"] == project_area.pk
 
 
 # Tests for export views
+
 
 class TestDownloadAllProjectsAsCSV:
     """Tests for DownloadAllProjectsAsCSV view"""
@@ -1071,23 +1055,23 @@ class TestDownloadAllProjectsAsCSV:
         """Test downloading all projects CSV as admin"""
         # Arrange
         api_client.force_authenticate(user=superuser)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('download'))
-        
+        response = api_client.get(projects_urls.path("download"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'text/csv'
-        assert 'attachment' in response['Content-Disposition']
+        assert response["Content-Type"] == "text/csv"
+        assert "attachment" in response["Content-Disposition"]
 
     def test_download_csv_as_non_admin(self, api_client, user, db):
         """Test downloading CSV as non-admin fails"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('download'))
-        
+        response = api_client.get(projects_urls.path("download"))
+
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
@@ -1099,28 +1083,29 @@ class TestDownloadARProjectsAsCSV:
         """Test downloading annual report projects CSV as admin"""
         # Arrange
         api_client.force_authenticate(user=superuser)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('download-ar'))
-        
+        response = api_client.get(projects_urls.path("download-ar"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert response['Content-Type'] == 'text/csv'
-        assert 'attachment' in response['Content-Disposition']
+        assert response["Content-Type"] == "text/csv"
+        assert "attachment" in response["Content-Disposition"]
 
     def test_download_ar_csv_as_non_admin(self, api_client, user, db):
         """Test downloading AR CSV as non-admin fails"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('download-ar'))
-        
+        response = api_client.get(projects_urls.path("download-ar"))
+
         # Assert
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 # Tests for map view
+
 
 class TestProjectMap:
     """Tests for ProjectMap view"""
@@ -1129,30 +1114,31 @@ class TestProjectMap:
         """Test getting projects for map display"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('map'))
-        
+        response = api_client.get(projects_urls.path("map"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'projects' in response.data
-        assert 'total_projects' in response.data
-        assert 'projects_without_location' in response.data
+        assert "projects" in response.data
+        assert "total_projects" in response.data
+        assert "projects_without_location" in response.data
 
     def test_get_project_map_with_filters(self, api_client, user, project, db):
         """Test getting map with filters"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('map'), {'kind': 'science'})
-        
+        response = api_client.get(projects_urls.path("map"), {"kind": "science"})
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
-        assert 'projects' in response.data
+        assert "projects" in response.data
 
 
 # Tests for search views
+
 
 class TestSmallProjectSearch:
     """Tests for SmallProjectSearch view"""
@@ -1161,10 +1147,10 @@ class TestSmallProjectSearch:
         """Test small project search for autocomplete"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('smallsearch'))
-        
+        response = api_client.get(projects_urls.path("smallsearch"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1175,10 +1161,12 @@ class TestSmallProjectSearch:
         project.title = "Unique Search Term"
         project.save()
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('smallsearch'), {'searchTerm': 'Unique'})
-        
+        response = api_client.get(
+            projects_urls.path("smallsearch"), {"searchTerm": "Unique"}
+        )
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1187,14 +1175,16 @@ class TestSmallProjectSearch:
 class TestMyProjects:
     """Tests for MyProjects view"""
 
-    def test_get_my_projects(self, api_client, user, project_with_lead, project_lead, db):
+    def test_get_my_projects(
+        self, api_client, user, project_with_lead, project_lead, db
+    ):
         """Test getting projects for current user"""
         # Arrange
         api_client.force_authenticate(user=project_lead)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('mine'))
-        
+        response = api_client.get(projects_urls.path("mine"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1203,6 +1193,7 @@ class TestMyProjects:
 
 # Tests for utils views
 
+
 class TestProjectYears:
     """Tests for ProjectYears view"""
 
@@ -1210,10 +1201,10 @@ class TestProjectYears:
         """Test getting list of project years"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path('listofyears'))
-        
+        response = api_client.get(projects_urls.path("listofyears"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1226,16 +1217,16 @@ class TestSuspendProject:
         """Test suspending a project"""
         # Arrange
         api_client.force_authenticate(user=user)
-        project.status = 'active'
+        project.status = "active"
         project.save()
-        
+
         # Act
-        response = api_client.post(projects_urls.path(project.pk, 'suspend'))
-        
+        response = api_client.post(projects_urls.path(project.pk, "suspend"))
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
         project.refresh_from_db()
-        assert project.status == 'suspended'
+        assert project.status == "suspended"
 
 
 class TestProjectDocs:
@@ -1245,10 +1236,10 @@ class TestProjectDocs:
         """Test getting all documents for a project"""
         # Arrange
         api_client.force_authenticate(user=user)
-        
+
         # Act
-        response = api_client.get(projects_urls.path(project.pk, 'project_docs'))
-        
+        response = api_client.get(projects_urls.path(project.pk, "project_docs"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1261,11 +1252,17 @@ class TestToggleUserProfileVisibilityForProject:
         """Test toggling project visibility on user profile"""
         # Arrange
         api_client.force_authenticate(user=user)
-        original_hidden_list = project.hidden_from_staff_profiles.copy() if project.hidden_from_staff_profiles else []
-        
+        original_hidden_list = (
+            project.hidden_from_staff_profiles.copy()
+            if project.hidden_from_staff_profiles
+            else []
+        )
+
         # Act
-        response = api_client.post(projects_urls.path(project.pk, 'toggle_user_profile_visibility'))
-        
+        response = api_client.post(
+            projects_urls.path(project.pk, "toggle_user_profile_visibility")
+        )
+
         # Assert
         assert response.status_code == status.HTTP_202_ACCEPTED
         project.refresh_from_db()
@@ -1280,11 +1277,11 @@ class TestProjectKindGetters:
         """Test getting core function projects"""
         # Arrange
         api_client.force_authenticate(user=user)
-        project_factory(kind='core_function')
-        
+        project_factory(kind="core_function")
+
         # Act
-        response = api_client.get(projects_urls.path('core_function'))
-        
+        response = api_client.get(projects_urls.path("core_function"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1293,11 +1290,11 @@ class TestProjectKindGetters:
         """Test getting science projects"""
         # Arrange
         api_client.force_authenticate(user=user)
-        project_factory(kind='science')
-        
+        project_factory(kind="science")
+
         # Act
-        response = api_client.get(projects_urls.path('science'))
-        
+        response = api_client.get(projects_urls.path("science"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1306,11 +1303,11 @@ class TestProjectKindGetters:
         """Test getting student projects"""
         # Arrange
         api_client.force_authenticate(user=user)
-        project_factory(kind='student')
-        
+        project_factory(kind="student")
+
         # Act
-        response = api_client.get(projects_urls.path('student'))
-        
+        response = api_client.get(projects_urls.path("student"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)
@@ -1319,11 +1316,11 @@ class TestProjectKindGetters:
         """Test getting external projects"""
         # Arrange
         api_client.force_authenticate(user=user)
-        project_factory(kind='external')
-        
+        project_factory(kind="external")
+
         # Act
-        response = api_client.get(projects_urls.path('external'))
-        
+        response = api_client.get(projects_urls.path("external"))
+
         # Assert
         assert response.status_code == status.HTTP_200_OK
         assert isinstance(response.data, list)

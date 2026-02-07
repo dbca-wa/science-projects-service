@@ -1,9 +1,9 @@
 """
 Communication CRUD views
 """
-from rest_framework.views import APIView
-from rest_framework.response import Response
+
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -12,25 +12,26 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN,
 )
+from rest_framework.views import APIView
 
-from communications.services import CommunicationService
 from communications.serializers import (
     ChatRoomSerializer,
-    TinyChatRoomSerializer,
-    DirectMessageSerializer,
-    DirectMessageCreateSerializer,
-    TinyDirectMessageSerializer,
-    CommentSerializer,
     CommentCreateSerializer,
-    TinyCommentSerializer,
+    CommentSerializer,
+    DirectMessageCreateSerializer,
+    DirectMessageSerializer,
     ReactionSerializer,
+    TinyChatRoomSerializer,
+    TinyCommentSerializer,
+    TinyDirectMessageSerializer,
     TinyReactionSerializer,
-    ReactionCreateSerializer,
 )
+from communications.services import CommunicationService
 
 
 class ChatRooms(APIView):
     """List and create chat rooms"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -44,14 +45,17 @@ class ChatRooms(APIView):
         serializer = ChatRoomSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        chat_room = CommunicationService.create_chat_room(request.user, serializer.validated_data)
+
+        chat_room = CommunicationService.create_chat_room(
+            request.user, serializer.validated_data
+        )
         result = TinyChatRoomSerializer(chat_room)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class ChatRoomDetail(APIView):
     """Get, update, and delete chat room"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -65,8 +69,10 @@ class ChatRoomDetail(APIView):
         serializer = ChatRoomSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        chat_room = CommunicationService.update_chat_room(pk, request.user, serializer.validated_data)
+
+        chat_room = CommunicationService.update_chat_room(
+            pk, request.user, serializer.validated_data
+        )
         result = TinyChatRoomSerializer(chat_room)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
@@ -78,6 +84,7 @@ class ChatRoomDetail(APIView):
 
 class DirectMessages(APIView):
     """List and create direct messages"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -91,14 +98,17 @@ class DirectMessages(APIView):
         serializer = DirectMessageCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        message = CommunicationService.create_direct_message(request.user, serializer.validated_data)
+
+        message = CommunicationService.create_direct_message(
+            request.user, serializer.validated_data
+        )
         result = TinyDirectMessageSerializer(message)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class DirectMessageDetail(APIView):
     """Get, update, and delete direct message"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -112,8 +122,10 @@ class DirectMessageDetail(APIView):
         serializer = DirectMessageSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        message = CommunicationService.update_direct_message(pk, request.user, serializer.validated_data)
+
+        message = CommunicationService.update_direct_message(
+            pk, request.user, serializer.validated_data
+        )
         result = TinyDirectMessageSerializer(message)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
@@ -125,6 +137,7 @@ class DirectMessageDetail(APIView):
 
 class Comments(APIView):
     """List and create comments"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -138,14 +151,17 @@ class Comments(APIView):
         serializer = CommentCreateSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        comment = CommunicationService.create_comment(request.user, serializer.validated_data)
+
+        comment = CommunicationService.create_comment(
+            request.user, serializer.validated_data
+        )
         result = TinyCommentSerializer(comment)
         return Response(result.data, status=HTTP_201_CREATED)
 
 
 class CommentDetail(APIView):
     """Get, update, and delete comment"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -159,8 +175,10 @@ class CommentDetail(APIView):
         serializer = CommentSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        comment = CommunicationService.update_comment(pk, request.user, serializer.validated_data)
+
+        comment = CommunicationService.update_comment(
+            pk, request.user, serializer.validated_data
+        )
         result = TinyCommentSerializer(comment)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 
@@ -170,14 +188,12 @@ class CommentDetail(APIView):
             CommunicationService.delete_comment(pk, request.user)
             return Response(status=HTTP_204_NO_CONTENT)
         except PermissionError as e:
-            return Response(
-                {"detail": str(e)},
-                status=HTTP_403_FORBIDDEN
-            )
+            return Response({"detail": str(e)}, status=HTTP_403_FORBIDDEN)
 
 
 class Reactions(APIView):
     """List and toggle reactions"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -190,27 +206,26 @@ class Reactions(APIView):
         """Toggle reaction on comment"""
         comment_id = request.data.get("comment")
         user_id = request.data.get("user")
-        
+
         if not comment_id:
             return Response(
-                {"error": "Comment ID required"},
-                status=HTTP_400_BAD_REQUEST
+                {"error": "Comment ID required"}, status=HTTP_400_BAD_REQUEST
             )
-        
+
         reaction, was_deleted = CommunicationService.toggle_comment_reaction(
-            user_id=user_id,
-            comment_id=comment_id
+            user_id=user_id, comment_id=comment_id
         )
-        
+
         if was_deleted:
             return Response(status=HTTP_204_NO_CONTENT)
-        
+
         serializer = TinyReactionSerializer(reaction)
         return Response(serializer.data, status=HTTP_201_CREATED)
 
 
 class ReactionDetail(APIView):
     """Get, update, and delete reaction"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -224,8 +239,10 @@ class ReactionDetail(APIView):
         serializer = ReactionSerializer(data=request.data, partial=True)
         if not serializer.is_valid():
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
-        
-        reaction = CommunicationService.update_reaction(pk, request.user, serializer.validated_data)
+
+        reaction = CommunicationService.update_reaction(
+            pk, request.user, serializer.validated_data
+        )
         result = TinyReactionSerializer(reaction)
         return Response(result.data, status=HTTP_202_ACCEPTED)
 

@@ -6,23 +6,47 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0012_alter_userprofile_title_doipublication'),
+        ("users", "0012_alter_userprofile_title_doipublication"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='publicstaffprofile',
-            name='employee_id',
+            model_name="publicstaffprofile",
+            name="employee_id",
             field=models.PositiveIntegerField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='publicstaffprofile',
-            name='title',
-            field=models.CharField(blank=True, choices=[('mr', 'Mr'), ('ms', 'Ms'), ('mrs', 'Mrs'), ('aprof', 'A/Prof'), ('prof', 'Prof'), ('dr', 'Dr')], max_length=20, null=True),
+            model_name="publicstaffprofile",
+            name="title",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("mr", "Mr"),
+                    ("ms", "Ms"),
+                    ("mrs", "Mrs"),
+                    ("aprof", "A/Prof"),
+                    ("prof", "Prof"),
+                    ("dr", "Dr"),
+                ],
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='userprofile',
-            name='title',
-            field=models.CharField(blank=True, choices=[('mr', 'Mr'), ('ms', 'Ms'), ('mrs', 'Mrs'), ('aprof', 'A/Prof'), ('prof', 'Prof'), ('dr', 'Dr')], max_length=20, null=True),
+            model_name="userprofile",
+            name="title",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("mr", "Mr"),
+                    ("ms", "Ms"),
+                    ("mrs", "Mrs"),
+                    ("aprof", "A/Prof"),
+                    ("prof", "Prof"),
+                    ("dr", "Dr"),
+                ],
+                max_length=20,
+                null=True,
+            ),
         ),
     ]

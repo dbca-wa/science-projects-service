@@ -1,13 +1,14 @@
 # region IMPORTS ===================================
 
-from django.conf import settings
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 import requests
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.db import models
+from rest_framework import serializers
+
 from caretakers.models import Caretaker
 from common.models import CommonModel
 from medias.models import UserAvatar
-from rest_framework import serializers
 
 # endregion =======================================
 
@@ -176,6 +177,7 @@ class User(AbstractUser):
     def get_caretakers(self):
         """Get active caretakers for this user (excludes expired)"""
         from django.utils import timezone
+
         all = Caretaker.objects.filter(user=self).filter(
             models.Q(end_date__isnull=True) | models.Q(end_date__gt=timezone.now())
         )
@@ -188,6 +190,7 @@ class User(AbstractUser):
     def get_caretaking_for(self):
         """Get active users this user is caretaking for (excludes expired)"""
         from django.utils import timezone
+
         all = Caretaker.objects.filter(caretaker=self).filter(
             models.Q(end_date__isnull=True) | models.Q(end_date__gt=timezone.now())
         )
@@ -514,18 +517,25 @@ class PublicStaffProfile(CommonModel):
         else:
             api_url = settings.IT_ASSETS_URL
 
-        response = requests.get(
-            api_url,
-            auth=(
-                settings.IT_ASSETS_USER,
-                settings.IT_ASSETS_ACCESS_TOKEN,
-            ),
-        )
+        try:
+            response = requests.get(
+                api_url,
+                auth=(
+                    settings.IT_ASSETS_USER,
+                    settings.IT_ASSETS_ACCESS_TOKEN,
+                ),
+                timeout=30,
+            )
+        except requests.Timeout:
+            settings.LOGGER.error(
+                f"Request to IT Assets API timed out for profile {self.pk}"
+            )
+            return None
 
         if response.status_code != 200:
-            if settings.IT_ASSETS_USER == None:
+            if settings.IT_ASSETS_USER is None:
                 settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
-            if settings.IT_ASSETS_ACCESS_TOKEN == None:
+            if settings.IT_ASSETS_ACCESS_TOKEN is None:
                 settings.LOGGER.warning(
                     "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
                 )
@@ -542,7 +552,7 @@ class PublicStaffProfile(CommonModel):
         # Remove the email from the object
         # if matching_record:
         #     matching_record.pop("email", None)
-        if matching_record:
+        if matching_record is not None:
             # Extract only the specified fields
             matching_record = {
                 "id": matching_record.get("id"),
@@ -558,7 +568,7 @@ class PublicStaffProfile(CommonModel):
             self.it_asset_id = matching_record["id"]
             self.save()
 
-        if matching_record:
+        if matching_record is not None:
             return matching_record
         return None
 
@@ -570,18 +580,25 @@ class PublicStaffProfile(CommonModel):
         else:
             api_url = settings.IT_ASSETS_URL
 
-        response = requests.get(
-            api_url,
-            auth=(
-                settings.IT_ASSETS_USER,
-                settings.IT_ASSETS_ACCESS_TOKEN,
-            ),
-        )
+        try:
+            response = requests.get(
+                api_url,
+                auth=(
+                    settings.IT_ASSETS_USER,
+                    settings.IT_ASSETS_ACCESS_TOKEN,
+                ),
+                timeout=30,
+            )
+        except requests.Timeout:
+            settings.LOGGER.error(
+                f"Request to IT Assets API timed out for profile {self.pk}"
+            )
+            return self.email
 
         if response.status_code != 200:
-            if settings.IT_ASSETS_USER == None:
+            if settings.IT_ASSETS_USER is None:
                 settings.LOGGER.warning("No IT_ASSETS_USER found in settings/env")
-            if settings.IT_ASSETS_ACCESS_TOKEN == None:
+            if settings.IT_ASSETS_ACCESS_TOKEN is None:
                 settings.LOGGER.warning(
                     "No IT_ASSETS_ACCESS_TOKEN found in settings/env"
                 )
@@ -600,7 +617,7 @@ class PublicStaffProfile(CommonModel):
             self.it_asset_id = matching_record["id"]
             self.save()
 
-        if matching_record:
+        if matching_record is not None:
             return matching_record["email"]
         return self.email
 

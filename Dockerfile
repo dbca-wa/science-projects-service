@@ -17,7 +17,7 @@ ENV TZ="Australia/Perth"
 RUN echo "Installing System Utils." && apt-get update && apt-get install -y \
     -o Acquire::Retries=4 --no-install-recommends \
     vim wget ncdu systemctl \
-    #Slim build required tools 
+    #Slim build required tools
     curl wget ca-certificates \
     # Poetry
     build-essential gcc g++ dpkg-dev

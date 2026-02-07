@@ -23,7 +23,7 @@ class ProjectList(BaseAPIView, SerializerValidationMixin, PaginationMixin):
     def get(self, request):
         projects = ProjectService.list_projects(request.user)
         return self.paginated_response(projects, ProjectSerializer, request)
-    
+
     def post(self, request):
         project, errors = self.validate_and_save(ProjectCreateSerializer, request.data)
         if errors:

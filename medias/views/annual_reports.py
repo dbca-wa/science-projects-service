@@ -1,10 +1,9 @@
 # region IMPORTS ==================================================================================================
 from django.conf import settings
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -12,9 +11,11 @@ from rest_framework.status import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
 )
+from rest_framework.views import APIView
 
 from documents.models import AnnualReport
-from ..models import AnnualReportMedia, AnnualReportPDF, LegacyAnnualReportPDF
+
+from ..models import AnnualReportMedia
 from ..serializers import (
     AnnualReportMediaCreationSerializer,
     AnnualReportMediaSerializer,
@@ -33,6 +34,7 @@ from ..services.media_service import MediaService
 
 class AnnualReportPDFs(APIView):
     """List and create annual report PDFs"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -44,7 +46,7 @@ class AnnualReportPDFs(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting an annual report pdf")
-        
+
         file = request.FILES.get("file")
         report_id = request.data.get("report")
         data = {
@@ -52,7 +54,7 @@ class AnnualReportPDFs(APIView):
             "report": report_id,
             "creator": request.user.pk,
         }
-        
+
         serializer = AnnualReportPDFCreateSerializer(data=data)
         if serializer.is_valid():
             saved_instance = serializer.save()
@@ -67,6 +69,7 @@ class AnnualReportPDFs(APIView):
 
 class AnnualReportPDFDetail(APIView):
     """Retrieve, update, and delete annual report PDF"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -77,7 +80,7 @@ class AnnualReportPDFDetail(APIView):
     def put(self, request, pk):
         pdf = MediaService.get_annual_report_pdf(pk)
         settings.LOGGER.info(f"{request.user} is updating annual report PDF {pdf}")
-        
+
         serializer = AnnualReportPDFSerializer(pdf, data=request.data, partial=True)
         if serializer.is_valid():
             updated_pdf = serializer.save()
@@ -96,6 +99,7 @@ class AnnualReportPDFDetail(APIView):
 
 class LegacyAnnualReportPDFs(APIView):
     """List and create legacy annual report PDFs"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -107,7 +111,7 @@ class LegacyAnnualReportPDFs(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a legacy annual report pdf")
-        
+
         file = request.FILES.get("file")
         year = request.data.get("year")
         data = {
@@ -115,7 +119,7 @@ class LegacyAnnualReportPDFs(APIView):
             "year": year,
             "creator": request.user.pk,
         }
-        
+
         serializer = LegacyAnnualReportPDFCreateSerializer(data=data)
         if serializer.is_valid():
             saved_instance = serializer.save()
@@ -130,6 +134,7 @@ class LegacyAnnualReportPDFs(APIView):
 
 class LegacyAnnualReportPDFDetail(APIView):
     """Retrieve, update, and delete legacy annual report PDF"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -139,9 +144,13 @@ class LegacyAnnualReportPDFDetail(APIView):
 
     def put(self, request, pk):
         pdf = MediaService.get_legacy_annual_report_pdf(pk)
-        settings.LOGGER.info(f"{request.user} is updating legacy annual report PDF {pdf}")
-        
-        serializer = LegacyAnnualReportPDFSerializer(pdf, data=request.data, partial=True)
+        settings.LOGGER.info(
+            f"{request.user} is updating legacy annual report PDF {pdf}"
+        )
+
+        serializer = LegacyAnnualReportPDFSerializer(
+            pdf, data=request.data, partial=True
+        )
         if serializer.is_valid():
             updated_pdf = serializer.save()
             return Response(
@@ -159,6 +168,7 @@ class LegacyAnnualReportPDFDetail(APIView):
 
 class AnnualReportMedias(APIView):
     """List and create annual report media"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -171,7 +181,7 @@ class AnnualReportMedias(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting annual report media")
         serializer = AnnualReportMediaCreationSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             media = serializer.save()
             return Response(
@@ -185,6 +195,7 @@ class AnnualReportMedias(APIView):
 
 class AnnualReportMediaDetail(APIView):
     """Retrieve, update, and delete annual report media"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -195,7 +206,7 @@ class AnnualReportMediaDetail(APIView):
     def put(self, request, pk):
         media = MediaService.get_annual_report_media(pk)
         settings.LOGGER.info(f"{request.user} is updating annual report media {media}")
-        
+
         serializer = AnnualReportMediaSerializer(media, data=request.data, partial=True)
         if serializer.is_valid():
             updated_media = serializer.save()
@@ -214,11 +225,12 @@ class AnnualReportMediaDetail(APIView):
 
 class LatestReportMedia(APIView):
     """Get latest report's media"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         settings.LOGGER.info(f"{request.user} is getting latest report's media")
-        
+
         try:
             latest = AnnualReport.objects.order_by("-year").first()
             medias = AnnualReportMedia.objects.filter(report=latest).all()
@@ -233,6 +245,7 @@ class LatestReportMedia(APIView):
 
 class AnnualReportMediaUpload(APIView):
     """Upload or update annual report media"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
@@ -248,13 +261,15 @@ class AnnualReportMediaUpload(APIView):
 
     def post(self, request, pk):
         settings.LOGGER.info(f"{request.user} is posting a report media upload")
-        
+
         report = get_object_or_404(AnnualReport, pk=pk)
         section = request.data["section"]
         file = request.data["file"]
-        
-        image_instance = MediaService.get_annual_report_media_by_report_and_kind(pk, section)
-        
+
+        image_instance = MediaService.get_annual_report_media_by_report_and_kind(
+            pk, section
+        )
+
         if image_instance:
             image_instance.file = file
             image_instance.uploader = request.user
@@ -272,8 +287,7 @@ class AnnualReportMediaUpload(APIView):
             if serializer.is_valid():
                 updated = serializer.save()
                 return Response(
-                    AnnualReportMediaSerializer(updated).data,
-                    HTTP_201_CREATED
+                    AnnualReportMediaSerializer(updated).data, HTTP_201_CREATED
                 )
             else:
                 settings.LOGGER.error(f"{serializer.errors}")
@@ -282,9 +296,14 @@ class AnnualReportMediaUpload(APIView):
 
 class AnnualReportMediaDelete(APIView):
     """Delete annual report media by report and section"""
+
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, pk, section):
-        settings.LOGGER.info(f"{request.user} is deleting annual report media with pk {pk}")
-        MediaService.delete_annual_report_media_by_report_and_kind(pk, section, request.user)
+        settings.LOGGER.info(
+            f"{request.user} is deleting annual report media with pk {pk}"
+        )
+        MediaService.delete_annual_report_media_by_report_and_kind(
+            pk, section, request.user
+        )
         return Response(status=HTTP_204_NO_CONTENT)

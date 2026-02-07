@@ -4,13 +4,14 @@ Tests for caretaker serializers.
 Tests the serializers in the caretakers app.
 """
 
-from django.test import TestCase
-from django.utils import timezone
 from datetime import timedelta
 
-from users.models import User
+from django.test import TestCase
+from django.utils import timezone
+
 from caretakers.models import Caretaker
-from caretakers.serializers import CaretakerSerializer, CaretakerCreateSerializer
+from caretakers.serializers import CaretakerCreateSerializer, CaretakerSerializer
+from users.models import User
 
 
 class CaretakerSerializerTest(TestCase):
@@ -100,7 +101,7 @@ class CaretakerSerializerTest(TestCase):
             first_name="User",
             last_name="Four",
         )
-        
+
         end_date = timezone.now() + timedelta(days=30)
         caretaker = Caretaker.objects.create(
             user=user3,
@@ -256,7 +257,7 @@ class CaretakerCreateSerializerTest(TestCase):
         serializer = CaretakerCreateSerializer(data=data)
         # Reason is optional (blank=True, null=True in model)
         self.assertTrue(serializer.is_valid())
-        
+
         caretaker = serializer.save()
         self.assertIsNone(caretaker.reason)
 
@@ -284,7 +285,7 @@ class CaretakerCreateSerializerTest(TestCase):
         serializer = CaretakerCreateSerializer(data=data)
         self.assertTrue(serializer.is_valid())
 
-        caretaker = serializer.save()
+        serializer.save()
         self.assertEqual(Caretaker.objects.filter(user=self.user1).count(), 2)
 
     def test_create_serializer_allows_user_to_caretake_multiple(self):
@@ -311,5 +312,5 @@ class CaretakerCreateSerializerTest(TestCase):
         serializer = CaretakerCreateSerializer(data=data)
         self.assertTrue(serializer.is_valid())
 
-        caretaker = serializer.save()
+        serializer.save()
         self.assertEqual(Caretaker.objects.filter(caretaker=self.user2).count(), 2)

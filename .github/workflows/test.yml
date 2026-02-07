@@ -4,18 +4,12 @@ on:
   # Run on pull requests
   pull_request:
     branches: [main, develop]
-    paths:
-      - "backend/**"
-      - ".github/workflows/test.yml"
-  
+
   # Run on pushes to main and develop branches
-  # main: for badge generation after merge
+  # main: for Codecov upload after merge
   # develop: for continuous testing
   push:
     branches: [main, develop]
-    paths:
-      - "backend/**"
-      - ".github/workflows/test.yml"
 
 permissions:
   contents: write  # Required for pushing to badges branch
@@ -24,12 +18,12 @@ jobs:
   test:
     name: Test (shard ${{ matrix.shard }}/4)
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
         shard: [1, 2, 3, 4]
-    
+
     services:
       postgres:
         image: postgres:17
@@ -44,23 +38,23 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Cache Poetry dependencies
         uses: actions/cache@v4
         with:
@@ -70,12 +64,12 @@ jobs:
           key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
           restore-keys: |
             ${{ runner.os }}-poetry-
-      
+
       - name: Install dependencies
         run: |
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi
-      
+
       - name: Restore test durations cache
         uses: actions/cache/restore@v4
         with:
@@ -84,7 +78,23 @@ jobs:
           restore-keys: |
             test-durations-combined-
             test-durations-
-      
+        continue-on-error: true
+
+      - name: Validate test durations file
+        if: always()
+        run: |
+          if [ -f ".test_durations" ]; then
+            echo "=== Checking test durations file ==="
+            if python3 -c "import json; json.load(open('.test_durations'))" 2>/dev/null; then
+              echo "✅ Test durations file is valid JSON"
+            else
+              echo "⚠️ Test durations file is corrupted, removing it"
+              rm -f .test_durations
+            fi
+          else
+            echo "ℹ️ No test durations file found (first run or cache miss)"
+          fi
+
       - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
@@ -114,7 +124,7 @@ jobs:
             -v \
             -ra \
             --maxfail=5
-      
+
       - name: Debug coverage files
         if: always()
         run: |
@@ -126,62 +136,50 @@ jobs:
           echo ""
           echo "=== Current working directory ==="
           pwd
-      
+
       - name: Prepare coverage file for upload
         if: always()
         run: |
-          # Create directory for artifacts
           mkdir -p coverage-output
-          
-          # Look for both .coverage and .coverage.* files
-          # pytest-cov with xdist creates a single .coverage file (already combined from workers)
-          # We need to rename it to avoid conflicts when combining from multiple shards
-          coverage_files=$(find . -maxdepth 1 \( -name '.coverage' -o -name '.coverage.*' \) -type f ! -name '.coveragerc')
-          
-          if [ -n "$coverage_files" ]; then
-            echo "✅ Found coverage files:"
-            echo "$coverage_files"
-            
-            # Copy coverage files to output directory
-            # Rename .coverage to .coverage.SHARD to avoid conflicts
-            for file in .coverage .coverage.*; do
-              if [ -f "$file" ] && [ "$file" != ".coveragerc" ]; then
-                if [ "$file" = ".coverage" ]; then
-                  # Rename single .coverage file to shard-specific name
-                  cp "$file" "coverage-output/.coverage.${{ matrix.shard }}"
-                  echo "Copied $file as .coverage.${{ matrix.shard }}"
-                else
-                  # Copy .coverage.* files as-is
-                  cp "$file" "coverage-output/"
-                  echo "Copied $file"
-                fi
-              fi
-            done
-            
-            echo ""
-            echo "=== Files in coverage-output/ ==="
-            ls -la coverage-output/
-            
-            # Verify at least one file was copied
-            if [ -n "$(ls -A coverage-output/)" ]; then
-              echo "✅ Successfully prepared coverage files for upload"
-            else
-              echo "❌ No files copied to coverage-output/"
-              exit 1
+
+          # Handle .coverage file
+          if [ -f ".coverage" ]; then
+            echo "✅ Found .coverage file"
+            cp .coverage "coverage-output/.coverage.${{ matrix.shard }}"
+            echo "Copied .coverage as .coverage.${{ matrix.shard }}"
+          fi
+
+          # Handle .coverage.* files (use nullglob to handle no matches)
+          shopt -s nullglob
+          coverage_dotfiles=(.coverage.*)
+          shopt -u nullglob
+
+          for file in "${coverage_dotfiles[@]}"; do
+            if [ "$file" != ".coveragerc" ] && [ -f "$file" ]; then
+              cp "$file" coverage-output/
+              echo "Copied $file"
             fi
-          else
-            echo "❌ No coverage files found"
-            echo "This indicates coverage collection failed"
+          done
+
+          echo ""
+          echo "=== Files in coverage-output/ ==="
+          ls -la coverage-output/
+
+          # Verify at least one file was copied
+          if [ -z "$(ls -A coverage-output/)" ]; then
+            echo "❌ ERROR: No coverage files were copied"
             exit 1
           fi
-      
+
+          echo "✅ Successfully prepared coverage files for upload"
+
       - name: Save test durations cache
         if: always()
         uses: actions/cache/save@v4
         with:
           path: .test_durations
           key: test-durations-${{ github.sha }}-${{ matrix.shard }}
-      
+
       - name: Debug paths before upload
         if: always()
         run: |
@@ -197,7 +195,7 @@ jobs:
           echo ""
           echo "=== Finding all coverage-output directories ==="
           find "${{ github.workspace }}" -type d -name "coverage-output" -exec ls -la {} \;
-      
+
       - name: Upload test durations
         if: always()
         uses: actions/upload-artifact@v4
@@ -207,7 +205,7 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
           include-hidden-files: true
-      
+
       - name: Upload coverage data
         uses: actions/upload-artifact@v4
         if: always()
@@ -217,62 +215,89 @@ jobs:
           retention-days: 1
           if-no-files-found: error
           include-hidden-files: true
-  
+
   # Combine coverage from all shards
   coverage:
     name: Combine coverage and upload
     needs: test
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      
+
       - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 -
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-      
+
       - name: Install dependencies
         run: |
           poetry config virtualenvs.in-project true
           poetry install --no-interaction --no-ansi --only main,dev
-      
+
       - name: Download all coverage reports
         uses: actions/download-artifact@v4
         with:
           pattern: coverage-*
           path: coverage-reports
-      
+
       - name: Download all test durations
         uses: actions/download-artifact@v4
         with:
           pattern: test-durations-*
           path: test-durations-reports
         continue-on-error: true
-      
+
       - name: Combine test durations
         if: always()
         run: |
-          # Combine all test duration files into one
           if [ -d "test-durations-reports" ]; then
             echo "=== Combining test durations from all shards ==="
-            cat test-durations-reports/*/.test_durations > .test_durations 2>/dev/null || echo "No test durations to combine"
-            
-            # Save combined durations to cache for next run
+
+            # Merge JSON files properly using Python
+            python3 << 'EOF'
+          import json
+          import os
+          from pathlib import Path
+
+          combined = {}
+          reports_dir = Path("test-durations-reports")
+
+          # Find all .test_durations files
+          for duration_file in reports_dir.rglob(".test_durations"):
+              try:
+                  with open(duration_file, 'r') as f:
+                      data = json.load(f)
+                      combined.update(data)
+                      print(f"✅ Merged {duration_file}")
+              except json.JSONDecodeError as e:
+                  print(f"⚠️ Skipping corrupted file {duration_file}: {e}")
+              except Exception as e:
+                  print(f"⚠️ Error reading {duration_file}: {e}")
+
+          # Write combined durations
+          if combined:
+              with open(".test_durations", 'w') as f:
+                  json.dump(combined, f)
+              print(f"✅ Combined {len(combined)} test durations")
+          else:
+              print("⚠️ No test durations found to combine")
+          EOF
+
             if [ -f ".test_durations" ]; then
               echo "✅ Combined test durations file created"
               wc -l .test_durations
             fi
           fi
         continue-on-error: true
-      
+
       - name: Save combined test durations cache
         if: always()
         uses: actions/cache/save@v4
@@ -280,7 +305,7 @@ jobs:
           path: .test_durations
           key: test-durations-combined-${{ github.sha }}
         continue-on-error: true
-      
+
       - name: Debug coverage files
         run: |
           echo "=== Downloaded artifacts structure ==="
@@ -291,105 +316,65 @@ jobs:
           echo ""
           echo "=== File count ==="
           find coverage-reports -name '.coverage.*' -type f | wc -l
-      
+
       - name: Combine coverage data
         run: |
           # Move all coverage files to current directory for combining
           echo "=== Moving coverage files to current directory ==="
           find coverage-reports -name '.coverage.*' -type f -exec mv {} . \;
-          
+
           # List files in current directory
           echo "=== Coverage files in current directory ==="
           ls -la .coverage.* 2>/dev/null || echo "No coverage files found"
-          
+
           # Count coverage files
           coverage_count=$(find . -maxdepth 1 -name '.coverage.*' -type f | wc -l)
           echo "Found $coverage_count coverage file(s)"
-          
+
           if [ "$coverage_count" -eq 0 ]; then
             echo "❌ ERROR: No coverage files found to combine"
             exit 1
           fi
-          
+
           # Combine binary coverage files
           echo "=== Combining coverage data ==="
           poetry run coverage combine
-          
+
           # Generate reports from combined data
           echo "=== Generating coverage reports ==="
           poetry run coverage xml -o coverage.xml
           poetry run coverage html
           poetry run coverage report --fail-under=80
-      
+
       - name: Upload combined coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report-combined-${{ github.run_id }}
           path: htmlcov/
           retention-days: 30
-      
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
-        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           file: coverage.xml
           flags: backend
           name: backend-coverage
           fail_ci_if_error: false
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         continue-on-error: true
-      
-      - name: Generate Coverage Badge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.test.result == 'success'
-        uses: tj-actions/coverage-badge-py@v2
-        with:
-          output: coverage.svg
-        continue-on-error: true
-        id: badge-generation
-      
-      - name: Checkout badges branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
-        uses: actions/checkout@v4
-        with:
-          ref: badges
-          path: badges-repo
-        continue-on-error: true
-      
-      - name: Store badge in badges branch
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.badge-generation.outcome == 'success'
-        run: |
-          cd badges-repo
-          
-          # Copy badge file
-          cp ../coverage.svg coverage.svg
-          
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Commit and push if changed
-          git add coverage.svg
-          if git diff --staged --quiet; then
-            echo "✅ No changes to coverage badge"
-          else
-            git commit -m "Update coverage badge [skip ci]"
-            git push origin badges
-            echo "✅ Coverage badge updated"
-          fi
-        continue-on-error: true
-      
-      - name: Check badge generation outcome
+        id: codecov-upload
+
+      - name: Check Codecov upload outcome
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          if [ "${{ steps.badge-generation.outcome }}" == "failure" ]; then
-            echo "::warning::Badge generation failed - coverage.xml may be invalid"
-          elif [ "${{ steps.badge-generation.outcome }}" == "success" ]; then
-            echo "✅ Coverage badge generated successfully"
+          if [ "${{ steps.codecov-upload.outcome }}" == "failure" ]; then
+            echo "::warning::Codecov upload failed - coverage.xml may be invalid or Codecov service unavailable"
+          elif [ "${{ steps.codecov-upload.outcome }}" == "success" ]; then
+            echo "✅ Coverage uploaded to Codecov successfully"
           else
-            echo "::warning::Badge generation was skipped"
+            echo "::warning::Codecov upload was skipped"
           fi
-      
+
       - name: Test Summary
         if: always()
         run: |

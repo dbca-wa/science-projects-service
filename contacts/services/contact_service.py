@@ -1,10 +1,11 @@
 """
 Contact service - Business logic for contact operations
 """
+
 from django.conf import settings
 from rest_framework.exceptions import NotFound
 
-from contacts.models import UserContact, BranchContact, AgencyContact, Address
+from contacts.models import Address, AgencyContact, BranchContact, UserContact
 
 
 class ContactService:
@@ -35,11 +36,11 @@ class ContactService:
         """Update address"""
         address = ContactService.get_address(pk)
         settings.LOGGER.info(f"{user} is updating address {address}")
-        
+
         for field, value in data.items():
             setattr(address, field, value)
         address.save()
-        
+
         return address
 
     @staticmethod
@@ -74,11 +75,11 @@ class ContactService:
         """Update agency contact"""
         contact = ContactService.get_agency_contact(pk)
         settings.LOGGER.info(f"{user} is updating agency contact {contact}")
-        
+
         for field, value in data.items():
             setattr(contact, field, value)
         contact.save()
-        
+
         return contact
 
     @staticmethod
@@ -113,11 +114,11 @@ class ContactService:
         """Update branch contact"""
         contact = ContactService.get_branch_contact(pk)
         settings.LOGGER.info(f"{user} is updating branch contact {contact}")
-        
+
         for field, value in data.items():
             setattr(contact, field, value)
         contact.save()
-        
+
         return contact
 
     @staticmethod
@@ -152,11 +153,11 @@ class ContactService:
         """Update user contact"""
         contact = ContactService.get_user_contact(pk)
         settings.LOGGER.info(f"{user} is updating user contact {contact}")
-        
+
         for field, value in data.items():
             setattr(contact, field, value)
         contact.save()
-        
+
         return contact
 
     @staticmethod

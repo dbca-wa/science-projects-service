@@ -1,20 +1,21 @@
 """
 Project member serializers
 """
+
 from rest_framework import serializers
-from rest_framework.serializers import ModelSerializer, SerializerMethodField
+from rest_framework.serializers import ModelSerializer
 
 from agencies.serializers import AffiliationSerializer
 from users.models import User
 from users.serializers import TinyUserSerializer
 
 from ..models import ProjectMember
-from .base import TinyProjectSerializer, PkAndKindOnlyProjectSerializer
+from .base import PkAndKindOnlyProjectSerializer, TinyProjectSerializer
 
 
 class ProjectMemberSerializer(ModelSerializer):
     """Full project member serializer"""
-    
+
     def validate_role(self, value):
         if not value or value == "":
             raise serializers.ValidationError("Role is required.")
@@ -27,6 +28,7 @@ class ProjectMemberSerializer(ModelSerializer):
 
 class TinyProjectMemberSerializer(ModelSerializer):
     """Minimal project member serializer"""
+
     user = TinyUserSerializer(read_only=True)
     project = TinyProjectSerializer(read_only=True)
 
@@ -48,6 +50,7 @@ class TinyProjectMemberSerializer(ModelSerializer):
 
 class MiniUserSerializer(ModelSerializer):
     """Mini user serializer for project members"""
+
     title = serializers.SerializerMethodField()
     affiliation = serializers.SerializerMethodField()
     caretakers = serializers.SerializerMethodField()
@@ -101,6 +104,7 @@ class MiniUserSerializer(ModelSerializer):
 
 class MiniProjectMemberSerializer(ModelSerializer):
     """Mini project member serializer with user details"""
+
     user = MiniUserSerializer(read_only=True)
     project = PkAndKindOnlyProjectSerializer(read_only=True)
 

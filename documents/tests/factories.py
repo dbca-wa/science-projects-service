@@ -6,6 +6,7 @@ Provides factories for creating document test data.
 
 import factory
 from factory.django import DjangoModelFactory
+
 from common.tests.factories import ProjectFactory, UserFactory
 
 

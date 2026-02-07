@@ -6,18 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0013_publicstaffprofile_employee_id_and_more'),
+        ("users", "0013_publicstaffprofile_employee_id_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='display_first_name',
-            field=models.CharField(blank=True, help_text="Automatically populated display name with first name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc.", max_length=201, null=True, verbose_name='Display First Name'),
+            model_name="user",
+            name="display_first_name",
+            field=models.CharField(
+                blank=True,
+                help_text="Automatically populated display name with first name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc.",
+                max_length=201,
+                null=True,
+                verbose_name="Display First Name",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='display_last_name',
-            field=models.CharField(blank=True, help_text="Automatically populated display name with last name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc.", max_length=201, null=True, verbose_name='Display Last Name'),
+            model_name="user",
+            name="display_last_name",
+            field=models.CharField(
+                blank=True,
+                help_text="Automatically populated display name with last name. This is to separate from OIM's SSO and displaying on the Annual Report with accents etc.",
+                max_length=201,
+                null=True,
+                verbose_name="Display Last Name",
+            ),
         ),
     ]

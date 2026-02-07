@@ -2,20 +2,9 @@
 Tests for document models
 """
 
-import pytest
 from datetime import datetime
 
-from documents.models import (
-    AnnualReport,
-    ProjectDocument,
-    ConceptPlan,
-    ProjectPlan,
-    ProgressReport,
-    StudentReport,
-    ProjectClosure,
-    Endorsement,
-    CustomPublication,
-)
+from documents.models import AnnualReport, CustomPublication, Endorsement, ProjectPlan
 
 
 class TestAnnualReport:

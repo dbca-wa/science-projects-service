@@ -8,14 +8,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0007_project_deletion_requested'),
+        ("projects", "0007_project_deletion_requested"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='projectmember',
-            name='caretaker',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='caretaking_member_of', to=settings.AUTH_USER_MODEL),
+            model_name="projectmember",
+            name="caretaker",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="caretaking_member_of",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

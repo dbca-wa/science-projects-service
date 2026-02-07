@@ -30,3 +30,36 @@ extracted_table_data
 *.env
 extract_data.py
 build.sh
+
+# Documentation (exclude from Docker builds)
+docs/
+*.md
+!README.md
+
+# Development files
+.vscode/
+.idea/
+*.pyc
+__pycache__/
+.pytest_cache/
+.coverage
+htmlcov/
+test_results/
+coverage.json
+
+# Development scripts
+setup-dev.sh
+run_tests.sh
+
+# Pre-commit
+.pre-commit-config.yaml
+.pre-commit-*-wrapper.sh
+.pre-commit-cache/
+
+
+# Environment files (but keep .env.example)
+.env
+.env.local
+.env.*.local
+*.production
+*.staging

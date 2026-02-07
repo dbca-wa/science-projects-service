@@ -1,15 +1,21 @@
 """
 Base document serializers
 """
+
 from rest_framework import serializers
 
-from ..models import ProjectDocument, AnnualReport
+from medias.serializers import (
+    ProjectDocumentPDFSerializer,
+    TinyAnnualReportPDFSerializer,
+)
 from projects.serializers import TinyProjectSerializer
-from medias.serializers import ProjectDocumentPDFSerializer, TinyAnnualReportPDFSerializer
+
+from ..models import AnnualReport, ProjectDocument
 
 
 class TinyProjectDocumentSerializer(serializers.ModelSerializer):
     """Minimal project document serializer"""
+
     project = TinyProjectSerializer(read_only=True)
     created_year = serializers.SerializerMethodField()
     pdf = ProjectDocumentPDFSerializer(read_only=True)
@@ -39,6 +45,7 @@ class TinyProjectDocumentSerializer(serializers.ModelSerializer):
 
 class ProjectDocumentSerializer(serializers.ModelSerializer):
     """Standard project document serializer"""
+
     project = TinyProjectSerializer(read_only=True)
     pdf = ProjectDocumentPDFSerializer(read_only=True)
 
@@ -63,7 +70,7 @@ class ProjectDocumentSerializer(serializers.ModelSerializer):
 
 class ProjectDocumentCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating project documents"""
-    
+
     class Meta:
         model = ProjectDocument
         fields = [
@@ -74,16 +81,17 @@ class ProjectDocumentCreateSerializer(serializers.ModelSerializer):
 
 class ProjectDocumentUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating project documents"""
-    
+
     class Meta:
         model = ProjectDocument
         fields = [
             "status",
         ]
-        
+
 
 class TinyAnnualReportSerializer(serializers.ModelSerializer):
     """Minimal annual report serializer"""
+
     pdf = TinyAnnualReportPDFSerializer(read_only=True)
 
     class Meta:
@@ -102,7 +110,7 @@ class TinyAnnualReportSerializer(serializers.ModelSerializer):
 
 class MiniAnnualReportSerializer(serializers.ModelSerializer):
     """Mini annual report serializer with minimal fields"""
-    
+
     class Meta:
         model = AnnualReport
         fields = [
@@ -114,7 +122,7 @@ class MiniAnnualReportSerializer(serializers.ModelSerializer):
 
 class AnnualReportSerializer(serializers.ModelSerializer):
     """Standard annual report serializer"""
-    
+
     class Meta:
         model = AnnualReport
         fields = "__all__"
@@ -122,7 +130,7 @@ class AnnualReportSerializer(serializers.ModelSerializer):
 
 class AnnualReportCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating annual reports"""
-    
+
     class Meta:
         model = AnnualReport
         fields = [
@@ -134,7 +142,7 @@ class AnnualReportCreateSerializer(serializers.ModelSerializer):
 
 class AnnualReportUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating annual reports"""
-    
+
     class Meta:
         model = AnnualReport
         fields = [
@@ -148,14 +156,14 @@ class AnnualReportUpdateSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class TinyProjectDocumentSerializerWithUserDocsBelongTo(serializers.ModelSerializer):
     """
     Tiny project document serializer with user context
-    
+
     Includes information about which user the document belongs to.
     Used in admin views to show documents pending user action.
     """
+
     project = TinyProjectSerializer(read_only=True)
     created_year = serializers.SerializerMethodField()
     pdf = ProjectDocumentPDFSerializer(read_only=True)
@@ -168,7 +176,7 @@ class TinyProjectDocumentSerializerWithUserDocsBelongTo(serializers.ModelSeriali
     def get_for_user(self, obj):
         """
         Get user information from context
-        
+
         Returns user details including avatar if user is provided in context.
         """
         user = self.context.get("for_user", None)

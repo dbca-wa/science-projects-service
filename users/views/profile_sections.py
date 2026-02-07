@@ -1,20 +1,22 @@
 """
 Staff profile section views
 """
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from users.services import ProfileService
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from users.serializers import (
+    StaffProfileCVSerializer,
     StaffProfileHeroSerializer,
     StaffProfileOverviewSerializer,
-    StaffProfileCVSerializer,
 )
+from users.services import ProfileService
 
 
 class StaffProfileHeroDetail(APIView):
     """Get staff profile hero section"""
+
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
@@ -25,6 +27,7 @@ class StaffProfileHeroDetail(APIView):
 
 class StaffProfileOverviewDetail(APIView):
     """Get staff profile overview section"""
+
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
@@ -35,6 +38,7 @@ class StaffProfileOverviewDetail(APIView):
 
 class StaffProfileCVDetail(APIView):
     """Get staff profile CV section"""
+
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):

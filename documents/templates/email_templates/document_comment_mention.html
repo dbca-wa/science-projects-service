@@ -81,16 +81,16 @@
               "
             >
               {% if is_mention %}
-                <strong>{{commenter_name}}</strong> has mentioned you in a comment on the 
+                <strong>{{commenter_name}}</strong> has mentioned you in a comment on the
                 {{document_type_title}} for
                 <strong>&#x27;{% spaceless %}{{ project_name|extract_text_content}}{% endspaceless %}&#x27;</strong> ({{project_tag}})
               {% else %}
-                <strong>{{commenter_name}}</strong> has posted a new comment on the 
+                <strong>{{commenter_name}}</strong> has posted a new comment on the
                 {{document_type_title}} for
                 <strong>&#x27;{% spaceless %}{{ project_name|extract_text_content}}{% endspaceless %}&#x27;</strong> ({{project_tag}})
               {% endif %}
             </p>
-            
+
             {% if comment_content %}
             <!-- Comment Content Section -->
             <table
@@ -114,7 +114,7 @@
               </tbody>
             </table>
             {% endif %}
-            
+
             <table
               align="center"
               width="100%"

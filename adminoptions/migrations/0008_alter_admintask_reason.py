@@ -6,13 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('adminoptions', '0007_rename_requestor_admintask_requester'),
+        ("adminoptions", "0007_rename_requestor_admintask_requester"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='admintask',
-            name='reason',
-            field=models.TextField(blank=True, help_text="The requester's reasoning for the task", null=True),
+            model_name="admintask",
+            name="reason",
+            field=models.TextField(
+                blank=True,
+                help_text="The requester's reasoning for the task",
+                null=True,
+            ),
         ),
     ]

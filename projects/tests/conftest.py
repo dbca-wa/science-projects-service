@@ -6,12 +6,12 @@ Provides fixtures for testing project-related functionality.
 
 import pytest
 from django.contrib.auth import get_user_model
+
 from common.tests.factories import (
-    UserFactory,
-    ProjectFactory,
-    ProjectMemberFactory,
-    BusinessAreaFactory,
     AreaFactory,
+    BusinessAreaFactory,
+    ProjectFactory,
+    UserFactory,
 )
 
 User = get_user_model()
@@ -129,7 +129,7 @@ def project_with_lead(db, business_area, project_lead):
     Returns:
         Project: Project instance with lead member and detail
     """
-    from projects.models import ProjectDetail, ProjectArea
+    from projects.models import ProjectArea, ProjectDetail
 
     project = ProjectFactory(
         business_area=business_area,
@@ -324,9 +324,10 @@ def mock_image():
     Returns:
         SimpleUploadedFile: Mock image file
     """
-    from PIL import Image
     from io import BytesIO
+
     from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
 
     # Create a simple 10x10 red image
     image = Image.new("RGB", (10, 10), color="red")

@@ -6,24 +6,24 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('agencies', '0005_add_unique_constraint_to_affiliation_name'),
+        ("agencies", "0005_add_unique_constraint_to_affiliation_name"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='branch',
-            name='old_id',
+            model_name="branch",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='businessarea',
-            name='old_id',
+            model_name="businessarea",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='departmentalservice',
-            name='old_id',
+            model_name="departmentalservice",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='division',
-            name='old_id',
+            model_name="division",
+            name="old_id",
         ),
     ]

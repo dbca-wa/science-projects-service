@@ -1,13 +1,15 @@
 # region Imports ================================================================================================
-import os, requests
 import tempfile
-from django.utils.deprecation import MiddlewareMixin
-from django.contrib.auth import login, get_user_model
+
+import requests
 from django.conf import settings
+from django.contrib.auth import get_user_model, login
 from django.db import transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
+from django.utils.deprecation import MiddlewareMixin
 from rest_framework.exceptions import ParseError
+
 from agencies.models import Agency
 from contacts.models import UserContact
 from users.models import PublicStaffProfile, UserProfile, UserWork
@@ -180,10 +182,7 @@ class DBCAMiddleware(MiddlewareMixin):
 
     def __call__(self, request):
         # First check if there is a staff user in the request, return if there is not
-        if (
-            "HTTP_REMOTE_USER" not in request.META
-            or not request.META["HTTP_REMOTE_USER"]
-        ):
+        if "remote-user" not in request.headers or not request.headers["remote-user"]:
             return self.get_response(request)
 
         # Check if the user is authenticated
@@ -217,10 +216,10 @@ class DBCAMiddleware(MiddlewareMixin):
                 login(request, user)
 
         # Handling authenticated users (update last login)
-        username = request.META.get("HTTP_REMOTE_USER")
-        first_name = request.META.get("HTTP_X_FIRST_NAME")
-        last_name = request.META.get("HTTP_X_LAST_NAME")
-        email = request.META.get("HTTP_X_EMAIL")
+        username = request.headers.get("remote-user")
+        first_name = request.headers.get("x-first-name")
+        last_name = request.headers.get("x-last-name")
+        email = request.headers.get("x-email")
 
         if first_name and last_name and username and email:
             user = User.objects.filter(username=email).first()

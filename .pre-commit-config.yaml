@@ -1,0 +1,123 @@
+# Pre-commit hooks for Science Projects Backend
+# See https://pre-commit.com for more information
+
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow custom YAML tags
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-json
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Python code formatting with black
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3.13
+        args: [--line-length=88]
+
+  # Import sorting with isort
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile=black, --line-length=88]
+
+  # Remove unused imports and variables with autoflake
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
+        args:
+          - --in-place
+          - --remove-all-unused-imports
+          - --remove-unused-variables
+          - --remove-duplicate-keys
+          - --ignore-init-module-imports
+
+  # Linting with flake8 (warnings only, non-blocking)
+  - repo: local
+    hooks:
+      - id: flake8
+        name: flake8 (warnings only)
+        entry: ./.pre-commit-flake8-wrapper.sh
+        language: script
+        types: [python]
+        pass_filenames: true
+        verbose: true
+        exclude: ^_refactor_archive/
+        args:
+          - --max-line-length=88
+          - --extend-ignore=E203,W503,E501
+          - --exclude=migrations,__pycache__,.venv,venv,build,dist,_refactor_archive
+
+  # Django-specific checks
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.22.2
+    hooks:
+      - id: django-upgrade
+        args: [--target-version=5.1]
+
+  # Security checks with bandit (warnings only, non-blocking)
+  - repo: local
+    hooks:
+      - id: bandit
+        name: bandit (warnings only)
+        entry: ./.pre-commit-bandit-wrapper.sh
+        language: script
+        types: [python]
+        pass_filenames: false
+        verbose: true
+        exclude: ^_refactor_archive/
+        args: [-c, pyproject.toml, -r, .]
+
+  # Type checking with mypy (optional - can be slow)
+  # Uncomment if you want type checking on every commit
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.13.0
+  #   hooks:
+  #     - id: mypy
+  #       args: [--ignore-missing-imports, --no-strict-optional]
+  #       additional_dependencies:
+  #         - django-stubs
+  #         - djangorestframework-stubs
+  #         - types-requests
+  #         - types-python-dateutil
+
+# Global settings
+default_language_version:
+  python: python3.13
+
+# Files to exclude
+exclude: |
+  (?x)^(
+      migrations/.*|
+      __pycache__/.*|
+      \.venv/.*|
+      venv/.*|
+      build/.*|
+      dist/.*|
+      \.pytest_cache/.*|
+      htmlcov/.*|
+      \.coverage.*|
+      staticfiles/.*
+  )$
+
+# Fail fast - stop on first failure
+fail_fast: false
+
+# Minimum pre-commit version
+minimum_pre_commit_version: '3.0.0'

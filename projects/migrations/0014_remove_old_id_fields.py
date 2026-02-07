@@ -6,24 +6,24 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0013_make_projectmember_old_id_nullable'),
+        ("projects", "0013_make_projectmember_old_id_nullable"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='externalprojectdetails',
-            name='old_id',
+            model_name="externalprojectdetails",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='project',
-            name='old_id',
+            model_name="project",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='projectmember',
-            name='old_id',
+            model_name="projectmember",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='studentprojectdetails',
-            name='old_id',
+            model_name="studentprojectdetails",
+            name="old_id",
         ),
     ]

@@ -1,19 +1,19 @@
 """
 Media service - Business logic for media operations
 """
+
 from django.conf import settings
 from rest_framework.exceptions import NotFound, PermissionDenied
 
 from medias.models import (
-    ProjectDocumentPDF,
+    AgencyImage,
     AnnualReportMedia,
     AnnualReportPDF,
+    BusinessAreaPhoto,
     LegacyAnnualReportPDF,
-    AECEndorsementPDF,
+    ProjectDocumentPDF,
     ProjectPhoto,
     ProjectPlanMethodologyPhoto,
-    BusinessAreaPhoto,
-    AgencyImage,
     UserAvatar,
 )
 
@@ -60,11 +60,11 @@ class MediaService:
         """Update annual report PDF"""
         pdf = MediaService.get_annual_report_pdf(pk)
         settings.LOGGER.info(f"{user} is updating annual report PDF {pdf}")
-        
+
         for field, value in data.items():
             setattr(pdf, field, value)
         pdf.save()
-        
+
         return pdf
 
     @staticmethod
@@ -99,11 +99,11 @@ class MediaService:
         """Update legacy annual report PDF"""
         pdf = MediaService.get_legacy_annual_report_pdf(pk)
         settings.LOGGER.info(f"{user} is updating legacy annual report PDF {pdf}")
-        
+
         for field, value in data.items():
             setattr(pdf, field, value)
         pdf.save()
-        
+
         return pdf
 
     @staticmethod
@@ -131,11 +131,9 @@ class MediaService:
     def get_annual_report_media_by_report_and_kind(report_pk, kind):
         """Get annual report media by report and kind"""
         try:
-            return AnnualReportMedia.objects.filter(
-                report=report_pk, kind=kind
-            ).first()
+            return AnnualReportMedia.objects.filter(report=report_pk, kind=kind).first()
         except AnnualReportMedia.DoesNotExist:
-            raise NotFound(f"Annual report media not found")
+            raise NotFound("Annual report media not found")
 
     @staticmethod
     def create_annual_report_media(user, data):
@@ -148,11 +146,11 @@ class MediaService:
         """Update annual report media"""
         media = MediaService.get_annual_report_media(pk)
         settings.LOGGER.info(f"{user} is updating annual report media {media}")
-        
+
         for field, value in data.items():
             setattr(media, field, value)
         media.save()
-        
+
         return media
 
     @staticmethod
@@ -194,30 +192,30 @@ class MediaService:
     def update_business_area_photo(pk, user, data):
         """Update business area photo"""
         photo = MediaService.get_business_area_photo(pk)
-        
+
         # Check permissions
         if not (photo.uploader == user or user.is_superuser):
             settings.LOGGER.warning(f"{user} doesn't have permission to update {photo}")
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is updating business area photo {photo}")
-        
+
         for field, value in data.items():
             setattr(photo, field, value)
         photo.save()
-        
+
         return photo
 
     @staticmethod
     def delete_business_area_photo(pk, user):
         """Delete business area photo"""
         photo = MediaService.get_business_area_photo(pk)
-        
+
         # Check permissions
         if not (photo.uploader == user or user.is_superuser):
             settings.LOGGER.warning(f"{user} doesn't have permission to delete {photo}")
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is deleting business area photo {photo}")
         photo.delete()
 
@@ -245,30 +243,34 @@ class MediaService:
     def update_project_photo(pk, user, data):
         """Update project photo"""
         photo = MediaService.get_project_photo(pk)
-        
+
         # Check permissions
         if not (photo.uploader == user or user.is_superuser):
-            settings.LOGGER.warning(f"{user} is not allowed to update project photo {photo}")
+            settings.LOGGER.warning(
+                f"{user} is not allowed to update project photo {photo}"
+            )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is updating project photo {photo}")
-        
+
         for field, value in data.items():
             setattr(photo, field, value)
         photo.save()
-        
+
         return photo
 
     @staticmethod
     def delete_project_photo(pk, user):
         """Delete project photo"""
         photo = MediaService.get_project_photo(pk)
-        
+
         # Check permissions
         if not (photo.uploader == user or user.is_superuser):
-            settings.LOGGER.warning(f"{user} is not allowed to delete project photo {photo}")
+            settings.LOGGER.warning(
+                f"{user} is not allowed to delete project photo {photo}"
+            )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is deleting project photo {photo}")
         photo.delete()
 
@@ -296,36 +298,44 @@ class MediaService:
     def update_methodology_photo(project_plan_pk, user, data):
         """Update methodology photo"""
         photo = MediaService.get_methodology_photo_by_project_plan(project_plan_pk)
-        
+
         if not photo:
-            raise NotFound(f"Methodology photo for project plan {project_plan_pk} not found")
-        
+            raise NotFound(
+                f"Methodology photo for project plan {project_plan_pk} not found"
+            )
+
         # Check permissions
         if not (photo.uploader == user or user.is_superuser):
-            settings.LOGGER.warning(f"{user} is not allowed to update methodology photo {photo}")
+            settings.LOGGER.warning(
+                f"{user} is not allowed to update methodology photo {photo}"
+            )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is updating methodology photo {photo}")
-        
+
         for field, value in data.items():
             setattr(photo, field, value)
         photo.save()
-        
+
         return photo
 
     @staticmethod
     def delete_methodology_photo(project_plan_pk, user):
         """Delete methodology photo"""
         photo = MediaService.get_methodology_photo_by_project_plan(project_plan_pk)
-        
+
         if not photo:
-            raise NotFound(f"Methodology photo for project plan {project_plan_pk} not found")
-        
+            raise NotFound(
+                f"Methodology photo for project plan {project_plan_pk} not found"
+            )
+
         # Check permissions
         if not (photo.uploader == user or user.is_superuser):
-            settings.LOGGER.warning(f"{user} is not allowed to delete project photo {photo}")
+            settings.LOGGER.warning(
+                f"{user} is not allowed to delete project photo {photo}"
+            )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is deleting methodology photo {photo}")
         photo.delete()
 
@@ -353,30 +363,34 @@ class MediaService:
     def update_agency_image(pk, user, data):
         """Update agency image"""
         image = MediaService.get_agency_image(pk)
-        
+
         # Check permissions - only superusers
         if not user.is_superuser:
-            settings.LOGGER.warning(f"{user} cannot update {image} as they are not a superuser")
+            settings.LOGGER.warning(
+                f"{user} cannot update {image} as they are not a superuser"
+            )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is updating agency image {image}")
-        
+
         for field, value in data.items():
             setattr(image, field, value)
         image.save()
-        
+
         return image
 
     @staticmethod
     def delete_agency_image(pk, user):
         """Delete agency image"""
         image = MediaService.get_agency_image(pk)
-        
+
         # Check permissions - only superusers
         if not user.is_superuser:
-            settings.LOGGER.warning(f"{user} cannot delete {image} as they are not a superuser")
+            settings.LOGGER.warning(
+                f"{user} cannot delete {image} as they are not a superuser"
+            )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is deleting agency image {image}")
         image.delete()
 
@@ -404,33 +418,33 @@ class MediaService:
     def update_user_avatar(pk, user, data):
         """Update user avatar"""
         avatar = MediaService.get_user_avatar(pk)
-        
+
         # Check permissions
         if not (user.is_superuser or user == avatar.user):
             settings.LOGGER.warning(
                 f"Permission denied as {user} is not superuser and isn't the avatar owner of {avatar}"
             )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is updating user avatar {avatar}")
-        
+
         for field, value in data.items():
             setattr(avatar, field, value)
         avatar.save()
-        
+
         return avatar
 
     @staticmethod
     def delete_user_avatar(pk, user):
         """Delete user avatar"""
         avatar = MediaService.get_user_avatar(pk)
-        
+
         # Check permissions
         if not (user.is_superuser or user == avatar.user):
             settings.LOGGER.warning(
                 f"Permission denied as {user} is not superuser and isn't the avatar owner of {avatar}"
             )
             raise PermissionDenied
-        
+
         settings.LOGGER.info(f"{user} is deleting user avatar {avatar}")
         avatar.delete()

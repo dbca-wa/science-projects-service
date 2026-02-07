@@ -1,6 +1,7 @@
 """
 Pytest fixtures for categories tests
 """
+
 import pytest
 from rest_framework.test import APIClient
 
@@ -18,9 +19,9 @@ def api_client():
 def user(db):
     """Provide a regular user"""
     return User.objects.create_user(
-        username='testuser',
-        email='test@example.com',
-        password='testpass123',
+        username="testuser",
+        email="test@example.com",
+        password="testpass123",
     )
 
 
@@ -28,7 +29,7 @@ def user(db):
 def project_category(db):
     """Provide a science project category"""
     return ProjectCategory.objects.create(
-        name='Biodiversity',
+        name="Biodiversity",
         kind=ProjectCategory.CategoryKindChoices.SCIENCE,
     )
 
@@ -37,7 +38,7 @@ def project_category(db):
 def student_category(db):
     """Provide a student project category"""
     return ProjectCategory.objects.create(
-        name='Student Research',
+        name="Student Research",
         kind=ProjectCategory.CategoryKindChoices.STUDENT,
     )
 
@@ -46,7 +47,7 @@ def student_category(db):
 def external_category(db):
     """Provide an external project category"""
     return ProjectCategory.objects.create(
-        name='External Collaboration',
+        name="External Collaboration",
         kind=ProjectCategory.CategoryKindChoices.EXTERNAL,
     )
 
@@ -55,6 +56,6 @@ def external_category(db):
 def core_function_category(db):
     """Provide a core function project category"""
     return ProjectCategory.objects.create(
-        name='Core Operations',
+        name="Core Operations",
         kind=ProjectCategory.CategoryKindChoices.COREFUNCTION,
     )

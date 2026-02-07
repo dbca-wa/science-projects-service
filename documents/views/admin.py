@@ -1,44 +1,41 @@
 """
 Document admin views
 """
+
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
-    HTTP_201_CREATED,
     HTTP_202_ACCEPTED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
 )
+from rest_framework.views import APIView
 
 from projects.models import Project, ProjectMember
 from users.models import User
-from ..models import (
-    ProjectDocument,
-    # Comment,  # TODO: Comment model not yet implemented
+
+from ..models import (  # Comment,  # TODO: Comment model not yet implemented
     AnnualReport,
-    StudentReport,
     ProgressReport,
+    ProjectDocument,
+    StudentReport,
 )
-from ..serializers import (
-    TinyProjectDocumentSerializer,
-    # TinyCommentSerializer,  # TODO: Comment serializers not yet implemented
-    # TinyCommentCreateSerializer,
+from ..serializers import (  # TinyCommentSerializer,  # TODO: Comment serializers not yet implemented; TinyCommentCreateSerializer,
     ProjectDocumentSerializer,
+    TinyProjectDocumentSerializer,
 )
-from ..utils.helpers import extract_text_content
 
 
 class ProjectDocsPendingMyActionAllStages(APIView):
     """Get all documents pending user action across all approval stages"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -46,7 +43,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
         settings.LOGGER.info(
             msg=f"{request.user} is getting their documents pending action"
         )
-        
+
         documents = []
         member_input_required = []
         pl_input_required = []
@@ -63,13 +60,15 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
         if small_user_object:
             # Handle users without work relationship
-            ba = getattr(small_user_object, 'work', None)
+            ba = getattr(small_user_object, "work", None)
             ba = ba.business_area if ba else None
             is_directorate = (
-                ba != None and ba.name == "Directorate"
+                ba is not None and ba.name == "Directorate"
             ) or request.user.is_superuser
 
-            active_projects = Project.objects.exclude(status__in=Project.CLOSED_ONLY).all()
+            active_projects = Project.objects.exclude(
+                status__in=Project.CLOSED_ONLY
+            ).all()
 
             # Check if the user is a leader of any business area
             business_areas_led = small_user_object.business_areas_led.values_list(
@@ -324,14 +323,14 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 # TODO: Comment model and serializers not yet implemented
 # class ProjectDocumentComments(APIView):
 #     """Manage document comments"""
-#     
+#
 #     permission_classes = [IsAuthenticated]
-# 
+#
 #     def get(self, request, pk):
 #         """Get all comments for a document"""
 #         comments = Comment.objects.filter(document_id=pk).all()
 #         comments = comments.order_by("-updated_at", "-created_at")
-# 
+#
 #         ser = TinyCommentSerializer(
 #             comments,
 #             many=True,
@@ -341,17 +340,17 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 #             ser.data,
 #             status=HTTP_200_OK,
 #         )
-# 
+#
 #     def sanitize_html(self, html_content):
 #         """
 #         Sanitize HTML content while preserving mention data attributes and safely handling CSS
 #         """
 #         if not html_content:
 #             return ""
-# 
+#
 #         import bleach
 #         from bleach.css_sanitizer import CSSSanitizer
-# 
+#
 #         # Define allowed tags and attributes
 #         allowed_tags = [
 #             "a",
@@ -383,7 +382,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 #             "th",
 #             "td",
 #         ]
-# 
+#
 #         allowed_attributes = {
 #             "*": ["class"],
 #             "a": ["href", "title", "target"],
@@ -400,7 +399,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 #             "div": ["style"],
 #             "p": ["style"],
 #         }
-# 
+#
 #         # Define allowed CSS properties (specifically for mentions)
 #         allowed_css_properties = [
 #             "background-color",
@@ -410,13 +409,13 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 #             "border-radius",
 #             "font-weight",
 #         ]
-# 
+#
 #         # Create a CSS sanitizer with our allowed properties
 #         css_sanitizer = CSSSanitizer(
 #             allowed_css_properties=allowed_css_properties,
 #             allowed_svg_properties=[],
 #         )
-# 
+#
 #         # Clean the HTML while preserving the allowed tags and attributes
 #         clean_html = bleach.clean(
 #             html_content,
@@ -425,17 +424,17 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 #             css_sanitizer=css_sanitizer,
 #             strip=True,
 #         )
-# 
+#
 #         return clean_html
-# 
+#
 #     def post(self, request, pk):
 #         """Create a new comment on a document"""
 #         settings.LOGGER.info(
 #             msg=f"{request.user} is trying to post a comment to doc {pk}:\n{extract_text_content(request.data['payload'])}"
 #         )
-# 
+#
 #         sanitized_payload = self.sanitize_html(request.data["payload"])
-# 
+#
 #         ser = TinyCommentCreateSerializer(
 #             data={
 #                 "document": pk,
@@ -457,7 +456,7 @@ class ProjectDocsPendingMyActionAllStages(APIView):
 
 class DocumentSpawner(APIView):
     """Spawn a new document for a project"""
-    
+
     def post(self, request):
         """Create a new document"""
         kind = request.kind
@@ -473,7 +472,7 @@ class DocumentSpawner(APIView):
                     settings.LOGGER.error(msg=f"{e}")
                     return Response(e, HTTP_400_BAD_REQUEST)
                 else:
-                    doc_id = project_document.pk
+                    project_document.pk
                     if kind == "concept":
                         pass
                     elif kind == "projectplan":
@@ -494,7 +493,7 @@ class DocumentSpawner(APIView):
 
 class GetPreviousReportsData(APIView):
     """Get data from previous reports for prepopulation"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -530,10 +529,9 @@ class GetPreviousReportsData(APIView):
         return Response(data=section_data, status=HTTP_200_OK)
 
 
-
 class ReopenProject(APIView):
     """Reopen a closed project (fixes typo from RepoenProject)"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get_base_document(self, project_id):
@@ -549,19 +547,19 @@ class ReopenProject(APIView):
         """Reopen a project"""
         from ..services.notification_service import NotificationService
         from ..utils.helpers import get_current_maintainer_id
-        
+
         settings.LOGGER.info(
             msg=f"{request.user} is reopening project belonging to doc ({pk})"
         )
 
-        maintainer_id = get_current_maintainer_id()
+        get_current_maintainer_id()
 
         with transaction.atomic():
             try:
                 settings.LOGGER.info(msg=f"{request.user} is reopening project {pk}")
                 project_document = self.get_base_document(pk)
 
-                if project_document == None:
+                if project_document is None:
                     project = Project.objects.filter(pk=pk).first()
                     project.status = Project.StatusChoices.UPDATING
                     project.save()
@@ -572,14 +570,13 @@ class ReopenProject(APIView):
                         pk=project_document.project.pk
                     ).first()
                     project_document.delete()
-                
+
                 print("SENDING PROJECT REOPENED EMAIL")
 
                 if project:
                     # Send notification via service
                     NotificationService.notify_project_reopened(
-                        project=project,
-                        reopener=request.user
+                        project=project, reopener=request.user
                     )
 
                     return Response(
@@ -594,7 +591,7 @@ class ReopenProject(APIView):
 
 class BatchApproveOld(APIView):
     """Batch approve older reports (not from latest year)"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -722,7 +719,7 @@ class BatchApproveOld(APIView):
 
 class FinalDocApproval(APIView):
     """Final document approval (no email sent)"""
-    
+
     permission_classes = [IsAuthenticated]
 
     def get_document(self, pk):
@@ -738,7 +735,7 @@ class FinalDocApproval(APIView):
         documentPk = request.data.get("documentPk")
         isActive = request.data.get("isActive")
 
-        if isActive == False:
+        if isActive is False:
             settings.LOGGER.info(
                 msg=f"{request.user} is providing final approval for {documentPk}"
             )
@@ -770,7 +767,7 @@ class FinalDocApproval(APIView):
                 TinyProjectDocumentSerializer(u_document).data,
                 status=HTTP_202_ACCEPTED,
             )
-        elif isActive == True:
+        elif isActive is True:
             settings.LOGGER.info(
                 msg=f"{request.user} is recalling final approval for docID: {documentPk}"
             )

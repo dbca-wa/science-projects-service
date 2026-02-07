@@ -10,6 +10,7 @@ Usage:
 
 from django.core.management.base import BaseCommand
 from django.db import connection
+from psycopg2 import sql
 
 
 class Command(BaseCommand):
@@ -28,12 +29,20 @@ class Command(BaseCommand):
         with connection.cursor() as cursor:
             for table_name, seq_name in tables_to_fix:
                 try:
-                    # Get current max ID
-                    cursor.execute(f"SELECT MAX(id) FROM {table_name};")
+                    # Get current max ID using SQL identifier to prevent injection
+                    cursor.execute(
+                        sql.SQL("SELECT MAX(id) FROM {}").format(
+                            sql.Identifier(table_name)
+                        )
+                    )
                     max_id = cursor.fetchone()[0] or 0
 
-                    # Get current sequence value
-                    cursor.execute(f"SELECT last_value FROM {seq_name};")
+                    # Get current sequence value using SQL identifier
+                    cursor.execute(
+                        sql.SQL("SELECT last_value FROM {}").format(
+                            sql.Identifier(seq_name)
+                        )
+                    )
                     current_seq = cursor.fetchone()[0]
 
                     self.stdout.write(f"\n{table_name}:")

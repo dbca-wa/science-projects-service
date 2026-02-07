@@ -1,11 +1,11 @@
+import re
 from datetime import datetime
+from itertools import groupby
+
+from bs4 import BeautifulSoup
 
 # from pprint import pprint
 from django import template
-from operator import attrgetter
-from itertools import groupby
-import re
-from bs4 import BeautifulSoup
 
 register = template.Library()
 
@@ -150,18 +150,18 @@ def abbreviated_name(user_obj):
 
     # print(user_obj)
     # Handle empty or None first name
-    first_name = user_obj.get('display_first_name', '')
+    first_name = user_obj.get("display_first_name", "")
     first_initial = first_name[0] if first_name and len(first_name) > 0 else ""
-    last_name = user_obj.get('display_last_name', '')
-    
+    last_name = user_obj.get("display_last_name", "")
+
     parts = []
     if user_obj.get("title"):
-        parts.append(get_title_rep(user_obj['title']))
+        parts.append(get_title_rep(user_obj["title"]))
     if first_initial:
         parts.append(first_initial)
     if last_name:
         parts.append(last_name)
-    
+
     return " ".join(parts)
 
 
@@ -170,16 +170,16 @@ def abbreviated_name(user_obj):
 def abbreviated_name_with_periods(user_obj):
     # print(user_obj)
     # Handle empty or None first name
-    first_name = user_obj.get('display_first_name', '')
+    first_name = user_obj.get("display_first_name", "")
     first_initial = first_name[0] if first_name and len(first_name) > 0 else ""
-    last_name = user_obj.get('display_last_name', '')
-    
+    last_name = user_obj.get("display_last_name", "")
+
     if user_obj.get("title"):
-        title = user_obj.get('title', '')
+        title = user_obj.get("title", "")
         if first_initial:
             return f"{title}. {first_initial}. {last_name}".strip()
         return f"{title}. {last_name}".strip()
-    
+
     if first_initial:
         return f"{first_initial}. {last_name}".strip()
     return last_name.strip()
@@ -202,27 +202,27 @@ def extract_text_content(html_content):
     """
     if html_content is None:
         return ""
-    
+
     # Step 1: Remove any text before the first HTML tag
-    first_tag_pos = html_content.find('<')
-    
+    first_tag_pos = html_content.find("<")
+
     # If there's no HTML tag, return as-is
     if first_tag_pos == -1:
         return html_content
-    
+
     # If there's text before the first tag, remove it
     if first_tag_pos > 0:
         html_content = html_content[first_tag_pos:]
-    
+
     # Step 2: Remove bold tags using regex (preserves exact spacing)
     # Remove opening <b> and <strong> tags (with any attributes)
-    html_content = re.sub(r'<b\b[^>]*>', '', html_content)
-    html_content = re.sub(r'<strong\b[^>]*>', '', html_content)
-    
+    html_content = re.sub(r"<b\b[^>]*>", "", html_content)
+    html_content = re.sub(r"<strong\b[^>]*>", "", html_content)
+
     # Remove closing </b> and </strong> tags
-    html_content = re.sub(r'</b>', '', html_content)
-    html_content = re.sub(r'</strong>', '', html_content)
-    
+    html_content = re.sub(r"</b>", "", html_content)
+    html_content = re.sub(r"</strong>", "", html_content)
+
     return html_content
 
 

@@ -8,27 +8,54 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0011_publicstaffprofile_it_asset_id'),
+        ("users", "0011_publicstaffprofile_it_asset_id"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='userprofile',
-            name='title',
-            field=models.CharField(blank=True, choices=[('mr', 'Mr.'), ('ms', 'Ms.'), ('mrs', 'Mrs.'), ('aprof', 'A/Prof'), ('prof', 'Prof'), ('dr', 'Dr.')], max_length=20, null=True),
+            model_name="userprofile",
+            name="title",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("mr", "Mr."),
+                    ("ms", "Ms."),
+                    ("mrs", "Mrs."),
+                    ("aprof", "A/Prof"),
+                    ("prof", "Prof"),
+                    ("dr", "Dr."),
+                ],
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.CreateModel(
-            name='DOIPublication',
+            name="DOIPublication",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('doi', models.CharField(max_length=255)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='doipublications', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                ("doi", models.CharField(max_length=255)),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="doipublications",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'DOI Publication',
-                'verbose_name_plural': 'DOI Publications',
+                "verbose_name": "DOI Publication",
+                "verbose_name_plural": "DOI Publications",
             },
         ),
     ]

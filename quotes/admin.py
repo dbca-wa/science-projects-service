@@ -1,10 +1,11 @@
 # region IMPORTS ==============================================
-import tempfile
 import os
+import tempfile
+
 from django.contrib import admin
-from django.core.exceptions import ValidationError
-from .serializers import QuoteListSerializer
+
 from .models import Quote
+from .serializers import QuoteListSerializer
 
 # endregion ==============================================
 

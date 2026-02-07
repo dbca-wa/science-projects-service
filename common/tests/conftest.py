@@ -3,6 +3,7 @@ Common pytest fixtures for backend testing.
 
 Provides shared fixtures that can be used across all test files.
 """
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -14,7 +15,7 @@ User = get_user_model()
 def api_client():
     """
     Provide an API client for testing.
-    
+
     Returns:
         APIClient: DRF API client instance
     """
@@ -25,16 +26,16 @@ def api_client():
 def user(db):
     """
     Provide a regular user.
-    
+
     Returns:
         User: Regular user instance
     """
     return User.objects.create_user(
-        username='testuser',
-        email='test@example.com',
-        password='testpass123',
-        first_name='Test',
-        last_name='User',
+        username="testuser",
+        email="test@example.com",
+        password="testpass123",
+        first_name="Test",
+        last_name="User",
     )
 
 
@@ -42,16 +43,16 @@ def user(db):
 def superuser(db):
     """
     Provide a superuser.
-    
+
     Returns:
         User: Superuser instance
     """
     return User.objects.create_superuser(
-        username='admin',
-        email='admin@example.com',
-        password='adminpass123',
-        first_name='Admin',
-        last_name='User',
+        username="admin",
+        email="admin@example.com",
+        password="adminpass123",
+        first_name="Admin",
+        last_name="User",
     )
 
 
@@ -59,11 +60,11 @@ def superuser(db):
 def authenticated_client(api_client, user):
     """
     Provide an authenticated API client.
-    
+
     Args:
         api_client: API client fixture
         user: User fixture
-        
+
     Returns:
         APIClient: Authenticated API client
     """
@@ -75,11 +76,11 @@ def authenticated_client(api_client, user):
 def admin_client(api_client, superuser):
     """
     Provide an admin API client.
-    
+
     Args:
         api_client: API client fixture
         superuser: Superuser fixture
-        
+
     Returns:
         APIClient: Admin-authenticated API client
     """
@@ -91,17 +92,17 @@ def admin_client(api_client, superuser):
 def multiple_users(db):
     """
     Provide multiple test users.
-    
+
     Returns:
         list[User]: List of 3 user instances
     """
     return [
         User.objects.create_user(
-            username=f'user{i}',
-            email=f'user{i}@example.com',
-            password='testpass123',
-            first_name=f'User',
-            last_name=f'{i}',
+            username=f"user{i}",
+            email=f"user{i}@example.com",
+            password="testpass123",
+            first_name="User",
+            last_name=f"{i}",
         )
         for i in range(1, 4)
     ]

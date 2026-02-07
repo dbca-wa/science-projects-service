@@ -1,17 +1,14 @@
 # region IMPORTS ====================================================================================================
 import ast
-from django.contrib import admin
+
 from django import forms
+from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 
 from users.models import User
-from .models import (
-    Comment,
-    DirectMessage,
-    ChatRoom,
-    Reaction,
-)
+
+from .models import ChatRoom, Comment, DirectMessage, Reaction
 
 # endregion  =================================================================================================
 
@@ -97,14 +94,13 @@ class Comment(admin.ModelAdmin):
 
     search_fields = ["text", "user__username", "document__project"]
 
+    @admin.display(description="Document")
     def document_truncated(self, obj):
         return (
             obj.document.__str__()[:50] + "..."
             if len(obj.document.__str__()) > 50
             else obj.document.__str__()
         )
-
-    document_truncated.short_description = "Document"
 
 
 @admin.register(DirectMessage)

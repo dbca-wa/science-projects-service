@@ -1,6 +1,7 @@
 """
 Tests for agencies models
 """
+
 import pytest
 from django.db import IntegrityError
 
@@ -9,8 +10,8 @@ from agencies.models import (
     Agency,
     Branch,
     BusinessArea,
-    Division,
     DepartmentalService,
+    Division,
 )
 
 
@@ -21,7 +22,7 @@ class TestAffiliation:
         """Test creating an affiliation"""
         # Arrange & Act
         affiliation = Affiliation.objects.create(name="Test Affiliation")
-        
+
         # Assert
         assert affiliation.id is not None
         assert affiliation.name == "Test Affiliation"
@@ -31,7 +32,7 @@ class TestAffiliation:
         """Test affiliation name must be unique"""
         # Arrange
         Affiliation.objects.create(name="Duplicate Name")
-        
+
         # Act & Assert
         with pytest.raises(IntegrityError):
             Affiliation.objects.create(name="Duplicate Name")
@@ -40,7 +41,7 @@ class TestAffiliation:
         """Test affiliation string representation"""
         # Act
         result = str(affiliation)
-        
+
         # Assert
         assert result == affiliation.name
 
@@ -48,7 +49,7 @@ class TestAffiliation:
         """Test affiliation meta verbose names"""
         # Act
         meta = Affiliation._meta
-        
+
         # Assert
         assert meta.verbose_name == "Affiliation"
         assert meta.verbose_name_plural == "Affiliations"
@@ -65,7 +66,7 @@ class TestAgency:
             key_stakeholder=user,
             is_active=True,
         )
-        
+
         # Assert
         assert agency.id is not None
         assert agency.name == "Test Agency"
@@ -80,7 +81,7 @@ class TestAgency:
             name="Test Agency",
             is_active=True,
         )
-        
+
         # Assert
         assert agency.id is not None
         assert agency.key_stakeholder is None
@@ -89,7 +90,7 @@ class TestAgency:
         """Test agency is_active defaults to True"""
         # Arrange & Act
         agency = Agency.objects.create(name="Test Agency")
-        
+
         # Assert
         assert agency.is_active is True
 
@@ -97,7 +98,7 @@ class TestAgency:
         """Test agency string representation"""
         # Act
         result = str(agency)
-        
+
         # Assert
         assert result == agency.name
 
@@ -105,7 +106,7 @@ class TestAgency:
         """Test agency meta verbose names"""
         # Act
         meta = Agency._meta
-        
+
         # Assert
         assert meta.verbose_name == "Agency"
         assert meta.verbose_name_plural == "Agencies"
@@ -117,12 +118,12 @@ class TestAgency:
             name="Test Agency",
             key_stakeholder=user,
         )
-        user_id = user.id
-        
+        user.id
+
         # Act
         user.delete()
         agency.refresh_from_db()
-        
+
         # Assert
         assert agency.key_stakeholder is None
 
@@ -138,7 +139,7 @@ class TestBranch:
             name="Test Branch",
             manager=user,
         )
-        
+
         # Assert
         assert branch.id is not None
         assert branch.agency == agency
@@ -152,7 +153,7 @@ class TestBranch:
         branch = Branch.objects.create(
             name="Test Branch",
         )
-        
+
         # Assert
         assert branch.id is not None
         assert branch.agency is None
@@ -164,7 +165,7 @@ class TestBranch:
             agency=agency,
             name="Test Branch",
         )
-        
+
         # Assert
         assert branch.id is not None
         assert branch.manager is None
@@ -176,7 +177,7 @@ class TestBranch:
             agency=agency,
             name="Duplicate Branch",
         )
-        
+
         # Act & Assert
         with pytest.raises(IntegrityError):
             Branch.objects.create(
@@ -192,13 +193,13 @@ class TestBranch:
             agency=agency,
             name="Same Name",
         )
-        
+
         # Act
         branch2 = Branch.objects.create(
             agency=agency2,
             name="Same Name",
         )
-        
+
         # Assert
         assert branch2.id is not None
 
@@ -206,7 +207,7 @@ class TestBranch:
         """Test branch string representation"""
         # Act
         result = str(branch)
-        
+
         # Assert
         assert result == branch.name
 
@@ -214,7 +215,7 @@ class TestBranch:
         """Test branch meta verbose names"""
         # Act
         meta = Branch._meta
-        
+
         # Assert
         assert meta.verbose_name == "Branch"
         assert meta.verbose_name_plural == "Branches"
@@ -227,10 +228,10 @@ class TestBranch:
             name="Test Branch",
         )
         branch_id = branch.id
-        
+
         # Act
         agency.delete()
-        
+
         # Assert
         assert not Branch.objects.filter(id=branch_id).exists()
 
@@ -253,7 +254,7 @@ class TestBusinessArea:
             is_active=True,
             published=False,
         )
-        
+
         # Assert
         assert ba.id is not None
         assert ba.agency == agency
@@ -278,7 +279,7 @@ class TestBusinessArea:
             finance_admin=None,
             data_custodian=None,
         )
-        
+
         # Assert
         assert ba.id is not None
         assert ba.agency == agency
@@ -300,7 +301,7 @@ class TestBusinessArea:
             finance_admin=None,
             data_custodian=None,
         )
-        
+
         # Assert
         assert ba.published is False
         assert ba.is_active is True
@@ -312,7 +313,7 @@ class TestBusinessArea:
             agency=agency,
             name="Duplicate BA",
         )
-        
+
         # Act & Assert
         with pytest.raises(IntegrityError):
             BusinessArea.objects.create(
@@ -331,7 +332,7 @@ class TestBusinessArea:
             finance_admin=None,
             data_custodian=None,
         )
-        
+
         # Act
         ba2 = BusinessArea.objects.create(
             agency=agency2,
@@ -340,7 +341,7 @@ class TestBusinessArea:
             finance_admin=None,
             data_custodian=None,
         )
-        
+
         # Assert
         assert ba2.id is not None
 
@@ -348,7 +349,7 @@ class TestBusinessArea:
         """Test business area string representation"""
         # Act
         result = str(business_area)
-        
+
         # Assert
         assert result == business_area.name
 
@@ -356,7 +357,7 @@ class TestBusinessArea:
         """Test business area meta verbose names"""
         # Act
         meta = BusinessArea._meta
-        
+
         # Assert
         assert meta.verbose_name == "Business Area"
         assert meta.verbose_name_plural == "Business Areas"
@@ -372,10 +373,10 @@ class TestBusinessArea:
             data_custodian=None,
         )
         ba_id = ba.id
-        
+
         # Act
         agency.delete()
-        
+
         # Assert
         assert not BusinessArea.objects.filter(id=ba_id).exists()
 
@@ -390,11 +391,11 @@ class TestBusinessArea:
             finance_admin=None,
             data_custodian=None,
         )
-        
+
         # Act
         division.delete()
         ba.refresh_from_db()
-        
+
         # Assert
         assert ba.division is None
 
@@ -408,11 +409,11 @@ class TestBusinessArea:
             finance_admin=None,
             data_custodian=None,
         )
-        
+
         # Act
         user.delete()
         ba.refresh_from_db()
-        
+
         # Assert
         assert ba.leader is None
 
@@ -429,7 +430,7 @@ class TestDivision:
             director=user,
             approver=user,
         )
-        
+
         # Assert
         assert division.id is not None
         assert division.name == "Test Division"
@@ -445,7 +446,7 @@ class TestDivision:
             name="Minimal Division",
             slug="minimal-division",
         )
-        
+
         # Assert
         assert division.id is not None
         assert division.director is None
@@ -455,7 +456,7 @@ class TestDivision:
         """Test division string representation"""
         # Act
         result = str(division)
-        
+
         # Assert
         assert result == division.name
 
@@ -463,7 +464,7 @@ class TestDivision:
         """Test division meta verbose names"""
         # Act
         meta = Division._meta
-        
+
         # Assert
         assert meta.verbose_name == "Department Division"
         assert meta.verbose_name_plural == "Department Divisions"
@@ -476,11 +477,11 @@ class TestDivision:
             slug="test-division",
             director=user,
         )
-        
+
         # Act
         user.delete()
         division.refresh_from_db()
-        
+
         # Assert
         assert division.director is None
 
@@ -488,12 +489,13 @@ class TestDivision:
         """Test division email list many-to-many relationship"""
         # Arrange
         from common.tests.factories import UserFactory
+
         user1 = UserFactory()
         user2 = UserFactory()
-        
+
         # Act
         division.directorate_email_list.add(user1, user2)
-        
+
         # Assert
         assert division.directorate_email_list.count() == 2
         assert user1 in division.directorate_email_list.all()
@@ -510,7 +512,7 @@ class TestDepartmentalService:
             name="Test Service",
             director=user,
         )
-        
+
         # Assert
         assert service.id is not None
         assert service.name == "Test Service"
@@ -523,7 +525,7 @@ class TestDepartmentalService:
         service = DepartmentalService.objects.create(
             name="Test Service",
         )
-        
+
         # Assert
         assert service.id is not None
         assert service.director is None
@@ -532,7 +534,7 @@ class TestDepartmentalService:
         """Test departmental service string representation"""
         # Act
         result = str(departmental_service)
-        
+
         # Assert
         assert result == f"Dept. Service: {departmental_service.name}"
 
@@ -540,7 +542,7 @@ class TestDepartmentalService:
         """Test departmental service meta verbose names"""
         # Act
         meta = DepartmentalService._meta
-        
+
         # Assert
         assert meta.verbose_name == "Departmental Service"
         assert meta.verbose_name_plural == "Departmental Services"
@@ -552,10 +554,10 @@ class TestDepartmentalService:
             name="Test Service",
             director=user,
         )
-        
+
         # Act
         user.delete()
         service.refresh_from_db()
-        
+
         # Assert
         assert service.director is None

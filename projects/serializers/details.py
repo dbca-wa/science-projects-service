@@ -1,13 +1,15 @@
 """
 Project details serializers
 """
+
 from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from ..models import ProjectDetail, StudentProjectDetails, ExternalProjectDetails
+from ..models import ExternalProjectDetails, ProjectDetail, StudentProjectDetails
 
 
 class ProjectDetailSerializer(ModelSerializer):
     """Base project details serializer"""
+
     class Meta:
         model = ProjectDetail
         fields = "__all__"
@@ -78,6 +80,7 @@ class ProjectDetailSerializer(ModelSerializer):
 
 class ProjectDetailViewSerializer(ModelSerializer):
     """Project details view serializer with related data"""
+
     project = SerializerMethodField(read_only=True)
     service = SerializerMethodField(read_only=True)
     creator = SerializerMethodField(read_only=True)
@@ -156,6 +159,7 @@ class ProjectDetailViewSerializer(ModelSerializer):
 
 class TinyProjectDetailSerializer(ModelSerializer):
     """Minimal project details serializer"""
+
     project = SerializerMethodField(read_only=True)
     creator = SerializerMethodField(read_only=True)
     modifier = SerializerMethodField(read_only=True)
@@ -232,6 +236,7 @@ class TinyProjectDetailSerializer(ModelSerializer):
 
 class StudentProjectDetailSerializer(ModelSerializer):
     """Student project details serializer"""
+
     class Meta:
         model = StudentProjectDetails
         fields = "__all__"
@@ -248,6 +253,7 @@ class StudentProjectDetailSerializer(ModelSerializer):
 
 class TinyStudentProjectDetailSerializer(ModelSerializer):
     """Minimal student project details serializer"""
+
     project = SerializerMethodField(read_only=True)
 
     class Meta:
@@ -271,6 +277,7 @@ class TinyStudentProjectDetailSerializer(ModelSerializer):
 
 class ExternalProjectDetailSerializer(ModelSerializer):
     """External project details serializer"""
+
     class Meta:
         model = ExternalProjectDetails
         fields = "__all__"
@@ -287,6 +294,7 @@ class ExternalProjectDetailSerializer(ModelSerializer):
 
 class TinyExternalProjectDetailSerializer(ModelSerializer):
     """Minimal external project details serializer"""
+
     project = SerializerMethodField(read_only=True)
 
     class Meta:

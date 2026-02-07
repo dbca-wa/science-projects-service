@@ -1,14 +1,16 @@
 """
 Agencies app pytest fixtures
 """
+
 import pytest
+
 from agencies.models import (
     Affiliation,
     Agency,
     Branch,
-    Division,
     BusinessArea,
     DepartmentalService,
+    Division,
 )
 
 

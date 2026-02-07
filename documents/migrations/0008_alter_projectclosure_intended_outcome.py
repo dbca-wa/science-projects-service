@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('documents', '0007_custompublication'),
+        ("documents", "0007_custompublication"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='projectclosure',
-            name='intended_outcome',
-            field=models.CharField(blank=True, choices=[('completed', 'Completed with final update'), ('terminated', 'Terminated')], default='completed', help_text='The intended project status outcome of this closure', max_length=300, null=True),
+            model_name="projectclosure",
+            name="intended_outcome",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("completed", "Completed with final update"),
+                    ("terminated", "Terminated"),
+                ],
+                default="completed",
+                help_text="The intended project status outcome of this closure",
+                max_length=300,
+                null=True,
+            ),
         ),
     ]

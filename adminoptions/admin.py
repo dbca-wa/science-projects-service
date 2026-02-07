@@ -1,13 +1,9 @@
+import json
+
 from django.contrib import admin
 from django.utils.html import format_html
-from django.utils.safestring import mark_safe
-import json
-from adminoptions.models import (
-    AdminOptions,
-    AdminTask,
-    ContentField,
-    GuideSection,
-)
+
+from adminoptions.models import AdminOptions, AdminTask, ContentField, GuideSection
 
 
 # Inline admin for content fields
@@ -34,9 +30,11 @@ class JSONFieldPrettyPrintMixin:
                 parsed = json.loads(json_field)
                 json_str = json.dumps(parsed, indent=2)
 
+            # format_html automatically escapes the json_str, no need for mark_safe
+            # JSON from json.dumps() is already safe, but format_html provides defense in depth
             return format_html(
                 '<pre style="max-height: 300px; overflow-y: auto;">{}</pre>',
-                mark_safe(json_str),
+                json_str,
             )
         except Exception as e:
             return format_html("<pre>Error formatting JSON: {}</pre>", str(e))
@@ -66,10 +64,9 @@ class GuideSectionAdmin(admin.ModelAdmin):
         ),
     )
 
+    @admin.display(description="Field Count")
     def field_count(self, obj):
         return obj.content_fields.count()
-
-    field_count.short_description = "Field Count"
 
 
 @admin.register(ContentField)
@@ -79,6 +76,7 @@ class ContentFieldAdmin(admin.ModelAdmin):
     search_fields = ["field_key", "title", "description"]
     ordering = ["section", "order"]
 
+    @admin.display(description="Content Preview")
     def content_preview(self, obj):
         """Show a preview of the field's content from AdminOptions guide_content"""
         try:
@@ -96,8 +94,6 @@ class ContentFieldAdmin(admin.ModelAdmin):
         except Exception as e:
             return f"Error: {str(e)}"
 
-    content_preview.short_description = "Content Preview"
-
 
 @admin.register(AdminOptions)
 class AdminOptionsAdmin(admin.ModelAdmin, JSONFieldPrettyPrintMixin):
@@ -109,19 +105,17 @@ class AdminOptionsAdmin(admin.ModelAdmin, JSONFieldPrettyPrintMixin):
 
     readonly_fields = ["guide_content_display"]
 
+    @admin.display(description="Guide Content Entries")
     def guide_content_count(self, obj):
         """Show the number of entries in guide_content"""
         if not obj.guide_content:
             return 0
         return len(obj.guide_content)
 
-    guide_content_count.short_description = "Guide Content Entries"
-
+    @admin.display(description="Guide Content (Formatted)")
     def guide_content_display(self, obj):
         """Display guide_content in a formatted way"""
         return self.pretty_print_json(obj.guide_content)
-
-    guide_content_display.short_description = "Guide Content (Formatted)"
 
     def get_fieldsets(self, request, obj=None):
         fieldsets = [

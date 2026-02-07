@@ -1,22 +1,22 @@
 # Export all views for backward compatibility
 from .affiliations import (
-    Affiliations,
     AffiliationDetail,
-    AffiliationsMerge,
+    Affiliations,
     AffiliationsCleanOrphaned,
+    AffiliationsMerge,
 )
 from .agencies import Agencies, AgencyDetail
-from .branches import Branches, BranchDetail
+from .branches import BranchDetail, Branches
 from .business_areas import (
-    BusinessAreas,
     BusinessAreaDetail,
-    MyBusinessAreas,
-    BusinessAreasUnapprovedDocs,
+    BusinessAreas,
     BusinessAreasProblematicProjects,
+    BusinessAreasUnapprovedDocs,
+    MyBusinessAreas,
     SetBusinessAreaActive,
 )
-from .divisions import Divisions, DivisionDetail, DivisionEmailList
-from .services import DepartmentalServices, DepartmentalServiceDetail
+from .divisions import DivisionDetail, DivisionEmailList, Divisions
+from .services import DepartmentalServiceDetail, DepartmentalServices
 
 __all__ = [
     # Affiliations

@@ -6,16 +6,16 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('documents', '0009_use_centralized_html_defaults'),
+        ("documents", "0009_use_centralized_html_defaults"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='annualreport',
-            name='old_id',
+            model_name="annualreport",
+            name="old_id",
         ),
         migrations.RemoveField(
-            model_name='projectdocument',
-            name='old_id',
+            model_name="projectdocument",
+            name="old_id",
         ),
     ]

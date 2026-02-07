@@ -1,19 +1,19 @@
 """
 Tests for agency services
 """
+
 import pytest
-from unittest.mock import Mock
 from rest_framework.exceptions import NotFound
 
-from agencies.services.agency_service import AgencyService
 from agencies.models import (
     Affiliation,
     Agency,
     Branch,
-    Division,
     BusinessArea,
     DepartmentalService,
+    Division,
 )
+from agencies.services.agency_service import AgencyService
 
 
 class TestAffiliationService:
@@ -23,7 +23,7 @@ class TestAffiliationService:
         """Test listing affiliations"""
         # Act
         affiliations = AgencyService.list_affiliations()
-        
+
         # Assert
         assert affiliations.count() == 1
         assert affiliation in affiliations
@@ -33,10 +33,10 @@ class TestAffiliationService:
         # Arrange
         Affiliation.objects.create(name="Test Affiliation")
         Affiliation.objects.create(name="Another Affiliation")
-        
+
         # Act
         affiliations = AgencyService.list_affiliations(search="Test")
-        
+
         # Assert
         assert affiliations.count() == 1
         assert affiliations.first().name == "Test Affiliation"
@@ -45,10 +45,10 @@ class TestAffiliationService:
         """Test listing affiliations with search that returns no results"""
         # Arrange
         Affiliation.objects.create(name="Test Affiliation")
-        
+
         # Act
         affiliations = AgencyService.list_affiliations(search="NonExistent")
-        
+
         # Assert
         assert affiliations.count() == 0
 
@@ -56,10 +56,10 @@ class TestAffiliationService:
         """Test listing affiliations with case-insensitive search"""
         # Arrange
         Affiliation.objects.create(name="Test Affiliation")
-        
+
         # Act
         affiliations = AgencyService.list_affiliations(search="test")
-        
+
         # Assert
         assert affiliations.count() == 1
         assert affiliations.first().name == "Test Affiliation"
@@ -68,7 +68,7 @@ class TestAffiliationService:
         """Test getting affiliation by ID"""
         # Act
         result = AgencyService.get_affiliation(affiliation.id)
-        
+
         # Assert
         assert result == affiliation
 
@@ -82,10 +82,10 @@ class TestAffiliationService:
         """Test creating affiliation"""
         # Arrange
         data = {"name": "New Affiliation"}
-        
+
         # Act
         affiliation = AgencyService.create_affiliation(user, data)
-        
+
         # Assert
         assert affiliation.id is not None
         assert affiliation.name == "New Affiliation"
@@ -94,10 +94,10 @@ class TestAffiliationService:
         """Test updating affiliation"""
         # Arrange
         data = {"name": "Updated Affiliation"}
-        
+
         # Act
         updated = AgencyService.update_affiliation(affiliation.id, user, data)
-        
+
         # Assert
         assert updated.name == "Updated Affiliation"
 
@@ -105,10 +105,10 @@ class TestAffiliationService:
         """Test deleting affiliation without project references"""
         # Arrange
         affiliation_id = affiliation.id
-        
+
         # Act
         result = AgencyService.delete_affiliation(affiliation_id, user)
-        
+
         # Assert
         assert not Affiliation.objects.filter(id=affiliation_id).exists()
         assert "message" in result
@@ -119,17 +119,17 @@ class TestAffiliationService:
         """Test deleting affiliation cleans external project references"""
         from common.tests.factories import ProjectFactory
         from projects.models import ExternalProjectDetails
-        
+
         # Arrange
         project = ProjectFactory()
         external_details = ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with=f"{affiliation.name}; Other Org",
         )
-        
+
         # Act
         result = AgencyService.delete_affiliation(affiliation.id, user)
-        
+
         # Assert
         assert not Affiliation.objects.filter(id=affiliation.id).exists()
         external_details.refresh_from_db()
@@ -142,17 +142,17 @@ class TestAffiliationService:
         """Test deleting affiliation cleans student project references"""
         from common.tests.factories import ProjectFactory
         from projects.models import StudentProjectDetails
-        
+
         # Arrange
         project = ProjectFactory()
         student_details = StudentProjectDetails.objects.create(
             project=project,
             organisation=f"{affiliation.name}; Other Org",
         )
-        
+
         # Act
         result = AgencyService.delete_affiliation(affiliation.id, user)
-        
+
         # Assert
         assert not Affiliation.objects.filter(id=affiliation.id).exists()
         student_details.refresh_from_db()
@@ -165,23 +165,23 @@ class TestAffiliationService:
         """Test deleting affiliation cleans both external and student projects"""
         from common.tests.factories import ProjectFactory
         from projects.models import ExternalProjectDetails, StudentProjectDetails
-        
+
         # Arrange
         project1 = ProjectFactory()
         external_details = ExternalProjectDetails.objects.create(
             project=project1,
             collaboration_with=affiliation.name,
         )
-        
+
         project2 = ProjectFactory()
         student_details = StudentProjectDetails.objects.create(
             project=project2,
             organisation=affiliation.name,
         )
-        
+
         # Act
         result = AgencyService.delete_affiliation(affiliation.id, user)
-        
+
         # Assert
         assert not Affiliation.objects.filter(id=affiliation.id).exists()
         external_details.refresh_from_db()
@@ -195,17 +195,17 @@ class TestAffiliationService:
         """Test cleaning orphaned affiliations when none exist"""
         from common.tests.factories import ProjectFactory
         from projects.models import ExternalProjectDetails
-        
+
         # Arrange - Create a project reference to keep affiliation
         project = ProjectFactory()
         ExternalProjectDetails.objects.create(
             project=project,
             collaboration_with=affiliation.name,
         )
-        
+
         # Act
         result = AgencyService.clean_orphaned_affiliations(user)
-        
+
         # Assert
         assert Affiliation.objects.filter(id=affiliation.id).exists()
         assert result["deleted_count"] == 0
@@ -216,10 +216,10 @@ class TestAffiliationService:
         # Arrange - Create orphaned affiliations
         orphan1 = Affiliation.objects.create(name="Orphan 1")
         orphan2 = Affiliation.objects.create(name="Orphan 2")
-        
+
         # Act
         result = AgencyService.clean_orphaned_affiliations(user)
-        
+
         # Assert
         assert not Affiliation.objects.filter(id=orphan1.id).exists()
         assert not Affiliation.objects.filter(id=orphan2.id).exists()
@@ -227,20 +227,22 @@ class TestAffiliationService:
         assert "Orphan 1" in result["deleted_names"]
         assert "Orphan 2" in result["deleted_names"]
 
-    def test_clean_orphaned_affiliations_with_user_work_reference(self, affiliation, user, db):
+    def test_clean_orphaned_affiliations_with_user_work_reference(
+        self, affiliation, user, db
+    ):
         """Test affiliation with UserWork reference is not deleted"""
         from users.models import UserWork
-        
+
         # Arrange - Create UserWork reference
         UserWork.objects.create(
             user=user,
             affiliation=affiliation,  # Pass the instance, not the ID
             role="Test Role",
         )
-        
+
         # Act
         result = AgencyService.clean_orphaned_affiliations(user)
-        
+
         # Assert
         assert Affiliation.objects.filter(id=affiliation.id).exists()
         assert result["deleted_count"] == 0
@@ -253,7 +255,7 @@ class TestAgencyService:
         """Test listing agencies"""
         # Act
         agencies = AgencyService.list_agencies()
-        
+
         # Assert
         assert agencies.count() == 1
         assert agency in agencies
@@ -262,7 +264,7 @@ class TestAgencyService:
         """Test getting agency by ID"""
         # Act
         result = AgencyService.get_agency(agency.id)
-        
+
         # Assert
         assert result == agency
 
@@ -280,10 +282,10 @@ class TestAgencyService:
             "key_stakeholder": user,
             "is_active": True,
         }
-        
+
         # Act
         agency = AgencyService.create_agency(user, data)
-        
+
         # Assert
         assert agency.id is not None
         assert agency.name == "New Agency"
@@ -293,10 +295,10 @@ class TestAgencyService:
         """Test updating agency"""
         # Arrange
         data = {"name": "Updated Agency"}
-        
+
         # Act
         updated = AgencyService.update_agency(agency.id, user, data)
-        
+
         # Assert
         assert updated.name == "Updated Agency"
 
@@ -304,10 +306,10 @@ class TestAgencyService:
         """Test deleting agency"""
         # Arrange
         agency_id = agency.id
-        
+
         # Act
         AgencyService.delete_agency(agency_id, user)
-        
+
         # Assert
         assert not Agency.objects.filter(id=agency_id).exists()
 
@@ -319,7 +321,7 @@ class TestBranchService:
         """Test listing branches"""
         # Act
         branches = AgencyService.list_branches()
-        
+
         # Assert
         assert branches.count() == 1
         assert branch in branches
@@ -328,7 +330,7 @@ class TestBranchService:
         """Test listing branches with search"""
         # Act
         branches = AgencyService.list_branches(search="Test")
-        
+
         # Assert
         assert branches.count() == 1
         assert branch in branches
@@ -337,7 +339,7 @@ class TestBranchService:
         """Test listing branches with search that returns no results"""
         # Act
         branches = AgencyService.list_branches(search="NonExistent")
-        
+
         # Assert
         assert branches.count() == 0
 
@@ -345,7 +347,7 @@ class TestBranchService:
         """Test listing branches with case-insensitive search"""
         # Act
         branches = AgencyService.list_branches(search="test")
-        
+
         # Assert
         assert branches.count() == 1
         assert branch in branches
@@ -354,7 +356,7 @@ class TestBranchService:
         """Test getting branch by ID"""
         # Act
         result = AgencyService.get_branch(branch.id)
-        
+
         # Assert
         assert result == branch
 
@@ -372,10 +374,10 @@ class TestBranchService:
             "name": "New Branch",
             "manager": user,
         }
-        
+
         # Act
         branch = AgencyService.create_branch(user, data)
-        
+
         # Assert
         assert branch.id is not None
         assert branch.name == "New Branch"
@@ -385,10 +387,10 @@ class TestBranchService:
         """Test updating branch"""
         # Arrange
         data = {"name": "Updated Branch"}
-        
+
         # Act
         updated = AgencyService.update_branch(branch.id, user, data)
-        
+
         # Assert
         assert updated.name == "Updated Branch"
 
@@ -396,10 +398,10 @@ class TestBranchService:
         """Test deleting branch"""
         # Arrange
         branch_id = branch.id
-        
+
         # Act
         AgencyService.delete_branch(branch_id, user)
-        
+
         # Assert
         assert not Branch.objects.filter(id=branch_id).exists()
 
@@ -411,7 +413,7 @@ class TestBusinessAreaService:
         """Test listing business areas"""
         # Act
         business_areas = AgencyService.list_business_areas()
-        
+
         # Assert
         assert business_areas.count() == 1
         assert business_area in business_areas
@@ -420,7 +422,7 @@ class TestBusinessAreaService:
         """Test listing business areas with filters"""
         # Act
         business_areas = AgencyService.list_business_areas()
-        
+
         # Assert
         assert business_areas.count() == 1
         assert business_area in business_areas
@@ -429,7 +431,7 @@ class TestBusinessAreaService:
         """Test getting business area by ID"""
         # Act
         result = AgencyService.get_business_area(business_area.id)
-        
+
         # Assert
         assert result == business_area
 
@@ -452,10 +454,10 @@ class TestBusinessAreaService:
             "data_custodian": user,
             "is_active": True,
         }
-        
+
         # Act
         ba = AgencyService.create_business_area(user, data)
-        
+
         # Assert
         assert ba.id is not None
         assert ba.name == "New Business Area"
@@ -465,10 +467,10 @@ class TestBusinessAreaService:
         """Test updating business area"""
         # Arrange
         data = {"name": "Updated Business Area"}
-        
+
         # Act
         updated = AgencyService.update_business_area(business_area.id, user, data)
-        
+
         # Assert
         assert updated.name == "Updated Business Area"
 
@@ -476,10 +478,10 @@ class TestBusinessAreaService:
         """Test deleting business area"""
         # Arrange
         ba_id = business_area.id
-        
+
         # Act
         AgencyService.delete_business_area(ba_id, user)
-        
+
         # Assert
         assert not BusinessArea.objects.filter(id=ba_id).exists()
 
@@ -487,10 +489,10 @@ class TestBusinessAreaService:
         """Test toggling business area active status"""
         # Arrange
         original_status = business_area.is_active
-        
+
         # Act
         updated = AgencyService.set_business_area_active(business_area.id)
-        
+
         # Assert
         assert updated.is_active != original_status
 
@@ -498,11 +500,11 @@ class TestBusinessAreaService:
         """Test toggling business area active status twice returns to original"""
         # Arrange
         original_status = business_area.is_active
-        
+
         # Act
         AgencyService.set_business_area_active(business_area.id)
         final = AgencyService.set_business_area_active(business_area.id)
-        
+
         # Assert
         assert final.is_active == original_status
 
@@ -510,7 +512,7 @@ class TestBusinessAreaService:
         """Test listing business areas includes related data"""
         # Act
         business_areas = AgencyService.list_business_areas()
-        
+
         # Assert - Access related fields to ensure they're loaded
         for ba in business_areas:
             assert ba.division is not None
@@ -520,7 +522,7 @@ class TestBusinessAreaService:
         """Test getting business area includes related data"""
         # Act
         result = AgencyService.get_business_area(business_area.id)
-        
+
         # Assert - Access related fields to ensure they're loaded
         assert result.division is not None
         assert result.division.name is not None
@@ -534,7 +536,7 @@ class TestDivisionService:
         """Test listing divisions"""
         # Act
         divisions = AgencyService.list_divisions()
-        
+
         # Assert
         assert divisions.count() == 1
         assert division in divisions
@@ -543,7 +545,7 @@ class TestDivisionService:
         """Test getting division by ID"""
         # Act
         result = AgencyService.get_division(division.id)
-        
+
         # Assert
         assert result == division
 
@@ -561,10 +563,10 @@ class TestDivisionService:
             "slug": "new-division",
             "director": user,
         }
-        
+
         # Act
         division = AgencyService.create_division(user, data)
-        
+
         # Assert
         assert division.id is not None
         assert division.name == "New Division"
@@ -573,10 +575,10 @@ class TestDivisionService:
         """Test updating division"""
         # Arrange
         data = {"name": "Updated Division"}
-        
+
         # Act
         updated = AgencyService.update_division(division.id, user, data)
-        
+
         # Assert
         assert updated.name == "Updated Division"
 
@@ -584,10 +586,10 @@ class TestDivisionService:
         """Test deleting division"""
         # Arrange
         division_id = division.id
-        
+
         # Act
         AgencyService.delete_division(division_id, user)
-        
+
         # Assert
         assert not Division.objects.filter(id=division_id).exists()
 
@@ -599,7 +601,7 @@ class TestDepartmentalServiceService:
         """Test listing departmental services"""
         # Act
         services = AgencyService.list_departmental_services()
-        
+
         # Assert
         assert services.count() == 1
         assert departmental_service in services
@@ -608,7 +610,7 @@ class TestDepartmentalServiceService:
         """Test getting departmental service by ID"""
         # Act
         result = AgencyService.get_departmental_service(departmental_service.id)
-        
+
         # Assert
         assert result == departmental_service
 
@@ -625,10 +627,10 @@ class TestDepartmentalServiceService:
             "name": "New Service",
             "director": user,
         }
-        
+
         # Act
         service = AgencyService.create_departmental_service(user, data)
-        
+
         # Assert
         assert service.id is not None
         assert service.name == "New Service"
@@ -637,12 +639,12 @@ class TestDepartmentalServiceService:
         """Test updating departmental service"""
         # Arrange
         data = {"name": "Updated Service"}
-        
+
         # Act
         updated = AgencyService.update_departmental_service(
             departmental_service.id, user, data
         )
-        
+
         # Assert
         assert updated.name == "Updated Service"
 
@@ -650,9 +652,9 @@ class TestDepartmentalServiceService:
         """Test deleting departmental service"""
         # Arrange
         service_id = departmental_service.id
-        
+
         # Act
         AgencyService.delete_departmental_service(service_id, user)
-        
+
         # Assert
         assert not DepartmentalService.objects.filter(id=service_id).exists()

@@ -1,19 +1,13 @@
 # region IMPORTS ==================================================================================================
 from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.status import (
-    HTTP_200_OK,
-    HTTP_201_CREATED,
-    HTTP_400_BAD_REQUEST,
-)
+from rest_framework.response import Response
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
 
-from ..models import ProjectDocumentPDF
 from ..serializers import (
-    ProjectDocumentPDFSerializer,
     ProjectDocumentPDFCreationSerializer,
-    TinyAnnualReportMediaSerializer,
+    ProjectDocumentPDFSerializer,
 )
 from ..services.media_service import MediaService
 
@@ -22,6 +16,7 @@ from ..services.media_service import MediaService
 
 class ProjectDocPDFS(APIView):
     """List and create project document PDFs"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -36,7 +31,7 @@ class ProjectDocPDFS(APIView):
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a project document pdf")
         serializer = ProjectDocumentPDFCreationSerializer(data=request.data)
-        
+
         if serializer.is_valid():
             pdf = serializer.save()
             return Response(

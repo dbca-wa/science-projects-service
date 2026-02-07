@@ -1,13 +1,13 @@
 # region IMPORTS ====================================================================================================
 import os
+
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import transaction
-from django.conf import settings
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -16,12 +16,14 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
+from rest_framework.views import APIView
 
 from documents.models import ProjectDocument
 from documents.serializers import ProjectDocumentSerializer
+from medias.models import BusinessAreaPhoto
 from projects.models import Project, ProjectMember
 from projects.serializers import ProblematicProjectSerializer
-from medias.models import BusinessAreaPhoto
+
 from ..models import BusinessArea
 from ..serializers import BusinessAreaSerializer, TinyBusinessAreaSerializer
 from ..services.agency_service import AgencyService
@@ -31,6 +33,7 @@ from ..services.agency_service import AgencyService
 
 class BusinessAreas(APIView):
     """List and create business areas"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -61,7 +64,7 @@ class BusinessAreas(APIView):
 
     def post(self, request):
         settings.LOGGER.info(f"{request.user} is posting a business area")
-        
+
         image = request.data.get("image")
         if image:
             if isinstance(image, str) and (
@@ -69,8 +72,7 @@ class BusinessAreas(APIView):
             ):
                 if not image.lower().endswith((".jpg", ".jpeg", ".png")):
                     return Response(
-                        "The URL is not a valid photo file",
-                        status=HTTP_400_BAD_REQUEST
+                        "The URL is not a valid photo file", status=HTTP_400_BAD_REQUEST
                     )
 
         division_id = request.data.get("division")
@@ -83,8 +85,8 @@ class BusinessAreas(APIView):
             "finance_admin": request.data.get("finance_admin"),
             "leader": request.data.get("leader"),
         }
-        
-        if division_id and division_id != None:
+
+        if division_id and division_id is not None:
             ba_data["division"] = int(division_id)
 
         serializer = BusinessAreaSerializer(data=ba_data)
@@ -101,19 +103,17 @@ class BusinessAreas(APIView):
                     }
                 except ValueError as e:
                     settings.LOGGER.error(f"Error on handling BA image: {e}")
-                    return Response(
-                        {"error": str(e)},
-                        status=HTTP_400_BAD_REQUEST
-                    )
+                    return Response({"error": str(e)}, status=HTTP_400_BAD_REQUEST)
 
                 try:
                     BusinessAreaPhoto.objects.create(**image_data)
                 except Exception as e:
-                    settings.LOGGER.error(f"Error on creating new BA Photo instance: {e}")
+                    settings.LOGGER.error(
+                        f"Error on creating new BA Photo instance: {e}"
+                    )
                     new_business_area.delete()
                     return Response(
-                        {"error": str(e)},
-                        status=HTTP_500_INTERNAL_SERVER_ERROR
+                        {"error": str(e)}, status=HTTP_500_INTERNAL_SERVER_ERROR
                     )
 
                 optimized_ba = BusinessArea.objects.select_related(
@@ -131,6 +131,7 @@ class BusinessAreas(APIView):
 
 class BusinessAreaDetail(APIView):
     """Retrieve, update, and delete business area"""
+
     permission_classes = [IsAuthenticated]
 
     def handle_ba_image(self, image):
@@ -170,8 +171,7 @@ class BusinessAreaDetail(APIView):
             ):
                 if not image.lower().endswith((".jpg", ".jpeg", ".png")):
                     return Response(
-                        "The URL is not a valid photo file",
-                        status=HTTP_400_BAD_REQUEST
+                        "The URL is not a valid photo file", status=HTTP_400_BAD_REQUEST
                     )
         else:
             selected_image_url = request.data.get("selectedImageUrl")
@@ -211,7 +211,7 @@ class BusinessAreaDetail(APIView):
         if serializer.is_valid():
             with transaction.atomic():
                 uba = serializer.save()
-                
+
                 if image:
                     try:
                         currentphoto = BusinessAreaPhoto.objects.get(business_area=pk)
@@ -243,6 +243,7 @@ class BusinessAreaDetail(APIView):
 
 class MyBusinessAreas(APIView):
     """Get business areas led by current user"""
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -253,12 +254,11 @@ class MyBusinessAreas(APIView):
 
 class BusinessAreasUnapprovedDocs(APIView):
     """Get unapproved documents for business areas"""
-    
+
     def get_unapproved_docs_for_ba(self, pk):
         try:
             docs = ProjectDocument.objects.filter(
-                project__business_area=pk,
-                project_lead_approval_granted=False
+                project__business_area=pk, project_lead_approval_granted=False
             ).distinct()
         except ProjectDocument.DoesNotExist:
             raise NotFound
@@ -273,32 +273,34 @@ class BusinessAreasUnapprovedDocs(APIView):
             settings.LOGGER.info(
                 f"{request.user} is Getting My BA Unapproved Docs: {pks_array}"
             )
-            
+
             data = {}
             for ba_pk in pks_array:
                 unapproved = self.get_unapproved_docs_for_ba(ba_pk)
                 processed_unapproved = []
                 seen_ids = set()
                 unlinked_docs = []
-                
+
                 for item in unapproved:
                     if item.pk not in seen_ids:
-                        if item.has_project_document_data() == False:
+                        if item.has_project_document_data() is False:
                             unlinked_docs.append(item)
                         else:
                             processed_unapproved.append(item)
                             seen_ids.add(item.pk)
-                
+
                 serializer = ProjectDocumentSerializer(processed_unapproved, many=True)
                 serializer2 = ProjectDocumentSerializer(unlinked_docs, many=True)
-                
+
                 data[ba_pk] = {
                     "linked": serializer.data,
                     "unlinked": serializer2.data,
                 }
-                
+
                 if data[ba_pk]["linked"]:
-                    ba_name = data[ba_pk]["linked"][0]['project']['business_area']['name']
+                    ba_name = data[ba_pk]["linked"][0]["project"]["business_area"][
+                        "name"
+                    ]
                     settings.LOGGER.warning(
                         f"Unapproved Doc Count for BA '{ba_name}' ({ba_pk}): "
                         f"{len(processed_unapproved)}\nUnlinked Doc Count for BA {len(unlinked_docs)}"
@@ -308,7 +310,7 @@ class BusinessAreasUnapprovedDocs(APIView):
                         f"Unapproved Doc Count for BA {ba_pk}: {len(processed_unapproved)}\n"
                         f"Unlinked Doc Count for BA: {len(unlinked_docs)}"
                     )
-            
+
             return Response(data=data, status=HTTP_200_OK)
         except Exception as e:
             settings.LOGGER.error(f"{e}")
@@ -317,7 +319,7 @@ class BusinessAreasUnapprovedDocs(APIView):
 
 class BusinessAreasProblematicProjects(APIView):
     """Get problematic projects for business areas"""
-    
+
     def get_projects_in_ba_array(self, ba_array):
         try:
             projects = (
@@ -358,7 +360,7 @@ class BusinessAreasProblematicProjects(APIView):
                 for mem in members:
                     if mem.role == ProjectMember.RoleChoices.SUPERVISING:
                         leader_tag_count += 1
-                    if mem.is_leader == True and mem.user.is_staff == False:
+                    if mem.is_leader is True and mem.user.is_staff is False:
                         external_leader = True
 
                 if len(members) < 1:
@@ -372,10 +374,18 @@ class BusinessAreasProblematicProjects(APIView):
                         multiple_leader_tag_projects.append(p)
 
             data = {
-                "no_members": ProblematicProjectSerializer(memberless_projects, many=True).data,
-                "no_leader": ProblematicProjectSerializer(no_leader_tag_projects, many=True).data,
-                "external_leader": ProblematicProjectSerializer(externally_led_projects, many=True).data,
-                "multiple_leads": ProblematicProjectSerializer(multiple_leader_tag_projects, many=True).data,
+                "no_members": ProblematicProjectSerializer(
+                    memberless_projects, many=True
+                ).data,
+                "no_leader": ProblematicProjectSerializer(
+                    no_leader_tag_projects, many=True
+                ).data,
+                "external_leader": ProblematicProjectSerializer(
+                    externally_led_projects, many=True
+                ).data,
+                "multiple_leads": ProblematicProjectSerializer(
+                    multiple_leader_tag_projects, many=True
+                ).data,
             }
 
             return Response(data=data, status=HTTP_200_OK)
@@ -410,7 +420,7 @@ class BusinessAreasProblematicProjects(APIView):
                     for mem in members:
                         if mem.role == ProjectMember.RoleChoices.SUPERVISING:
                             leader_tag_count += 1
-                        if mem.is_leader == True and mem.user.is_staff == False:
+                        if mem.is_leader is True and mem.user.is_staff is False:
                             external_leader = True
 
                     if len(members) < 1:
@@ -424,10 +434,18 @@ class BusinessAreasProblematicProjects(APIView):
                             multiple_leader_tag_projects.append(p)
 
                 data[ba_pk] = {
-                    "no_members": ProblematicProjectSerializer(memberless_projects, many=True).data,
-                    "no_leader": ProblematicProjectSerializer(no_leader_tag_projects, many=True).data,
-                    "external_leader": ProblematicProjectSerializer(externally_led_projects, many=True).data,
-                    "multiple_leads": ProblematicProjectSerializer(multiple_leader_tag_projects, many=True).data,
+                    "no_members": ProblematicProjectSerializer(
+                        memberless_projects, many=True
+                    ).data,
+                    "no_leader": ProblematicProjectSerializer(
+                        no_leader_tag_projects, many=True
+                    ).data,
+                    "external_leader": ProblematicProjectSerializer(
+                        externally_led_projects, many=True
+                    ).data,
+                    "multiple_leads": ProblematicProjectSerializer(
+                        multiple_leader_tag_projects, many=True
+                    ).data,
                 }
 
             return Response(data=data, status=HTTP_200_OK)
@@ -439,11 +457,11 @@ class BusinessAreasProblematicProjects(APIView):
 
 class SetBusinessAreaActive(APIView):
     """Toggle business area active status"""
-    
+
     def post(self, request, pk):
         ba = AgencyService.get_business_area(pk)
         settings.LOGGER.info(f"{request.user} is changing active status of {ba}")
-        
+
         try:
             updated_ba = AgencyService.set_business_area_active(pk)
             serializer = BusinessAreaSerializer(updated_ba)

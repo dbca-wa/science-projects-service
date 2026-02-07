@@ -6,13 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('adminoptions', '0008_alter_admintask_reason'),
+        ("adminoptions", "0008_alter_admintask_reason"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='admintask',
-            name='status',
-            field=models.CharField(choices=[('pending', 'Pending'), ('approved', 'Approved'), ('fulfilled', 'Fulfilled'), ('cancelled', 'Cancelled'), ('rejected', 'Rejected')], default='pending', max_length=50),
+            model_name="admintask",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("pending", "Pending"),
+                    ("approved", "Approved"),
+                    ("fulfilled", "Fulfilled"),
+                    ("cancelled", "Cancelled"),
+                    ("rejected", "Rejected"),
+                ],
+                default="pending",
+                max_length=50,
+            ),
         ),
     ]

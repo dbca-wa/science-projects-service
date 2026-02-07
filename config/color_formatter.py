@@ -1,5 +1,5 @@
-from logging import LogRecord
 import logging
+from logging import LogRecord
 
 
 class ColoredFormatter(logging.Formatter):

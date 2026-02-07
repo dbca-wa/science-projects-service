@@ -2,16 +2,11 @@
 Details service - Project details management
 """
 
-from django.db import transaction
 from django.conf import settings
+from django.db import transaction
 from rest_framework.exceptions import NotFound
 
-from ..models import (
-    ProjectDetail,
-    StudentProjectDetails,
-    ExternalProjectDetails,
-    Project,
-)
+from ..models import ExternalProjectDetails, ProjectDetail, StudentProjectDetails
 
 
 class DetailsService:

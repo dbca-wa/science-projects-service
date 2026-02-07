@@ -1,23 +1,22 @@
 # region Imports ===================================
 
 import base64
-from rest_framework.serializers import (
-    ModelSerializer,
-    SerializerMethodField,
-)
+
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
 from agencies.serializers import TinyBusinessAreaSerializer
+
 from .models import (
+    AECEndorsementPDF,
+    AgencyImage,
     AnnualReportMedia,
     AnnualReportPDF,
     BusinessAreaPhoto,
     LegacyAnnualReportPDF,
     ProjectDocumentPDF,
+    ProjectPhoto,
     ProjectPlanMethodologyPhoto,
     UserAvatar,
-    AgencyImage,
-    ProjectPhoto,
-    AECEndorsementPDF,
 )
 
 # endregion Imports ===================================
@@ -323,6 +322,7 @@ class BusinessAreaPhotoSerializer(ModelSerializer):
 
 class BusinessAreaPhotoCreateSerializer(ModelSerializer):
     """Serializer for creating business area photos"""
+
     class Meta:
         model = BusinessAreaPhoto
         fields = "__all__"
@@ -393,6 +393,7 @@ class ProjectPhotoSerializer(ModelSerializer):
 
 class ProjectPhotoCreateSerializer(ModelSerializer):
     """Serializer for creating project photos"""
+
     class Meta:
         model = ProjectPhoto
         fields = "__all__"
@@ -454,6 +455,7 @@ class AgencyPhotoSerializer(ModelSerializer):
 
 class AgencyPhotoCreateSerializer(ModelSerializer):
     """Serializer for creating agency photos"""
+
     class Meta:
         model = AgencyImage
         fields = "__all__"
@@ -503,6 +505,7 @@ class UserAvatarSerializer(ModelSerializer):
 
 class UserAvatarCreateSerializer(ModelSerializer):
     """Serializer for creating user avatars"""
+
     class Meta:
         model = UserAvatar
         fields = "__all__"

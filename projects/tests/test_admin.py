@@ -2,31 +2,21 @@
 Tests for projects admin
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 from django.contrib.admin.sites import AdminSite
 
+from common.tests.factories import ProjectMemberFactory
 from projects.admin import (
-    ProjectAdmin,
     ProjectAreaAdmin,
     ProjectMemberAdmin,
-    convert_ext_peer_to_consulted,
-    convert_ext_collaborator_to_consulted,
     clean_orphaned_project_memberships,
+    convert_ext_collaborator_to_consulted,
+    convert_ext_peer_to_consulted,
     report_orphaned_data,
 )
-from projects.models import (
-    Project,
-    ProjectArea,
-    ProjectMember,
-    ProjectDetail,
-)
-from common.tests.factories import (
-    ProjectFactory,
-    ProjectMemberFactory,
-    UserFactory,
-)
-
+from projects.models import ProjectArea, ProjectDetail, ProjectMember
 
 # ============================================================================
 # ADMIN DISPLAY METHOD TESTS
@@ -227,7 +217,7 @@ class TestCleanOrphanedProjectMemberships:
         member_id = member.id
 
         # Delete the user (simulating orphaned membership)
-        user_id = user.id
+        user.id
         user.delete()
 
         admin = ProjectMemberAdmin(ProjectMember, AdminSite())
@@ -287,12 +277,11 @@ class TestReportOrphanedData:
         # Note: This test is skipped because Django's FK constraints prevent
         # creating orphaned memberships in tests. The functionality works in
         # production when users are deleted outside of Django's ORM.
-        pass
 
     def test_reports_null_project_details(self, project_with_lead, db):
         """Test action reports ProjectDetails with null users"""
         # Arrange
-        detail = ProjectDetail.objects.create(
+        ProjectDetail.objects.create(
             project=project_with_lead, creator=None, modifier=None, owner=None
         )
 

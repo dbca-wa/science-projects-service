@@ -2,17 +2,18 @@
 Tests for project services
 """
 
+from unittest.mock import patch
+
 import pytest
-from unittest.mock import Mock, patch
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import NotFound
 
-from projects.services.project_service import ProjectService
-from projects.services.member_service import MemberService
+from projects.models import Project, ProjectArea, ProjectMember
+from projects.services.area_service import AreaService
 from projects.services.details_service import DetailsService
 from projects.services.export_service import ExportService
-from projects.services.area_service import AreaService
-from projects.models import Project, ProjectMember, ProjectDetail, ProjectArea
+from projects.services.member_service import MemberService
+from projects.services.project_service import ProjectService
 
 User = get_user_model()
 
@@ -952,7 +953,7 @@ class TestExportServiceAdditional:
     ):
         """Test CSV export with student report"""
         # Arrange
-        from documents.models import StudentReport, ProjectDocument
+        from documents.models import ProjectDocument, StudentReport
         from documents.tests.factories import AnnualReportFactory
 
         annual_report = AnnualReportFactory(year=2023)
@@ -982,7 +983,7 @@ class TestExportServiceAdditional:
     ):
         """Test CSV export with both progress and student reports"""
         # Arrange
-        from documents.models import ProgressReport, StudentReport, ProjectDocument
+        from documents.models import ProgressReport, ProjectDocument, StudentReport
         from documents.tests.factories import AnnualReportFactory
 
         annual_report = AnnualReportFactory(year=2023)
@@ -1123,7 +1124,7 @@ class TestProjectServiceAdditional:
     def test_parse_search_term_with_prefix_only(self, user, db):
         """Test parsing project tag with prefix only (CF)"""
         # Arrange
-        from common.tests.factories import ProjectFactory, BusinessAreaFactory
+        from common.tests.factories import BusinessAreaFactory, ProjectFactory
 
         business_area = BusinessAreaFactory()
         # Create a core_function project

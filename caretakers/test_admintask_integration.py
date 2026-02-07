@@ -5,13 +5,14 @@ Tests that AdminTask views (ApproveTask, RejectTask, CancelTask) work correctly
 with the new caretakers.models.Caretaker model.
 """
 
-from django.test import TestCase
-from django.utils import timezone
 from datetime import timedelta
 
-from users.models import User
+from django.test import TestCase
+from django.utils import timezone
+
 from adminoptions.models import AdminTask
 from caretakers.models import Caretaker
+from users.models import User
 
 
 class AdminTaskCaretakerIntegrationTest(TestCase):

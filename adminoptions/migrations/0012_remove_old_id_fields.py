@@ -6,11 +6,11 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('adminoptions', '0011_guidesection_adminoptions_guide_content_contentfield'),
+        ("adminoptions", "0011_guidesection_adminoptions_guide_content_contentfield"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='Caretaker',
+            name="Caretaker",
         ),
     ]

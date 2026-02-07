@@ -4,7 +4,6 @@ Tests for locations models
 
 import pytest
 from django.db import IntegrityError
-from django.core.exceptions import ValidationError
 
 from locations.models import Area
 

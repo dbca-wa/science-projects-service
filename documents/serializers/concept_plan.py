@@ -1,6 +1,7 @@
 """
 Concept plan serializers
 """
+
 from rest_framework import serializers
 
 from ..models import ConceptPlan
@@ -9,6 +10,7 @@ from .base import TinyProjectDocumentSerializer
 
 class TinyConceptPlanSerializer(serializers.ModelSerializer):
     """Minimal concept plan serializer"""
+
     document = TinyProjectDocumentSerializer()
 
     class Meta:
@@ -28,6 +30,7 @@ class TinyConceptPlanSerializer(serializers.ModelSerializer):
 
 class ConceptPlanSerializer(serializers.ModelSerializer):
     """Standard concept plan serializer"""
+
     document = TinyProjectDocumentSerializer()
 
     class Meta:
@@ -37,7 +40,7 @@ class ConceptPlanSerializer(serializers.ModelSerializer):
 
 class ConceptPlanCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating concept plans"""
-    
+
     class Meta:
         model = ConceptPlan
         fields = [
@@ -54,7 +57,7 @@ class ConceptPlanCreateSerializer(serializers.ModelSerializer):
 
 class ConceptPlanUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating concept plans"""
-    
+
     class Meta:
         model = ConceptPlan
         fields = [

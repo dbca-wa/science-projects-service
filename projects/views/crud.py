@@ -2,14 +2,12 @@
 Project CRUD views
 """
 
-from math import ceil
 from datetime import datetime as dt
 
 from django.conf import settings
 from django.db import transaction
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -18,34 +16,27 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
+from rest_framework.views import APIView
 
 from common.utils.pagination import paginate_queryset
+from medias.models import ProjectPhoto
+
+from ..permissions.project_permissions import CanEditProject
 from ..serializers import (
     CreateProjectSerializer,
-    ProjectSerializer,
-    ProjectDetailViewSerializer,
-    ProjectUpdateSerializer,
-    ProjectAreaSerializer,
-    ProjectMemberSerializer,
-    MiniProjectMemberSerializer,
-    ProjectDetailSerializer,
-    StudentProjectDetailSerializer,
-    TinyStudentProjectDetailSerializer,
     ExternalProjectDetailSerializer,
+    MiniProjectMemberSerializer,
+    ProjectAreaSerializer,
+    ProjectDetailSerializer,
+    ProjectDetailViewSerializer,
+    ProjectMemberSerializer,
+    ProjectSerializer,
+    ProjectUpdateSerializer,
+    StudentProjectDetailSerializer,
     TinyExternalProjectDetailSerializer,
+    TinyStudentProjectDetailSerializer,
 )
 from ..services.project_service import ProjectService
-from ..services.member_service import MemberService
-from ..services.details_service import DetailsService
-from ..services.area_service import AreaService
-from ..permissions.project_permissions import CanEditProject
-from medias.models import ProjectPhoto
-from medias.serializers import TinyProjectPhotoSerializer
-from documents.serializers import (
-    ProjectDocumentCreateSerializer,
-    ConceptPlanCreateSerializer,
-    ProjectPlanCreateSerializer,
-)
 
 
 class Projects(APIView):
@@ -135,7 +126,7 @@ class Projects(APIView):
             if image_data:
                 try:
                     file_path = ProjectService.handle_project_image(image_data)
-                    photo = ProjectPhoto.objects.create(
+                    ProjectPhoto.objects.create(
                         file=file_path,
                         uploader=request.user,
                         project=project,
@@ -231,18 +222,19 @@ class ProjectDetails(APIView):
 
     def get(self, request, pk):
         """Get full project details including project, details, documents, and members"""
-        from ..models import (
-            ProjectDetail,
-            StudentProjectDetails,
-            ExternalProjectDetails,
-            ProjectMember,
-        )
         from documents.models import (
             ConceptPlan,
-            ProjectPlan,
             ProgressReport,
-            StudentReport,
             ProjectClosure,
+            ProjectPlan,
+            StudentReport,
+        )
+
+        from ..models import (
+            ExternalProjectDetails,
+            ProjectDetail,
+            ProjectMember,
+            StudentProjectDetails,
         )
 
         # Get project

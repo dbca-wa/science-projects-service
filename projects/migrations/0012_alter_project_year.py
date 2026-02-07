@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('projects', '0011_project_hidden_from_staff_profiles'),
+        ("projects", "0011_project_hidden_from_staff_profiles"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='year',
-            field=models.PositiveIntegerField(default=2026, help_text='The project year with four digits, e.g. 2014'),
+            model_name="project",
+            name="year",
+            field=models.PositiveIntegerField(
+                default=2026, help_text="The project year with four digits, e.g. 2014"
+            ),
         ),
     ]

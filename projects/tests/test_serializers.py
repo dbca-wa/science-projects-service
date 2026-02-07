@@ -2,32 +2,36 @@
 Tests for project serializers
 """
 
-import pytest
-
+from projects.serializers.areas import ProjectAreaSerializer
 from projects.serializers.base import (
     CreateProjectSerializer,
+    PkAndKindOnlyProjectSerializer,
+    ProblematicProjectSerializer,
     ProjectSerializer,
     ProjectUpdateSerializer,
     TinyProjectSerializer,
-    ProblematicProjectSerializer,
     UserProfileProjectSerializer,
-    PkAndKindOnlyProjectSerializer,
 )
 from projects.serializers.details import (
+    ExternalProjectDetailSerializer,
     ProjectDetailSerializer,
     ProjectDetailViewSerializer,
-    TinyProjectDetailSerializer,
     StudentProjectDetailSerializer,
-    TinyStudentProjectDetailSerializer,
-    ExternalProjectDetailSerializer,
     TinyExternalProjectDetailSerializer,
+    TinyProjectDetailSerializer,
+    TinyStudentProjectDetailSerializer,
+)
+from projects.serializers.export import (
+    ARExternalProjectSerializer,
+    ARProjectSerializer,
+    ProjectDataTableSerializer,
+    TinyStudentProjectARSerializer,
 )
 from projects.serializers.members import (
+    MiniProjectMemberSerializer,
     ProjectMemberSerializer,
     TinyProjectMemberSerializer,
-    MiniProjectMemberSerializer,
 )
-from projects.serializers.areas import ProjectAreaSerializer
 
 
 class TestCreateProjectSerializer:
@@ -118,8 +122,8 @@ class TestProjectSerializer:
     def test_get_areas_empty(self, db):
         """Test get_areas returns empty list when no areas"""
         # Arrange
-        from projects.models import Project, ProjectArea
         from agencies.models import Agency, BusinessArea
+        from projects.models import Project, ProjectArea
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(
@@ -149,9 +153,9 @@ class TestProjectSerializer:
     def test_get_areas_with_areas(self, db):
         """Test get_areas returns area data when areas exist"""
         # Arrange
-        from projects.models import Project, ProjectArea
         from agencies.models import Agency, BusinessArea
         from locations.models import Area
+        from projects.models import Project, ProjectArea
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(
@@ -539,8 +543,8 @@ class TestMiniProjectMemberSerializer:
     def test_serialization(self, project_with_lead, project_lead, db):
         """Test serializing mini project member"""
         # Arrange
-        from users.models import UserProfile, UserWork
         from agencies.models import Affiliation
+        from users.models import UserProfile, UserWork
 
         # Ensure user has a profile
         if not hasattr(project_lead, "profile"):
@@ -570,9 +574,9 @@ class TestProjectAreaSerializer:
     def test_serialization_with_areas(self, db):
         """Test serializing project area with location data"""
         # Arrange
-        from projects.models import Project, ProjectArea
         from agencies.models import Agency, BusinessArea
         from locations.models import Area
+        from projects.models import Project, ProjectArea
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(
@@ -611,8 +615,8 @@ class TestProjectAreaSerializer:
     def test_serialization_empty_areas(self, db):
         """Test serializing project area with no areas"""
         # Arrange
-        from projects.models import Project, ProjectArea
         from agencies.models import Agency, BusinessArea
+        from projects.models import Project, ProjectArea
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(
@@ -640,18 +644,6 @@ class TestProjectAreaSerializer:
         # Assert
         assert data["id"] == project_area.id
         assert data["areas"] == []
-
-
-# ============================================================================
-# Export Serializers Tests
-# ============================================================================
-
-from projects.serializers.export import (
-    ARProjectSerializer,
-    ARExternalProjectSerializer,
-    TinyStudentProjectARSerializer,
-    ProjectDataTableSerializer,
-)
 
 
 class TestARProjectSerializer:
@@ -702,9 +694,9 @@ class TestARExternalProjectSerializer:
     def test_serialization(self, project_with_lead, project_lead, db):
         """Test serializing external project for annual report"""
         # Arrange
+        from agencies.models import Affiliation
         from projects.models import ExternalProjectDetails
         from users.models import UserProfile, UserWork
-        from agencies.models import Affiliation
 
         # Ensure user has profile and work
         if not hasattr(project_lead, "profile"):
@@ -734,9 +726,9 @@ class TestARExternalProjectSerializer:
     def test_get_partners_with_external_info(self, project_with_lead, project_lead, db):
         """Test get_partners returns collaboration_with"""
         # Arrange
+        from agencies.models import Affiliation
         from projects.models import ExternalProjectDetails
         from users.models import UserProfile, UserWork
-        from agencies.models import Affiliation
 
         # Ensure user has profile and work
         if not hasattr(project_lead, "profile"):
@@ -765,8 +757,8 @@ class TestARExternalProjectSerializer:
     ):
         """Test get_partners returns empty string when no external info"""
         # Arrange
-        from users.models import UserProfile, UserWork
         from agencies.models import Affiliation
+        from users.models import UserProfile, UserWork
 
         # Ensure user has profile and work
         if not hasattr(project_lead, "profile"):
@@ -789,9 +781,9 @@ class TestARExternalProjectSerializer:
     def test_get_funding_with_external_info(self, project_with_lead, project_lead, db):
         """Test get_funding returns budget"""
         # Arrange
+        from agencies.models import Affiliation
         from projects.models import ExternalProjectDetails
         from users.models import UserProfile, UserWork
-        from agencies.models import Affiliation
 
         # Ensure user has profile and work
         if not hasattr(project_lead, "profile"):
@@ -820,8 +812,8 @@ class TestARExternalProjectSerializer:
     ):
         """Test get_funding returns empty string when no external info"""
         # Arrange
-        from users.models import UserProfile, UserWork
         from agencies.models import Affiliation
+        from users.models import UserProfile, UserWork
 
         # Ensure user has profile and work
         if not hasattr(project_lead, "profile"):
@@ -960,8 +952,8 @@ class TestTinyStudentProjectARSerializer:
     def test_serialization_with_image(self, project, mock_image, db):
         """Test serializing student project with image"""
         # Arrange
-        from projects.models import StudentProjectDetails
         from medias.models import ProjectPhoto
+        from projects.models import StudentProjectDetails
 
         StudentProjectDetails.objects.create(
             project=project,
@@ -1094,8 +1086,8 @@ class TestProjectDataTableSerializer:
     def test_get_role_not_in_context(self, db):
         """Test get_role returns None when project not in context"""
         # Arrange
-        from projects.models import Project
         from agencies.models import Agency, BusinessArea
+        from projects.models import Project
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(
@@ -1164,8 +1156,8 @@ class TestProjectDataTableSerializer:
     def test_get_description_external_project(self, db):
         """Test get_description returns external description for external project"""
         # Arrange
-        from projects.models import Project, ExternalProjectDetails
         from agencies.models import Agency, BusinessArea
+        from projects.models import ExternalProjectDetails, Project
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(
@@ -1202,8 +1194,8 @@ class TestProjectDataTableSerializer:
     def test_get_description_external_project_no_info(self, db):
         """Test get_description returns empty string for external project without info"""
         # Arrange
-        from projects.models import Project
         from agencies.models import Agency, BusinessArea
+        from projects.models import Project
 
         agency = Agency.objects.create(name="Test Agency")
         business_area = BusinessArea.objects.create(

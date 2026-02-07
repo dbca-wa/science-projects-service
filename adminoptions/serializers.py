@@ -1,16 +1,11 @@
 # region IMPORTS ====================================================================================================
 from rest_framework import serializers
-from adminoptions.models import (
-    AdminOptions,
-    AdminTask,
-    GuideSection,
-    ContentField,
-)
-from caretakers.models import Caretaker
+
+from adminoptions.models import AdminOptions, AdminTask, ContentField, GuideSection
 from medias.serializers import UserAvatarSerializer
 from projects.models import Project
 from users.models import User
-from users.serializers import BasicUserSerializer, MiniUserSerializer
+from users.serializers import MiniUserSerializer
 
 # endregion  =================================================================================================
 
@@ -148,6 +143,7 @@ class AdminOptionsMaintainerSerializer(serializers.ModelSerializer):
 
 class AdminOptionsCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating/updating AdminOptions with writable maintainer field"""
+
     maintainer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
@@ -212,9 +208,9 @@ class AdminOptionsSerializer(serializers.ModelSerializer):
 
 
 class IAdminTaskRequesterSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)
+    id = serializers.IntegerField(source="pk", read_only=True)
     image = UserAvatarSerializer(source="avatar")
-    
+
     class Meta:
         model = User
         fields = ["id", "display_first_name", "display_last_name", "email", "image"]
@@ -230,15 +226,15 @@ class AdminTaskRequestCreationSerializer(serializers.ModelSerializer):
 
 
 class IAdminTaskProjectSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)
-    
+    id = serializers.IntegerField(source="pk", read_only=True)
+
     class Meta:
         model = Project
         fields = ["id", "title"]
 
 
 class SecondaryUserSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)
+    id = serializers.IntegerField(source="pk", read_only=True)
     image = UserAvatarSerializer(source="avatar")
 
     class Meta:
@@ -247,7 +243,9 @@ class SecondaryUserSerializer(serializers.ModelSerializer):
 
 
 class AdminTaskSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)  # Explicitly use 'id' for consistency
+    id = serializers.IntegerField(
+        source="pk", read_only=True
+    )  # Explicitly use 'id' for consistency
     requester = IAdminTaskRequesterSerializer()
     primary_user = SecondaryUserSerializer()
     project = IAdminTaskProjectSerializer()
@@ -265,7 +263,5 @@ class AdminTaskSerializer(serializers.ModelSerializer):
 
 
 # Import CaretakerSerializer from the new caretakers app
-from caretakers.serializers import CaretakerSerializer
-
 
 # endregion  =================================================================================================

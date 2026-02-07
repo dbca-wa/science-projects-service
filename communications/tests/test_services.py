@@ -1,13 +1,13 @@
 """
 Tests for communication services
 """
+
 import pytest
-from unittest.mock import Mock, patch
 from django.contrib.auth import get_user_model
 from rest_framework.exceptions import NotFound, PermissionDenied
 
+from communications.models import ChatRoom, Comment, DirectMessage, Reaction
 from communications.services.communication_service import CommunicationService
-from communications.models import ChatRoom, DirectMessage, Comment, Reaction
 
 User = get_user_model()
 
@@ -19,7 +19,7 @@ class TestChatRoomService:
         """Test listing all chat rooms"""
         # Act
         rooms = CommunicationService.list_chat_rooms()
-        
+
         # Assert
         assert rooms.count() == 1
         assert chat_room in rooms
@@ -28,7 +28,7 @@ class TestChatRoomService:
         """Test getting chat room by ID"""
         # Act
         room = CommunicationService.get_chat_room(chat_room.id)
-        
+
         # Assert
         assert room.id == chat_room.id
 
@@ -42,10 +42,10 @@ class TestChatRoomService:
         """Test creating a chat room"""
         # Arrange
         data = {}
-        
+
         # Act
         room = CommunicationService.create_chat_room(user, data)
-        
+
         # Assert
         assert room.id is not None
         assert ChatRoom.objects.filter(id=room.id).exists()
@@ -54,10 +54,10 @@ class TestChatRoomService:
         """Test updating a chat room"""
         # Arrange
         data = {}
-        
+
         # Act
         updated = CommunicationService.update_chat_room(chat_room.id, user, data)
-        
+
         # Assert
         assert updated.id == chat_room.id
 
@@ -65,10 +65,10 @@ class TestChatRoomService:
         """Test deleting a chat room"""
         # Arrange
         room_id = chat_room.id
-        
+
         # Act
         CommunicationService.delete_chat_room(room_id, user)
-        
+
         # Assert
         assert not ChatRoom.objects.filter(id=room_id).exists()
 
@@ -80,7 +80,7 @@ class TestDirectMessageService:
         """Test listing all direct messages"""
         # Act
         messages = CommunicationService.list_direct_messages()
-        
+
         # Assert
         assert messages.count() == 1
         assert direct_message in messages
@@ -89,10 +89,10 @@ class TestDirectMessageService:
         """Test getting direct message by ID"""
         # Act
         message = CommunicationService.get_direct_message(direct_message.id)
-        
+
         # Assert
         assert message.id == direct_message.id
-        assert message.text == 'Test message'
+        assert message.text == "Test message"
 
     def test_get_direct_message_not_found(self, db):
         """Test getting non-existent direct message raises NotFound"""
@@ -104,41 +104,43 @@ class TestDirectMessageService:
         """Test creating a direct message"""
         # Arrange
         data = {
-            'text': 'New message',
-            'user': user,
-            'chat_room': chat_room,
-            'ip_address': '192.168.1.1',
+            "text": "New message",
+            "user": user,
+            "chat_room": chat_room,
+            "ip_address": "192.168.1.1",
         }
-        
+
         # Act
         message = CommunicationService.create_direct_message(user, data)
-        
+
         # Assert
         assert message.id is not None
-        assert message.text == 'New message'
+        assert message.text == "New message"
         assert message.user == user
         assert message.chat_room == chat_room
 
     def test_update_direct_message(self, direct_message, user, db):
         """Test updating a direct message"""
         # Arrange
-        data = {'text': 'Updated message'}
-        
+        data = {"text": "Updated message"}
+
         # Act
-        updated = CommunicationService.update_direct_message(direct_message.id, user, data)
-        
+        updated = CommunicationService.update_direct_message(
+            direct_message.id, user, data
+        )
+
         # Assert
         assert updated.id == direct_message.id
-        assert updated.text == 'Updated message'
+        assert updated.text == "Updated message"
 
     def test_delete_direct_message(self, direct_message, user, db):
         """Test deleting a direct message"""
         # Arrange
         message_id = direct_message.id
-        
+
         # Act
         CommunicationService.delete_direct_message(message_id, user)
-        
+
         # Assert
         assert not DirectMessage.objects.filter(id=message_id).exists()
 
@@ -150,7 +152,7 @@ class TestCommentService:
         """Test listing all comments"""
         # Act
         comments = CommunicationService.list_comments()
-        
+
         # Assert
         assert comments.count() == 1
         assert comment in comments
@@ -159,10 +161,10 @@ class TestCommentService:
         """Test getting comment by ID"""
         # Act
         result = CommunicationService.get_comment(comment.id)
-        
+
         # Assert
         assert result.id == comment.id
-        assert result.text == 'Test comment'
+        assert result.text == "Test comment"
 
     def test_get_comment_not_found(self, db):
         """Test getting non-existent comment raises NotFound"""
@@ -174,41 +176,41 @@ class TestCommentService:
         """Test creating a comment"""
         # Arrange
         data = {
-            'user': user,
-            'document': project_document,
-            'text': 'New comment',
-            'ip_address': '192.168.1.1',
+            "user": user,
+            "document": project_document,
+            "text": "New comment",
+            "ip_address": "192.168.1.1",
         }
-        
+
         # Act
         comment = CommunicationService.create_comment(user, data)
-        
+
         # Assert
         assert comment.id is not None
-        assert comment.text == 'New comment'
+        assert comment.text == "New comment"
         assert comment.user == user
         assert comment.document == project_document
 
     def test_update_comment(self, comment, user, db):
         """Test updating a comment"""
         # Arrange
-        data = {'text': 'Updated comment'}
-        
+        data = {"text": "Updated comment"}
+
         # Act
         updated = CommunicationService.update_comment(comment.id, user, data)
-        
+
         # Assert
         assert updated.id == comment.id
-        assert updated.text == 'Updated comment'
+        assert updated.text == "Updated comment"
 
     def test_delete_comment_by_creator(self, comment, user, db):
         """Test deleting comment by creator"""
         # Arrange
         comment_id = comment.id
-        
+
         # Act
         CommunicationService.delete_comment(comment_id, user)
-        
+
         # Assert
         assert not Comment.objects.filter(id=comment_id).exists()
 
@@ -216,17 +218,19 @@ class TestCommentService:
         """Test deleting comment by superuser"""
         # Arrange
         comment_id = comment.id
-        
+
         # Act
         CommunicationService.delete_comment(comment_id, superuser)
-        
+
         # Assert
         assert not Comment.objects.filter(id=comment_id).exists()
 
     def test_delete_comment_permission_denied(self, comment, other_user, db):
         """Test deleting comment by non-creator raises PermissionDenied"""
         # Act & Assert
-        with pytest.raises(PermissionDenied, match="You do not have permission to delete this comment"):
+        with pytest.raises(
+            PermissionDenied, match="You do not have permission to delete this comment"
+        ):
             CommunicationService.delete_comment(comment.id, other_user)
 
 
@@ -237,7 +241,7 @@ class TestReactionService:
         """Test listing all reactions"""
         # Act
         reactions = CommunicationService.list_reactions()
-        
+
         # Assert
         assert reactions.count() == 1
         assert reaction_on_comment in reactions
@@ -246,7 +250,7 @@ class TestReactionService:
         """Test getting reaction by ID"""
         # Act
         reaction = CommunicationService.get_reaction(reaction_on_comment.id)
-        
+
         # Assert
         assert reaction.id == reaction_on_comment.id
         assert reaction.reaction == Reaction.ReactionChoices.THUMBUP
@@ -261,10 +265,9 @@ class TestReactionService:
         """Test toggling reaction creates new reaction"""
         # Act
         reaction, was_deleted = CommunicationService.toggle_comment_reaction(
-            user_id=user.id,
-            comment_id=comment.id
+            user_id=user.id, comment_id=comment.id
         )
-        
+
         # Assert
         assert was_deleted is False
         assert reaction is not None
@@ -280,13 +283,12 @@ class TestReactionService:
             comment=comment,
             reaction=Reaction.ReactionChoices.THUMBUP,
         )
-        
+
         # Act
         reaction, was_deleted = CommunicationService.toggle_comment_reaction(
-            user_id=user.id,
-            comment_id=comment.id
+            user_id=user.id, comment_id=comment.id
         )
-        
+
         # Assert
         assert was_deleted is True
         assert reaction is None
@@ -295,11 +297,13 @@ class TestReactionService:
     def test_update_reaction(self, reaction_on_comment, user, db):
         """Test updating a reaction"""
         # Arrange
-        data = {'reaction': Reaction.ReactionChoices.HEART}
-        
+        data = {"reaction": Reaction.ReactionChoices.HEART}
+
         # Act
-        updated = CommunicationService.update_reaction(reaction_on_comment.id, user, data)
-        
+        updated = CommunicationService.update_reaction(
+            reaction_on_comment.id, user, data
+        )
+
         # Assert
         assert updated.id == reaction_on_comment.id
         assert updated.reaction == Reaction.ReactionChoices.HEART
@@ -308,10 +312,10 @@ class TestReactionService:
         """Test deleting a reaction"""
         # Arrange
         reaction_id = reaction_on_comment.id
-        
+
         # Act
         CommunicationService.delete_reaction(reaction_id, user)
-        
+
         # Assert
         assert not Reaction.objects.filter(id=reaction_id).exists()
 
@@ -326,7 +330,7 @@ class TestReactionValidation:
             user=user,
             reaction=Reaction.ReactionChoices.THUMBUP,
         )
-        
+
         # Act & Assert
         with pytest.raises(Exception):  # ValidationError
             reaction.save()
@@ -340,7 +344,7 @@ class TestReactionValidation:
             direct_message=direct_message,
             reaction=Reaction.ReactionChoices.THUMBUP,
         )
-        
+
         # Act & Assert
         with pytest.raises(Exception):  # ValidationError
             reaction.save()
@@ -353,10 +357,10 @@ class TestReactionValidation:
             comment=comment,
             reaction=Reaction.ReactionChoices.THUMBUP,
         )
-        
+
         # Act
         reaction.save()
-        
+
         # Assert
         assert reaction.id is not None
         assert reaction.comment == comment
@@ -370,10 +374,10 @@ class TestReactionValidation:
             direct_message=direct_message,
             reaction=Reaction.ReactionChoices.HEART,
         )
-        
+
         # Act
         reaction.save()
-        
+
         # Assert
         assert reaction.id is not None
         assert reaction.direct_message == direct_message

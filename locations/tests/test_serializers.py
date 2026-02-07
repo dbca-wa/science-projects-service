@@ -2,9 +2,6 @@
 Tests for locations serializers
 """
 
-import pytest
-from django.core.exceptions import ValidationError
-
 from locations.models import Area
 from locations.serializers import AreaSerializer, TinyAreaSerializer
 
